@@ -1,0 +1,35 @@
+# Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
+pkgname=okaru
+pkgver=1.0.0
+pkgrel=1
+pkgdesc='OKARU (郁): shell de escritorio Wayland'
+arch=(x86_64)
+url='https://github.com/MrAndyVF/okaru'
+license=(MIT)
+depends=(bash cairo curl fontconfig freetype2 git glib2 glibc harfbuzz hicolor-icon-theme jemalloc libgcc libglvnd
+         libical libjxl libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
+         libxkbcommon libxml2 md4c pam polkit pango sdbus-cpp tomlplusplus wayland)
+makedepends=(meson ninja cmake pkgconf wayland-protocols stb just)
+optdepends=('ddcutil: brillo de monitores externos')
+source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
+sha256sums=(SKIP)
+
+pkgver() {
+  cd okaru
+  git describe --long --tags --abbrev=9 | sed 's/^v//; s/-\([0-9]*\)-g/.r\1.g/'
+}
+
+build() {
+  arch-meson okaru build -Dtests=disabled
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+  install -Dm644 okaru/LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  local bin="$pkgdir/usr/bin/okaru"
+  install -d "$pkgdir"/usr/share/{bash-completion/completions,fish/vendor_completions.d,zsh/site-functions}
+  "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"
+  "$bin" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/okaru.fish"
+  "$bin" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_okaru"
+}

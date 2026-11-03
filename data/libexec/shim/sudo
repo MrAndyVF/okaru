@@ -1,0 +1,4 @@
+#!/bin/sh
+# OKARU: va primero en el PATH de las herramientas que llaman a sudo sin terminal (hyprpm);
+# -A hace que sudo pida la contraseña con SUDO_ASKPASS, el diálogo de OKARU.
+exec /usr/bin/sudo -A "$@"

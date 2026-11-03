@@ -1,0 +1,11 @@
+[Desktop Entry]
+Categories=Graphics;ImageProcessing;
+Comment=Edit images with OKARU's built-in image annotator
+Exec=okaru msg annotate %f
+Icon=okaru
+MimeType=image/bmp;image/gif;image/vnd.microsoft.icon;image/jpeg;image/jxl;image/png;image/qoi;image/svg+xml;image/x-tga;image/webp;image/vnd.wap.wbmp;image/x-portable-anymap;image/x-portable-graymap;image/x-portable-pixmap;
+Name=OKARU Image Annotator
+NoDisplay=true
+Terminal=false
+Type=Application
+Version=1.5

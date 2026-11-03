@@ -1,0 +1,153 @@
+[config]
+
+[catalog.alacritty]
+name = "Alacritty"
+category = "terminal"
+
+[catalog.btop]
+name = "Btop"
+category = "misc"
+
+[catalog.cava]
+name = "Cava"
+category = "audio"
+
+[catalog.emacs]
+name = "Emacs"
+category = "editor"
+
+[catalog.foot]
+name = "Foot"
+category = "terminal"
+
+[catalog.ghostty]
+name = "Ghostty"
+category = "terminal"
+
+[catalog.gtk3]
+name = "GTK 3"
+category = "system"
+
+[catalog.gtk4]
+name = "GTK 4"
+category = "system"
+
+[catalog.helix]
+name = "Helix"
+category = "editor"
+
+[catalog.kcolorscheme]
+name = "KColorScheme"
+category = "system"
+
+[catalog.kitty]
+name = "Kitty"
+category = "terminal"
+
+[catalog.niri]
+name = "Niri"
+category = "compositor"
+
+[catalog.hyprland]
+name = "Hyprland"
+category = "compositor"
+
+[catalog.qt]
+name = "Qt"
+category = "system"
+
+[catalog.wezterm]
+name = "Wezterm"
+category = "terminal"
+
+[templates.alacritty]
+input_path = "./alacritty/alacritty.toml"
+output_path = "$XDG_CONFIG_HOME/alacritty/themes/okaru.toml"
+post_hook = "bash '{{ config_dir }}/alacritty/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/alacritty/undo.sh'"
+
+[templates.btop]
+input_path = "./btop/btop.theme"
+output_path = "$XDG_CONFIG_HOME/btop/themes/okaru.theme"
+post_hook = "bash '{{ config_dir }}/btop/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/btop/undo.sh'"
+
+[templates.cava]
+input_path = "./cava/cava.ini"
+output_path = "$XDG_CONFIG_HOME/cava/themes/okaru"
+post_hook = "bash '{{ config_dir }}/cava/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/cava/undo.sh'"
+
+[templates.emacs]
+input_path = "./emacs/emacs.el"
+output_path_dynamic = "bash '{{ config_dir }}/emacs/output-path.sh'"
+post_hook = "bash '{{ config_dir }}/emacs/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/emacs/undo.sh'"
+
+[templates.foot]
+input_path = "./foot/foot"
+output_path = "$XDG_CONFIG_HOME/foot/themes/okaru"
+post_hook = "bash '{{ config_dir }}/foot/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/foot/undo.sh'"
+
+[templates.ghostty]
+input_path = "./ghostty/ghostty"
+output_path = "$XDG_CONFIG_HOME/ghostty/themes/okaru"
+post_hook = "bash '{{ config_dir }}/ghostty/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/ghostty/undo.sh'"
+
+[templates.gtk3]
+input_path = "./gtk/gtk3.css"
+output_path = "$XDG_CONFIG_HOME/gtk-3.0/okaru.css"
+# gtk3 and gtk4 drive the same apply.sh, which rewrites both gtk.css files: keep the two
+# invocations from overlapping.
+post_hook = "bash '{{ config_dir }}/gtk/apply.sh' {{ mode }}"
+hook_async = false
+undo_hook = "bash '{{ config_dir }}/gtk/undo-gtk3.sh'"
+
+[templates.gtk4]
+input_path = "./gtk/gtk4.css"
+output_path = "$XDG_CONFIG_HOME/gtk-4.0/okaru.css"
+post_hook = "bash '{{ config_dir }}/gtk/apply.sh' {{ mode }}"
+hook_async = false
+undo_hook = "bash '{{ config_dir }}/gtk/undo-gtk4.sh'"
+
+[templates.helix]
+input_path = "./helix/helix.toml"
+output_path = "$XDG_CONFIG_HOME/helix/themes/okaru.toml"
+undo_hook = "bash '{{ config_dir }}/helix/undo.sh'"
+
+[templates.kcolorscheme]
+input_path = "./kde/kcolorscheme.colors"
+output_path = "$XDG_DATA_HOME/color-schemes/okaru.colors"
+post_action = "kde-color-scheme"
+undo_hook = "bash '{{ config_dir }}/kde/undo.sh'"
+
+[templates.kitty]
+input_path = "./kitty/kitty.conf"
+output_path = "$XDG_CONFIG_HOME/kitty/themes/okaru.conf"
+post_hook = "bash '{{ config_dir }}/kitty/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/kitty/undo.sh'"
+
+[templates.niri]
+input_path = "./niri/niri.kdl"
+output_path_dynamic = "bash '{{ config_dir }}/niri/apply.sh' output"
+post_hook = "bash '{{ config_dir }}/niri/apply.sh' apply"
+undo_hook = "bash '{{ config_dir }}/niri/undo.sh'"
+
+[templates.hyprland]
+input_path_dynamic = "bash '{{ config_dir }}/hyprland/apply.sh' input"
+output_path_dynamic = "bash '{{ config_dir }}/hyprland/apply.sh' output"
+post_hook = "bash '{{ config_dir }}/hyprland/apply.sh' apply"
+undo_hook = "bash '{{ config_dir }}/hyprland/undo.sh'"
+
+[templates.qt]
+input_path = "./qt/qtct.conf"
+output_path = ["$XDG_CONFIG_HOME/qt5ct/colors/okaru.conf", "$XDG_CONFIG_HOME/qt6ct/colors/okaru.conf"]
+undo_hook = "bash '{{ config_dir }}/qt/undo.sh'"
+
+[templates.wezterm]
+input_path = "./wezterm/wezterm.toml"
+output_path = "$XDG_CONFIG_HOME/wezterm/colors/OKARU.toml"
+post_hook = "bash '{{ config_dir }}/wezterm/apply.sh'"
+undo_hook = "bash '{{ config_dir }}/wezterm/undo.sh'"

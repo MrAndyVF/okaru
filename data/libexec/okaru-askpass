@@ -1,0 +1,3 @@
+#!/bin/sh
+# OKARU: SUDO_ASKPASS que pide la contraseña con el diálogo de la shell (okaru askpass).
+exec /usr/bin/okaru askpass "$@"

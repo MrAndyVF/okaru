@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=OKARU
+Comment=A sleek, customizable desktop shell crafted for Wayland.
+Exec=okaru --daemon
+Icon=okaru
+Terminal=false
+Categories=Settings;DesktopSettings;
+StartupNotify=false
+Actions=Settings;
+Keywords=desktop;shell;wayland;
+
+[Desktop Action Settings]
+Name=Open Settings
+Exec=sh -c "okaru msg settings-open || { okaru --daemon && okaru msg settings-open; }"

@@ -1,0 +1,18 @@
+---
+title: Plugin API Versions
+description: See which plugin capabilities each API level introduced and which OKARU version first shipped them.
+sidebar:
+  label: Plugin API Versions
+  order: 6
+---
+
+import PluginApiTable from '../../../../../components/PluginApiTable.astro';
+import PluginApiRange from '../../../../../components/PluginApiRange.astro';
+
+Every plugin declares the oldest API level it requires with `plugin_api` in `plugin.toml`. API levels are cumulative: use the oldest level that includes every capability your plugin needs to keep it compatible with as many OKARU versions as possible.
+
+<PluginApiTable />
+
+OKARU currently supports plugin API levels <PluginApiRange />. A plugin version declaring a level outside that range cannot run.
+
+Raising a plugin's level therefore drops it from every OKARU below it. A source repo can keep those users covered by publishing older revisions in its catalog: OKARU then installs the newest revision of the plugin its own API range allows, labels it in the store as an older version, and moves the user up to the newest one once they upgrade OKARU. See [keeping older OKARU versions supported](/okaru/plugins/development/workflow/#keeping-older-okaru-versions-supported).
