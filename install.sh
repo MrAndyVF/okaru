@@ -11,7 +11,7 @@ set -euo pipefail
 readonly REPO_URL="https://github.com/MrAndyVF/okaru/releases/download/repo"
 readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packaging/keys/okaru.asc"
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
-readonly KEY_FPR="PENDIENTE"
+readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS="/usr/share/okaru/defaults/hypr"
 readonly BASE_PACKAGES=(hyprland uwsm kitty nautilus xdg-desktop-portal-hyprland xdg-desktop-portal-gtk)
 readonly PHONE_PACKAGES=(kdeconnect sshfs)
