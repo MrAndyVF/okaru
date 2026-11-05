@@ -45,6 +45,7 @@
 #include "shell/launcher/launcher_panel.h"
 #include "capture/okaru_recorder.h"
 #include "shell/okaru_auth/okaru_auth_controller.h"
+#include "shell/okaru_auth/okaru_vpn_auth.h"
 #include "shell/control_center/tabs/screen_time_tab.h"
 #include "shell/okaru_capture/okaru_capture_panel.h"
 #include "shell/okaru_panels/okaru_ports_tab.h"
@@ -782,8 +783,11 @@ void Application::initPanelManagerAndPanels() {
   m_panelManager.registerPanel("polkit", std::make_unique<PolkitPanel>(&m_configService, [this] {
                                  return m_polkitAgent.get();
                                }));
-  // OKARU: diálogo de contraseña propio (sudo vía okaru askpass; más adelante la VPN).
+  // OKARU: diálogo de contraseña propio (sudo vía okaru askpass y credenciales de VPN).
   m_okaruAuth = std::make_unique<okaru::auth::AuthController>(m_ipcService, m_panelManager, m_compositorPlatform);
+  if (m_networkSecretAgent != nullptr) {
+    m_okaruVpnAuth = std::make_unique<okaru::auth::VpnAuthFlow>(*m_networkSecretAgent, m_okaruAuth->service());
+  }
   m_panelManager.registerPanel(
       okaru::auth::kPanelId, std::make_unique<OkaruAuthPanel>(&m_configService, &m_okaruAuth->service())
   );

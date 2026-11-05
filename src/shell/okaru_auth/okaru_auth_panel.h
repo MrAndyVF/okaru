@@ -49,6 +49,7 @@ private:
   bool m_revealed = false;
 
   Flex* m_rootLayout = nullptr;
+  Label* m_titleLabel = nullptr;
   Label* m_messageLabel = nullptr;
   Label* m_requesterLabel = nullptr;
   Label* m_promptLabel = nullptr;

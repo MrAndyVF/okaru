@@ -40,6 +40,7 @@
 #include "scripting/plugin_ipc.h"
 #include "scripting/plugin_runtime_context.h"
 #include "shell/okaru_auth/okaru_auth_controller.h" // OKARU
+#include "shell/okaru_auth/okaru_vpn_auth.h"
 #include "shell/clipboard/clipboard_panel.h"
 #include "shell/greeter/greeter_appearance_sync.h"
 #include "shell/launcher/launcher_panel.h"

@@ -42,6 +42,39 @@ namespace {
   constexpr auto kEnterpriseSettingName = "802-1x";
   constexpr auto kPskKey = "psk";
   constexpr auto kEapPasswordKey = "password";
+  constexpr auto kVpnSettingName = "vpn";
+
+  std::string stringField(const SecretsDict& connection, const char* setting, const char* key) {
+    const auto settingIt = connection.find(setting);
+    if (settingIt == connection.end()) {
+      return {};
+    }
+    const auto it = settingIt->second.find(key);
+    if (it == settingIt->second.end()) {
+      return {};
+    }
+    try {
+      return it->second.get<std::string>();
+    } catch (const sdbus::Error&) {
+      return {};
+    }
+  }
+
+  std::map<std::string, std::string> vpnData(const SecretsDict& connection) {
+    const auto vpnIt = connection.find(kVpnSettingName);
+    if (vpnIt == connection.end()) {
+      return {};
+    }
+    const auto it = vpnIt->second.find("data");
+    if (it == vpnIt->second.end()) {
+      return {};
+    }
+    try {
+      return it->second.get<std::map<std::string, std::string>>();
+    } catch (const sdbus::Error&) {
+      return {};
+    }
+  }
 
   std::string extractSsid(const SecretsDict& connection) {
     auto wifiIt = connection.find(kWirelessSettingName);
@@ -68,6 +101,8 @@ struct NetworkSecretAgent::Impl {
   std::unique_ptr<sdbus::IProxy> nameWatcher;
   bool registered = false;
   RequestCallback requestCallback;
+  VpnRequestCallback vpnRequestCallback;
+  std::function<void()> vpnCancelled;
   std::optional<sdbus::Result<SecretsDict>> pendingResult;
   std::string pendingSettingName;
 
@@ -89,7 +124,7 @@ struct NetworkSecretAgent::Impl {
 
   void onGetSecrets(
       sdbus::Result<SecretsDict>&& result, const SecretsDict& connection, sdbus::ObjectPath connectionPath,
-      std::string settingName, const std::vector<std::string>& /*hints*/, std::uint32_t flags
+      std::string settingName, const std::vector<std::string>& hints, std::uint32_t flags
   ) {
     if ((flags & kNmSecretAgentGetSecretsFlagAllowInteraction) == 0U) {
       kLog.debug("GetSecrets without ALLOW_INTERACTION -> NoSecrets");
@@ -104,7 +139,8 @@ struct NetworkSecretAgent::Impl {
     // NM asks for the pre-shared key under "802-11-wireless-security" and for EAP
     // credentials under "802-1x". Rejecting the latter is what leaves an
     // enterprise profile unable to re-authenticate after its password changes.
-    if (settingName != kWirelessSecuritySettingName && settingName != kEnterpriseSettingName) {
+    const bool isVpn = settingName == kVpnSettingName && vpnRequestCallback;
+    if (!isVpn && settingName != kWirelessSecuritySettingName && settingName != kEnterpriseSettingName) {
       kLog.debug("GetSecrets for unsupported setting \"{}\" -> NoSecrets", settingName);
       result.returnError(
           sdbus::Error{
@@ -121,6 +157,21 @@ struct NetworkSecretAgent::Impl {
               "another secret request is already pending"
           }
       );
+      return;
+    }
+
+    if (isVpn) {
+      VpnRequest request{
+          .name = stringField(connection, "connection", "id"),
+          .uuid = stringField(connection, "connection", "uuid"),
+          .serviceType = stringField(connection, kVpnSettingName, "service-type"),
+          .data = vpnData(connection),
+          .hints = hints,
+      };
+      kLog.info("GetSecrets VPN prompt name=\"{}\" service={}", request.name, request.serviceType);
+      pendingResult = std::move(result);
+      pendingSettingName = settingName;
+      vpnRequestCallback(request);
       return;
     }
 
@@ -184,7 +235,11 @@ NetworkSecretAgent::NetworkSecretAgent(SystemBus& bus) : m_impl(std::make_unique
           sdbus::registerMethod("CancelGetSecrets")
               .withInputParamNames("connection_path", "setting_name")
               .implementedAs([this](const sdbus::ObjectPath& /*connectionPath*/, const std::string& /*settingName*/) {
+                const bool wasVpn = m_impl->pendingSettingName == kVpnSettingName;
                 m_impl->cancelPending("NM canceled");
+                if (wasVpn && m_impl->vpnCancelled) {
+                  m_impl->vpnCancelled();
+                }
               }),
           sdbus::registerMethod("SaveSecrets")
               .withInputParamNames("connection", "connection_path")
@@ -246,6 +301,24 @@ void NetworkSecretAgent::cancelSecret() {
   if (m_impl != nullptr) {
     m_impl->cancelPending("user canceled");
   }
+}
+
+void NetworkSecretAgent::setVpnRequestCallback(VpnRequestCallback callback, std::function<void()> onCancelled) {
+  if (m_impl != nullptr) {
+    m_impl->vpnRequestCallback = std::move(callback);
+    m_impl->vpnCancelled = std::move(onCancelled);
+  }
+}
+
+void NetworkSecretAgent::submitVpnSecrets(const std::map<std::string, std::string>& secrets) {
+  if (m_impl == nullptr || !m_impl->pendingResult.has_value() || m_impl->pendingSettingName != kVpnSettingName) {
+    return;
+  }
+  SecretsDict reply;
+  reply[kVpnSettingName]["secrets"] = sdbus::Variant{secrets};
+  m_impl->pendingResult->returnResults(reply);
+  m_impl->pendingResult.reset();
+  m_impl->pendingSettingName.clear();
 }
 
 bool NetworkSecretAgent::hasPendingRequest() const noexcept {

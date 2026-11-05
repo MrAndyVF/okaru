@@ -69,14 +69,31 @@ namespace okaru::auth {
       wipe(secret);
       return;
     }
+    if (entry->request.onDone) {
+      finish(*entry, {.kind = AuthResultKind::Answered, .secret = std::move(secret)});
+      return;
+    }
     entry->state = AuthResultKind::Answered;
     entry->secret = std::move(secret);
     changed();
   }
 
+  void AuthPromptService::finish(Entry& entry, AuthResult result) {
+    // Se quita antes de avisar: el aviso puede abrir la siguiente solicitud.
+    auto onDone = std::move(entry.request.onDone);
+    erase(std::string(entry.request.id));
+    changed();
+    onDone(std::move(result));
+    wipe(result.secret);
+  }
+
   void AuthPromptService::cancel(std::string_view id) {
     Entry* entry = find(id);
     if (entry == nullptr || entry->state != AuthResultKind::Pending) {
+      return;
+    }
+    if (entry->request.onDone) {
+      finish(*entry, {.kind = AuthResultKind::Cancelled, .secret = {}});
       return;
     }
     entry->state = AuthResultKind::Cancelled;
@@ -106,7 +123,7 @@ namespace okaru::auth {
     const auto before = m_entries.size();
     std::vector<std::string> dead;
     for (const auto& entry : m_entries) {
-      if (now - entry.touched > kClientTimeout) {
+      if (!entry.request.onDone && now - entry.touched > kClientTimeout) {
         dead.push_back(entry.request.id);
       }
     }

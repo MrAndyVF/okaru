@@ -7,7 +7,6 @@
   },
   "notifications": {
     "a_connection": "connection",
-    "asking_secrets": "{name} needs a password - asking for it in a terminal.",
     "auto_connect_failed": "VPN auto-connect failed",
     "auto_disconnect_failed": "VPN auto-disconnect failed",
     "connect_failed": "VPN connect failed",
@@ -20,7 +19,7 @@
     "import_failed": "Could not import VPN",
     "imported": "Imported {name}.",
     "install_hint": "Install '{package}' and try again.",
-    "needs_secrets": "{name} needs a password and no secret agent is running. Save it with 'nmcli connection modify {name} vpn.secrets password=… vpn.data password-flags=0', or connect it by hand once.",
+    "needs_secrets": "{name} needs a password and it was not entered. Connect again to be asked, or save it with 'nmcli connection modify {name} vpn.secrets password=… vpn.data password-flags=0', or connect it by hand once.",
     "no_data_dir": "No writable plugin data directory.",
     "no_default": "No default VPN set. Open the VPN panel and tap the star on a connection first.",
     "no_editor": "No connection editor found. Install nm-connection-editor or nmtui.",
