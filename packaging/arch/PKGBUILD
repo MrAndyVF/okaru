@@ -9,7 +9,7 @@ license=(MIT)
 depends=(bash cairo curl fontconfig freetype2 git glib2 glibc harfbuzz hicolor-icon-theme jemalloc libgcc libglvnd
          libical libjxl libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
          libxkbcommon libxml2 md4c pam polkit pango sdbus-cpp tomlplusplus wayland)
-makedepends=(meson ninja cmake pkgconf wayland-protocols stb just)
+makedepends=(meson ninja cmake pkgconf wayland-protocols stb just nlohmann-json)
 optdepends=('ddcutil: brillo de monitores externos'
             'upower: batería y dispositivos de energía'
             'gpu-screen-recorder: grabación de pantalla (widget Captura)'
@@ -23,7 +23,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'kdeconnect: conectar el teléfono (panel Teléfono)'
             'sshfs: explorar los archivos del teléfono (panel Teléfono)'
             'android-tools: portapapeles automático del teléfono a la PC (adb, una vez)'
-            'claude-code: uso de Claude Code (claudecode)'
+            'claude-code: uso de Claude Code (claudecode, AUR o repo de CachyOS)'
             'jq: uso de Claude Code (claudecode)'
             'python: gestores de cursores e iconos (cursor, icons)'
             'python-wand: convertir cursores de Windows (cursor)'
