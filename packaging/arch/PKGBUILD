@@ -46,6 +46,11 @@ build() {
 package() {
   meson install -C build --destdir "$pkgdir"
   install -Dm644 okaru/LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  # Servicio de la sesión (uwsm / graphical-session.target) y configuración de fábrica de Hyprland, que
+  # install.sh copia a ~/.config/hypr.
+  install -Dm644 okaru/packaging/systemd/okaru.service -t "$pkgdir/usr/lib/systemd/user"
+  install -d "$pkgdir/usr/share/okaru/defaults"
+  cp -r okaru/packaging/defaults/hypr "$pkgdir/usr/share/okaru/defaults/"
   local bin="$pkgdir/usr/bin/okaru"
   install -d "$pkgdir"/usr/share/{bash-completion/completions,fish/vendor_completions.d,zsh/site-functions}
   "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"

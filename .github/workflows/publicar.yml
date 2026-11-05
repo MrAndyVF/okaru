@@ -1,0 +1,83 @@
+# Publica el repositorio pacman [okaru] (okaru + okaru-greeter, firmados) en el release fijo "repo":
+#   Server = https://github.com/MrAndyVF/okaru/releases/download/repo
+# Secretos: OKARU_GPG_PRIVATE_KEY (llave privada en ASCII, sin frase) y OKARU_GPG_KEY_ID (huella).
+name: publicar
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  repo:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    env:
+      GH_TOKEN: ${{ github.token }}
+      KEY_ID: ${{ secrets.OKARU_GPG_KEY_ID }}
+    steps:
+      - name: Herramientas
+        run: pacman -Syu --noconfirm --needed git github-cli >/dev/null
+      - uses: actions/checkout@v4
+        with:
+          path: okaru
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: MrAndyVF/okaru-greeter
+          path: okaru-greeter
+          fetch-depth: 0
+      - name: Usuario de compilación y llave de firma
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.OKARU_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ] || [ -z "$KEY_ID" ]; then
+            echo "::error::Faltan los secretos OKARU_GPG_PRIVATE_KEY y OKARU_GPG_KEY_ID."
+            exit 1
+          fi
+          useradd -m builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+          chown -R builder: "$GITHUB_WORKSPACE"
+          printf '%s\n' "$GPG_PRIVATE_KEY" | sudo -u builder gpg --batch --import
+      - name: Compilar y firmar los paquetes
+        run: |
+          mkdir -p out && chown builder: out
+          for pkg in okaru okaru-greeter; do
+            dir="$GITHUB_WORKSPACE/build-$pkg"
+            sudo -u builder mkdir -p "$dir"
+            sudo -u builder cp "$GITHUB_WORKSPACE/$pkg/packaging/arch/PKGBUILD" "$dir/"
+            (cd "$dir" && sudo -u builder env \
+              OKARU_REPO="$GITHUB_WORKSPACE/okaru" OKARU_GREETER_REPO="$GITHUB_WORKSPACE/okaru-greeter" \
+              PKGDEST="$GITHUB_WORKSPACE/out" GPGKEY="$KEY_ID" \
+              makepkg --syncdeps --noconfirm --sign)
+          done
+      - name: Base de datos del repositorio
+        working-directory: out
+        run: |
+          sudo -u builder repo-add --sign --key "$KEY_ID" okaru.db.tar.zst ./*.pkg.tar.zst
+          # Los releases no guardan enlaces simbólicos: okaru.db y okaru.files van como copias.
+          for f in okaru.db okaru.db.sig okaru.files okaru.files.sig; do
+            cp --remove-destination "$(readlink -f "$f")" "$f"
+          done
+          ls -la
+      - name: Publicar en el release "repo"
+        working-directory: out
+        run: |
+          repo="$GITHUB_REPOSITORY"
+          gh release view repo -R "$repo" >/dev/null 2>&1 || \
+            gh release create repo -R "$repo" --title "Repositorio pacman de OKARU" --latest=false \
+              --notes "Repositorio [okaru] para pacman. Instala con install.sh; no descargues estos archivos a mano."
+          # Se quitan los paquetes de versiones anteriores para que el release no crezca sin límite.
+          for asset in $(gh release view repo -R "$repo" --json assets --jq '.assets[].name'); do
+            [ -e "$asset" ] || gh release delete-asset repo "$asset" -R "$repo" --yes
+          done
+          gh release upload repo -R "$repo" --clobber ./*.pkg.tar.zst ./*.pkg.tar.zst.sig \
+            okaru.db okaru.db.sig okaru.files okaru.files.sig okaru.db.tar.zst okaru.db.tar.zst.sig \
+            okaru.files.tar.zst okaru.files.tar.zst.sig
