@@ -23,6 +23,8 @@
 #include "shell/bar/widgets/okaru_cat_widget.h"
 #include "shell/bar/widgets/okaru_cat_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget.h"
+#include "shell/bar/widgets/okaru_phone_widget.h"
+#include "shell/bar/widgets/okaru_phone_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
 #include "shell/bar/widgets/control_center_widget_definition.h"
 #include "shell/bar/widgets/custom_button_widget.h"
@@ -109,7 +111,7 @@ WidgetFactory::WidgetFactory(const BarServices& services)
       m_nightLight(services.nightLight), m_themeService(services.theme), m_bluetooth(services.bluetooth),
       m_brightness(services.brightness), m_lockKeys(services.lockKeys), m_clipboard(services.clipboard),
       m_fileWatcher(services.fileWatcher), m_screenshots(services.screenshots), m_renderContext(services.renderContext),
-      m_scriptApi(services.scriptApi) {
+      m_scriptApi(services.scriptApi), m_kdeConnect(services.kdeConnect) {
   scripting::PluginRegistry::instance().ensureScanned();
 }
 
@@ -179,6 +181,12 @@ std::unique_ptr<Widget> WidgetFactory::create(
             return createWidget<BluetoothWidget>(
                 context.contentScale, f.m_bluetooth, context.output,
                 bluetoothWidgetDefinition().resolve(context.config, context.settingContext)
+            );
+          }},
+      {"phone", [](const WidgetFactory& f, const BuiltinWidgetContext& context) { // OKARU
+            return createWidget<OkaruPhoneWidget>(
+                context.contentScale, f.m_kdeConnect, context.output,
+                okaruPhoneWidgetDefinition().resolve(context.config, context.settingContext)
             );
           }},
       {"brightness", [](const WidgetFactory& f, const BuiltinWidgetContext& context) {

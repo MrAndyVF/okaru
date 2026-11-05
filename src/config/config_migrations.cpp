@@ -8,6 +8,7 @@
 #include <format>
 #include <limits>
 #include <set>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -35,6 +36,7 @@ namespace okaru::config {
     constexpr int kOkaruRemovedKeysMigrationVersion = 18;        // OKARU
     constexpr int kOkaruIntegratedModulesMigrationVersion = 19;  // OKARU
     constexpr int kOkaruPaletteRenameMigrationVersion = 20;      // OKARU
+    constexpr int kOkaruNativePhoneMigrationVersion = 21;        // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -952,18 +954,18 @@ namespace okaru::config {
     }};
     constexpr std::array<std::string_view, 2> kNativePluginIds{"dotnetrob/cat", "mahmoudomiesh/network-monitor"};
 
-    void replaceNativeEntryIds(toml::node& node) {
+    void replaceNativeEntryIds(toml::node& node, std::span<const std::pair<std::string_view, std::string_view>> ids) {
       if (auto* table = node.as_table(); table != nullptr) {
         for (auto& [key, child] : *table) {
-          replaceNativeEntryIds(child);
+          replaceNativeEntryIds(child, ids);
         }
       } else if (auto* array = node.as_array(); array != nullptr) {
         for (auto& child : *array) {
-          replaceNativeEntryIds(child);
+          replaceNativeEntryIds(child, ids);
         }
       } else if (auto* str = node.as_string(); str != nullptr) {
         std::string value = str->get();
-        for (const auto& [from, to] : kNativeEntryIds) {
+        for (const auto& [from, to] : ids) {
           if (const auto pos = value.find(from); pos != std::string::npos) {
             value.replace(pos, from.size(), to);
           }
@@ -974,23 +976,43 @@ namespace okaru::config {
       }
     }
 
-    void migrateIntegratedModulesSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
-      renameModuleIdsInNode(root);
-      replaceNativeEntryIds(root);
+    void removeNativePlugins(toml::table& root, std::span<const std::string_view> pluginIds) {
       if (auto* enabled = root["plugins"]["enabled"].as_array(); enabled != nullptr) {
         enabled->prune(false);
         for (std::size_t i = enabled->size(); i-- > 0;) {
           const auto* id = (*enabled)[i].as_string();
-          if (id != nullptr && std::ranges::find(kNativePluginIds, std::string_view(id->get())) != kNativePluginIds.end()) {
+          if (id != nullptr && std::ranges::find(pluginIds, std::string_view(id->get())) != pluginIds.end()) {
             enabled->erase(enabled->begin() + static_cast<std::ptrdiff_t>(i));
           }
         }
       }
       if (auto* settings = root["plugin_settings"].as_table(); settings != nullptr) {
-        for (const auto id : kNativePluginIds) {
+        for (const auto id : pluginIds) {
           settings->erase(id);
         }
       }
+    }
+
+    void migrateIntegratedModulesSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      renameModuleIdsInNode(root);
+      replaceNativeEntryIds(root, kNativeEntryIds);
+      removeNativePlugins(root, kNativePluginIds);
+    }
+
+    // OKARU: el módulo Luau phone-connect pasó a ser nativo (widget "phone", panel okaru-phone, tarjeta "phone").
+    // Los paneles van antes que "details" para no dejar restos de "_floating"/"_widget".
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 5> kNativePhoneIds{{
+        {"okaru/phone-connect:details_floating", "okaru-phone"},
+        {"okaru/phone-connect:details_widget", "okaru-phone"},
+        {"okaru/phone-connect:details", "okaru-phone"},
+        {"shortcut:okaru/phone-connect:tile", "phone"},
+        {"okaru/phone-connect:bar", "phone"},
+    }};
+    constexpr std::array<std::string_view, 1> kNativePhonePluginIds{"okaru/phone-connect"};
+
+    void migrateNativePhoneSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      replaceNativeEntryIds(root, kNativePhoneIds);
+      removeNativePlugins(root, kNativePhonePluginIds);
     }
 
     // OKARU: la paleta integrada "Noctalia" pasó a llamarse "OKARU" ([theme].builtin y favoritos).
@@ -1156,6 +1178,11 @@ namespace okaru::config {
             .toVersion = kOkaruPaletteRenameMigrationVersion,
             .summary = "theme: builtin palette Noctalia is now OKARU",
             .apply = migratePaletteRenameSidecar,
+        },
+        {
+            .toVersion = kOkaruNativePhoneMigrationVersion,
+            .summary = "phone: the phone-connect module is now the native phone widget, panel and card",
+            .apply = migrateNativePhoneSidecar,
         },
     };
     return migrations;

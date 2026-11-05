@@ -44,11 +44,11 @@ Optional runtime tools used by the built-in modules and widgets. Each one is che
 | Capture widget (screen recording) | `gpu-screen-recorder`, `slurp` (region) |
 | vpn-manager | `networkmanager`; `nm-connection-editor` to edit connections in a window (falls back to `nmtui-edit`) |
 | arch-updater | `pacman-contrib` (checkupdates, pacdiff); `flatpak`; `paru` or `yay` for AUR |
-| phone-connect | `kdeconnect`, `sshfs` |
+| Phone panel (native) | `kdeconnect`, `sshfs`; `android-tools` once, for phone-to-PC clipboard |
 | claudecode | `claude-code`, `jq`, `curl` |
 | cursor | `python`, `python-wand`, `imagemagick`, `win2xcur` (AUR); `flatpak` for Flatpak apps |
 | icons | `python` |
-| File dialogs in cursor, icons, phone-connect, vpn-manager | `zenity` (or `kdialog`) |
+| File dialogs in cursor, icons, vpn-manager | `zenity` (or `kdialog`) |
 | ports widget | `iproute2` (`ss`, part of base) |
 
 VPN credentials are asked in OKARU's own password dialog: the shell registers a NetworkManager secret agent and reads the fields to ask from the VPN plugin's auth dialog in external UI mode (supported by the fortisslvpn, openvpn and vpnc plugins).

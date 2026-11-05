@@ -1630,6 +1630,15 @@ struct BluetoothConfig {
   bool operator==(const BluetoothConfig&) const = default;
 };
 
+// OKARU: panel del teléfono (KDE Connect nativo).
+struct PhoneConfig {
+  // Las últimas capturas de [shell.screenshot].directory, para enviarlas al teléfono con un clic.
+  bool recentImages = true;
+  std::int32_t recentImagesCount = 4;
+
+  bool operator==(const PhoneConfig&) const = default;
+};
+
 struct KeybindsConfig {
   std::vector<KeyChord> validate;
   std::vector<KeyChord> cancel;
@@ -2000,6 +2009,7 @@ struct Config {
   BrightnessConfig brightness;
   BatteryConfig battery;
   BluetoothConfig bluetooth;
+  PhoneConfig phone; // OKARU
   KeybindsConfig keybinds;
   NightLightConfig nightlight;
   LocationConfig location;

@@ -5,6 +5,8 @@
 #include "core/build_info.h"
 #include "dbus/accounts/accounts_service.h"
 #include "dbus/bluetooth/bluetooth_service.h"
+#include "dbus/kdeconnect/kdeconnect_service.h"
+#include "shell/okaru_phone/okaru_phone_prefs.h"
 #include "dbus/mpris/mpris_art.h"
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/inetwork_service.h"
@@ -214,6 +216,24 @@ namespace okaru::dashboard {
           detail = std::format("{}%{}", connected.front()->batteryPercent, detail.empty() ? "" : " · " + detail);
         }
         return InfoView{"bluetooth-connected", connected.front()->alias, detail, true};
+      };
+    }
+
+    // OKARU: teléfono por KDE Connect: nombre y batería del elegido.
+    std::function<InfoView()> phoneReader(KdeConnectService* service) {
+      return [service] {
+        if (service == nullptr || !service->available()) {
+          return InfoView{"device-mobile-off", tr("unavailable"), {}, false};
+        }
+        const PhoneDevice* d = okaru::phone::selectedDevice(*service);
+        if (d == nullptr) {
+          return InfoView{"device-mobile-off", tr("no-devices"), {}, false};
+        }
+        if (!okaru::phone::usable(*d)) {
+          return InfoView{"device-mobile-off", okaru::phone::displayName(*d), tr("disconnected"), false};
+        }
+        const std::string detail = d->battery >= 0 ? std::format("{}%", d->battery) : std::string{};
+        return InfoView{okaru::phone::deviceGlyph(*d), okaru::phone::displayName(*d), detail, true};
       };
     }
 
@@ -972,6 +992,9 @@ namespace okaru::dashboard {
     }
     if (type == "bluetooth") {
       return info(bluetoothReader(s.bluetooth));
+    }
+    if (type == "phone") {
+      return info(phoneReader(s.kdeConnect));
     }
     if (type == "power") {
       return info(powerReader(s.upower, s.powerProfiles));

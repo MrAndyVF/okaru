@@ -18,6 +18,7 @@
 #include "shell/bar/widgets/okaru_capture_widget_definition.h"
 #include "shell/bar/widgets/okaru_cat_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
+#include "shell/bar/widgets/okaru_phone_widget_definition.h"
 #include "shell/bar/widgets/custom_button_widget_definition.h"
 #include "shell/bar/widgets/keyboard_layout_widget_definition.h"
 #include "shell/bar/widgets/launcher_widget_definition.h"
@@ -152,6 +153,7 @@ namespace settings {
         projectWidgetDefinition<okaruCaptureWidgetDefinition>(), // OKARU
         projectWidgetDefinition<okaruCatWidgetDefinition>(),     // OKARU
         projectWidgetDefinition<okaruPortsWidgetDefinition>(),   // OKARU
+        projectWidgetDefinition<okaruPhoneWidgetDefinition>(),   // OKARU
         projectWidgetDefinition<customButtonWidgetDefinition>(),
         projectWidgetDefinition<keyboardLayoutWidgetDefinition>(),
         projectWidgetDefinition<launcherWidgetDefinition>(),
@@ -246,6 +248,7 @@ namespace settings {
         {.type = "capture", .labelKey = "settings.widgets.types.capture", .glyph = "capture"}, // OKARU
         {.type = "cat", .labelKey = "settings.widgets.types.cat", .glyph = "paw"},             // OKARU
         {.type = "ports", .labelKey = "settings.widgets.types.ports", .glyph = "plug-connected"}, // OKARU
+        {.type = "phone", .labelKey = "settings.widgets.types.phone", .glyph = "device-mobile"}, // OKARU
         {.type = "keyboard_layout", .labelKey = "settings.widgets.types.keyboard-layout", .glyph = "keyboard"},
         {.type = "launcher", .labelKey = "settings.widgets.types.launcher", .glyph = "search"},
         {.type = "lock_keys", .labelKey = "settings.widgets.types.lock-keys", .glyph = "lock"},

@@ -69,6 +69,7 @@ namespace okaru::dashboard {
         {"brightness", "brightness-half", {Medium, Large}, "okaru-monitor"},
         {"network", "wifi", {Small, Medium}, "okaru-network"},
         {"bluetooth", "bluetooth", {Small, Medium}, "okaru-bluetooth"},
+        {"phone", "device-mobile", {Small, Medium}, "okaru-phone"}, // OKARU
         {"power", "bolt", {Small, Medium}, "okaru-power"},
         {"system", "activity", {Small, Medium}, "okaru-system"},
         {"notifications", "bell", {Small, Medium}, "okaru-notifications"},

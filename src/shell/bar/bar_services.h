@@ -25,6 +25,7 @@ class TrayService;
 class UPowerService;
 class WeatherService;
 class GammaService;
+class KdeConnectService;
 
 namespace okaru::theme {
   class ThemeService;
@@ -61,4 +62,5 @@ struct BarServices {
   FileWatcher* fileWatcher = nullptr;
   ScreenshotService* screenshots = nullptr;
   scripting::ScriptApiContext* scriptApi = nullptr;
+  KdeConnectService* kdeConnect = nullptr; // OKARU
 };

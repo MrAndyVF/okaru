@@ -14,6 +14,7 @@
 #include "dbus/idle/screensaver_service.h"
 #include "dbus/logind/logind_service.h"
 #include "dbus/modem/modem_manager_service.h"
+#include "dbus/kdeconnect/kdeconnect_service.h"
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/inetwork_service.h"
 #include "dbus/network/iwd_secret_agent.h"
@@ -1573,6 +1574,20 @@ void Application::initSessionBusServices() {
       m_notificationManager.addInternal(
           "OKARU", i18n::tr("notifications.internal.mpris-disabled"), e.what(), Urgency::Low
       );
+    }
+
+    // OKARU: KDE Connect nativo (reemplaza al módulo Luau phone-connect).
+    try {
+      m_kdeConnectService = std::make_unique<KdeConnectService>(*m_bus);
+      m_kdeConnectService->setChangeCallback([this] {
+        m_bar.refresh();
+        if (m_panelManager.isOpenPanel("okaru-phone") || m_panelManager.isOpenPanel("control-center")) {
+          m_panelManager.refresh();
+        }
+      });
+    } catch (const std::exception& e) {
+      kLog.warn("kdeconnect disabled: {}", e.what());
+      m_kdeConnectService.reset();
     }
 
     installNotificationBusNameWatch();

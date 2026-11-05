@@ -8,6 +8,7 @@
 #include "dbus/accounts/accounts_service.h"
 #include "dbus/bluetooth/bluetooth_agent.h"
 #include "dbus/bluetooth/bluetooth_service.h"
+#include "dbus/kdeconnect/kdeconnect_service.h"
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/network_secret_agent.h"
 #include "dbus/idle/screensaver_poll_source.h"

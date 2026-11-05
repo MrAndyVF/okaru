@@ -1091,7 +1091,8 @@
         "system": "System",
         "notifications": "Notifications",
         "screen-time": "Screen time",
-        "session": "Session"
+        "session": "Session",
+        "phone": "Phone"
       },
       "close": "Close"
     },
@@ -1114,6 +1115,63 @@
       "scan-error": "Could not run ss",
       "tooltip-speed": "↓ {rx}   ↑ {tx}",
       "tooltip-more": "and {count} more"
+    },
+    "phone": {
+      "title": "Phone",
+      "no-daemon": "KDE Connect is not running",
+      "no-daemon-hint": "Start kdeconnectd to connect your phone.",
+      "no-devices": "No devices",
+      "no-devices-hint": "Open KDE Connect on your phone on the same network and pair it.",
+      "connected": "Connected",
+      "offline": "Offline",
+      "not-paired": "Not paired",
+      "pairing": "Waiting for the phone…",
+      "pair-requested": "Wants to pair",
+      "refresh": "Refresh",
+      "action-failed": "{action} failed",
+      "battery-charging": "{percent}% · charging",
+      "signal": "Signal",
+      "pair-request-body": "{name} wants to pair with this computer. Check that the key matches the one on the phone.",
+      "verification-key": "Key {key}",
+      "accept": "Accept",
+      "reject": "Reject",
+      "pairing-wait": "Accept the request on your phone. Key {key}",
+      "cancel": "Cancel",
+      "pair-hint": "Pair this device to use it from OKARU.",
+      "pair": "Pair",
+      "ring": "Ring",
+      "ping": "Ping",
+      "clipboard": "Clipboard",
+      "send-file": "Send file",
+      "browse": "Browse files",
+      "sms": "SMS",
+      "recent-images": "Recent images",
+      "send-image": "Send {file} to the phone",
+      "sent": "Sent to the phone",
+      "share": "Share text or link",
+      "share-placeholder": "Text or link to send",
+      "open-sms-app": "Open messages",
+      "sms-number": "Phone number",
+      "sms-message": "Message",
+      "sms-send": "Send SMS",
+      "sms-sent": "SMS sent",
+      "rename": "Rename",
+      "change-photo": "Change photo",
+      "remove-photo": "Remove photo",
+      "unpair": "Unpair",
+      "unpair-confirm": "Unpair? Click again",
+      "clipboard-auto": "Automatic clipboard",
+      "clipboard-to-phone": "From this computer to the phone",
+      "clipboard-to-phone-hint": "What you copy here reaches the phone",
+      "clipboard-to-pc": "From the phone to this computer",
+      "clipboard-to-pc-hint": "Android blocks it in the background. Connect the phone by USB with USB debugging on, once.",
+      "adb-enable": "Enable with ADB",
+      "adb-missing": "adb is not installed",
+      "adb-missing-hint": "Install android-tools and try again.",
+      "adb-done": "Clipboard from the phone enabled",
+      "adb-done-hint": "KDE Connect on the phone was restarted; reopen it.",
+      "adb-failed": "Could not enable it with ADB",
+      "adb-failed-hint": "Check the USB cable, USB debugging and the authorization on the phone."
     }
   },
   "osd": {
@@ -1591,7 +1649,8 @@
         "window-switcher": "Window Switcher",
         "google": "Google",
         "cursor": "Cursor",
-        "icons": "Icons"
+        "icons": "Icons",
+        "phone": "Phone"
       },
       "modules": {
         "advanced": "Advanced",
@@ -3974,6 +4033,14 @@
         "weather-unit": {
           "description": "Unit system for weather display",
           "label": "Units"
+        },
+        "phone-recent-images": {
+          "label": "Recent images",
+          "description": "Show the latest screenshots in the phone panel to send them with one click"
+        },
+        "phone-recent-images-count": {
+          "label": "Number of recent images",
+          "description": "How many screenshots the phone panel shows"
         }
       },
       "shared": {
@@ -5886,6 +5953,10 @@
         "include-udp": {
           "label": "Include UDP",
           "description": "Also show UDP sockets"
+        },
+        "show-battery": {
+          "label": "Show battery",
+          "description": "Show the phone battery next to the icon"
         }
       },
       "types": {
@@ -5925,7 +5996,8 @@
         "weather": "Weather",
         "workspaces": "Workspaces",
         "cat": "Cat",
-        "ports": "Network & ports"
+        "ports": "Network & ports",
+        "phone": "Phone"
       }
     },
     "window": {
