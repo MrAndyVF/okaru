@@ -932,7 +932,8 @@
       "outputs": "Salidas",
       "inputs": "Entradas",
       "output-panel": "Salida de sonido",
-      "input-panel": "Micrófono"
+      "input-panel": "Micrófono",
+      "system-sounds": "Sonidos del sistema"
     },
     "dashboard": {
       "title": "Centro de control",

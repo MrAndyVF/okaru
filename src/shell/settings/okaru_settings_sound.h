@@ -21,6 +21,9 @@ namespace settings {
   };
 
   void addSettingsSound(Flex& content, SettingsSoundContext ctx);
+  // Cambios de PipeWire con la página abierta: actualiza volumen, silencio y predeterminado en su sitio;
+  // si cambió la lista de dispositivos, reconstruye. Devuelve si tocó algo.
+  bool syncSettingsSound(PipeWireService& audio, ConfigService& config);
 
   // Normaliza un nombre personalizado: sin espacios en los extremos, a lo sumo 64 bytes sin cortar UTF-8.
   [[nodiscard]] std::string normalizeAudioDeviceAlias(std::string value);

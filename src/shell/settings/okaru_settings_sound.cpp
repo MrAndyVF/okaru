@@ -23,6 +23,8 @@ namespace settings {
       std::function<void()> rebuild;
       std::string editing; // node.name del dispositivo que se está renombrando
       std::string draft;
+      std::string devicesKey;                // ids visibles de la última construcción
+      std::vector<OkaruAudioDeviceRow*> rows; // filas de la última construcción, salidas y luego entradas
     };
 
     SoundState& state() {
@@ -65,6 +67,17 @@ namespace settings {
           .minHeight = Style::controlHeightSm * scale,
           .onClick = std::move(onClick),
       });
+    }
+
+    std::string devicesKey(const std::vector<AudioNode>& outputs, const std::vector<AudioNode>& inputs) {
+      std::string key;
+      for (const auto* list : {&outputs, &inputs}) {
+        for (const auto& node : *list) {
+          key += std::to_string(node.id) + ',';
+        }
+        key += ';';
+      }
+      return key;
     }
 
     void saveAlias(ConfigService& config, const AudioNode& node) {
@@ -120,6 +133,7 @@ namespace settings {
           }
         });
         rows->push_back(row.get());
+        state().rows.push_back(row.get());
         body->addChild(std::move(row));
 
         if (state().editing == node.name) {
@@ -179,12 +193,34 @@ namespace settings {
       return;
     }
     const AudioState& audio = ctx.audio->state();
-    addDeviceCard(
-        content, scale, *ctx.audio, *ctx.config, false, visibleDevices(audio.sinks, audio.defaultSinkId)
-    );
-    addDeviceCard(
-        content, scale, *ctx.audio, *ctx.config, true, visibleDevices(audio.sources, audio.defaultSourceId)
-    );
+    const auto outputs = visibleDevices(audio.sinks, audio.defaultSinkId);
+    const auto inputs = visibleDevices(audio.sources, audio.defaultSourceId);
+    s.devicesKey = devicesKey(outputs, inputs);
+    s.rows.clear();
+    addDeviceCard(content, scale, *ctx.audio, *ctx.config, false, outputs);
+    addDeviceCard(content, scale, *ctx.audio, *ctx.config, true, inputs);
+  }
+
+  bool syncSettingsSound(PipeWireService& audio, ConfigService& config) {
+    auto& s = state();
+    const AudioState& current = audio.state();
+    const auto outputs = visibleDevices(current.sinks, current.defaultSinkId);
+    const auto inputs = visibleDevices(current.sources, current.defaultSourceId);
+    if (devicesKey(outputs, inputs) != s.devicesKey) {
+      rebuild();
+      return true;
+    }
+    const float sliderMax = maxAudioVolume(config.config().audio);
+    std::size_t i = 0;
+    for (const auto* list : {&outputs, &inputs}) {
+      for (const auto& node : *list) {
+        if (i < s.rows.size() && !s.rows[i]->dragging()) {
+          s.rows[i]->sync(node, sliderMax);
+        }
+        ++i;
+      }
+    }
+    return true;
   }
 
 } // namespace settings

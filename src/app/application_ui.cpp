@@ -646,7 +646,7 @@ void Application::initPanelManagerAndPanels() {
     addTabPanel("okaru-audio", "okaru.audio.output-panel", "volume",
                 [=, this] { return std::make_unique<AudioTab>(m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(),
                                            &m_configService, wayland, renderContext, AudioTabMode::Output); },
-                520.0F, 680.0F);
+                560.0F, 820.0F);
     addTabPanel("okaru-microphone", "okaru.audio.input-panel", "microphone",
                 [=, this] { return std::make_unique<AudioTab>(m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(),
                                            &m_configService, wayland, renderContext, AudioTabMode::Input); },
@@ -1207,6 +1207,7 @@ void Application::initWidgetControllersAndCallbacks() {
       }
       m_bar.refresh();
       m_desktopWidgetsController.requestUpdate();
+      m_settingsWindow.onAudioChanged(); // OKARU
       if (shouldRefreshControlCenter()) {
         m_panelManager.refresh();
       }

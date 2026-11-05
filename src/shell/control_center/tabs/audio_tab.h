@@ -27,6 +27,7 @@ class Renderer;
 class ScrollView;
 class Select;
 class Slider;
+class Toggle;
 class WaylandConnection;
 struct AudioNode;
 struct AudioState;
@@ -84,6 +85,8 @@ private:
   std::unique_ptr<Flex> createEffectsProfileRow(DeviceVolumeCardState& state);
   std::unique_ptr<Flex> createDeviceListCard(bool input); // OKARU
   void syncDeviceRows(Renderer& renderer);                // OKARU
+  std::unique_ptr<Flex> createSystemSoundsCard();         // OKARU: sonidos del sistema (panel de salida)
+  void syncSystemSounds();                                // OKARU
   void rebuildLists(Renderer& renderer);
   void rebuildProgramVolumes(Renderer& renderer);
   void syncValueLabelWidths(Renderer& renderer);
@@ -107,6 +110,10 @@ private:
   Flex* m_deviceRowsList = nullptr;
   std::vector<OkaruAudioDeviceRow*> m_deviceRows;
   std::string m_lastDeviceRowsKey;
+  Toggle* m_soundsToggle = nullptr;
+  std::vector<Toggle*> m_soundEventToggles; // mismo orden que kSoundEvents en audio_tab.cpp
+  Slider* m_soundVolumeSlider = nullptr;
+  bool m_syncingSounds = false;
 
   Flex* m_rootLayout = nullptr;
   Flex* m_deviceColumn = nullptr;

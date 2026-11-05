@@ -1,5 +1,7 @@
 #include "shell/settings/settings_window.h"
 
+#include "shell/settings/okaru_settings_sound.h"
+
 #include "calendar/calendar_service.h"
 #include "compositors/compositor_platform.h"
 #include "config/config_service.h"
@@ -1295,6 +1297,13 @@ void SettingsWindow::onIdleLiveStatusChanged() {
 }
 
 void SettingsWindow::onSecondTick() { onIdleLiveStatusChanged(); }
+
+void SettingsWindow::onAudioChanged() {
+  if (isOpen() && m_selectedSection == "sound-devices" && m_pipewire != nullptr && m_config != nullptr &&
+      settings::syncSettingsSound(*m_pipewire, *m_config)) {
+    requestRedraw();
+  }
+}
 
 bool SettingsWindow::wantsSecondTicks() const noexcept {
   return m_idleLiveStatusLabel != nullptr && m_surface != nullptr;
