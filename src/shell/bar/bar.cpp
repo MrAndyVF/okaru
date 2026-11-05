@@ -1495,6 +1495,7 @@ bool Bar::initialize(const BarServices& services) {
   m_fileWatcher = services.fileWatcher;
   m_screenshots = services.screenshots;
   m_scriptApi = services.scriptApi;
+  m_kdeConnect = services.kdeConnect;
 
   m_widgetFactory = std::make_unique<WidgetFactory>(services);
 
@@ -1548,6 +1549,7 @@ BarServices Bar::services() const {
       .fileWatcher = m_fileWatcher,
       .screenshots = m_screenshots,
       .scriptApi = m_scriptApi,
+      .kdeConnect = m_kdeConnect,
   };
 }
 

@@ -37,6 +37,7 @@ namespace okaru::bar {
          {Gesture::ScrollUp, "brightness-up"},
          {Gesture::ScrollDown, "brightness-down"}}
     };
+    constexpr std::array<GestureBinding, 1> kPhone{{{Gesture::Left, "panel-toggle okaru-phone"}}}; // OKARU
     constexpr std::array<GestureBinding, 1> kClipboard{{{Gesture::Left, "panel-toggle clipboard"}}};
     constexpr std::array<GestureBinding, 1> kClock{{{Gesture::Left, "panel-toggle okaru-calendar"}}};
     // OKARU: la rueda sobre el widget del centro de control cambia el volumen (muestra el icono de sonido).
@@ -106,10 +107,11 @@ namespace okaru::bar {
         {{Gesture::Left, "panel-toggle okaru-capture"}, {Gesture::Middle, "capture-stop"}}
     };
 
-    constexpr std::array<TypeDefaults, 24> kTypeDefaults{{
+    constexpr std::array<TypeDefaults, 25> kTypeDefaults{{
         {"battery", kBattery},
         {"capture", kCapture}, // OKARU
         {"bluetooth", kBluetooth},
+        {"phone", kPhone}, // OKARU
         {"brightness", kBrightness},
         {"caffeine", kCaffeine},
         {"clipboard", kClipboard},

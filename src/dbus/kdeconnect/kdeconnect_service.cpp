@@ -27,6 +27,7 @@ namespace {
   constexpr auto kBatteryInterface = "org.kde.kdeconnect.device.battery";
   constexpr auto kConnectivityInterface = "org.kde.kdeconnect.device.connectivity_report";
   constexpr auto kClipboardInterface = "org.kde.kdeconnect.device.clipboard";
+  constexpr auto kNotificationsInterface = "org.kde.kdeconnect.device.notifications";
 
   // SFTP monta y espera al teléfono: puede tardar bastante más que una llamada normal.
   constexpr auto kBrowseTimeout = std::chrono::seconds(60);
@@ -118,6 +119,7 @@ struct KdeConnectService::DeviceProxies {
   std::unique_ptr<sdbus::IProxy> battery;
   std::unique_ptr<sdbus::IProxy> connectivity;
   std::unique_ptr<sdbus::IProxy> clipboard;
+  std::unique_ptr<sdbus::IProxy> notifications;
   // Proxies de acciones (ping, share, sftp, ...): se crean al primer uso y viven con el dispositivo.
   std::unordered_map<std::string, std::unique_ptr<sdbus::IProxy>> actions;
 };
@@ -343,6 +345,21 @@ void KdeConnectService::subscribeDevice(const std::string& id) {
             scheduleEmit();
           }
         });
+
+    proxies->notifications = make("notifications");
+    for (const char* signal : {"notificationPosted", "notificationRemoved"}) {
+      proxies->notifications->uponSignal(signal).onInterface(kNotificationsInterface).call(
+          [this, id](const std::string&) { fetchNotifications(id); }
+      );
+    }
+    proxies->notifications->uponSignal("allNotificationsRemoved")
+        .onInterface(kNotificationsInterface)
+        .call([this, id] {
+          if (auto* d = findMutable(id)) {
+            d->notifications = 0;
+            scheduleEmit();
+          }
+        });
   } catch (const sdbus::Error& e) {
     kLog.warn("subscribe {} failed: {}", id, e.what());
   }
@@ -414,6 +431,31 @@ void KdeConnectService::fetchExtras(const std::string& id) {
     read(props, "isAutoShareDisabled", disabled);
     d.clipboardAutoShare = !disabled;
   });
+  fetchNotifications(id);
+}
+
+void KdeConnectService::fetchNotifications(const std::string& id) {
+  const auto it = m_proxies.find(id);
+  if (it == m_proxies.end() || !it->second->notifications) {
+    return;
+  }
+  const std::weak_ptr<void> alive = m_aliveGuard;
+  try {
+    it->second->notifications->callMethodAsync("activeNotifications")
+        .onInterface(kNotificationsInterface)
+        .uponReplyInvoke([this, alive, id](std::optional<sdbus::Error> err, // NOLINT(performance-unnecessary-value-param)
+                                           const std::vector<std::string>& active) {
+          if (alive.expired() || err.has_value()) {
+            return;
+          }
+          if (auto* d = findMutable(id); d != nullptr && d->notifications != static_cast<int>(active.size())) {
+            d->notifications = static_cast<int>(active.size());
+            scheduleEmit();
+          }
+        });
+  } catch (const sdbus::Error& e) {
+    kLog.warn("activeNotifications {} dispatch failed: {}", id, e.what());
+  }
 }
 
 void KdeConnectService::setUnavailable() {

@@ -36,6 +36,7 @@ struct PhoneDevice {
   std::string networkType;
   int networkStrength = -1; // 0-4, -1 = sin dato
   bool clipboardAutoShare = false;
+  int notifications = 0; // notificaciones activas en el teléfono
 
   [[nodiscard]] bool hasPlugin(std::string_view plugin) const;
   bool operator==(const PhoneDevice&) const = default;
@@ -105,6 +106,7 @@ private:
   void fetchExtras(const std::string& id);
   void fetchAll(const std::string& id, const std::string& subPath, const char* interface,
                 std::function<void(PhoneDevice&, const kdeconnect::PropertyMap&)> apply);
+  void fetchNotifications(const std::string& id);
   void setUnavailable();
   PhoneDevice* findMutable(std::string_view id);
   sdbus::IProxy* actionProxy(const std::string& id, const std::string& subPath);

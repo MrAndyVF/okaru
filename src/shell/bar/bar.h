@@ -30,6 +30,7 @@ class LockKeysService;
 class ModemManagerService;
 class MprisService;
 class BluetoothService;
+class KdeConnectService;
 class BrightnessService;
 class ClipboardService;
 class EasyEffectsService;
@@ -195,6 +196,7 @@ private:
   ScreenshotService* m_screenshots = nullptr;
   FileWatcher* m_fileWatcher = nullptr;
   scripting::ScriptApiContext* m_scriptApi = nullptr;
+  KdeConnectService* m_kdeConnect = nullptr; // OKARU
   std::unique_ptr<WidgetFactory> m_widgetFactory;
   std::vector<std::unique_ptr<BarInstance>> m_instances;
   // Wall-clock minute of the last full second-tick update, so minute-changing

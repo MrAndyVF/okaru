@@ -17,6 +17,7 @@ class LockKeysService;
 class MprisService;
 class ModemManagerService;
 class BluetoothService;
+class KdeConnectService;
 class BrightnessService;
 class ClipboardService;
 class EasyEffectsService;
@@ -79,4 +80,5 @@ private:
   ScreenshotService* m_screenshots;
   RenderContext* m_renderContext = nullptr;
   scripting::ScriptApiContext* m_scriptApi = nullptr;
+  KdeConnectService* m_kdeConnect = nullptr; // OKARU
 };

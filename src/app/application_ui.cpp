@@ -49,6 +49,7 @@
 #include "shell/control_center/tabs/screen_time_tab.h"
 #include "shell/okaru_capture/okaru_capture_panel.h"
 #include "shell/okaru_panels/okaru_ports_tab.h"
+#include "shell/okaru_phone/okaru_phone_tab.h"
 #include "shell/okaru_panels/okaru_tab_panel.h"
 #include "shell/okaru_workspaces/okaru_workspace_panel.h"
 #include "shell/okaru_auth/okaru_auth_panel.h"
@@ -675,6 +676,10 @@ void Application::initPanelManagerAndPanels() {
                 [=, this] { return std::make_unique<OkaruPortsTab>(m_systemMonitor.get()); }, 460.0F, 560.0F);
     addTabPanel("okaru-screen-time", "control-center.tabs.screen-time", "hourglass",
                 [=, this] { return std::make_unique<ScreenTimeTab>(&m_screenTimeService); });
+    addTabPanel("okaru-phone", "okaru.phone.title", "device-mobile", // OKARU
+                [=, this] { return std::make_unique<OkaruPhoneTab>(m_kdeConnectService.get(), m_mprisService.get(),
+                                                                   &m_configService, &m_asyncTextureCache); },
+                480.0F, 720.0F);
     addTabPanel("okaru-power", "control-center.tabs.power", "bolt",
                 [=, this] { return std::make_unique<PowerTab>(m_upowerService.get(), m_powerProfilesService.get()); });
   }
@@ -991,6 +996,7 @@ void Application::initBarDockAndLayout() {
       .fileWatcher = &m_fileWatcher,
       .screenshots = &m_screenshotService,
       .scriptApi = &m_scriptApi,
+      .kdeConnect = m_kdeConnectService.get(),
   });
   m_idleInhibitor.setAnchorSurfacesProvider([this] { return m_bar.caffeineAnchorSurfaces(); });
   m_panelManager.setOpenWidgetSettingsCallback([this](std::string barName, std::string widgetName) {

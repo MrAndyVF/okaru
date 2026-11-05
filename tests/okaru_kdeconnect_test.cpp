@@ -1,7 +1,9 @@
 // OKARU: partes puras del servicio nativo de KDE Connect.
 #include "dbus/kdeconnect/kdeconnect_service.h"
+#include "shell/okaru_phone/okaru_phone_prefs.h"
 
 #include <cstdlib>
+#include <nlohmann/json.hpp>
 #include <print>
 #include <sdbus-c++/Types.h>
 
@@ -46,5 +48,26 @@ int main() {
 
   ok &= expect(fileUrl("/home/a/Fotos/mi foto#1.jpg") == "file:///home/a/Fotos/mi%20foto%231.jpg", "URL con reservados");
   ok &= expect(fileUrl("/tmp/canción.mp3") == "file:///tmp/canci%C3%B3n.mp3", "URL con UTF-8");
+
+  // Preferencias: el state.json del módulo Luau se importa con sus nombres viejos.
+  using okaru::phone::parsePrefs;
+  const auto legacy = parsePrefs(nlohmann::json::parse(
+      R"({"selected":"abc","imageMap":{"abc":"/a.jpg"},"aliasMap":{"abc":"Mío","x":""},"devices":{}})"
+  ));
+  ok &= expect(legacy.selected == "abc" && legacy.avatar.at("abc") == "/a.jpg" && legacy.alias.size() == 1,
+               "importación del formato viejo");
+  ok &= expect(parsePrefs(okaru::phone::toJson(legacy)) == legacy, "ida y vuelta de phone.json");
+
+  // Elección: el guardado si existe; si no, el primero conectado, luego el emparejado.
+  const std::vector<PhoneDevice> list{
+      PhoneDevice{.id = "a"}, PhoneDevice{.id = "b", .paired = true},
+      PhoneDevice{.id = "c", .reachable = true, .paired = true}};
+  ok &= expect(okaru::phone::pickDevice(list, "b")->id == "b", "elegido");
+  ok &= expect(okaru::phone::pickDevice(list, "zzz")->id == "c", "primero conectado");
+  ok &= expect(okaru::phone::pickDevice({list[0], list[1]}, "")->id == "b", "primero emparejado");
+  ok &= expect(okaru::phone::pickDevice({}, "") == nullptr, "sin dispositivos");
+  ok &= expect(std::string_view{okaru::phone::batteryGlyph(95, false)} == "battery-4"
+                   && std::string_view{okaru::phone::batteryGlyph(10, true)} == "battery-charging",
+               "iconos de batería");
   return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

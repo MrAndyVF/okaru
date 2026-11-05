@@ -1011,6 +1011,51 @@
       "scan-error": "No se pudo ejecutar ss",
       "tooltip-speed": "↓ {rx}   ↑ {tx}",
       "tooltip-more": "y {count} más"
+    },
+    "phone": {
+      "title": "Teléfono",
+      "no-daemon": "KDE Connect no está en ejecución",
+      "no-daemon-hint": "Inicia kdeconnectd para conectar tu teléfono.",
+      "no-devices": "Sin dispositivos",
+      "no-devices-hint": "Abre KDE Connect en tu teléfono, en la misma red, y emparéjalo.",
+      "connected": "Conectado",
+      "offline": "Sin conexión",
+      "not-paired": "Sin emparejar",
+      "pairing": "Esperando al teléfono…",
+      "pair-requested": "Quiere emparejarse",
+      "refresh": "Actualizar",
+      "action-failed": "Falló: {action}",
+      "battery-charging": "{percent} % · cargando",
+      "signal": "Señal",
+      "pair-request-body": "{name} quiere emparejarse con este equipo. Comprueba que la clave coincide con la del teléfono.",
+      "verification-key": "Clave {key}",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "pairing-wait": "Acepta la solicitud en el teléfono. Clave {key}",
+      "cancel": "Cancelar",
+      "pair-hint": "Empareja este dispositivo para usarlo desde OKARU.",
+      "pair": "Emparejar",
+      "ring": "Hacer sonar",
+      "ping": "Ping",
+      "clipboard": "Enviar portapapeles",
+      "send-file": "Enviar archivo",
+      "browse": "Explorar archivos",
+      "sms": "SMS",
+      "recent-images": "Imágenes recientes",
+      "send-image": "Enviar {file} al teléfono",
+      "sent": "Enviado al teléfono",
+      "share": "Compartir texto o enlace",
+      "share-placeholder": "Texto o enlace para enviar",
+      "open-sms-app": "Abrir mensajes",
+      "sms-number": "Número de teléfono",
+      "sms-message": "Mensaje",
+      "sms-send": "Enviar SMS",
+      "sms-sent": "SMS enviado",
+      "rename": "Renombrar",
+      "change-photo": "Cambiar foto",
+      "remove-photo": "Quitar foto",
+      "unpair": "Desemparejar",
+      "unpair-confirm": "¿Desemparejar? Pulsa otra vez"
     }
   },
   "osd": {
@@ -5678,6 +5723,10 @@
         "include-udp": {
           "label": "Incluir UDP",
           "description": "Muestra también los sockets UDP"
+        },
+        "show-battery": {
+          "label": "Mostrar batería",
+          "description": "Muestra la batería del teléfono junto al icono"
         }
       },
       "types": {
@@ -5717,7 +5766,8 @@
         "weather": "Clima",
         "workspaces": "Espacios de trabajo",
         "cat": "Gato",
-        "ports": "Red y puertos"
+        "ports": "Red y puertos",
+        "phone": "Teléfono"
       }
     },
     "window": {
