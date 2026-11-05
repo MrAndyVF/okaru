@@ -50,7 +50,9 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed >/dev/null
           source "$PKGBUILD"
-          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" dbus >/dev/null
+          # dbus: las pruebas de integración usan dbus-run-session. ttf-dejavu: el contenedor no trae fuentes
+          # y las pruebas que miden texto necesitan al menos una.
+          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" dbus ttf-dejavu >/dev/null
       - name: Compilar
         run: |
           meson setup build -Dtests=enabled
