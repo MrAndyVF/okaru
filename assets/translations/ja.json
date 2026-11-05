@@ -1817,7 +1817,7 @@
         "loading": "カタログを読み込み中…",
         "no-readme": "説明がありません。",
         "not-listed": "未掲載",
-        "open-page": "noctalia.devでプラグインページを開く",
+        "open-page": "GitHubでプラグインページを開く",
         "open-source": "プラグインのソースリポジトリを開く",
         "results-count": "{count}個のプラグイン",
         "search-placeholder": "プラグインを検索…",
@@ -3032,7 +3032,7 @@
           "placeholder": "都市名、国名"
         },
         "location-auto-locate": {
-          "description": "noctalia.devを利用してIPアドレスから現在地を自動検出",
+          "description": "ipinfo.ioを利用してIPアドレスから現在地を自動検出",
           "label": "現在地を自動検出（IP）"
         },
         "longitude": {
@@ -3276,7 +3276,7 @@
           "label": "日付の書式"
         },
         "external-ip": {
-          "description": "接続のパブリックWAN IPアドレスを（api.noctalia.dev経由で）取得し、コントロールセンターのネットワークタブに表示します",
+          "description": "接続のパブリックWAN IPアドレスを（ipinfo.io経由で）取得し、コントロールセンターのネットワークタブに表示します",
           "label": "WAN IPを表示"
         },
         "greeter-sync-auto": {

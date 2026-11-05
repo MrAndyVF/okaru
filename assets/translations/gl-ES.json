@@ -2193,7 +2193,7 @@
           "placeholder": "Cidade, país"
         },
         "location-auto-locate": {
-          "description": "Detecta automaticamente a túa localización desde o teu enderezo IP mediante noctalia.dev",
+          "description": "Detecta automaticamente a túa localización desde o teu enderezo IP mediante ipinfo.io",
           "label": "Localización automática (IP)"
         },
         "longitude": {
@@ -2395,7 +2395,7 @@
           "label": "Formato de data"
         },
         "external-ip": {
-          "description": "Resolver o IP WAN público da conexión (mediante api.noctalia.dev) e mostralo na pestana de rede do Centro de control",
+          "description": "Resolver o IP WAN público da conexión (mediante ipinfo.io) e mostralo na pestana de rede do Centro de control",
           "label": "Mostrar IP WAN"
         },
         "greeter-sync-auto": {

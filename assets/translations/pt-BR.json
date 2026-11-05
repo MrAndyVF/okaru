@@ -1814,7 +1814,7 @@
         "loading": "Carregando catálogo...",
         "no-readme": "Nenhuma descrição disponível.",
         "not-listed": "Não listado",
-        "open-page": "Abrir página de plugin em noctalia.dev",
+        "open-page": "Abrir página de plugin em GitHub",
         "open-source": "Abrir repositório fonte de plugin",
         "results-count": "{count} plugins",
         "search-placeholder": "Busque plugins...",
@@ -3267,7 +3267,7 @@
           "label": "Formato da Data"
         },
         "external-ip": {
-          "description": "Determinar o IP público da WAN da conexão (por meio de api.noctalia.dev) e exibi-lo na guia “Rede” da Central de Controle",
+          "description": "Determinar o IP público da WAN da conexão (por meio de ipinfo.io) e exibi-lo na guia “Rede” da Central de Controle",
           "label": "Mostrar IP da WAN"
         },
         "greeter-sync-auto": {

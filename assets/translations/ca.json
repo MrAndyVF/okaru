@@ -1479,7 +1479,7 @@
         "incompatible-hint": "Necessita l'API de connectors {required}; aquesta versió de OKARU admet {oldest}–{current}.",
         "loading": "Carregant el catàleg…",
         "no-readme": "No hi ha cap descripció disponible.",
-        "open-page": "Obre la pàgina del connector a noctalia.dev",
+        "open-page": "Obre la pàgina del connector a GitHub",
         "open-source": "Obre el repositori del codi font del connector",
         "results-count": "{count} connectors",
         "search-placeholder": "Cerca connectors…",
@@ -2499,7 +2499,7 @@
           "placeholder": "Ciutat, País"
         },
         "location-auto-locate": {
-          "description": "Detecta la teva ubicació automàticament a partir de la teva adreça IP mitjançant noctalia.dev",
+          "description": "Detecta la teva ubicació automàticament a partir de la teva adreça IP mitjançant ipinfo.io",
           "label": "Auto-localització (IP)"
         },
         "longitude": {
@@ -2722,7 +2722,7 @@
           "label": "Format de data"
         },
         "external-ip": {
-          "description": "Resol la IP WAN pública de la connexió (mitjançant api.noctalia.dev) i mostra-la a la pestanya de xarxa del Centre de control",
+          "description": "Resol la IP WAN pública de la connexió (mitjançant ipinfo.io) i mostra-la a la pestanya de xarxa del Centre de control",
           "label": "Mostra la IP WAN"
         },
         "greeter-sync-auto": {

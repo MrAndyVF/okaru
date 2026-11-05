@@ -1744,7 +1744,7 @@
         "loading": "Caricamento catalogo...",
         "no-readme": "Nessuna descrizione disponibile.",
         "not-listed": "Non in elenco",
-        "open-page": "Apri la pagina plugin su noctalia.dev",
+        "open-page": "Apri la pagina plugin su GitHub",
         "open-source": "Apri il repository dei sorgenti dei plugin",
         "results-count": "{count} plugin",
         "search-placeholder": "Ricerca plugin...",
@@ -2921,7 +2921,7 @@
           "placeholder": "Città, Paese"
         },
         "location-auto-locate": {
-          "description": "Rileva automaticamente la tua posizione in base al tuo indirizzo IP via noctalia.dev",
+          "description": "Rileva automaticamente la tua posizione in base al tuo indirizzo IP via ipinfo.io",
           "label": "Localizzazione automatica (IP)"
         },
         "longitude": {
@@ -3165,7 +3165,7 @@
           "label": "Formato data"
         },
         "external-ip": {
-          "description": "Risolvi l'IP WAN pubblico della connessione (tramite api.noctalia.dev) e mostralo nella scheda rete del Control Center",
+          "description": "Risolvi l'IP WAN pubblico della connessione (tramite ipinfo.io) e mostralo nella scheda rete del Control Center",
           "label": "Mostra IP WAN"
         },
         "greeter-sync-auto": {

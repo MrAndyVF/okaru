@@ -1848,7 +1848,7 @@
           "placeholder": "Miasto, Kraj"
         },
         "location-auto-locate": {
-          "description": "Wykryj swoją lokalizację automatycznie na podstawie twojego adresu IP za pomocą serwisu noctalia.dev",
+          "description": "Wykryj swoją lokalizację automatycznie na podstawie twojego adresu IP za pomocą serwisu ipinfo.io",
           "label": "Auto-lokalizacja (IP)"
         },
         "longitude": {

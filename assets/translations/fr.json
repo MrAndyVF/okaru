@@ -1572,7 +1572,7 @@
         "incompatible": "Incompatible",
         "loading": "Chargement du catalogue...",
         "no-readme": "Pas de description disponible...",
-        "open-page": "Ouvrir la page du plugin sur noctalia.dev",
+        "open-page": "Ouvrir la page du plugin sur GitHub",
         "open-source": "Ouvrir le dépôt source du plugin",
         "results-count": "{count} plugins",
         "search-placeholder": "Recherche plugins...",
@@ -2504,7 +2504,7 @@
           "placeholder": "Ville, Pays"
         },
         "location-auto-locate": {
-          "description": "Détecte vote position automatiquement à partir de votre adresse IP via noctalia.dev",
+          "description": "Détecte vote position automatiquement à partir de votre adresse IP via ipinfo.io",
           "label": "Localisation automatique (IP)"
         },
         "longitude": {

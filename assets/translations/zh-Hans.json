@@ -1764,7 +1764,7 @@
         "loading": "正在加载目录…",
         "no-readme": "没有可用的描述。",
         "not-listed": "已下架",
-        "open-page": "在 noctalia.dev 上打开插件页面",
+        "open-page": "在 GitHub 上打开插件页面",
         "open-source": "打开插件源码仓库",
         "results-count": "共 {count} 个插件",
         "search-placeholder": "搜索插件…",
@@ -2953,7 +2953,7 @@
           "placeholder": "城市, 国家"
         },
         "location-auto-locate": {
-          "description": "通过 noctalia.dev 根据 IP 地址自动定位",
+          "description": "通过 ipinfo.io 根据 IP 地址自动定位",
           "label": "自动定位（IP）"
         },
         "longitude": {
@@ -3197,7 +3197,7 @@
           "label": "日期格式"
         },
         "external-ip": {
-          "description": "通过 api.noctalia.dev 解析当前连接的公网 WAN IP，并显示在控制中心的网络选项卡中",
+          "description": "通过 ipinfo.io 解析当前连接的公网 WAN IP，并显示在控制中心的网络选项卡中",
           "label": "显示 WAN IP"
         },
         "greeter-sync-auto": {

@@ -2087,7 +2087,7 @@
           "placeholder": "Město, Země"
         },
         "location-auto-locate": {
-          "description": "Automaticky zjistit vaši polohu z IP adresy přes noctalia.dev",
+          "description": "Automaticky zjistit vaši polohu z IP adresy přes ipinfo.io",
           "label": "Automatická lokalizace (IP)"
         },
         "longitude": {
