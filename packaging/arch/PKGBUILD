@@ -10,7 +10,25 @@ depends=(bash cairo curl fontconfig freetype2 git glib2 glibc harfbuzz hicolor-i
          libical libjxl libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
          libxkbcommon libxml2 md4c pam polkit pango sdbus-cpp tomlplusplus wayland)
 makedepends=(meson ninja cmake pkgconf wayland-protocols stb just)
-optdepends=('ddcutil: brillo de monitores externos')
+optdepends=('ddcutil: brillo de monitores externos'
+            'upower: batería y dispositivos de energía'
+            'gpu-screen-recorder: grabación de pantalla (widget Captura)'
+            'slurp: grabar una región (widget Captura)'
+            'networkmanager: red y VPN (vpn-manager)'
+            'nm-connection-editor: editar conexiones VPN con ventana (vpn-manager)'
+            'pacman-contrib: buscar actualizaciones y pacdiff (arch-updater)'
+            'flatpak: actualizaciones Flatpak (arch-updater) y cursor en apps Flatpak (cursor)'
+            'paru: actualizaciones de AUR (arch-updater)'
+            'yay: actualizaciones de AUR (arch-updater)'
+            'kdeconnect: conectar el teléfono (phone-connect)'
+            'sshfs: explorar los archivos del teléfono (phone-connect)'
+            'claude-code: uso de Claude Code (claudecode)'
+            'jq: uso de Claude Code (claudecode)'
+            'python: gestores de cursores e iconos (cursor, icons)'
+            'python-wand: convertir cursores de Windows (cursor)'
+            'imagemagick: convertir cursores de Windows (cursor)'
+            'win2xcur: convertir cursores de Windows (cursor, AUR)'
+            'zenity: diálogos de archivos (cursor, icons, phone-connect, vpn-manager)')
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
 sha256sums=(SKIP)
 

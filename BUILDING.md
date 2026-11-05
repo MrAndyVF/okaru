@@ -37,6 +37,22 @@ PipeWire libraries/headers are sufficient to build OKARU, but the PipeWire daemo
 
 `ddcutil` is an optional dependency used for controlling monitor brightness.
 
+Optional runtime tools used by the built-in modules and widgets. Each one is checked before use; without it only that feature is missing:
+
+| Feature | Packages |
+|---|---|
+| Capture widget (screen recording) | `gpu-screen-recorder`, `slurp` (region) |
+| vpn-manager | `networkmanager`; `nm-connection-editor` to edit connections in a window (falls back to `nmtui-edit`) |
+| arch-updater | `pacman-contrib` (checkupdates, pacdiff); `flatpak`; `paru` or `yay` for AUR |
+| phone-connect | `kdeconnect`, `sshfs` |
+| claudecode | `claude-code`, `jq`, `curl` |
+| cursor | `python`, `python-wand`, `imagemagick`, `win2xcur` (AUR); `flatpak` for Flatpak apps |
+| icons | `python` |
+| File dialogs in cursor, icons, phone-connect, vpn-manager | `zenity` (or `kdialog`) |
+| ports widget | `iproute2` (`ss`, part of base) |
+
+VPN credentials are asked in OKARU's own password dialog: the shell registers a NetworkManager secret agent and reads the fields to ask from the VPN plugin's auth dialog in external UI mode (supported by the fortisslvpn, openvpn and vpnc plugins).
+
 Credential and encrypted-state persistence requires a Secret Service provider at runtime, such as GNOME Keyring, KWallet, or KeePassXC. `libsecret` is the client library and does not provide the session service by itself. OKARU continues to run when no provider is available, but features requiring durable secrets cannot persist them. CalDAV accounts may instead read their password from one explicitly configured regular file, which supports secret provisioners such as agenix and sops-nix without installing a Secret Service provider. Google refresh tokens and other writable credentials still require Secret Service. Encrypted state, including clipboard history and the calendar event cache, may instead read one storage master key from an explicitly configured file.
 
 `jemalloc` is recommended but optional. It reduces memory fragmentation in long-running sessions, and on glibc systems it is used automatically when detected. Use Meson's `-Djemalloc=enabled` or `-Djemalloc=disabled` option to require or disable it explicitly.

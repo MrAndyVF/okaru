@@ -242,20 +242,14 @@ local function isUuid(value)
 end
 
 -- NetworkManager asks a secret agent for a password whose flags mark it
--- agent-owned. A bare shell has no agent, so activation fails before OpenVPN
--- even starts; nmcli --ask asks on the terminal instead.
+-- agent-owned. OKARU registers one: a deliberate connect asks for it in the
+-- shell's own password dialog while nmcli waits. Without an agent, or when the
+-- prompt is cancelled, activation fails with one of these messages.
 local function needsSecrets(stderr)
   local text = tostring(stderr or ""):lower()
   return text:find("no valid secrets") ~= nil
     or text:find("secrets were required") ~= nil
     or text:find("no agents were available") ~= nil
-end
-
-local function promptForSecrets(uuid)
-  if not isUuid(uuid) then
-    return false
-  end
-  return okaru.runInTerminal(`nmcli --ask connection up uuid {uuid}`)
 end
 
 local function nameForUuid(uuid)
@@ -328,16 +322,10 @@ local function connectUuid(uuid, isAuto)
       end
       local name = nameForUuid(uuid) or okaru.tr("title")
       if needsSecrets(result.stderr) then
-        -- Auto-connect must not seize a terminal behind the user's back, so it
-        -- only says what is wrong; a deliberate connect gets the prompt.
-        if isAuto or not promptForSecrets(uuid) then
-          okaru.notifyError(
-            okaru.tr("notifications.connect_failed"),
-            okaru.tr("notifications.needs_secrets", { name = name })
-          )
-        else
-          okaru.notify(okaru.tr("title"), okaru.tr("notifications.asking_secrets", { name = name }))
-        end
+        okaru.notifyError(
+          okaru.tr("notifications.connect_failed"),
+          okaru.tr("notifications.needs_secrets", { name = name })
+        )
       else
         okaru.notifyError(
           okaru.tr(isAuto and "notifications.auto_connect_failed" or "notifications.connect_failed"),
@@ -346,7 +334,7 @@ local function connectUuid(uuid, isAuto)
       end
     end
     refreshAll()
-  end, 25000)
+  end, 100000) -- nmcli espera hasta 90 s mientras se escribe la contraseña en el diálogo
 end
 
 local function disconnectUuid(uuid, isAuto)

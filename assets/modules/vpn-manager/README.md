@@ -137,13 +137,12 @@ UUIDs are the ones `nmcli connection show` prints.
   passes UUIDs to `nmcli`. A connection whose password is marked *agent-owned*
   (`password-flags = 1`) needs a NetworkManager **secret agent** to supply it;
   without one, NetworkManager reports `No valid secrets` and activation fails
-  before the VPN process starts. Desktop environments ship an agent
-  (`nm-applet`, GNOME Shell, plasma-nm); a bare Wayland session often has none.
+  before the VPN process starts.
 
-  When a connect fails that way, this plugin reruns it as
-  `nmcli --ask connection up uuid <uuid>` in a terminal so you can type the
-  password. Auto-connect never does this - it will not seize a terminal
-  unprompted - and reports the problem instead.
+  OKARU registers that agent itself: when a connect needs a password, the
+  shell's own password dialog asks for it (the fields come from the VPN
+  plugin's auth dialog in external UI mode, as GNOME Shell does) while
+  `nmcli` waits. Auto-connect asks the same way; cancel the dialog to skip it.
 
   To stop being asked at all, store the password in the connection:
 

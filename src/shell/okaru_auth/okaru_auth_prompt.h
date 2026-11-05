@@ -1,6 +1,6 @@
 #pragma once
 
-// OKARU: solicitudes de contraseña de la shell (sudo vía `okaru askpass`, y más adelante la VPN).
+// OKARU: solicitudes de contraseña de la shell (sudo vía `okaru askpass` y credenciales de VPN).
 // Lógica pura: no sabe de paneles ni de IPC, así se prueba sola.
 
 #include <chrono>
@@ -19,6 +19,13 @@ namespace okaru::auth {
   // Un pedido nuevo del mismo programa dentro de este plazo es un reintento (contraseña incorrecta).
   inline constexpr auto kRetryWindow = std::chrono::seconds(30);
 
+  enum class AuthResultKind { Pending, Answered, Cancelled, Unknown };
+
+  struct AuthResult {
+    AuthResultKind kind = AuthResultKind::Unknown;
+    std::string secret;
+  };
+
   struct AuthRequest {
     std::string id;        // 32 hex aleatorios; lo asigna open()
     std::string requester; // programa que pide la contraseña ("hyprpm")
@@ -26,14 +33,11 @@ namespace okaru::auth {
     int clientPid = 0;     // pid de quien abrió la solicitud; solo él puede leer la respuesta
     std::string prompt;    // texto del pedido ("[sudo] password for andress: ")
     std::string message;   // contexto opcional que manda quien lanzó la operación
+    std::string title;     // título del diálogo; vacío = "Permisos de administrador"
     int attempt = 1;       // > 1 si el intento anterior del mismo programa falló
-  };
-
-  enum class AuthResultKind { Pending, Answered, Cancelled, Unknown };
-
-  struct AuthResult {
-    AuthResultKind kind = AuthResultKind::Unknown;
-    std::string secret;
+    // Solicitudes de la propia shell (VPN): reciben el resultado aquí al responder o cancelar,
+    // sin cliente que pregunte por IPC, así que no expiran.
+    std::function<void(AuthResult)> onDone;
   };
 
   class AuthPromptService {
@@ -67,6 +71,7 @@ namespace okaru::auth {
 
     Entry* find(std::string_view id);
     void erase(std::string_view id);
+    void finish(Entry& entry, AuthResult result);
     void changed();
 
     std::vector<Entry> m_entries;

@@ -133,6 +133,7 @@ class PipeWireSpectrumPollSource;
 class PolkitAgent;
 namespace okaru::auth {
   class AuthController; // OKARU
+  class VpnAuthFlow;
 }
 class PolkitPollSource;
 class PowerProfilesService;
@@ -309,6 +310,7 @@ private:
   Timer m_bluetoothResumeTimer;
   std::unique_ptr<PolkitAgent> m_polkitAgent;
   std::unique_ptr<okaru::auth::AuthController> m_okaruAuth; // OKARU: diálogo de contraseña (okaru askpass)
+  std::unique_ptr<okaru::auth::VpnAuthFlow> m_okaruVpnAuth; // OKARU: credenciales de VPN en ese diálogo
   std::optional<bool> m_notificationDaemonEnabled;
   bool m_notificationDaemonInitFailed = false;
   bool m_notificationShellRefreshScheduled = false;

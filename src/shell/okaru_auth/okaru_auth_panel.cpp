@@ -63,6 +63,7 @@ void OkaruAuthPanel::create() {
           ui::column(
               {.align = FlexAlign::Stretch, .gap = Style::spaceXs * scale, .flexGrow = 1.0F},
               ui::label({
+                  .out = &m_titleLabel,
                   .text = i18n::tr("auth.okaru.title"),
                   .fontSize = Style::fontSizeTitle * scale,
                   .fontWeight = FontWeight::Bold,
@@ -161,6 +162,7 @@ void OkaruAuthPanel::onClose() {
   }
   clearReleasedRoot();
   m_rootLayout = nullptr;
+  m_titleLabel = nullptr;
   m_messageLabel = nullptr;
   m_requesterLabel = nullptr;
   m_promptLabel = nullptr;
@@ -199,12 +201,14 @@ void OkaruAuthPanel::doUpdate(Renderer& /*renderer*/) {
     m_input->setValue("");
   }
   const std::string program = request->requester.empty() ? i18n::tr("auth.okaru.unknown") : request->requester;
+  m_titleLabel->setText(request->title.empty() ? i18n::tr("auth.okaru.title") : request->title);
   m_messageLabel->setText(
       request->message.empty() ? i18n::tr("auth.okaru.message", "program", program) : request->message
   );
   m_requesterLabel->setText(
       i18n::tr("auth.okaru.requester", "program", program, "pid", std::to_string(request->requesterPid))
   );
+  m_requesterLabel->setVisible(request->requesterPid > 0); // la VPN la pide la propia shell
   m_promptLabel->setText(request->prompt);
   m_promptLabel->setVisible(!request->prompt.empty());
   m_errorLabel->setText(

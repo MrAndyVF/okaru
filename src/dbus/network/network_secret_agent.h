@@ -1,14 +1,17 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 class SystemBus;
 
 // NetworkManager secret agent. Registers with org.freedesktop.NetworkManager.AgentManager
 // on the system bus and answers GetSecrets requests for new Wi-Fi connections,
-// both pre-shared key ("802-11-wireless-security") and 802.1X ("802-1x").
+// both pre-shared key ("802-11-wireless-security") and 802.1X ("802-1x"), and
+// for VPN connections ("vpn", OKARU) through a separate callback.
 //
 // The agent is single-slot: one in-flight prompt at a time. Additional GetSecrets
 // calls while a prompt is open are rejected with NoSecrets, letting NM fall back
@@ -27,6 +30,16 @@ public:
 
   using RequestCallback = std::function<void(const SecretRequest&)>;
 
+  // OKARU: credenciales de una VPN (setting "vpn"). `data` es vpn.data (sin secretos).
+  struct VpnRequest {
+    std::string name;
+    std::string uuid;
+    std::string serviceType;
+    std::map<std::string, std::string> data;
+    std::vector<std::string> hints;
+  };
+  using VpnRequestCallback = std::function<void(const VpnRequest&)>;
+
   explicit NetworkSecretAgent(SystemBus& bus);
   ~NetworkSecretAgent();
 
@@ -34,6 +47,9 @@ public:
   NetworkSecretAgent& operator=(const NetworkSecretAgent&) = delete;
 
   void setRequestCallback(RequestCallback callback);
+  // `onCancelled` se llama si NetworkManager retira el pedido pendiente de VPN.
+  void setVpnRequestCallback(VpnRequestCallback callback, std::function<void()> onCancelled);
+  void submitVpnSecrets(const std::map<std::string, std::string>& secrets);
 
   // Reply paths for the pending request. Safe no-ops if nothing is pending. The
   // secret is written under the key the pending setting expects: "psk" for
