@@ -28,7 +28,7 @@ jobs:
           done
           for entry in "${optdepends[@]}"; do
             p="${entry%%:*}"
-            [[ "$entry" == *AUR* ]] && continue # declaradas como de AUR a propósito
+            [[ "$entry" == *AUR* || "$entry" == *"paquete propio"* ]] && continue # fuera de los repos oficiales a propósito
             pacman -Si "$p" >/dev/null 2>&1 || missing+=("$p (opcional)")
           done
           if ((${#missing[@]})); then
