@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instalador de OKARU (郁) para Arch Linux y derivadas, sin compilar nada.
+# 郁 OKARU Linux Shell — instalador para Arch Linux y derivadas, sin compilar nada.
 #
 #   curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
 #
@@ -136,7 +136,9 @@ greeter() {
 }
 
 main() {
-  printf '\n%sOKARU (郁)%s — instalador\n\n' "$bold" "$reset"
+  printf '\n   %s郁%s  %sOKARU Linux Shell%s\n' "$blue$bold" "$reset" "$bold" "$reset"
+  printf '   %s───────────────────────%s\n' "$dim" "$reset"
+  printf '   %sinstalador%s\n\n' "$dim" "$reset"
   checks
   WANT_GREETER=false WANT_PHONE=false WANT_OPTIONAL=false
   ask "¿Instalar OKARU Greeter como pantalla de inicio de sesión?" s && WANT_GREETER=true
@@ -150,7 +152,7 @@ main() {
   shell_service
   $WANT_GREETER && greeter
 
-  printf '\n%sListo.%s Cierra sesión y entra a «Hyprland (uwsm-managed)».\n' "$bold" "$reset"
+  printf '\n%s郁 OKARU Linux Shell instalada.%s Cierra sesión y entra a «Hyprland (uwsm-managed)».\n' "$bold" "$reset"
   printf 'Tus atajos propios van en ~/.config/hypr/oka/user-binds.lua.\n'
 }
 
