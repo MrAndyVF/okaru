@@ -71,9 +71,14 @@ jobs:
         working-directory: out
         run: |
           repo="$GITHUB_REPOSITORY"
-          gh release view repo -R "$repo" >/dev/null 2>&1 || \
-            gh release create repo -R "$repo" --title "Repositorio pacman de OKARU" --latest=false \
-              --notes "Repositorio [okaru] para pacman. Instala con install.sh; no descargues estos archivos a mano."
+          # Título "Okaru <versión>" con la versión de la última etiqueta v* (v1.0.0 -> 1.0.0).
+          version=$(sudo -u builder git -C "$GITHUB_WORKSPACE/okaru" describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')
+          notes="Repositorio [okaru] para pacman. Instala con install.sh; no descargues estos archivos a mano."
+          if gh release view repo -R "$repo" >/dev/null 2>&1; then
+            gh release edit repo -R "$repo" --title "Okaru $version"
+          else
+            gh release create repo -R "$repo" --title "Okaru $version" --latest=false --notes "$notes"
+          fi
           # Se quitan los paquetes de versiones anteriores para que el release no crezca sin límite.
           for asset in $(gh release view repo -R "$repo" --json assets --jq '.assets[].name'); do
             [ -e "$asset" ] || gh release delete-asset repo "$asset" -R "$repo" --yes
