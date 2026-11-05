@@ -63,12 +63,20 @@ namespace {
 
   // Dato pequeño de la cabecera: icono + texto.
   std::unique_ptr<Flex> chip(float scale, const char* glyph, const std::string& text, ColorRole role) {
-    return ui::row(
+    auto c = ui::row(
         {.align = FlexAlign::Center, .gap = Style::spaceXs * scale, .paddingV = 2.0F * scale,
          .paddingH = Style::spaceSm * scale, .fill = colorSpecFromRole(role, 0.12F), .radius = Style::radiusSm * scale},
-        ui::glyph({.glyph = glyph, .glyphSize = Style::fontSizeBody * scale, .color = colorSpecFromRole(role)}),
-        ui::label({.text = text, .fontSize = Style::fontSizeCaption * scale, .color = colorSpecFromRole(role)})
+        ui::glyph({.glyph = glyph, .glyphSize = Style::fontSizeBody * scale, .color = colorSpecFromRole(role)})
     );
+    if (!text.empty()) {
+      c->addChild(ui::label({.text = text, .fontSize = Style::fontSizeCaption * scale, .color = colorSpecFromRole(role)}));
+    }
+    return c;
+  }
+
+  std::unique_ptr<Button> iconButton(float scale, const char* glyph, std::string tooltip, std::function<void()> onClick) {
+    return ui::button({.glyph = glyph, .glyphSize = Style::fontSizeBody * scale, .variant = ButtonVariant::Ghost,
+                       .tooltip = std::move(tooltip), .onClick = std::move(onClick)});
   }
 
 } // namespace
@@ -341,6 +349,32 @@ void OkaruPhoneTab::addHero(Flex& parent, const PhoneDevice& d) {
   info->addChild(ui::label({.text = status, .fontSize = Style::fontSizeCaption * scale,
                             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
   top->addChild(std::move(info));
+  auto tools = ui::row({.align = FlexAlign::Center});
+  tools->addChild(iconButton(scale, "pencil", i18n::tr("okaru.phone.rename"), [this] {
+    m_renaming = !m_renaming;
+    requestRebuild();
+  }));
+  tools->addChild(iconButton(scale, "photo", i18n::tr("okaru.phone.change-photo"), [this, id = d.id] {
+    FileDialogOptions options;
+    options.title = i18n::tr("okaru.phone.change-photo");
+    options.extensions = {"png", "jpg", "jpeg", "webp"};
+    options.startDirectory = FileUtils::defaultPicturesDirectory();
+    (void)FileDialog::open(std::move(options), [this, id](std::optional<fs::path> path) {
+      if (path.has_value()) {
+        phone::prefs().avatar[id] = path->string();
+        phone::save();
+        requestRebuild();
+      }
+    });
+  }));
+  if (!avatar.empty()) {
+    tools->addChild(iconButton(scale, "trash", i18n::tr("okaru.phone.remove-photo"), [this, id = d.id] {
+      phone::prefs().avatar.erase(id);
+      phone::save();
+      requestRebuild();
+    }));
+  }
+  top->addChild(std::move(tools));
   hero->addChild(std::move(top));
 
   if (phone::usable(d)) {
@@ -354,8 +388,7 @@ void OkaruPhoneTab::addHero(Flex& parent, const PhoneDevice& d) {
     }
     if (d.networkStrength >= 0) {
       const std::string type = d.networkType.empty() || d.networkType == "Unknown" ? std::string{} : d.networkType;
-      chips->addChild(chip(scale, phone::signalGlyph(d.networkStrength),
-                           type.empty() ? i18n::tr("okaru.phone.signal") : type, ColorRole::OnSurface));
+      chips->addChild(chip(scale, phone::signalGlyph(d.networkStrength), type, ColorRole::OnSurface));
     }
     if (d.notifications > 0) {
       chips->addChild(chip(scale, "bell", std::to_string(d.notifications), ColorRole::Tertiary));
@@ -459,23 +492,39 @@ void OkaruPhoneTab::addActions(Flex& parent, const PhoneDevice& d) {
        }},
   };
 
-  auto grid = ui::row({.align = FlexAlign::Stretch, .wrap = true, .gap = Style::spaceSm * scale});
+  // Filas fijas de 3: el ajuste automático (wrap) de Flex no calcula bien el alto de botones que crecen.
+  constexpr std::size_t kPerRow = 3;
+  auto grid = card(scale, panelCardOpacity());
+  std::unique_ptr<Flex> row;
+  std::size_t inRow = 0;
   for (const auto& action : actions) {
     if (!d.hasPlugin(action.plugin)) {
       continue;
     }
-    grid->addChild(ui::button({
+    if (!row) {
+      row = ui::row({.align = FlexAlign::Stretch, .gap = Style::spaceSm * scale});
+    }
+    row->addChild(ui::button({
         .text = i18n::tr(action.key),
         .glyph = action.glyph,
         .fontSize = Style::fontSizeCaption * scale,
         .glyphSize = Style::baseGlyphSize * scale,
         .selected = std::string_view{action.plugin} == "kdeconnect_sms" && m_showSms,
         .contentAlign = ButtonContentAlign::Center,
-        .minWidth = 120.0F * scale,
-        .minHeight = 56.0F * scale,
+        .minHeight = 40.0F * scale,
         .flexGrow = 1.0F,
         .onClick = action.run,
     }));
+    if (++inRow == kPerRow) {
+      grid->addChild(std::move(row));
+      inRow = 0;
+    }
+  }
+  if (row) {
+    for (; inRow < kPerRow; ++inRow) { // huecos para que la última fila conserve el ancho de las demás
+      row->addChild(ui::row({.flexGrow = 1.0F}));
+    }
+    grid->addChild(std::move(row));
   }
   parent.addChild(std::move(grid));
 }
@@ -637,54 +686,29 @@ void OkaruPhoneTab::addSms(Flex& parent, const PhoneDevice& d) {
 }
 
 void OkaruPhoneTab::addFooter(Flex& parent, const PhoneDevice& d) {
+  if (!d.paired) {
+    return;
+  }
   const float scale = contentScale();
-  auto footer = ui::row({.align = FlexAlign::Center, .wrap = true, .gap = Style::spaceXs * scale});
-  const auto ghost = [scale](std::string text, const char* glyph, std::function<void()> onClick,
-                             ButtonVariant variant = ButtonVariant::Ghost) {
-    return ui::button({.text = std::move(text), .glyph = glyph, .fontSize = Style::fontSizeCaption * scale,
-                       .variant = variant, .onClick = std::move(onClick)});
-  };
-  footer->addChild(ghost(i18n::tr("okaru.phone.rename"), "pencil", [this] {
-    m_renaming = !m_renaming;
-    requestRebuild();
-  }));
-  footer->addChild(ghost(i18n::tr("okaru.phone.change-photo"), "photo", [this, id = d.id] {
-    FileDialogOptions options;
-    options.title = i18n::tr("okaru.phone.change-photo");
-    options.extensions = {"png", "jpg", "jpeg", "webp"};
-    options.startDirectory = FileUtils::defaultPicturesDirectory();
-    (void)FileDialog::open(std::move(options), [this, id](std::optional<fs::path> path) {
-      if (path.has_value()) {
-        phone::prefs().avatar[id] = path->string();
-        phone::save();
-        requestRebuild();
-      }
-    });
-  }));
-  if (!phone::avatarPath(d).empty()) {
-    footer->addChild(ghost(i18n::tr("okaru.phone.remove-photo"), "x", [this, id = d.id] {
-      phone::prefs().avatar.erase(id);
-      phone::save();
-      requestRebuild();
-    }));
-  }
-  if (d.paired) {
-    footer->addChild(ui::spacer());
-    footer->addChild(ghost(
-        i18n::tr(m_confirmUnpair ? "okaru.phone.unpair-confirm" : "okaru.phone.unpair"), "unlink",
-        [this, id = d.id] {
-          if (!m_confirmUnpair) {
-            m_confirmUnpair = true;
-          } else {
-            m_confirmUnpair = false;
-            m_service->unpair(id, reportFailure(i18n::tr("okaru.phone.unpair")));
-          }
-          requestRebuild();
-        },
-        m_confirmUnpair ? ButtonVariant::Destructive : ButtonVariant::Ghost
-    ));
-  }
-  parent.addChild(std::move(footer));
+  parent.addChild(ui::row(
+      {.align = FlexAlign::Center, .justify = FlexJustify::End},
+      ui::button({
+          .text = i18n::tr(m_confirmUnpair ? "okaru.phone.unpair-confirm" : "okaru.phone.unpair"),
+          .glyph = "unlink",
+          .fontSize = Style::fontSizeCaption * scale,
+          .variant = m_confirmUnpair ? ButtonVariant::Destructive : ButtonVariant::Ghost,
+          .onClick =
+              [this, id = d.id] {
+                if (!m_confirmUnpair) {
+                  m_confirmUnpair = true;
+                } else {
+                  m_confirmUnpair = false;
+                  m_service->unpair(id, reportFailure(i18n::tr("okaru.phone.unpair")));
+                }
+                requestRebuild();
+              },
+      })
+  ));
 }
 
 void OkaruPhoneTab::loadImages(Renderer& renderer) {
