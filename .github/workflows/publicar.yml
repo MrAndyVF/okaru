@@ -75,7 +75,9 @@ jobs:
           version=$(sudo -u builder git -C "$GITHUB_WORKSPACE/okaru" describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')
           notes="Repositorio [okaru] para pacman. Instala con install.sh; no descargues estos archivos a mano."
           if gh release view repo -R "$repo" >/dev/null 2>&1; then
-            gh release edit repo -R "$repo" --title "Okaru $version"
+            # gh release edit envía más campos y la API responde 500 con este release; basta el nombre.
+            id=$(gh release view repo -R "$repo" --json databaseId --jq .databaseId)
+            gh api -X PATCH "repos/$repo/releases/$id" -f name="Okaru $version" >/dev/null
           else
             gh release create repo -R "$repo" --title "Okaru $version" --latest=false --notes "$notes"
           fi
