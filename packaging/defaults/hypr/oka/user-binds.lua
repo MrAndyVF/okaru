@@ -1,0 +1,5 @@
+-- Tus atajos propios. OKARU nunca reescribe este archivo.
+-- Va después de oka.binds, así que puede sobrescribir cualquier atajo de fábrica:
+--
+--   hl.unbind("SUPER + B")
+--   hl.bind("SUPER + B", hl.dsp.exec_cmd("firefox"))

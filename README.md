@@ -8,6 +8,17 @@ Hyprland, todo en un solo programa sobre Wayland y OpenGL ES, sin Qt ni GTK.
 
 **Soporte:** solo Arch Linux y CachyOS.
 
+## Instalar
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
+```
+
+Agrega el repositorio pacman `[okaru]` (paquetes firmados, se actualizan con `pacman -Syu`), instala la
+shell con Hyprland, kitty y Nautilus, y deja la configuración de fábrica de Hyprland (reglas y atajos
+estándar; tus atajos propios van en `~/.config/hypr/oka/user-binds.lua`). Pregunta antes de reemplazar una
+configuración existente y si quieres el greeter, el teléfono (KDE Connect) y las dependencias opcionales.
+
 ## Compilar
 
 ```sh
@@ -41,6 +52,15 @@ notifications, wallpaper, lock screen, OSD, clipboard and settings with Hyprland
 single program on Wayland and OpenGL ES, without Qt or GTK.
 
 **Support:** Arch Linux and CachyOS only.
+
+### Install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
+```
+
+Adds the signed `[okaru]` pacman repository, installs the shell with Hyprland, kitty and Nautilus, and sets up
+the stock Hyprland config (standard rules and keybindings; your own go in `~/.config/hypr/oka/user-binds.lua`).
 
 ### Build
 

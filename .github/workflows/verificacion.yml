@@ -35,6 +35,12 @@ jobs:
             printf '::error::No existe en los repos de Arch: %s\n' "${missing[@]}"
             exit 1
           fi
+      - name: La configuración de fábrica de Hyprland es válida
+        run: |
+          pacman -S --noconfirm --needed hyprland >/dev/null
+          out=$(Hyprland --verify-config --config "$PWD/packaging/defaults/hypr/hyprland.lua" 2>&1 | sed -n '/parsing result/,$p')
+          echo "$out"
+          echo "$out" | grep -qx "config ok" || { echo "::error::La configuración de fábrica de Hyprland tiene errores."; exit 1; }
       - name: Meson encuentra todo solo con lo declarado
         run: |
           source "$PKGBUILD"
