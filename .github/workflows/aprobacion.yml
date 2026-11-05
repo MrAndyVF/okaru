@@ -1,0 +1,40 @@
+# Aprobación del dueño: GitHub no deja aprobar un PR a su propio autor, así que la aprobación es la
+# etiqueta "aprobado" puesta por MrAndyVF. Un commit nuevo la quita y hay que volver a aprobar.
+name: aprobacion
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  aprobacion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Etiqueta «aprobado» puesta por el dueño
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          ACTION: ${{ github.event.action }}
+          OWNER: MrAndyVF
+        run: |
+          if [ "$ACTION" = synchronize ]; then
+            gh api -X DELETE "repos/$REPO/issues/$PR/labels/aprobado" >/dev/null 2>&1 || true
+            echo "::error::Hay commits nuevos: la aprobación se retiró, vuelve a poner la etiqueta «aprobado»."
+            exit 1
+          fi
+          if ! gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name' | grep -qx aprobado; then
+            echo "::error::Falta la etiqueta «aprobado» de $OWNER."
+            exit 1
+          fi
+          labeler=$(gh api --paginate "repos/$REPO/issues/$PR/events" \
+            --jq '.[] | select(.event == "labeled" and .label.name == "aprobado") | .actor.login' | tail -n 1)
+          if [ "$labeler" != "$OWNER" ]; then
+            echo "::error::La etiqueta «aprobado» la puso «$labeler», no $OWNER."
+            exit 1
+          fi
+          echo "Aprobado por $OWNER."

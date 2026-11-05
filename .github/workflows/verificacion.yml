@@ -1,0 +1,73 @@
+# Checks obligatorios de main (ruleset "main protegida"). Los nombres de los jobs son los que exige el ruleset.
+name: verificacion
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PKGBUILD: packaging/arch/PKGBUILD
+
+jobs:
+  dependencias:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Las dependencias de la PKGBUILD existen en los repos de Arch
+        run: |
+          pacman -Syu --noconfirm --needed >/dev/null
+          source "$PKGBUILD"
+          missing=()
+          for p in "${depends[@]}" "${makedepends[@]}"; do
+            pacman -Si "$p" >/dev/null 2>&1 || missing+=("$p")
+          done
+          for entry in "${optdepends[@]}"; do
+            p="${entry%%:*}"
+            [[ "$entry" == *AUR* || "$entry" == *"paquete propio"* ]] && continue # fuera de los repos oficiales a propósito
+            pacman -Si "$p" >/dev/null 2>&1 || missing+=("$p (opcional)")
+          done
+          if ((${#missing[@]})); then
+            printf '::error::No existe en los repos de Arch: %s\n' "${missing[@]}"
+            exit 1
+          fi
+      - name: Meson encuentra todo solo con lo declarado
+        run: |
+          source "$PKGBUILD"
+          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" >/dev/null
+          meson setup build
+
+  compilacion-y-pruebas:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencias
+        run: |
+          pacman -Syu --noconfirm --needed >/dev/null
+          source "$PKGBUILD"
+          # dbus: las pruebas de integración usan dbus-run-session. ttf-dejavu: el contenedor no trae fuentes
+          # y las pruebas que miden texto necesitan al menos una.
+          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" dbus ttf-dejavu >/dev/null
+      - name: Compilar
+        run: |
+          meson setup build -Dtests=enabled
+          meson compile -C build
+      - name: Pruebas
+        run: meson test -C build --print-errorlogs --num-processes "$(nproc)"
+
+  depuracion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sin restos de depuración (breakpoints, trampas, marcas temporales)
+        run: |
+          pattern='__builtin_trap|__debugbreak|std::breakpoint|raise\(SIGTRAP\)|asm[^;]*int3|int \$3|DEBUG-TEMP|FIXME-DEBUG|XXX-DEBUG'
+          if grep -rnE "$pattern" src tests --include='*.cpp' --include='*.h' --include='*.hpp' --include='*.c'; then
+            echo "::error::Quedan restos de depuración (ver líneas arriba)."
+            exit 1
+          fi
