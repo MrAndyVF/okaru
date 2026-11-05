@@ -146,6 +146,7 @@ public:
   [[nodiscard]] FileDialogPresenter* fileDialogPresenter() noexcept;
 
   void onSecondTick();
+  void onAudioChanged(); // OKARU: Sonido → Dispositivos se actualiza con los cambios de PipeWire
   // True while the idle settings pane renders a live seconds counter.
   [[nodiscard]] bool wantsSecondTicks() const noexcept;
   void onIdleLiveStatusChanged();

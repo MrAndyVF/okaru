@@ -1035,7 +1035,8 @@
       "outputs": "Outputs",
       "inputs": "Inputs",
       "output-panel": "Sound output",
-      "input-panel": "Microphone"
+      "input-panel": "Microphone",
+      "system-sounds": "System sounds"
     },
     "dashboard": {
       "title": "Control center",

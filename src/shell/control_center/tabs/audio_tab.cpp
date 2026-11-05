@@ -16,8 +16,11 @@
 #include "system/easyeffects_service.h"
 #include "system/icon_resolver.h"
 #include "ui/builders.h"
+#include "ui/controls/button.h"
 #include "ui/controls/context_menu.h"
 #include "ui/controls/context_menu_popup.h"
+#include "ui/controls/slider.h"
+#include "ui/controls/toggle.h"
 #include "ui/palette.h"
 #include "util/string_utils.h"
 
@@ -1917,6 +1920,176 @@ void AudioTab::syncDeviceRows(Renderer& renderer) {
   PanelManager::instance().refresh();
 }
 
+namespace {
+
+  // OKARU: secciones desplegables del panel de salida; se recuerdan mientras corre la shell.
+  bool g_appsExpanded = true;
+  bool g_systemSoundsExpanded = false;
+
+  // Cabecera de sección desplegable: título, controles extra opcionales y flecha. `body` se oculta al plegar;
+  // `card` crece solo si está desplegada y `grow` > 0.
+  std::unique_ptr<Flex> makeCollapsibleHeader(
+      const std::string& title, bool& expanded, Flex* card, Node* body, float grow, float scale,
+      std::unique_ptr<Node> extra = nullptr
+  ) {
+    auto apply = [&expanded, card, body, grow] {
+      body->setVisible(expanded);
+      body->setParticipatesInLayout(expanded);
+      card->setFlexGrow(expanded ? grow : 0.0F);
+    };
+    apply();
+    auto header = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
+    auto* label = addTitle(*header, title, scale);
+    label->setFlexGrow(1.0F);
+    if (extra != nullptr) {
+      header->addChild(std::move(extra));
+    }
+    Button* chevron = nullptr;
+    header->addChild(ui::button({
+        .out = &chevron,
+        .glyph = expanded ? "chevron-up" : "chevron-down",
+        .glyphSize = Style::fontSizeBody * scale,
+        .variant = ButtonVariant::Ghost,
+        .minWidth = Style::controlHeightSm * scale,
+        .minHeight = Style::controlHeightSm * scale,
+    }));
+    chevron->setOnClick([&expanded, apply, chevron] {
+      expanded = !expanded;
+      apply();
+      chevron->setGlyph(expanded ? "chevron-up" : "chevron-down");
+      PanelManager::instance().refresh();
+    });
+    return header;
+  }
+
+  // OKARU: los mismos valores que Ajustes → Sonido; el panel solo los muestra a mano.
+  struct SoundEvent {
+    const char* configKey;
+    const char* labelKey;
+    bool AudioConfig::* field;
+  };
+  constexpr SoundEvent kSoundEvents[] = {
+      {"enable_volume_sounds", "settings.schema.services.volume-sounds.label", &AudioConfig::enableVolumeSounds},
+      {"enable_notification_sounds", "settings.schema.services.notification-sounds.label",
+       &AudioConfig::enableNotificationSounds},
+      {"enable_power_sounds", "settings.schema.services.power-sounds.label", &AudioConfig::enablePowerSounds},
+      {"enable_screenshot_sounds", "settings.schema.services.screenshot-sounds.label",
+       &AudioConfig::enableScreenshotSounds},
+  };
+
+} // namespace
+
+std::unique_ptr<Flex> AudioTab::createSystemSoundsCard() {
+  const float scale = contentScale();
+  const AudioConfig* audio = m_config != nullptr ? &m_config->config().audio : nullptr;
+  auto card = ui::column({
+      .flexGrow = 0.0F,
+      .configure = [scale, opacity = panelCardOpacity()](Flex& column) {
+        applySectionCardStyle(column, scale, opacity);
+        column.setGap(Style::spaceSm * scale);
+      },
+  });
+  const auto write = [this](const char* key, ConfigOverrideValue value) {
+    if (m_config != nullptr && !m_syncingSounds) {
+      (void)m_config->setOverride({"audio", key}, std::move(value));
+    }
+  };
+
+  auto body = ui::column({.align = FlexAlign::Stretch, .gap = Style::spaceMd * scale});
+  Flex* bodyPtr = body.get();
+  auto general = ui::toggle({
+      .out = &m_soundsToggle,
+      .checkedImmediate = audio == nullptr || audio->enableSounds,
+      .toggleSize = ToggleSize::Small,
+      .scale = scale,
+      .onChange = [write](bool on) { write("enable_sounds", on); },
+  });
+  card->addChild(makeCollapsibleHeader(
+      i18n::tr("okaru.audio.system-sounds"), g_systemSoundsExpanded, card.get(), bodyPtr, 0.0F, scale,
+      std::move(general)
+  ));
+
+  bodyPtr->addChild(ui::row(
+      {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+      ui::label({
+          .text = i18n::tr("settings.schema.services.sound-volume.label"),
+          .fontSize = Style::fontSizeBody * scale,
+          .color = colorSpecFromRole(ColorRole::OnSurface),
+      }),
+      ui::slider({
+          .out = &m_soundVolumeSlider,
+          .minValue = 0.0,
+          .maxValue = 1.0,
+          .step = 0.05,
+          .value = audio != nullptr ? audio->soundVolume : 0.5,
+          .wheelAdjustEnabled = false, // la rueda no pasa por onDragEnd y no se guardaría
+          .flexGrow = 1.0F,
+          // Se guarda al soltar: escribir la config en cada paso del arrastre reescribe el archivo.
+          .onDragEnd =
+              [this, write] {
+                if (m_soundVolumeSlider != nullptr) {
+                  write("sound_volume", static_cast<double>(m_soundVolumeSlider->value()));
+                }
+              },
+      })
+  ));
+
+  m_soundEventToggles.clear();
+  std::unique_ptr<Flex> pair;
+  for (const auto& event : kSoundEvents) {
+    if (pair == nullptr) {
+      pair = ui::row({.align = FlexAlign::Center, .gap = Style::spaceLg * scale});
+    }
+    Toggle* toggle = nullptr;
+    pair->addChild(ui::row(
+        {.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .flexGrow = 1.0F},
+        ui::label({
+            .text = i18n::tr(event.labelKey),
+            .fontSize = Style::fontSizeCaption * scale,
+            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+            .maxLines = 1,
+            .ellipsize = TextEllipsize::End,
+        }),
+        ui::row({.flexGrow = 1.0F}),
+        ui::toggle({
+            .out = &toggle,
+            .checkedImmediate = audio == nullptr || audio->*event.field,
+            .toggleSize = ToggleSize::Small,
+            .scale = scale,
+            .onChange = [write, key = event.configKey](bool on) { write(key, on); },
+        })
+    ));
+    m_soundEventToggles.push_back(toggle);
+    if (pair->children().size() == 2) {
+      bodyPtr->addChild(std::move(pair));
+    }
+  }
+  if (pair != nullptr) {
+    bodyPtr->addChild(std::move(pair));
+  }
+  card->addChild(std::move(body));
+  syncSystemSounds();
+  return card;
+}
+
+void AudioTab::syncSystemSounds() {
+  if (m_config == nullptr || m_soundsToggle == nullptr) {
+    return;
+  }
+  const AudioConfig& audio = m_config->config().audio;
+  m_syncingSounds = true;
+  m_soundsToggle->setChecked(audio.enableSounds);
+  for (std::size_t i = 0; i < m_soundEventToggles.size(); ++i) {
+    m_soundEventToggles[i]->setChecked(audio.*kSoundEvents[i].field);
+    m_soundEventToggles[i]->setEnabled(audio.enableSounds); // como en Ajustes: dependen del general
+  }
+  if (m_soundVolumeSlider != nullptr && !m_soundVolumeSlider->dragging()) {
+    m_soundVolumeSlider->setValue(audio.soundVolume);
+    m_soundVolumeSlider->setEnabled(audio.enableSounds);
+  }
+  m_syncingSounds = false;
+}
+
 std::unique_ptr<Flex> AudioTab::create() {
   const float scale = contentScale();
   if (m_mode != AudioTabMode::Both) {
@@ -1928,7 +2101,6 @@ std::unique_ptr<Flex> AudioTab::create() {
           .flexGrow = 1.0F,
           .configure = [scale, opacity = panelCardOpacity()](Flex& card) { applySectionCardStyle(card, scale, opacity); },
       });
-      addTitle(*programCard, i18n::tr("control-center.audio.application-volumes"), scale);
       auto programScroll = ui::scrollView({
           .out = &m_programScroll,
           .contentScale = scale,
@@ -1945,8 +2117,13 @@ std::unique_ptr<Flex> AudioTab::create() {
       m_programList->setDirection(FlexDirection::Vertical);
       m_programList->setAlign(FlexAlign::Stretch);
       m_programList->setGap(Style::spaceSm * scale);
+      programCard->addChild(makeCollapsibleHeader(
+          i18n::tr("control-center.audio.application-volumes"), g_appsExpanded, programCard.get(),
+          programScroll.get(), 1.0F, scale
+      ));
       programCard->addChild(std::move(programScroll));
       tab->addChild(std::move(programCard));
+      tab->addChild(createSystemSoundsCard());
     }
     if (m_wayland != nullptr && m_renderContext != nullptr) {
       m_deviceMenuPopup = std::make_unique<ContextMenuPopup>(*m_wayland, *m_renderContext);
@@ -2083,6 +2260,7 @@ void AudioTab::doLayout(Renderer& renderer, float contentWidth, float bodyHeight
 
 void AudioTab::doUpdate(Renderer& renderer) {
   syncDeviceRows(renderer); // OKARU
+  syncSystemSounds();       // OKARU
   rebuildProgramVolumes(renderer);
   syncValueLabelWidths(renderer);
   syncEffectsProfileControls(renderer);
@@ -2215,6 +2393,9 @@ void AudioTab::onClose() {
   m_lastOutputListKey.clear();
   m_lastInputListKey.clear();
   m_programCard = nullptr;
+  m_soundsToggle = nullptr;
+  m_soundEventToggles.clear();
+  m_soundVolumeSlider = nullptr;
   m_programScroll = nullptr;
   m_programList = nullptr;
   m_programRows.clear();

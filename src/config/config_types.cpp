@@ -62,7 +62,7 @@ std::vector<ControlCenterCardConfig> defaultControlCenterCards() {
 }
 
 std::vector<PluginSourceConfig> defaultPluginSources() {
-  // OKARU: una sola tienda propia, independiente de OKARU.
+  // OKARU: una sola tienda propia, independiente de Noctalia.
   return {
       {.kind = PluginSourceKind::Git, .name = "okaru", .location = "https://github.com/MrAndyVF/okaru-plugins"},
   };
