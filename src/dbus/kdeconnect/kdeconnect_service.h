@@ -50,6 +50,8 @@ namespace kdeconnect {
   void applyConnectivityProps(PhoneDevice& device, const PropertyMap& props);
   // Primera dirección IPv4 (ipv6=false) o IPv6 (ipv6=true) de la lista; vacío si no hay.
   [[nodiscard]] std::string firstAddress(const std::vector<std::string>& addresses, bool ipv6);
+  // Fija key=value en la sección [General] de un INI de QSettings, conservando el resto del archivo.
+  [[nodiscard]] std::string setIniGeneralKey(std::string_view ini, std::string_view key, std::string_view value);
   // Ruta local -> URL file:// con los caracteres reservados codificados (shareUrl espera una URL).
   [[nodiscard]] std::string fileUrl(std::string_view path);
 } // namespace kdeconnect
@@ -91,6 +93,9 @@ public:
   void cancelPairing(const std::string& id, ResultCallback done = {});
   void unpair(const std::string& id, ResultCallback done = {});
   void setPluginEnabled(const std::string& id, const std::string& plugin, bool enabled, ResultCallback done = {});
+  // Envío automático del portapapeles de la PC al teléfono: escribe autoShare en la configuración del
+  // complemento (~/.config/kdeconnect/<id>/kdeconnect_clipboard/config) y avisa a kdeconnectd.
+  void setClipboardAutoShare(const std::string& id, bool enabled, ResultCallback done = {});
 
   // Vuelve a pedir la lista y todas las propiedades (al reanudar, o desde IPC).
   void refresh();

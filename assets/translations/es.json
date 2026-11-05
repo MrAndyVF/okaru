@@ -988,7 +988,8 @@
         "system": "Sistema",
         "notifications": "Notificaciones",
         "screen-time": "Tiempo de pantalla",
-        "session": "Sesión"
+        "session": "Sesión",
+        "phone": "Teléfono"
       },
       "close": "Cerrar"
     },
@@ -1055,7 +1056,19 @@
       "change-photo": "Cambiar foto",
       "remove-photo": "Quitar foto",
       "unpair": "Desemparejar",
-      "unpair-confirm": "¿Desemparejar? Pulsa otra vez"
+      "unpair-confirm": "¿Desemparejar? Pulsa otra vez",
+      "clipboard-auto": "Portapapeles automático",
+      "clipboard-to-phone": "De este equipo al teléfono",
+      "clipboard-to-phone-hint": "Lo que copies aquí llega al teléfono",
+      "clipboard-to-pc": "Del teléfono a este equipo",
+      "clipboard-to-pc-hint": "Android lo bloquea en segundo plano. Conecta el teléfono por USB con la depuración USB activa, una sola vez.",
+      "adb-enable": "Activar con ADB",
+      "adb-missing": "adb no está instalado",
+      "adb-missing-hint": "Instala android-tools y vuelve a intentarlo.",
+      "adb-done": "Portapapeles del teléfono activado",
+      "adb-done-hint": "Se reinició KDE Connect en el teléfono; vuelve a abrirlo.",
+      "adb-failed": "No se pudo activar con ADB",
+      "adb-failed-hint": "Revisa el cable USB, la depuración USB y la autorización en el teléfono."
     }
   },
   "osd": {

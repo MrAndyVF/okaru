@@ -922,7 +922,7 @@ type = "icefish/phone-connect:tile"
     expect(
         sidecar["control_center"]["cards"][0]["type"].value<std::string>() == std::optional<std::string>{"profile"}
             && sidecar["control_center"]["cards"][4]["type"].value<std::string>()
-                == std::optional<std::string>{"shortcut:okaru/phone-connect:tile"} // v19 lo renombra
+                == std::optional<std::string>{"phone"} // v19 lo renombra y v21 lo vuelve tarjeta nativa
             && sidecar["control_center"]["cards"][3]["size"].value<std::string>() == std::optional<std::string>{"small"},
         "card order or size is wrong"
     );
@@ -1002,9 +1002,8 @@ size = "small"
     expect(applied == okaru::config::currentConfigVersion(), "integrated modules migration was not applied");
     const auto* enabled = sidecar["plugins"]["enabled"].as_array();
     expect(
-        enabled != nullptr && enabled->size() == 2
-            && (*enabled)[0].value<std::string>() == std::optional<std::string>{"okaru/phone-connect"}
-            && (*enabled)[1].value<std::string>() == std::optional<std::string>{"okaru/cursor"},
+        enabled != nullptr && enabled->size() == 1
+            && (*enabled)[0].value<std::string>() == std::optional<std::string>{"okaru/cursor"},
         "enabled ids were not renamed or native plugins were not removed"
     );
     expect(
@@ -1020,12 +1019,49 @@ size = "small"
         "plugin_settings table was not renamed"
     );
     expect(
-        sidecar["widget"]["phone"]["type"].value<std::string>() == std::optional<std::string>{"okaru/phone-connect:bar"}
+        sidecar["widget"]["phone"]["type"].value<std::string>() == std::optional<std::string>{"phone"}
             && sidecar["widget"]["clock"]["actions"]["left"].value<std::string>()
                 == std::optional<std::string>{"panel-toggle okaru/claudecode:popout"}
             && sidecar["control_center"]["cards"][0]["type"].value<std::string>()
-                == std::optional<std::string>{"shortcut:okaru/phone-connect:tile"},
+                == std::optional<std::string>{"phone"},
         "widget, action or card ids were not renamed"
+    );
+  }
+
+  // OKARU: phone-connect (Luau) -> teléfono nativo, desde una config ya en v20.
+  void checkNativePhoneMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 20
+[plugins]
+enabled = ["okaru/phone-connect", "okaru/cursor"]
+[plugin_settings."okaru/phone-connect"]
+details_placement = "floating"
+[widget.bar]
+type = "okaru/phone-connect:bar"
+[widget.clock.actions]
+left = "panel-toggle okaru/phone-connect:details_floating"
+right = "panel-toggle okaru/phone-connect:details"
+[[control_center.cards]]
+type = "shortcut:okaru/phone-connect:tile"
+size = "small"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 20, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "native phone migration was not applied");
+    const auto* enabled = sidecar["plugins"]["enabled"].as_array();
+    expect(
+        enabled != nullptr && enabled->size() == 1
+            && sidecar["plugin_settings"]["okaru/phone-connect"].node() == nullptr,
+        "phone-connect plugin was not removed"
+    );
+    expect(
+        sidecar["widget"]["bar"]["type"].value<std::string>() == std::optional<std::string>{"phone"}
+            && sidecar["widget"]["clock"]["actions"]["left"].value<std::string>()
+                == std::optional<std::string>{"panel-toggle okaru-phone"}
+            && sidecar["widget"]["clock"]["actions"]["right"].value<std::string>()
+                == std::optional<std::string>{"panel-toggle okaru-phone"}
+            && sidecar["control_center"]["cards"][0]["type"].value<std::string>() == std::optional<std::string>{"phone"},
+        "phone widget, panels or card were not migrated"
     );
   }
 
@@ -1237,6 +1273,7 @@ int main() {
   checkControlCenterCardsMigration();
   checkRemovedKeysMigration();
   checkIntegratedModulesMigration();
+  checkNativePhoneMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

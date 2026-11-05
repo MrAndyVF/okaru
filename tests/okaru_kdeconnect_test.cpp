@@ -47,6 +47,13 @@ int main() {
   ok &= expect(d.networkType == "5G" && d.networkStrength == 3, "conectividad");
 
   ok &= expect(fileUrl("/home/a/Fotos/mi foto#1.jpg") == "file:///home/a/Fotos/mi%20foto%231.jpg", "URL con reservados");
+  ok &= expect(setIniGeneralKey("", "autoShare", "true") == "[General]\nautoShare=true\n", "INI vacío");
+  ok &= expect(setIniGeneralKey("[General]\nautoShare=false\nsendPassword=true\n", "autoShare", "true")
+                   == "[General]\nautoShare=true\nsendPassword=true\n",
+               "INI reemplaza la clave");
+  ok &= expect(setIniGeneralKey("[General]\nsendPassword=true\n[Otro]\nx=1\n", "autoShare", "false")
+                   == "[General]\nsendPassword=true\nautoShare=false\n[Otro]\nx=1\n",
+               "INI agrega la clave en [General]");
   ok &= expect(fileUrl("/tmp/canción.mp3") == "file:///tmp/canci%C3%B3n.mp3", "URL con UTF-8");
 
   // Preferencias: el state.json del módulo Luau se importa con sus nombres viejos.

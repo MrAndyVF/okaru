@@ -1091,7 +1091,8 @@
         "system": "System",
         "notifications": "Notifications",
         "screen-time": "Screen time",
-        "session": "Session"
+        "session": "Session",
+        "phone": "Phone"
       },
       "close": "Close"
     },
@@ -1158,7 +1159,19 @@
       "change-photo": "Change photo",
       "remove-photo": "Remove photo",
       "unpair": "Unpair",
-      "unpair-confirm": "Unpair? Click again"
+      "unpair-confirm": "Unpair? Click again",
+      "clipboard-auto": "Automatic clipboard",
+      "clipboard-to-phone": "From this computer to the phone",
+      "clipboard-to-phone-hint": "What you copy here reaches the phone",
+      "clipboard-to-pc": "From the phone to this computer",
+      "clipboard-to-pc-hint": "Android blocks it in the background. Connect the phone by USB with USB debugging on, once.",
+      "adb-enable": "Enable with ADB",
+      "adb-missing": "adb is not installed",
+      "adb-missing-hint": "Install android-tools and try again.",
+      "adb-done": "Clipboard from the phone enabled",
+      "adb-done-hint": "KDE Connect on the phone was restarted; reopen it.",
+      "adb-failed": "Could not enable it with ADB",
+      "adb-failed-hint": "Check the USB cable, USB debugging and the authorization on the phone."
     }
   },
   "osd": {

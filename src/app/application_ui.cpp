@@ -630,6 +630,7 @@ void Application::initPanelManagerAndPanels() {
       .accounts = m_accountsService.get(),
       .thumbnails = &m_thumbnailService,
       .asyncTextures = &m_asyncTextureCache,
+      .kdeConnect = m_kdeConnectService.get(),
   }, .session = &m_sessionActionRunner});
   // OKARU: lo que eran pestañas del centro de control son paneles propios, que abren sus widgets de la barra.
   {
@@ -679,7 +680,7 @@ void Application::initPanelManagerAndPanels() {
     addTabPanel("okaru-phone", "okaru.phone.title", "device-mobile", // OKARU
                 [=, this] { return std::make_unique<OkaruPhoneTab>(m_kdeConnectService.get(), m_mprisService.get(),
                                                                    &m_configService, &m_asyncTextureCache); },
-                480.0F, 690.0F);
+                480.0F, 720.0F);
     addTabPanel("okaru-power", "control-center.tabs.power", "bolt",
                 [=, this] { return std::make_unique<PowerTab>(m_upowerService.get(), m_powerProfilesService.get()); });
   }

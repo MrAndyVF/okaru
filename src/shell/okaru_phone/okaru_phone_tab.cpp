@@ -1,6 +1,8 @@
 #include "shell/okaru_phone/okaru_phone_tab.h"
 
 #include "config/config_service.h"
+#include "core/deferred_call.h"
+#include "core/process/process.h"
 #include "dbus/kdeconnect/kdeconnect_service.h"
 #include "dbus/mpris/mpris_service.h"
 #include "i18n/i18n.h"
@@ -194,8 +196,8 @@ std::string OkaruPhoneTab::mediaPlayerFor(const PhoneDevice& device) const {
 }
 
 std::string OkaruPhoneTab::stateKey(const PhoneDevice* d) const {
-  std::string key = std::format("{}|{}|{}|{}|", m_service != nullptr && m_service->available(), m_renaming,
-                                m_confirmUnpair, m_showSms);
+  std::string key = std::format("{}|{}|{}|{}|{}|", m_service != nullptr && m_service->available(), m_renaming,
+                                m_confirmUnpair, m_showSms, m_clipboardExpanded);
   if (m_service != nullptr) {
     for (const auto& other : m_service->devices()) {
       key += other.id + (phone::usable(other) ? "+" : "-");
@@ -204,9 +206,9 @@ std::string OkaruPhoneTab::stateKey(const PhoneDevice* d) const {
   if (d == nullptr) {
     return key;
   }
-  key += std::format("|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}", d->id, phone::displayName(*d), phone::avatarPath(*d),
+  key += std::format("|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}", d->id, phone::displayName(*d), phone::avatarPath(*d),
                      d->reachable, d->paired, d->pairRequested, d->pairRequestedByPeer, d->battery, d->charging,
-                     d->networkType, d->networkStrength, d->notifications, d->plugins.size());
+                     d->networkType, d->networkStrength, d->notifications, d->plugins.size(), d->clipboardAutoShare);
   if (const std::string bus = mediaPlayerFor(*d); !bus.empty()) {
     for (const auto& player : m_mpris->listPlayers()) {
       if (player.busName == bus) {
@@ -261,6 +263,7 @@ void OkaruPhoneTab::rebuild(const PhoneDevice* device) {
   addPairing(*m_content, *device);
   if (phone::usable(*device)) {
     addActions(*m_content, *device);
+    addClipboard(*m_content, *device);
     addMedia(*m_content, *device);
     addRecentImages(*m_content, *device);
     addShare(*m_content, *device);
@@ -527,6 +530,89 @@ void OkaruPhoneTab::addActions(Flex& parent, const PhoneDevice& d) {
     grid->addChild(std::move(row));
   }
   parent.addChild(std::move(grid));
+}
+
+void OkaruPhoneTab::addClipboard(Flex& parent, const PhoneDevice& d) {
+  if (!d.hasPlugin("kdeconnect_clipboard")) {
+    return;
+  }
+  const float scale = contentScale();
+  auto clip = card(scale, panelCardOpacity());
+  auto header = makeCardHeaderRow(i18n::tr("okaru.phone.clipboard-auto"), scale);
+  header->addChild(ui::button({
+      .glyph = m_clipboardExpanded ? "chevron-up" : "chevron-down",
+      .glyphSize = Style::fontSizeBody * scale,
+      .variant = ButtonVariant::Ghost,
+      .minWidth = Style::controlHeightSm * scale,
+      .minHeight = Style::controlHeightSm * scale,
+      .onClick =
+          [this] {
+            m_clipboardExpanded = !m_clipboardExpanded;
+            requestRebuild();
+          },
+  }));
+  clip->addChild(std::move(header));
+  if (!m_clipboardExpanded) {
+    parent.addChild(std::move(clip));
+    return;
+  }
+
+  const auto text = [scale](const std::string& title, const std::string& caption) {
+    auto column = ui::column({.align = FlexAlign::Start, .gap = 2.0F * scale, .flexGrow = 1.0F});
+    column->addChild(ui::label({.text = title, .fontSize = Style::fontSizeBody * scale}));
+    column->addChild(ui::label({.text = caption, .fontSize = Style::fontSizeCaption * scale,
+                                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+    return column;
+  };
+
+  auto toPhone = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale});
+  toPhone->addChild(text(i18n::tr("okaru.phone.clipboard-to-phone"), i18n::tr("okaru.phone.clipboard-to-phone-hint")));
+  toPhone->addChild(ui::toggle({
+      .checked = d.clipboardAutoShare,
+      .onChange =
+          [this, id = d.id](bool enabled) {
+            m_service->setClipboardAutoShare(id, enabled, reportFailure(i18n::tr("okaru.phone.clipboard-auto")));
+          },
+  }));
+  clip->addChild(std::move(toPhone));
+
+  // Android 10+ no deja leer el portapapeles en segundo plano; KDE Connect lo sortea con READ_LOGS
+  // (https://userbase.kde.org/KDEConnect, "Auto-sync on Android 10+"), que solo se da por ADB.
+  auto toPc = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale});
+  toPc->addChild(text(i18n::tr("okaru.phone.clipboard-to-pc"), i18n::tr("okaru.phone.clipboard-to-pc-hint")));
+  toPc->addChild(ui::button({
+      .text = i18n::tr("okaru.phone.adb-enable"),
+      .glyph = "usb",
+      .fontSize = Style::fontSizeCaption * scale,
+      .onClick =
+          [] {
+            if (!process::commandExists("adb")) {
+              notify::error("OKARU", i18n::tr("okaru.phone.adb-missing"), i18n::tr("okaru.phone.adb-missing-hint"));
+              return;
+            }
+            process::RunCallbacks callbacks;
+            callbacks.onExit = [](process::RunResult result) {
+              DeferredCall::callLater([result = std::move(result)] {
+                if (result) {
+                  notify::info("OKARU", i18n::tr("okaru.phone.adb-done"), i18n::tr("okaru.phone.adb-done-hint"));
+                } else {
+                  notify::error("OKARU", i18n::tr("okaru.phone.adb-failed"),
+                                result.err.empty() ? i18n::tr("okaru.phone.adb-failed-hint") : result.err);
+                }
+              });
+            };
+            (void)process::runAsync(
+                std::vector<std::string>{
+                    "sh", "-c",
+                    "adb -d shell pm grant org.kde.kdeconnect_tp android.permission.READ_LOGS"
+                    " && adb -d shell appops set org.kde.kdeconnect_tp SYSTEM_ALERT_WINDOW allow"
+                    " && adb -d shell am force-stop org.kde.kdeconnect_tp"},
+                std::move(callbacks)
+            );
+          },
+  }));
+  clip->addChild(std::move(toPc));
+  parent.addChild(std::move(clip));
 }
 
 void OkaruPhoneTab::addMedia(Flex& parent, const PhoneDevice& d) {

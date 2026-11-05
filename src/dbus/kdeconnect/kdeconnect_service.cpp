@@ -5,7 +5,12 @@
 #include "dbus/session_bus.h"
 
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <chrono>
+#include <cstdlib>
+#include <sdbus-c++/IObject.h>
 #include <sdbus-c++/IProxy.h>
 #include <sdbus-c++/Types.h>
 #include <utility>
@@ -92,6 +97,41 @@ namespace kdeconnect {
       }
     }
     return {};
+  }
+
+  std::string setIniGeneralKey(std::string_view ini, std::string_view key, std::string_view value) {
+    const std::string entry = std::string{key} + "=" + std::string{value};
+    std::istringstream in{std::string{ini}};
+    std::string out;
+    std::string line;
+    bool inGeneral = false;
+    bool sawGeneral = false;
+    bool written = false;
+    const auto flushIfLeavingGeneral = [&] {
+      if (inGeneral && !written) {
+        out += entry + "\n";
+        written = true;
+      }
+    };
+    while (std::getline(in, line)) {
+      if (line.starts_with('[')) {
+        flushIfLeavingGeneral();
+        inGeneral = line == "[General]";
+        sawGeneral = sawGeneral || inGeneral;
+      } else if (inGeneral && line.starts_with(std::string{key} + "=")) {
+        if (!written) {
+          out += entry + "\n";
+          written = true;
+        }
+        continue;
+      }
+      out += line + "\n";
+    }
+    flushIfLeavingGeneral();
+    if (!sawGeneral) {
+      out = "[General]\n" + entry + "\n" + out;
+    }
+    return out;
   }
 
   std::string fileUrl(std::string_view path) {
@@ -597,6 +637,54 @@ void KdeConnectService::cancelPairing(const std::string& id, ResultCallback done
 
 void KdeConnectService::unpair(const std::string& id, ResultCallback done) {
   callDevice(id, {}, kDeviceInterface, "unpair", std::move(done));
+}
+
+void KdeConnectService::setClipboardAutoShare(const std::string& id, bool enabled, ResultCallback done) {
+  // kdeconnectd guarda la configuración de cada complemento con QSettings (INI) y la relee al recargarlos.
+  const char* xdg = std::getenv("XDG_CONFIG_HOME");
+  const char* home = std::getenv("HOME");
+  const std::filesystem::path base = xdg != nullptr && xdg[0] != '\0' ? std::filesystem::path{xdg}
+      : home != nullptr                                                ? std::filesystem::path{home} / ".config"
+                                                                       : std::filesystem::path{};
+  if (base.empty()) {
+    if (done) {
+      done(false, "no config directory");
+    }
+    return;
+  }
+  const std::filesystem::path path = base / "kdeconnect" / id / "kdeconnect_clipboard" / "config";
+  std::string current;
+  if (std::ifstream in{path}; in) {
+    current.assign(std::istreambuf_iterator<char>{in}, {});
+  }
+  std::error_code ec;
+  std::filesystem::create_directories(path.parent_path(), ec);
+  std::ofstream out{path, std::ios::trunc};
+  if (!out) {
+    kLog.warn("cannot write {}", path.string());
+    if (done) {
+      done(false, "cannot write " + path.string());
+    }
+    return;
+  }
+  out << kdeconnect::setIniGeneralKey(current, "autoShare", enabled ? "true" : "false");
+  out.close();
+  // kdeconnectd relee la configuración del complemento al recibir esta señal (la misma que emite su KCM);
+  // reloadPlugins no sirve: no vuelve a crear los complementos que ya están cargados.
+  try {
+    auto object = sdbus::createObject(m_bus.connection(),
+                                      sdbus::ObjectPath{"/kdeconnect/" + id + "/kdeconnect_clipboard"});
+    object->emitSignal("configChanged").onInterface("org.kde.kdeconnect.config");
+  } catch (const sdbus::Error& e) {
+    kLog.warn("configChanged emit failed: {}", e.what());
+    if (done) {
+      done(false, e.getMessage());
+    }
+    return;
+  }
+  if (done) {
+    done(true, {});
+  }
 }
 
 void KdeConnectService::setPluginEnabled(const std::string& id, const std::string& plugin, bool enabled,

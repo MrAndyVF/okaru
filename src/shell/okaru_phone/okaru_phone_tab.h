@@ -43,6 +43,7 @@ private:
   void addHero(Flex& parent, const PhoneDevice& device);
   void addPairing(Flex& parent, const PhoneDevice& device);
   void addActions(Flex& parent, const PhoneDevice& device);
+  void addClipboard(Flex& parent, const PhoneDevice& device);
   void addMedia(Flex& parent, const PhoneDevice& device);
   void addRecentImages(Flex& parent, const PhoneDevice& device);
   void addShare(Flex& parent, const PhoneDevice& device);
@@ -72,4 +73,5 @@ private:
   bool m_renaming = false;
   bool m_confirmUnpair = false;
   bool m_showSms = false;
+  bool m_clipboardExpanded = false; // plegada por defecto para no agrandar el panel
 };

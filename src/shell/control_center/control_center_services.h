@@ -33,6 +33,7 @@ class UPowerService;
 class Wallpaper;
 class WeatherService;
 class GammaService;
+class KdeConnectService;
 
 namespace okaru::theme {
   class ThemeService;
@@ -75,6 +76,7 @@ struct ControlCenterServices {
   AccountsService* accounts = nullptr;
   ThumbnailService* thumbnails = nullptr;
   AsyncTextureCache* asyncTextures = nullptr;
+  KdeConnectService* kdeConnect = nullptr; // OKARU
 
   [[nodiscard]] ShortcutServices shortcutServices() const {
     return {
