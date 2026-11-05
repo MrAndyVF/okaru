@@ -123,6 +123,7 @@ class LogindService;
 class MainLoop;
 class ModemManagerService;
 class MprisService;
+class KdeConnectService;
 class NetworkSecretAgent;
 class NotificationDBusHost;
 class PipeWirePollSource;
@@ -297,6 +298,7 @@ private:
       m_wayland, m_compositorPlatform, m_configService, m_notificationManager, &m_clipboardService
   };
   std::unique_ptr<MprisService> m_mprisService;
+  std::unique_ptr<KdeConnectService> m_kdeConnectService; // OKARU
   std::unique_ptr<PowerProfilesService> m_powerProfilesService;
   std::unique_ptr<INetworkService> m_networkService;
   std::unique_ptr<NetworkSecretAgent> m_networkSecretAgent;
