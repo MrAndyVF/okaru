@@ -38,9 +38,14 @@ jobs:
       - name: La configuración de fábrica de Hyprland es válida
         run: |
           pacman -S --noconfirm --needed hyprland >/dev/null
-          out=$(Hyprland --verify-config --config "$PWD/packaging/defaults/hypr/hyprland.lua" 2>&1 | sed -n '/parsing result/,$p')
+          # Hyprland no arranca (ni para verificar) sin XDG_RUNTIME_DIR ni como root: usuario y directorio propios.
+          useradd -m hyprcheck
+          runtime=$(mktemp -d) && chown hyprcheck: "$runtime" && chmod 700 "$runtime"
+          out=$(sudo -u hyprcheck env XDG_RUNTIME_DIR="$runtime" \
+            Hyprland --verify-config --config "$PWD/packaging/defaults/hypr/hyprland.lua" 2>&1) || true
           echo "$out"
-          echo "$out" | grep -qx "config ok" || { echo "::error::La configuración de fábrica de Hyprland tiene errores."; exit 1; }
+          echo "$out" | sed -n '/parsing result/,$p' | grep -qx "config ok" \
+            || { echo "::error::La configuración de fábrica de Hyprland no pasa la verificación."; exit 1; }
       - name: Meson encuentra todo solo con lo declarado
         run: |
           source "$PKGBUILD"
