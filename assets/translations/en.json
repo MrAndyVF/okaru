@@ -1649,7 +1649,8 @@
         "window-switcher": "Window Switcher",
         "google": "Google",
         "cursor": "Cursor",
-        "icons": "Icons"
+        "icons": "Icons",
+        "phone": "Phone"
       },
       "modules": {
         "advanced": "Advanced",
@@ -4032,6 +4033,14 @@
         "weather-unit": {
           "description": "Unit system for weather display",
           "label": "Units"
+        },
+        "phone-recent-images": {
+          "label": "Recent images",
+          "description": "Show the latest screenshots in the phone panel to send them with one click"
+        },
+        "phone-recent-images-count": {
+          "label": "Number of recent images",
+          "description": "How many screenshots the phone panel shows"
         }
       },
       "shared": {

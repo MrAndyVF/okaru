@@ -521,6 +521,14 @@ namespace okaru::config::schema {
     return s;
   }
 
+  const Schema<PhoneConfig>& phoneSchema() {
+    static const Schema<PhoneConfig> s = {
+        field(&PhoneConfig::recentImages, "recent_images"),
+        field(&PhoneConfig::recentImagesCount, "recent_images_count", kPhoneRecentImagesRange),
+    };
+    return s;
+  }
+
   namespace {
     const Schema<ControlCenterCardConfig>& cardSchema() {
       static const Schema<ControlCenterCardConfig> s = {

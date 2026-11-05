@@ -31,7 +31,6 @@ namespace fs = std::filesystem;
 
 namespace {
 
-  constexpr std::size_t kRecentImageCount = 4;
   constexpr float kAvatarSize = 64.0F;
   constexpr float kThumbHeight = 72.0F;
 
@@ -655,9 +654,10 @@ void OkaruPhoneTab::addMedia(Flex& parent, const PhoneDevice& d) {
 
 void OkaruPhoneTab::scanRecentImages() {
   m_recentImages.clear();
-  if (m_config == nullptr) {
+  if (m_config == nullptr || !m_config->config().phone.recentImages) {
     return;
   }
+  const auto maxImages = static_cast<std::size_t>(std::max(1, m_config->config().phone.recentImagesCount));
   const std::string& configured = m_config->config().shell.screenshot.directory;
   const fs::path dir = configured.empty() ? FileUtils::defaultPicturesDirectory() : FileUtils::expandUserPath(configured);
   std::error_code ec;
@@ -667,7 +667,7 @@ void OkaruPhoneTab::scanRecentImages() {
       found.emplace_back(entry.last_write_time(ec), entry.path().string());
     }
   }
-  const std::size_t count = std::min(kRecentImageCount, found.size());
+  const std::size_t count = std::min(maxImages, found.size());
   std::ranges::partial_sort(found, found.begin() + static_cast<std::ptrdiff_t>(count), std::ranges::greater{});
   for (std::size_t i = 0; i < count; ++i) {
     m_recentImages.push_back(std::move(found[i].second));

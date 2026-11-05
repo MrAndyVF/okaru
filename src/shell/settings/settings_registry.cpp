@@ -3159,6 +3159,17 @@ namespace settings {
         "bluetooth device connect disconnect notification"
     ));
     entries.push_back(makeEntry(
+        SettingsSection::Services, "phone", tr("settings.schema.services.phone-recent-images.label"),
+        tr("settings.schema.services.phone-recent-images.description"), {"phone", "recent_images"},
+        ToggleSetting{cfg.phone.recentImages}, "phone kde connect recent images screenshots share"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "phone", tr("settings.schema.services.phone-recent-images-count.label"),
+        tr("settings.schema.services.phone-recent-images-count.description"), {"phone", "recent_images_count"},
+        sliderFor(cfg.phone.recentImagesCount, okaru::config::schema::kPhoneRecentImagesRange, true),
+        "phone kde connect recent images count"
+    ));
+    entries.push_back(makeEntry(
         SettingsSection::Services, "media", tr("settings.schema.services.mpris-blacklist.label"),
         tr("settings.schema.services.mpris-blacklist.description"), {"shell", "mpris", "blacklist"},
         ListSetting{.items = cfg.shell.mpris.blacklist}, "mpris media player dbus session blacklist"

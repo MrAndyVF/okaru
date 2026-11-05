@@ -1533,7 +1533,8 @@
         "window-switcher": "Selector de ventanas",
         "google": "Google",
         "cursor": "Cursor",
-        "icons": "Iconos"
+        "icons": "Iconos",
+        "phone": "Teléfono"
       },
       "modules": {
         "advanced": "Avanzado",
@@ -3915,6 +3916,14 @@
         "weather-unit": {
           "description": "Sistema de unidades usado en la pantalla del clima",
           "label": "Unidades"
+        },
+        "phone-recent-images": {
+          "label": "Imágenes recientes",
+          "description": "Muestra las últimas capturas en el panel del teléfono para enviarlas con un clic"
+        },
+        "phone-recent-images-count": {
+          "label": "Cantidad de imágenes recientes",
+          "description": "Cuántas capturas muestra el panel del teléfono"
         }
       },
       "shared": {
