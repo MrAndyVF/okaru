@@ -1768,7 +1768,7 @@
         "loading": "Se încarcă catalogul…",
         "no-readme": "Nicio descriere disponibilă.",
         "not-listed": "Nelistat",
-        "open-page": "Deschide pagina pluginului pe noctalia.dev",
+        "open-page": "Deschide pagina pluginului pe GitHub",
         "open-source": "Deschide depozitul sursă al pluginului",
         "results-count": "{count} pluginuri",
         "search-placeholder": "Caută pluginuri…",
@@ -2969,7 +2969,7 @@
           "placeholder": "Oraș, țară"
         },
         "location-auto-locate": {
-          "description": "Detectează automat locația din adresa IP prin noctalia.dev",
+          "description": "Detectează automat locația din adresa IP prin ipinfo.io",
           "label": "Localizare automată (IP)"
         },
         "longitude": {
@@ -3213,7 +3213,7 @@
           "label": "Formatul datei"
         },
         "external-ip": {
-          "description": "Rezolvă IP-ul WAN public al conexiunii (prin api.noctalia.dev) și îl arată în fila de rețea a centrului de control",
+          "description": "Rezolvă IP-ul WAN public al conexiunii (prin ipinfo.io) și îl arată în fila de rețea a centrului de control",
           "label": "Arată IP-ul WAN"
         },
         "greeter-sync-auto": {

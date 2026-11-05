@@ -1553,7 +1553,7 @@
         "installed": "설치됨",
         "loading": "카탈로그 불러오는 중…",
         "no-readme": "설명 없음.",
-        "open-page": "noctalia.dev에서 플러그인 페이지 열기",
+        "open-page": "GitHub에서 플러그인 페이지 열기",
         "open-source": "플러그인 소스 저장소 열기",
         "results-count": "{count}개 플러그인",
         "search-placeholder": "플러그인 검색…",
@@ -2575,7 +2575,7 @@
           "placeholder": "도시, 국가"
         },
         "location-auto-locate": {
-          "description": "noctalia.dev를 통해 IP 주소에서 자동으로 위치 감지",
+          "description": "ipinfo.io를 통해 IP 주소에서 자동으로 위치 감지",
           "label": "자동 위치 감지 (IP)"
         },
         "longitude": {
@@ -2803,7 +2803,7 @@
           "label": "날짜 형식"
         },
         "external-ip": {
-          "description": "연결의 공개 WAN IP를 확인하고 (api.noctalia.dev를 통해) 제어 센터 네트워크 탭에 표시",
+          "description": "연결의 공개 WAN IP를 확인하고 (ipinfo.io를 통해) 제어 센터 네트워크 탭에 표시",
           "label": "WAN IP 표시"
         },
         "greeter-sync-auto": {

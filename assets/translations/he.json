@@ -1503,7 +1503,7 @@
         "incompatible-hint": "נדרש API תוספים {required}; ‏OKARU תומך ב־{oldest}–{current}.",
         "loading": "טוען קטלוג…",
         "no-readme": "אין תיאור זמין.",
-        "open-page": "פתח את דף התוסף ב-noctalia.dev",
+        "open-page": "פתח את דף התוסף ב-GitHub",
         "open-source": "פתח את מאגר המקור של התוסף",
         "results-count": "{count} תוספים",
         "search-placeholder": "חיפוש תוספים…",
@@ -2527,7 +2527,7 @@
           "placeholder": "עיר, מדינה"
         },
         "location-auto-locate": {
-          "description": "זיהוי המיקום שלך באופן אוטומטי מכתובת ה-IP שלך דרך noctalia.dev",
+          "description": "זיהוי המיקום שלך באופן אוטומטי מכתובת ה-IP שלך דרך ipinfo.io",
           "label": "איתור אוטומטי (IP)"
         },
         "longitude": {
@@ -2750,7 +2750,7 @@
           "label": "פורמט תאריך"
         },
         "external-ip": {
-          "description": "בצע רזולוציה לכתובת ה-WAN הציבורית של החיבור (דרך api.noctalia.dev) והצג אותה בלשונית הרשת של ה-Control Center",
+          "description": "בצע רזולוציה לכתובת ה-WAN הציבורית של החיבור (דרך ipinfo.io) והצג אותה בלשונית הרשת של ה-Control Center",
           "label": "הצג כתובת WAN IP"
         },
         "greeter-sync-auto": {

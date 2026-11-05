@@ -1503,7 +1503,7 @@
         "incompatible-hint": "Benötigt Plugin-API {required}; diese OKARU-Version unterstützt {oldest}–{current}.",
         "loading": "Katalog wird geladen…",
         "no-readme": "Keine Beschreibung vorhanden.",
-        "open-page": "Plugin-Seite auf noctalia.dev öffnen",
+        "open-page": "Plugin-Seite auf GitHub öffnen",
         "open-source": "Quell-Repository des Plugins öffnen",
         "results-count": "{count} Plugins",
         "search-placeholder": "Suche Plugins…",
@@ -2527,7 +2527,7 @@
           "placeholder": "Stadt, Land"
         },
         "location-auto-locate": {
-          "description": "Erkenne deinen Standort automatisch anhand deiner IP-Adresse via noctalia.dev",
+          "description": "Erkenne deinen Standort automatisch anhand deiner IP-Adresse via ipinfo.io",
           "label": "Auto-Lokalisierung (IP)"
         },
         "longitude": {
@@ -2750,7 +2750,7 @@
           "label": "Datumsformat"
         },
         "external-ip": {
-          "description": "Löse die öffentliche WAN-IP der Verbindung auf (über api.noctalia.dev) und zeige sie im Netzwerk-Tab des Kontrollzentrums an",
+          "description": "Löse die öffentliche WAN-IP der Verbindung auf (über ipinfo.io) und zeige sie im Netzwerk-Tab des Kontrollzentrums an",
           "label": "WAN-IP anzeigen"
         },
         "greeter-sync-auto": {

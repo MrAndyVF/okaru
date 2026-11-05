@@ -1531,7 +1531,7 @@
         "installed": "مثبت",
         "loading": "جاري تحميل الكتالوج...",
         "no-readme": "لا يوجد وصف متاح.",
-        "open-page": "فتح صفحة الإضافة على noctalia.dev",
+        "open-page": "فتح صفحة الإضافة على GitHub",
         "open-source": "فتح مستودع مصدر الإضافة",
         "results-count": "{count} إضافة",
         "search-placeholder": "البحث في الإضافات...",
@@ -2559,7 +2559,7 @@
           "placeholder": "المدينة، الدولة"
         },
         "location-auto-locate": {
-          "description": "تحديد الموقع تلقائياً من IP عبر noctalia.dev",
+          "description": "تحديد الموقع تلقائياً من IP عبر ipinfo.io",
           "label": "التحديد التلقائي للموقع (بروتوكول الإنترنت)"
         },
         "longitude": {
@@ -2782,7 +2782,7 @@
           "label": "صيغة التاريخ"
         },
         "external-ip": {
-          "description": "حل عنوان WAN العام للاتصال (عبر api.noctalia.dev) وإظهاره في علامة تبويب الشبكة في مركز التحكم",
+          "description": "حل عنوان WAN العام للاتصال (عبر ipinfo.io) وإظهاره في علامة تبويب الشبكة في مركز التحكم",
           "label": "إظهار عنوان WAN"
         },
         "greeter-sync-auto": {

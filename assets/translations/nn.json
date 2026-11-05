@@ -1499,7 +1499,7 @@
         "incompatible-hint": "Krev utvidings-API {required}; denne OKARU stør {oldest} – {current}.",
         "loading": "Lastar inn katalog ...",
         "no-readme": "Ingen skildring tilgjengeleg.",
-        "open-page": "Opna utvidingssida på noctalia.dev",
+        "open-page": "Opna utvidingssida på GitHub",
         "open-source": "Opna kodelageret for utvidinga",
         "results-count": "{count} utvidingar",
         "search-placeholder": "Leita i utvidingar ...",
@@ -2511,7 +2511,7 @@
           "placeholder": "By, Land"
         },
         "location-auto-locate": {
-          "description": "Finn staden din automatisk ut frå IP-adressa di med noctalia.dev",
+          "description": "Finn staden din automatisk ut frå IP-adressa di med ipinfo.io",
           "label": "Finn-stad (IP)"
         },
         "longitude": {
@@ -2734,7 +2734,7 @@
           "label": "Datoformattering"
         },
         "external-ip": {
-          "description": "Finn den offentlege WAN IP-adressa til oppkoplinga (med api.noctalia.dev) og vis henne i nettverksfana i Styreromet",
+          "description": "Finn den offentlege WAN IP-adressa til oppkoplinga (med ipinfo.io) og vis henne i nettverksfana i Styreromet",
           "label": "Vis WAN IP"
         },
         "greeter-sync-auto": {
