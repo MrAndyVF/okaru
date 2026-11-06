@@ -1,6 +1,7 @@
 #include "config/config_service.h"
 #include "core/deferred_call.h"
 #include "core/toml.h"
+#include "scripting/plugin_source_paths.h"
 #include "scripting/plugin_manager.h"
 #include "scripting/plugin_registry.h"
 #include "scripting/plugin_script_watcher.h"
@@ -927,6 +928,19 @@ int main() {
              enables == std::vector<std::string>{"test/plugin"}, "first enable did not publish exactly one enable event"
          )
         && ok;
+
+    // Los módulos integrados (assets/modules) se activan aunque no estén en ninguna fuente configurada.
+    if (!scripting::plugin_paths::integratedSourceRoot().empty()) {
+      const auto integratedEnable = manager.enable("okaru/icons");
+      ok = expect(integratedEnable.ok, "integrated module enable request failed") && ok;
+      ok = expect(
+               drainUntil([&] { return std::ranges::contains(enables, std::string("okaru/icons")); }),
+               "integrated module okaru/icons was not enabled"
+           )
+          && ok;
+      manager.disable("okaru/icons");
+      std::erase(enables, std::string("okaru/icons"));
+    }
 
     {
       const auto path = root / "path-plugins/plugin/plugin.toml";

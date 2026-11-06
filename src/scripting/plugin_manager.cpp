@@ -539,6 +539,20 @@ namespace scripting {
           break;
         }
       }
+      // OKARU: los módulos integrados (assets/modules) también se pueden activar; menor precedencia.
+      if (!offering.has_value()) {
+        if (const auto integrated = plugin_paths::integratedSourceRoot(); !integrated.empty()) {
+          const PluginSourceConfig integratedSource{
+              .kind = PluginSourceKind::Path,
+              .name = std::string(plugin_paths::kIntegratedSourceName),
+              .location = integrated.string()
+          };
+          const auto catalog = discoverCatalog(integratedSource, CatalogAccess::Network);
+          if (const auto* entry = findCatalogEntry(catalog.entries, id); entry != nullptr) {
+            offering = Offering{.source = integratedSource, .entry = *entry};
+          }
+        }
+      }
 
       bool ok = false;
       bool incompatible = false;
