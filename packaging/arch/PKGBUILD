@@ -8,7 +8,7 @@ url='https://github.com/MrAndyVF/okaru'
 license=(MIT)
 depends=(bash cairo curl fontconfig freetype2 git glib2 glibc harfbuzz hicolor-icon-theme jemalloc libgcc libglvnd
          libical libjxl libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
-         libxkbcommon libxml2 md4c pam polkit pango sdbus-cpp tomlplusplus wayland)
+         libxkbcommon libxml2 md4c noto-fonts pam polkit pango sdbus-cpp tomlplusplus wayland)
 # Sin paquete -debug: nadie lo instala y solo infla el repositorio.
 options=('!debug')
 makedepends=(meson ninja cmake pkgconf wayland-protocols stb just nlohmann-json)

@@ -12,7 +12,7 @@ readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packagin
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS="/usr/share/okaru/defaults/hypr"
-readonly BASE_PACKAGES=(hyprland uwsm kitty nautilus xdg-desktop-portal-hyprland xdg-desktop-portal-gtk)
+readonly BASE_PACKAGES=(hyprland uwsm kitty nautilus xdg-desktop-portal-hyprland xdg-desktop-portal-gtk noto-fonts)
 readonly PHONE_PACKAGES=(kdeconnect sshfs)
 # gum (la interfaz) se descarga a una carpeta temporal y se verifica; no queda instalado.
 readonly GUM_VERSION="2.0.2"
@@ -224,7 +224,7 @@ optional_packages() {
 package_list() {
   local packages=("${BASE_PACKAGES[@]}" okaru)
   $WANT_PHONE && packages+=("${PHONE_PACKAGES[@]}")
-  $WANT_GREETER && packages+=(greetd okaru-greeter)
+  $WANT_GREETER && packages+=(greetd okaru-greeter accountsservice)
   printf '%s\n' "${packages[@]}"
 }
 
