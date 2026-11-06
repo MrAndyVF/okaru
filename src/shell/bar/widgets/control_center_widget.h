@@ -16,7 +16,7 @@ struct wl_output;
 class ControlCenterWidget : public Widget {
 public:
   struct Options {
-    std::string glyph = "okaru";
+    std::string glyph = "settings"; // engranaje (el glifo "okaru" es el búho de Noctalia)
     std::string customImage;
     bool customImageColorize = false;
   };
