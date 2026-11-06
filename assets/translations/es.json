@@ -1069,6 +1069,15 @@
       "adb-done-hint": "Se reinició KDE Connect en el teléfono; vuelve a abrirlo.",
       "adb-failed": "No se pudo activar con ADB",
       "adb-failed-hint": "Revisa el cable USB, la depuración USB y la autorización en el teléfono."
+    },
+    "hypr-layout": {
+      "scrolling": "Scrolling",
+      "dwindle": "Dwindle",
+      "master": "Master",
+      "monocle": "Monocle",
+      "scope-workspace": "este workspace",
+      "scope-global": "todo el sistema",
+      "hint": "Clic izquierdo: siguiente · Clic derecho: anterior"
     }
   },
   "osd": {
@@ -2278,7 +2287,14 @@
           "snap": "Imán de ventanas flotantes",
           "touchpad": "Touchpad"
         },
-        "title": "Ventanas"
+        "title": "Ventanas",
+        "layout-switch": {
+          "title": "Cambio de layout",
+          "scope": "Al cambiar de layout",
+          "scope-desc": "Super+Alt+Space y el widget de la barra. Cada workspace guarda su propio layout, o el nuevo pasa a ser el predeterminado de todos. En los dos casos sobrevive a reinicios.",
+          "workspace": "Solo este workspace",
+          "global": "Todo el sistema"
+        }
       },
       "startup": {
         "apps": "Aplicaciones al iniciar",
@@ -4324,6 +4340,10 @@
         "window-switcher-style": {
           "description": "Elegir entre el carrusel flotante en profundidad o la tira compacta enmarcada.",
           "label": "Estilo del selector de ventanas"
+        },
+        "osd-kinds-hypr-layout": {
+          "label": "Layout de Hyprland",
+          "description": "Mostrar una notificación en pantalla (OSD) cuando cambie el layout de las ventanas (Super+Alt+Space)"
         }
       },
       "system": {
@@ -5789,7 +5809,8 @@
         "workspaces": "Espacios de trabajo",
         "cat": "Gato",
         "ports": "Red y puertos",
-        "phone": "Teléfono"
+        "phone": "Teléfono",
+        "hypr-layout": "Layout de ventanas"
       }
     },
     "window": {

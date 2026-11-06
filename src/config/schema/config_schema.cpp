@@ -69,6 +69,7 @@ namespace okaru::config::schema {
         field(&OsdKindsConfig::mediaVolume, "media_volume"),
         field(&OsdKindsConfig::privacy, "privacy"),
         field(&OsdKindsConfig::keyboardBacklight, "keyboard_backlight"),
+        field(&OsdKindsConfig::hyprLayout, "hypr_layout"), // OKARU
         field(&OsdKindsConfig::custom, "custom"),
     };
     return s;
@@ -1823,6 +1824,7 @@ namespace okaru::config::schema {
         field(&ShellConfig::niriOverviewTypeToLaunchEnabled, "niri_overview_type_to_launch_enabled"),
         field(&ShellConfig::niriOverviewCloseOnLaunchEnabled, "niri_overview_close_on_launch_enabled"),
         field(&ShellConfig::polkitAgent, "polkit_agent"),
+        field(&ShellConfig::layoutPerWorkspace, "layout_per_workspace"), // OKARU
         enumField(&ShellConfig::passwordMaskStyle, "password_style", kPasswordMaskStyles),
         field(&ShellConfig::readlineShortcuts, "readline_shortcuts"),
         field(&ShellConfig::settingsShowAdvanced, "settings_show_advanced"),

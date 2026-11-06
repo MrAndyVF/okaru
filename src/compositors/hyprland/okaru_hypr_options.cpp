@@ -71,16 +71,6 @@ namespace okaru::hypr {
       return parts;
     }
 
-    std::string readFile(const std::filesystem::path& path) {
-      std::ifstream in(path, std::ios::binary);
-      if (!in) {
-        return {};
-      }
-      std::stringstream buffer;
-      buffer << in.rdbuf();
-      return buffer.str();
-    }
-
   } // namespace
 
   std::vector<OptionDesc> parseDescriptionsJson(const nlohmann::json& json) {
@@ -328,16 +318,30 @@ namespace okaru::hypr {
   }
 
   OptionValues readOptionOverrides(const std::filesystem::path& path, OptionValues* bases) {
-    return parseOptionsBlock(readFile(path), bases);
+    return parseOptionsBlock(readOkaFile(path), bases);
+  }
+
+  std::string readOkaFile(const std::filesystem::path& path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) {
+      return {};
+    }
+    std::stringstream buffer;
+    buffer << in.rdbuf();
+    return buffer.str();
   }
 
   std::optional<std::string>
   writeOptionOverrides(const std::filesystem::path& path, const OptionValues& values, const OptionValues& bases) {
-    const std::string current = readFile(path);
+    const std::string current = readOkaFile(path);
     const std::string next = replaceOptionsBlock(current, values, bases);
     if (next == current) {
       return std::nullopt;
     }
+    return writeFileAtomic(path, next);
+  }
+
+  std::optional<std::string> writeFileAtomic(const std::filesystem::path& path, std::string_view next) {
     std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
     const auto tmp = path.string() + ".okaru-tmp";

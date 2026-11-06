@@ -842,6 +842,7 @@ struct OsdKindsConfig {
   bool mediaVolume = true;
   bool privacy = true;
   bool keyboardBacklight = true;
+  bool hyprLayout = true; // OKARU
   bool custom = true;
   bool operator==(const OsdKindsConfig&) const = default;
 };
@@ -1362,6 +1363,7 @@ struct ShellConfig {
   bool niriOverviewTypeToLaunchEnabled = false;
   bool niriOverviewCloseOnLaunchEnabled = false;
   bool polkitAgent = true; // OKARU: sin agente, pkexec (sincronizar el greeter, etc.) no tiene dónde pedir la contraseña
+  bool layoutPerWorkspace = true; // OKARU: el cambio de layout (Super+Alt+Space) vale solo para el workspace activo
   PasswordMaskStyle passwordMaskStyle = PasswordMaskStyle::CircleFilled;
   /// Readline-style editing shortcuts in every text input (Ctrl+A moves to the start instead of selecting all).
   bool readlineShortcuts = false;

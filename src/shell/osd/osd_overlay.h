@@ -39,6 +39,7 @@ enum class OsdKind : std::uint8_t {
   MediaVolume,
   Privacy,
   KeyboardBacklight,
+  HyprLayout, // OKARU
   Custom
 };
 

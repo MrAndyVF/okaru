@@ -993,6 +993,41 @@ namespace settings {
       );
     }
 
+    // Alcance de Super+Alt+Space / widget hypr_layout (shell.layout_per_workspace).
+    void addLayoutScopeCard(Flex& content, const SettingsWindowsContext& ctx) {
+      const float scale = ctx.scale;
+      Flex* body = addSettingsCard(content, i18n::tr("settings.okaru.windows.layout-switch.title"), scale);
+      auto text = ui::column(
+          {.align = FlexAlign::Stretch, .gap = Style::spaceXs * scale, .flexGrow = 1.0F},
+          makeLabel(
+              i18n::tr("settings.okaru.windows.layout-switch.scope"), Style::fontSizeBody * scale,
+              colorSpecFromRole(ColorRole::OnSurface), FontWeight::Bold
+          )
+      );
+      auto desc = makeLabel(
+          i18n::tr("settings.okaru.windows.layout-switch.scope-desc"), Style::fontSizeCaption * scale,
+          colorSpecFromRole(ColorRole::OnSurfaceVariant)
+      );
+      desc->setMaxLines(3);
+      text->addChild(std::move(desc));
+      auto line = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale, .fillWidth = true});
+      line->addChild(std::move(text));
+      line->addChild(ui::select({
+          .options = std::vector<std::string>{i18n::tr("settings.okaru.windows.layout-switch.workspace"),
+                                              i18n::tr("settings.okaru.windows.layout-switch.global")},
+          .selectedIndex = ctx.layoutPerWorkspace ? std::size_t{0} : std::size_t{1},
+          .fontSize = Style::fontSizeCaption * scale,
+          .controlHeight = Style::controlHeightSm * scale,
+          .width = 200.0F * scale,
+          .onSelectionChanged = [setShell = ctx.setShellOverrides](std::size_t index, std::string_view) {
+            if (setShell) {
+              setShell({{{"shell", "layout_per_workspace"}, index == 0}});
+            }
+          },
+      }));
+      body->addChild(std::move(line));
+    }
+
     void addAnimationsPage(Flex& content, const SettingsWindowsContext& ctx) {
       auto& s = state();
       const float scale = ctx.scale;
@@ -1247,6 +1282,9 @@ namespace settings {
       for (const auto& item : section.items) {
         addItemRow(*body, item, scale);
       }
+    }
+    if (ctx.page == "window-layout") {
+      addLayoutScopeCard(content, ctx);
     }
     if (ctx.page == "system-behavior") {
       return; // va dentro de Inicio y entorno, que pone su propio pie

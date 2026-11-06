@@ -57,6 +57,9 @@ namespace okaru::hypr {
   );
 
   [[nodiscard]] std::filesystem::path okaFilePath(std::string_view file); // "layout" -> .../hypr/oka/layout.lua
+  [[nodiscard]] std::string readOkaFile(const std::filesystem::path& path); // "" si no existe
+  // Escribe por un temporal y rename: Hyprland nunca lee un archivo a medias.
+  [[nodiscard]] std::optional<std::string> writeFileAtomic(const std::filesystem::path& path, std::string_view text);
   [[nodiscard]] OptionValues readOptionOverrides(const std::filesystem::path& path, OptionValues* bases = nullptr);
   [[nodiscard]] std::optional<std::string>
   writeOptionOverrides(const std::filesystem::path& path, const OptionValues& values, const OptionValues& bases = {});

@@ -2405,6 +2405,11 @@ namespace settings {
         tr("settings.schema.shell.osd-kinds-keyboard-backlight.description"), {"osd", "kinds", "keyboard_backlight"},
         ToggleSetting{cfg.osd.kinds.keyboardBacklight}, "hud overlay keyboard backlight kbd"
     ));
+    entries.push_back(makeEntry( // OKARU
+        SettingsSection::Osd, "kinds", tr("settings.schema.shell.osd-kinds-hypr-layout.label"),
+        tr("settings.schema.shell.osd-kinds-hypr-layout.description"), {"osd", "kinds", "hypr_layout"},
+        ToggleSetting{cfg.osd.kinds.hyprLayout}, "hud overlay hyprland layout tiling scrolling dwindle master monocle"
+    ));
     entries.push_back(makeEntry(
         SettingsSection::Osd, "kinds", tr("settings.schema.shell.osd-kinds-custom.label"),
         tr("settings.schema.shell.osd-kinds-custom.description"), {"osd", "kinds", "custom"},

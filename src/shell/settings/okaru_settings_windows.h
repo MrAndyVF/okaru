@@ -24,6 +24,8 @@ namespace settings {
     bool shellAnimationsEnabled = true;
     double shellAnimationSpeed = 1.0;
     std::string shellAnimationStyle;
+    // Distribución: alcance del cambio de layout (shell.layout_per_workspace).
+    bool layoutPerWorkspace = true;
     std::function<void(std::vector<std::pair<std::vector<std::string>, ConfigOverrideValue>>)> setShellOverrides;
   };
 

@@ -2,6 +2,58 @@
 -- Para cambiar o agregar los tuyos usa oka/user-binds.lua.
 local ipc = "okaru msg "
 
+-- Atajos que dependen del layout del workspace activo (scrolling, dwindle, master, monocle).
+local function active_layout()
+	local ws = hl.get_active_workspace()
+	return ws and ws.tiled_layout or ""
+end
+
+-- Despacha la acción del layout activo (los que no están en la tabla no hacen nada).
+local function by_layout(actions)
+	return function()
+		local action = actions[active_layout()]
+		if action then hl.dispatch(action) end
+	end
+end
+
+-- ¿Hay otra columna hacia `dir` ("l"/"r")? En el borde, el foco pasa al otro monitor como siempre.
+local function column_beyond(w, dir)
+	for _, o in ipairs(hl.get_workspace_windows(w.workspace)) do
+		if not o.floating and o.address ~= w.address and ((dir == "l" and o.at.x < w.at.x) or (dir == "r" and o.at.x > w.at.x)) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Scrolling usa su propio foco: el general no ve las columnas tapadas por una ventana maximizada.
+local function focus(dir)
+	return function()
+		local w = hl.get_active_window()
+		local tiled = w and not w.floating
+		local layout = active_layout()
+		if layout == "scrolling" and tiled and (dir == "u" or dir == "d" or column_beyond(w, dir)) then
+			hl.dispatch(hl.dsp.layout("focus " .. dir))
+		elseif layout == "monocle" and tiled then
+			hl.dispatch(hl.dsp.layout((dir == "l" or dir == "u") and "cycleprev" or "cyclenext"))
+		else
+			hl.dispatch(hl.dsp.focus({ direction = dir }))
+		end
+	end
+end
+
+-- En scrolling, izquierda/derecha intercambia columnas; en los demás, mueve la ventana.
+local function move(dir)
+	return function()
+		local w = hl.get_active_window()
+		if active_layout() == "scrolling" and w and not w.floating and (dir == "l" or dir == "r") then
+			hl.dispatch(hl.dsp.layout("swapcol " .. dir))
+		else
+			hl.dispatch(hl.dsp.window.move({ direction = dir }))
+		end
+	end
+end
+
 -- === Aplicaciones de fábrica (install.sh instala kitty y Nautilus) ===
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("kitty"))
 hl.bind("SUPER + E", hl.dsp.exec_cmd("nautilus --new-window"))
@@ -54,11 +106,23 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true, description
 
 -- === Foco y mover (flechas o H/J/K/L) ===
 for key, dir in pairs({ left = "l", down = "d", up = "u", right = "r", H = "l", J = "d", K = "u", L = "r" }) do
-	hl.bind("SUPER + " .. key, hl.dsp.focus({ direction = dir }))
-	hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ direction = dir }))
+	hl.bind("SUPER + " .. key, focus(dir))
+	hl.bind("SUPER + SHIFT + " .. key, move(dir))
 	hl.bind("SUPER + CTRL + " .. key, hl.dsp.focus({ monitor = dir }))
 	hl.bind("SUPER + SHIFT + CTRL + " .. key, hl.dsp.window.move({ monitor = dir }))
 end
+
+-- === Layouts (alcance en Ajustes → Ventanas → Distribución) ===
+hl.bind("SUPER + ALT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout next"), { description = "Siguiente layout" })
+hl.bind("SUPER + ALT + SHIFT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout prev"), { description = "Layout anterior" })
+hl.bind("SUPER + R", by_layout({ scrolling = hl.dsp.layout("colresize +conf"), dwindle = hl.dsp.layout("togglesplit"), master = hl.dsp.layout("orientationnext") }))
+hl.bind("SUPER + SHIFT + R", by_layout({ dwindle = hl.dsp.layout("swapsplit"), master = hl.dsp.layout("orientationprev") }))
+hl.bind("SUPER + equal", by_layout({ scrolling = hl.dsp.layout("colresize +0.1"), dwindle = hl.dsp.layout("splitratio +0.1"), master = hl.dsp.layout("mfact +0.05") }))
+hl.bind("SUPER + minus", by_layout({ scrolling = hl.dsp.layout("colresize -0.1"), dwindle = hl.dsp.layout("splitratio -0.1"), master = hl.dsp.layout("mfact -0.05") }))
+hl.bind("SUPER + CTRL + Return", by_layout({ master = hl.dsp.layout("swapwithmaster") }))
+hl.bind("SUPER + ALT + equal", by_layout({ master = hl.dsp.layout("addmaster") }))
+hl.bind("SUPER + ALT + minus", by_layout({ master = hl.dsp.layout("removemaster") }))
+hl.bind("SUPER + P", hl.dsp.window.pseudo())
 
 -- === Workspaces ===
 for n = 1, 9 do

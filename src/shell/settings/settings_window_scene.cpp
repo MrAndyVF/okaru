@@ -1429,6 +1429,7 @@ void SettingsWindow::rebuildSettingsContent() {
             .shellAnimationsEnabled = cfg.shell.animation.enabled,
             .shellAnimationSpeed = cfg.shell.animation.speed,
             .shellAnimationStyle = cfg.shell.animation.style,
+            .layoutPerWorkspace = cfg.shell.layoutPerWorkspace,
             .setShellOverrides = [this](
                                      std::vector<std::pair<std::vector<std::string>, ConfigOverrideValue>> overrides
                                  ) { setSettingOverrides(std::move(overrides)); },
