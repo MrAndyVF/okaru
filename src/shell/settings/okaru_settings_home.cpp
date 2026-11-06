@@ -4,6 +4,7 @@
 #include "compositors/hyprland/okaru_hypr_diagnostics.h"
 #include "core/build_info.h"
 #include "i18n/i18n.h"
+#include "net/url_open.h"
 #include "shell/settings/settings_content_common.h"
 #include "system/okaru_system_info.h"
 #include "ui/builders.h"
@@ -91,10 +92,18 @@ namespace settings {
       );
     }
 
-    // Novedades: cuando OKARU tenga changelog, aquí se mostrarán las de la versión instalada.
+    // Novedades: enlace al changelog (en/es) de la última release; el release "repo" no se marca como latest.
     Flex* news = addSettingsCard(content, tr("changelog"), scale);
     news->addChild(
-        makeLabel(tr("changelog-soon"), Style::fontSizeCaption * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant))
+        makeLabel(tr("changelog-desc"), Style::fontSizeCaption * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant))
+    );
+    news->addChild(
+        ui::button({
+            .text = tr("changelog-open"),
+            .glyph = "external-link",
+            .variant = ButtonVariant::Outline,
+            .onClick = [] { (void)net::openInBrowser("https://github.com/MrAndyVF/okaru/releases/latest"); },
+        })
     );
   }
 

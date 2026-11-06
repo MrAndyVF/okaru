@@ -181,7 +181,7 @@ namespace okaru::hypr {
   std::optional<std::string> writeWorkspaces(const std::vector<WorkspaceDef>& defs, std::string_view primary) {
     for (const auto& def : defs) {
       if (!isValidWorkspaceName(def.name) || !isValidMonitorName(def.monitor) || def.id <= 0) {
-        return "workspace no válido";
+        return "invalid workspace";
       }
     }
     const auto path = outputsFilePath();
@@ -194,7 +194,7 @@ namespace okaru::hypr {
     {
       std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
       if (!out || !(out << next)) {
-        return "no se pudo escribir " + tmp;
+        return "could not write " + tmp;
       }
     }
     std::error_code ec;
@@ -218,7 +218,7 @@ namespace okaru::hypr {
     }
     const auto response = runtime.request("eval " + code);
     if (!response.has_value()) {
-      return "Hyprland no respondió";
+      return "Hyprland did not respond";
     }
     if (response->starts_with("ok") || response->empty()) {
       return std::nullopt;
@@ -229,12 +229,12 @@ namespace okaru::hypr {
   std::optional<std::string>
   renameWorkspace(compositors::hyprland::HyprlandRuntime& runtime, int id, std::string_view name) {
     if (!isValidWorkspaceName(name)) {
-      return "nombre no válido";
+      return "invalid name";
     }
     auto defs = readWorkspaces();
     const auto it = std::ranges::find(defs, id, &WorkspaceDef::id);
     if (it == defs.end()) {
-      return "el workspace no está en el bloque okaru:workspaces";
+      return "the workspace is not in the okaru:workspaces block";
     }
     it->name = std::string(name);
     std::string primary = readFilePrimary();

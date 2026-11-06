@@ -4,15 +4,19 @@
 #   curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
 #
 # Asistente en la terminal (con gum): elige componentes, revisa los paquetes, instala desde el repositorio
-# pacman [okaru] (paquetes firmados) y deja la configuración de fábrica de Hyprland (nada personal).
+# pacman [okaru] (paquetes firmados) y deja la configuración de fábrica del compositor elegido, Hyprland
+# o Niri (nada personal).
 set -euo pipefail
 
 readonly REPO_URL="https://github.com/MrAndyVF/okaru/releases/download/repo"
 readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packaging/keys/okaru.asc"
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
-readonly DEFAULTS="/usr/share/okaru/defaults/hypr"
-readonly BASE_PACKAGES=(hyprland uwsm kitty nautilus xdg-desktop-portal-hyprland xdg-desktop-portal-gtk noto-fonts)
+readonly DEFAULTS_ROOT="/usr/share/okaru/defaults"
+readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts)
+# Lo básico de cada compositor: sesión, portal de capturas/compartir pantalla y, en Niri, apps X11.
+readonly HYPR_PACKAGES=(hyprland uwsm xdg-desktop-portal-hyprland)
+readonly NIRI_PACKAGES=(niri xdg-desktop-portal-gnome xwayland-satellite)
 readonly PHONE_PACKAGES=(kdeconnect sshfs)
 # gum (la interfaz) se descarga a una carpeta temporal y se verifica; no queda instalado.
 readonly GUM_VERSION="2.0.2"
@@ -21,13 +25,16 @@ readonly GUM_SHA256="d842e06d93dbed90af48cb8dd10698db6f22e331fc40346bb37bbc75310
 # Paleta OKARU
 readonly C_PRIMARY="#7095C8" C_MUTED="#9AA4B2" C_OK="#7FA8C4" C_ERR="#D9707A" C_TEXT="#E6E9EF"
 
+readonly OPT_HYPR="Hyprland (con uwsm)"
+readonly OPT_NIRI="Niri"
 readonly OPT_GREETER="OKARU Greeter (pantalla de inicio de sesión)"
 readonly OPT_PHONE="Teléfono con KDE Connect"
 readonly OPT_EXTRA="Dependencias opcionales (grabación, VPN, actualizaciones…)"
 
 LOG="${XDG_CACHE_HOME:-$HOME/.cache}/okaru/install-$(date +%Y%m%d-%H%M%S).log"
 TMP="" GUM="" KEEPALIVE=""
-WANT_GREETER=false WANT_PHONE=false WANT_OPTIONAL=false SWITCH_DM="" HYPR_ACTION=keep
+WANT_GREETER=false WANT_PHONE=false WANT_OPTIONAL=false SWITCH_DM="" CONFIG_ACTION=keep
+COMPOSITOR=hyprland
 EXTRA=()
 
 plain_die() { printf '\e[31;1merror:\e[0m %s\n' "$*" >&2; exit 1; }
@@ -153,12 +160,27 @@ welcome() {
   title "QUÉ OBTIENES"
   "$GUM" style --foreground "$C_TEXT" \
     "  • OKARU Shell: barra, panel de control, lanzador, notificaciones y ajustes" \
-    "  • Hyprland con uwsm, kitty como terminal y Nautilus como gestor de archivos" \
+    "  • Hyprland (con uwsm) o Niri, kitty como terminal y Nautilus como gestor de archivos" \
     "  • Reglas de ventana y atajos estándar de OKARU, sin configuración personal" \
     "  • Paquetes firmados desde el repositorio [okaru]: se actualizan con pacman -Syu"
   printf '\n'
   confirm --affirmative "Continuar" --negative "Salir" "¿Empezamos?" || exit 0
 }
+
+choose_compositor() {
+  title "Compositor"
+  note "OKARU funciona sobre los dos; cada uno se instala con lo básico para funcionar."
+  local picked
+  picked=$("$GUM" choose --cursor.foreground "$C_PRIMARY" --selected.foreground "$C_PRIMARY" \
+    "$OPT_HYPR" "$OPT_NIRI") || exit 0
+  [[ $picked == "$OPT_NIRI" ]] && COMPOSITOR=niri
+  return 0
+}
+
+# Carpeta de configuración del compositor elegido y su nombre para mostrar.
+config_target() { echo "${XDG_CONFIG_HOME:-$HOME/.config}/$([[ $COMPOSITOR == niri ]] && echo niri || echo hypr)"; }
+compositor_name() { [[ $COMPOSITOR == niri ]] && echo Niri || echo Hyprland; }
+defaults_dir() { echo "$DEFAULTS_ROOT/$([[ $COMPOSITOR == niri ]] && echo niri || echo hypr)"; }
 
 choose_components() {
   title "Componentes"
@@ -222,7 +244,8 @@ optional_packages() {
 }
 
 package_list() {
-  local packages=("${BASE_PACKAGES[@]}" okaru)
+  local packages=("${COMMON_PACKAGES[@]}" okaru)
+  if [[ $COMPOSITOR == niri ]]; then packages+=("${NIRI_PACKAGES[@]}"); else packages+=("${HYPR_PACKAGES[@]}"); fi
   $WANT_PHONE && packages+=("${PHONE_PACKAGES[@]}")
   $WANT_GREETER && packages+=(greetd okaru-greeter accountsservice)
   printf '%s\n' "${packages[@]}"
@@ -260,14 +283,15 @@ review() {
     fi
   fi
 
-  local target="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
-  HYPR_ACTION=copy
+  local target
+  target=$(config_target)
+  CONFIG_ACTION=copy
   if [[ -e $target ]]; then
-    title "Configuración de Hyprland"
+    title "Configuración de $(compositor_name)"
     note "Ya tienes ${target/#$HOME/\~}. Reemplazarla deja las reglas y atajos de OKARU; se guarda una copia con fecha."
     local choice
     choice=$("$GUM" choose --cursor.foreground "$C_PRIMARY" "Conservar la mía" "Reemplazar por la de OKARU") || exit 0
-    [[ $choice == Reemplazar* ]] && HYPR_ACTION=replace || HYPR_ACTION=keep
+    [[ $choice == Reemplazar* ]] && CONFIG_ACTION=replace || CONFIG_ACTION=keep
   fi
 
   printf '\n'
@@ -283,24 +307,29 @@ install_packages() {
   fi
 }
 
-hypr_config() {
-  local target="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
-  [[ -d $DEFAULTS ]] || { echo "no se encontró la configuración de fábrica en $DEFAULTS."; return 1; }
-  if [[ $HYPR_ACTION == replace ]]; then
+compositor_config() {
+  local target defaults
+  target=$(config_target)
+  defaults=$(defaults_dir)
+  [[ -d $defaults ]] || { echo "no se encontró la configuración de fábrica en $defaults."; return 1; }
+  if [[ $CONFIG_ACTION == replace ]]; then
     local backup
     backup="${target}.bak-$(date +%Y%m%d-%H%M%S)"
     mv "$target" "$backup"
     echo "copia de seguridad en $backup"
   fi
   mkdir -p "$(dirname "$target")"
-  cp -rv "$DEFAULTS" "$target"
+  cp -rv "$defaults" "$target"
 }
 
 default_apps() {
   xdg-mime default org.gnome.Nautilus.desktop inode/directory
-  local env="${XDG_CONFIG_HOME:-$HOME/.config}/uwsm/env"
-  mkdir -p "$(dirname "$env")"
-  grep -qs '^export TERMINAL=' "$env" || echo 'export TERMINAL=kitty' >>"$env"
+  # En Niri, TERMINAL va en el bloque environment de config.kdl.
+  if [[ $COMPOSITOR == hyprland ]]; then
+    local env="${XDG_CONFIG_HOME:-$HOME/.config}/uwsm/env"
+    mkdir -p "$(dirname "$env")"
+    grep -qs '^export TERMINAL=' "$env" || echo 'export TERMINAL=kitty' >>"$env"
+  fi
   systemctl --user daemon-reload
   systemctl --user enable okaru.service
 }
@@ -319,6 +348,11 @@ greeter() {
 finish() {
   printf '\n'
   local login="Cierra sesión y entra a «Hyprland (uwsm-managed)»."
+  local custom="Tus atajos propios van en ~/.config/hypr/oka/user-binds.lua"
+  if [[ $COMPOSITOR == niri ]]; then
+    login="Cierra sesión y entra a «Niri»."
+    custom="Tus atajos propios van en ~/.config/niri/config.kdl (Super + Shift + / los muestra)"
+  fi
   $WANT_GREETER && [[ $SWITCH_DM != keep ]] && login="Reinicia el equipo para entrar con OKARU Greeter."
   "$GUM" style --border rounded --border-foreground "$C_PRIMARY" --padding "1 3" \
     "$("$GUM" style --bold --foreground "$C_PRIMARY" "郁  OKARU Linux Shell instalada")" "" \
@@ -327,7 +361,7 @@ finish() {
     "Super + Enter     terminal (kitty)" \
     "Super + E         archivos (Nautilus)" \
     "Super + ,         ajustes de OKARU" "" \
-    "Tus atajos propios van en ~/.config/hypr/oka/user-binds.lua"
+    "$custom"
   note "Registro: $LOG"
 }
 
@@ -337,6 +371,7 @@ main() {
   # Con curl | bash la entrada estándar es el propio script: todo lo interactivo lee de la terminal.
   exec </dev/tty
   welcome
+  choose_compositor
   choose_components
   authenticate
   title "Instalación"
@@ -344,10 +379,10 @@ main() {
   review
   title "Instalación"
   run_step "Paquetes" install_packages
-  if [[ $HYPR_ACTION == keep ]]; then
-    ok "Configuración de Hyprland: se conserva la tuya (la de fábrica queda en $DEFAULTS)"
+  if [[ $CONFIG_ACTION == keep ]]; then
+    ok "Configuración de $(compositor_name): se conserva la tuya (la de fábrica queda en $(defaults_dir))"
   else
-    run_step "Configuración de fábrica de Hyprland" hypr_config
+    run_step "Configuración de fábrica de $(compositor_name)" compositor_config
   fi
   run_step "Apps por defecto y servicio de la shell" default_apps
   if $WANT_GREETER; then run_step "OKARU Greeter con greetd" greeter; fi

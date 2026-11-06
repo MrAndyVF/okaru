@@ -14,10 +14,11 @@ Hyprland, todo en un solo programa sobre Wayland y OpenGL ES, sin Qt ni GTK.
 curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
 ```
 
-Agrega el repositorio pacman `[okaru]` (paquetes firmados, se actualizan con `pacman -Syu`), instala la
-shell con Hyprland, kitty y Nautilus, y deja la configuración de fábrica de Hyprland (reglas y atajos
-estándar; tus atajos propios van en `~/.config/hypr/oka/user-binds.lua`). Pregunta antes de reemplazar una
-configuración existente y si quieres el greeter, el teléfono (KDE Connect) y las dependencias opcionales.
+Agrega el repositorio pacman `[okaru]` (paquetes firmados, se actualizan con `pacman -Syu`), te deja elegir
+el compositor (Hyprland con uwsm, o Niri) e instala la shell con él, kitty y Nautilus, y deja su
+configuración de fábrica (reglas y atajos estándar; en Hyprland tus atajos propios van en
+`~/.config/hypr/oka/user-binds.lua`, en Niri en `~/.config/niri/config.kdl`). Pregunta antes de reemplazar
+una configuración existente y si quieres el greeter, el teléfono (KDE Connect) y las dependencias opcionales.
 
 ## Compilar
 
@@ -59,8 +60,9 @@ single program on Wayland and OpenGL ES, without Qt or GTK.
 curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | bash
 ```
 
-Adds the signed `[okaru]` pacman repository, installs the shell with Hyprland, kitty and Nautilus, and sets up
-the stock Hyprland config (standard rules and keybindings; your own go in `~/.config/hypr/oka/user-binds.lua`).
+Adds the signed `[okaru]` pacman repository, lets you pick the compositor (Hyprland with uwsm, or Niri),
+installs the shell with it, kitty and Nautilus, and sets up its stock config (standard rules and keybindings;
+on Hyprland your own go in `~/.config/hypr/oka/user-binds.lua`, on Niri in `~/.config/niri/config.kdl`).
 
 ### Build
 

@@ -34,6 +34,10 @@ jobs:
           repository: MrAndyVF/okaru-greeter
           path: okaru-greeter
           fetch-depth: 0
+      - name: Changelog de la etiqueta
+        if: startsWith(github.ref, 'refs/tags/v')
+        # Falla antes de compilar si la versión etiquetada no tiene notas en CHANGELOG.md.
+        run: okaru/tools/changelog-section.sh "$GITHUB_REF_NAME" okaru/CHANGELOG.md >/dev/null
       - name: Usuario de compilación y llave de firma
         env:
           GPG_PRIVATE_KEY: ${{ secrets.OKARU_GPG_PRIVATE_KEY }}
@@ -49,6 +53,9 @@ jobs:
       - name: Compilar y firmar los paquetes
         run: |
           mkdir -p out && chown builder: out
+          # El PKGBUILD clona la rama main del checkout; lanzado por etiqueta, el checkout no la tiene
+          # ("invalid reference: origin/main"). main pasa a apuntar al commit que se publica.
+          sudo -u builder git -C "$GITHUB_WORKSPACE/okaru" checkout -q -B main
           for pkg in okaru okaru-greeter; do
             dir="$GITHUB_WORKSPACE/build-$pkg"
             sudo -u builder mkdir -p "$dir"
@@ -88,3 +95,15 @@ jobs:
           gh release upload repo -R "$repo" --clobber ./*.pkg.tar.zst ./*.pkg.tar.zst.sig \
             okaru.db okaru.db.sig okaru.files okaru.files.sig okaru.db.tar.zst okaru.db.tar.zst.sig \
             okaru.files.tar.zst okaru.files.tar.zst.sig
+      - name: Release de la versión con su changelog
+        run: |
+          repo="$GITHUB_REPOSITORY"
+          src="$GITHUB_WORKSPACE/okaru"
+          version=$(sudo -u builder git -C "$src" describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')
+          "$src/tools/changelog-section.sh" "$version" "$src/CHANGELOG.md" > notes.md
+          if gh release view "v$version" -R "$repo" >/dev/null 2>&1; then
+            id=$(gh release view "v$version" -R "$repo" --json databaseId --jq .databaseId)
+            gh api -X PATCH "repos/$repo/releases/$id" -f name="Okaru $version" -F body=@notes.md >/dev/null
+          else
+            gh release create "v$version" -R "$repo" --verify-tag --title "Okaru $version" --notes-file notes.md --latest
+          fi

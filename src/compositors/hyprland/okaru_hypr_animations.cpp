@@ -287,14 +287,14 @@ namespace okaru::hypr {
     {
       std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
       if (!out || !(out << next) || !out.flush()) {
-        return "no se pudo escribir " + tmp;
+        return "could not write " + tmp;
       }
     }
     std::error_code ec;
     std::filesystem::rename(tmp, path, ec); // atómico: Hyprland nunca lee un archivo a medias
     if (ec) {
       std::filesystem::remove(tmp, ec);
-      return "no se pudo reemplazar " + path.string();
+      return "could not replace " + path.string();
     }
     return std::nullopt;
   }
@@ -312,7 +312,7 @@ namespace okaru::hypr {
     }
     const auto response = runtime.request("eval " + serializeAnimations(resolvePreset(choice)));
     if (!response.has_value()) {
-      return "Hyprland no respondió";
+      return "Hyprland did not respond";
     }
     if (response->empty() || response->starts_with("ok")) {
       return std::nullopt;

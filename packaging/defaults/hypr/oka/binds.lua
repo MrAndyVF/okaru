@@ -113,8 +113,8 @@ for key, dir in pairs({ left = "l", down = "d", up = "u", right = "r", H = "l", 
 end
 
 -- === Layouts (alcance en Ajustes → Ventanas → Distribución) ===
-hl.bind("SUPER + ALT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout next"), { description = "Siguiente layout" })
-hl.bind("SUPER + ALT + SHIFT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout prev"), { description = "Layout anterior" })
+hl.bind("SUPER + ALT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout next"), { description = "Next layout" })
+hl.bind("SUPER + ALT + SHIFT + space", hl.dsp.exec_cmd(ipc .. "hypr-layout prev"), { description = "Previous layout" })
 hl.bind("SUPER + R", by_layout({ scrolling = hl.dsp.layout("colresize +conf"), dwindle = hl.dsp.layout("togglesplit"), master = hl.dsp.layout("orientationnext") }))
 hl.bind("SUPER + SHIFT + R", by_layout({ dwindle = hl.dsp.layout("swapsplit"), master = hl.dsp.layout("orientationprev") }))
 hl.bind("SUPER + equal", by_layout({ scrolling = hl.dsp.layout("colresize +0.1"), dwindle = hl.dsp.layout("splitratio +0.1"), master = hl.dsp.layout("mfact +0.05") }))
