@@ -271,8 +271,19 @@ namespace settings {
       content.addChild(std::move(error));
     }
 
-    const auto defs = okaru::hypr::readWorkspaces();
+    auto defs = okaru::hypr::readWorkspaces();
     const std::string primary = primaryMonitor(defs, ctx.outputs);
+    // Instalación limpia: Hyprland ya tiene el workspace 1 sin regla; se muestra para poder configurarlo y se
+    // guarda en outputs.lua con el primer cambio.
+    if (defs.empty() && !primary.empty()) {
+      defs.push_back(
+          {.id = 1,
+           .monitor = primary,
+           .name = std::format("{} 1", i18n::tr("settings.okaru.workspaces.new-name")),
+           .persistent = true,
+           .isDefault = true}
+      );
+    }
     // Monitores: los conectados y los que ya tienen workspaces; el principal primero.
     std::vector<std::string> monitors = ctx.outputs;
     for (const auto& def : defs) {

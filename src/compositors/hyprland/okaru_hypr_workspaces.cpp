@@ -168,7 +168,8 @@ namespace okaru::hypr {
         maxOwn = std::max(maxOwn, def.id);
       }
     }
-    int candidate = maxOwn > 0 ? maxOwn + 1 : (maxAll / 10 + 1) * 10 + 1;
+    // Sin ningún workspace (instalación limpia) se empieza en 1; cada monitor nuevo abre otra decena.
+    int candidate = maxOwn > 0 ? maxOwn + 1 : (maxAll == 0 ? 1 : (maxAll / 10 + 1) * 10 + 1);
     while (std::ranges::any_of(defs, [&](const WorkspaceDef& d) { return d.id == candidate; })) {
       ++candidate;
     }
