@@ -210,9 +210,10 @@ Override bases with `OKARU_CONFIG_HOME`, `OKARU_STATE_HOME`, `OKARU_DATA_HOME` (
 Prefer packaging **tagged releases** rather than random `main` snapshots unless you maintain a `-git` / nightly package on purpose.
 
 Every version bump (`VERSION`, `pkgver`) adds its section to [`CHANGELOG.md`](CHANGELOG.md) in English and
-Spanish, grouped by type of change. Pushing the `vX.Y.Z` tag runs the publish workflow, which refuses to build
-without that section and creates the `vX.Y.Z` release titled "Okaru X.Y.Z" with those notes. Older releases
-keep theirs, and Settings → Home links to the latest release.
+Spanish, grouped by type of change. Publishing is manual only (`gh workflow run publicar.yml --ref main`); merges
+and tags never trigger it. The workflow refuses to build unless the `vX.Y.Z` tag for `VERSION` exists and
+`CHANGELOG.md` has its section, and creates the `vX.Y.Z` release titled "Okaru X.Y.Z" with those notes. Older
+releases keep theirs, and Settings → Home links to the latest release.
 
 ## Contact
 
