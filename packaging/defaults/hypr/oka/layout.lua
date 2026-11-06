@@ -7,7 +7,7 @@ hl.config({
 		layout = "dwindle",
 	},
 	decoration = {
-		rounding = 8,
+		rounding = 0, -- esquinas rectas, como la shell
 		blur = { size = 5, passes = 2, popups = true },
 		shadow = { enabled = true, range = 16, render_power = 3, color = "rgba(00000040)" },
 	},
