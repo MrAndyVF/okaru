@@ -245,8 +245,10 @@ review() {
   note "" "  También se actualiza el sistema (pacman -Syu), como pide Arch al instalar paquetes."
 
   if $WANT_GREETER; then
-    local current
-    current=$(systemctl show display-manager.service -p Id --value 2>/dev/null || true)
+    local current=""
+    # Sin gestor de sesión, systemctl show devuelve igual «display-manager.service»: se mira el alias real.
+    local link=/etc/systemd/system/display-manager.service
+    [[ -L $link ]] && current=$(basename "$(readlink -f "$link")")
     if [[ -n $current && $current != greetd.service ]]; then
       printf '\n'
       if confirm --affirmative "Cambiar" --negative "Mantener" \
