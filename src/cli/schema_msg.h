@@ -68,6 +68,9 @@ namespace okaru::cli {
                                                                                   "false", "1",   "0"};
   inline constexpr std::array<std::string_view, 2> kMsgBarLayerSetLayerChoices{"top", "overlay"};
   inline constexpr std::array<std::string_view, 2> kMsgEffectsProfileSetKindChoices{"output", "input"};
+  inline constexpr std::array<std::string_view, 6> kMsgHyprLayoutTargetChoices{ // OKARU
+      "next", "prev", "scrolling", "dwindle", "master", "monocle"
+  };
   inline constexpr std::array<std::string_view, 4> kMsgLogLevelSetLevelChoices{"debug", "info", "warn", "error"};
   inline constexpr std::array<std::string_view, 11> kMsgMediaActionChoices{
       "next",        "previous",        "toggle",    "play",        "pause",     "stop",
@@ -153,6 +156,9 @@ namespace okaru::cli {
   };
   inline constexpr std::array kMsgKeyboardBacklightSetPositionals{
       Positional{"value", {}, {}, true, false, false},
+  };
+  inline constexpr std::array kMsgHyprLayoutPositionals{ // OKARU
+      Positional{"target", "next (default), prev or a layout name", kMsgHyprLayoutTargetChoices, false, false, false},
   };
   inline constexpr std::array kMsgLogLevelSetPositionals{
       Positional{"level", {}, kMsgLogLevelSetLevelChoices, true, false, false},
@@ -588,6 +594,16 @@ namespace okaru::cli {
     inline constexpr Command keyboardBacklightUp{
         "keyboard-backlight-up", "Increase all keyboard backlights by one level", {}, {}, {}, {}, {}, false
     };
+    inline constexpr Command hyprLayout{ // OKARU
+        "hypr-layout",
+        "Switch the Hyprland layout of the active workspace (or of the whole system, per settings)",
+        {},
+        {},
+        {},
+        kMsgHyprLayoutPositionals,
+        {},
+        false
+    };
     inline constexpr Command keyboardLayoutCycle{
         "keyboard-layout-cycle", "Switch to the next keyboard layout", {}, {}, {}, {}, {}, false
     };
@@ -1009,6 +1025,7 @@ namespace okaru::cli {
       msg::keyboardBacklightSet,
       msg::keyboardBacklightToggle,
       msg::keyboardBacklightUp,
+      msg::hyprLayout, // OKARU
       msg::keyboardLayoutCycle,
       msg::lockscreenWidgetsEdit,
       msg::lockscreenWidgetsExit,

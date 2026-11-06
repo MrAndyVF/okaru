@@ -2,6 +2,8 @@
 #include "application.h"
 #include "application_internal.h"
 #include "cli/schema_msg.h"
+#include "compositors/hyprland/hyprland_runtime.h"    // OKARU
+#include "compositors/hyprland/okaru_hypr_layouts.h" // OKARU
 #include "config/config_types.h"
 #include "core/log.h"
 #include "core/process/process.h"
@@ -423,6 +425,33 @@ void Application::initIpc() {
       return "error: failed to cycle the keyboard layout\n";
     }
     return "ok\n";
+  });
+
+  // OKARU: layout de Hyprland (Super+Alt+Space, widget hypr_layout). Según shell.layout_per_workspace
+  // cambia solo el workspace activo o el predeterminado de todo el sistema; los dos quedan en layout.lua.
+  m_ipcService.bindCycle(okaru::cli::msg::hyprLayout, [this](const std::string& args) -> std::string {
+    const auto words = okaru::ipc::splitWords(args);
+    if (words.size() > 1) {
+      return "error: hypr-layout takes at most one argument\n";
+    }
+    static compositors::hyprland::HyprlandRuntime runtime;
+    if (runtime.requestSocketPath().empty()) {
+      return "error: hypr-layout needs Hyprland\n";
+    }
+    const bool perWorkspace = m_configService.config().shell.layoutPerWorkspace;
+    const auto result = okaru::hypr::setLayout(runtime, words.empty() ? "next" : words.front(), perWorkspace);
+    if (result.layout.empty()) {
+      return "error: " + result.error + "\n";
+    }
+    m_bar.refresh();
+    m_osdOverlay.show(OsdContent{
+        .kind = OsdKind::HyprLayout,
+        .icon = std::string(okaru::hypr::layoutGlyph(result.layout)),
+        .value = i18n::tr("okaru.hypr-layout." + result.layout) + " · "
+            + i18n::tr(perWorkspace ? "okaru.hypr-layout.scope-workspace" : "okaru.hypr-layout.scope-global"),
+        .showProgress = false,
+    });
+    return result.error.empty() ? "ok\n" : "error: " + result.error + "\n";
   });
 
   auto workspaceAlertStatus = [this] {

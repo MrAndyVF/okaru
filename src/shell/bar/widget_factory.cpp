@@ -25,6 +25,8 @@
 #include "shell/bar/widgets/okaru_ports_widget.h"
 #include "shell/bar/widgets/okaru_phone_widget.h"
 #include "shell/bar/widgets/okaru_phone_widget_definition.h"
+#include "shell/bar/widgets/okaru_hypr_layout_widget.h"
+#include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
 #include "shell/bar/widgets/control_center_widget_definition.h"
 #include "shell/bar/widgets/custom_button_widget.h"
@@ -187,6 +189,13 @@ std::unique_ptr<Widget> WidgetFactory::create(
             return createWidget<OkaruPhoneWidget>(
                 context.contentScale, f.m_kdeConnect, context.output,
                 okaruPhoneWidgetDefinition().resolve(context.config, context.settingContext)
+            );
+          }},
+      {"hypr_layout", [](const WidgetFactory& f, const BuiltinWidgetContext& context) { // OKARU
+            const auto* output = f.m_platform.findOutputByWl(context.output);
+            return createWidget<OkaruHyprLayoutWidget>(
+                context.contentScale, output != nullptr ? output->connectorName : std::string{},
+                okaruHyprLayoutWidgetDefinition().resolve(context.config, context.settingContext)
             );
           }},
       {"brightness", [](const WidgetFactory& f, const BuiltinWidgetContext& context) {

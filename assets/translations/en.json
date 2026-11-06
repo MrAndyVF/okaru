@@ -1172,6 +1172,15 @@
       "adb-done-hint": "KDE Connect on the phone was restarted; reopen it.",
       "adb-failed": "Could not enable it with ADB",
       "adb-failed-hint": "Check the USB cable, USB debugging and the authorization on the phone."
+    },
+    "hypr-layout": {
+      "scrolling": "Scrolling",
+      "dwindle": "Dwindle",
+      "master": "Master",
+      "monocle": "Monocle",
+      "scope-workspace": "this workspace",
+      "scope-global": "whole system",
+      "hint": "Left click: next · Right click: previous"
     }
   },
   "osd": {
@@ -2237,7 +2246,14 @@
           "snap": "Floating window snapping",
           "touchpad": "Touchpad"
         },
-        "title": "Windows"
+        "title": "Windows",
+        "layout-switch": {
+          "title": "Layout switching",
+          "scope": "When switching layout",
+          "scope-desc": "Super+Alt+Space and the bar widget. Each workspace keeps its own layout, or the new layout becomes the default for all of them. Both survive restarts.",
+          "workspace": "Only this workspace",
+          "global": "Whole system"
+        }
       },
       "startup": {
         "apps": "Apps at login",
@@ -4485,6 +4501,10 @@
         "window-switcher-style": {
           "description": "Choose the freestanding depth carousel or the boxed compact strip",
           "label": "Switcher Style"
+        },
+        "osd-kinds-hypr-layout": {
+          "label": "Hyprland layout",
+          "description": "Show an on-screen display when the window layout changes (Super+Alt+Space)"
         }
       },
       "system": {
@@ -5997,7 +6017,8 @@
         "workspaces": "Workspaces",
         "cat": "Cat",
         "ports": "Network & ports",
-        "phone": "Phone"
+        "phone": "Phone",
+        "hypr-layout": "Window layout"
       }
     },
     "window": {

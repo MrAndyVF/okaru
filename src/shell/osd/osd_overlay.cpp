@@ -77,6 +77,8 @@ namespace {
       return kinds.privacy;
     case OsdKind::KeyboardBacklight:
       return kinds.keyboardBacklight;
+    case OsdKind::HyprLayout:
+      return kinds.hyprLayout;
     case OsdKind::Custom:
       return kinds.custom;
     }
