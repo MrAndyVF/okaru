@@ -60,6 +60,7 @@ int main() {
   ok = expect(nextWorkspaceId(defs, "DP-2") == 3 && nextWorkspaceId(defs, "DP-1") == 12, "siguiente id por monitor")
       && ok;
   ok = expect(nextWorkspaceId(defs, "HDMI-A-1") == 21, "monitor nuevo empieza una serie nueva") && ok;
+  ok = expect(nextWorkspaceId({}, "Virtual-1") == 1, "instalación limpia empieza en 1") && ok;
   ok = expect(
            !isValidWorkspaceName("a\nb") && !isValidMonitorName("DP-1; x") && isValidMonitorName("HDMI-A-1"),
            "validación"
