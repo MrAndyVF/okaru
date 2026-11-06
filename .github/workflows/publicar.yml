@@ -37,7 +37,7 @@ jobs:
       - name: Changelog de la etiqueta
         if: startsWith(github.ref, 'refs/tags/v')
         # Falla antes de compilar si la versión etiquetada no tiene notas en CHANGELOG.md.
-        run: okaru/tools/changelog-section.sh "$GITHUB_REF_NAME" okaru/CHANGELOG.md >/dev/null
+        run: bash okaru/tools/changelog-section.sh "$GITHUB_REF_NAME" okaru/CHANGELOG.md >/dev/null
       - name: Usuario de compilación y llave de firma
         env:
           GPG_PRIVATE_KEY: ${{ secrets.OKARU_GPG_PRIVATE_KEY }}
@@ -100,7 +100,7 @@ jobs:
           repo="$GITHUB_REPOSITORY"
           src="$GITHUB_WORKSPACE/okaru"
           version=$(sudo -u builder git -C "$src" describe --tags --abbrev=0 --match 'v*' | sed 's/^v//')
-          "$src/tools/changelog-section.sh" "$version" "$src/CHANGELOG.md" > notes.md
+          bash "$src/tools/changelog-section.sh" "$version" "$src/CHANGELOG.md" > notes.md
           if gh release view "v$version" -R "$repo" >/dev/null 2>&1; then
             id=$(gh release view "v$version" -R "$repo" --json databaseId --jq .databaseId)
             gh api -X PATCH "repos/$repo/releases/$id" -f name="Okaru $version" -F body=@notes.md >/dev/null
