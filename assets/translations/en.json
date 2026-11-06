@@ -1916,6 +1916,7 @@
           "brightness": "Brightness",
           "columns": "Columns",
           "focus": "Focus",
+          "layouts": "Layouts",
           "media": "Playback",
           "monitors": "Monitors",
           "move": "Move windows",
@@ -2349,7 +2350,8 @@
         "memory": "Memory",
         "disks": "Disks",
         "changelog": "What's new",
-        "changelog-soon": "Release notes for each OKARU version will appear here."
+        "changelog-desc": "Release notes of the latest version, grouped by type of change.",
+        "changelog-open": "View the latest release changelog"
       },
       "sound": {
         "outputs": "Outputs",

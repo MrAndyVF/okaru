@@ -138,6 +138,9 @@ struct BarDeadZoneConfig {
   bool operator==(const BarDeadZoneConfig&) const = default;
 };
 
+// OKARU: widgets del final de la barra de fábrica; en una sesión de Hyprland incluye hypr_layout.
+[[nodiscard]] std::vector<std::string> defaultBarEndWidgets();
+
 struct BarConfig {
   // Gesture -> action bindings applied to every widget on this bar, overriding widget-type
   // defaults and overridden in turn by `[widget.<name>.actions]`. See widget_action.h.
@@ -184,9 +187,7 @@ struct BarConfig {
   std::optional<std::string> fontFamily;
   std::vector<std::string> startWidgets = {"launcher", "wallpaper", "workspaces"};
   std::vector<std::string> centerWidgets = {"clock"};
-  std::vector<std::string> endWidgets = {"media",   "tray",           "notifications", "clipboard",
-                                         "network", "bluetooth",      "volume",        "brightness",
-                                         "battery", "control-center", "session"};
+  std::vector<std::string> endWidgets = defaultBarEndWidgets();
   // When true, widgets on this bar use a capsule unless `[widget.*] capsule = false`.
   bool widgetCapsuleDefault = false;
   ColorSpec widgetCapsuleFill = colorSpecFromRole(ColorRole::SurfaceContainer);

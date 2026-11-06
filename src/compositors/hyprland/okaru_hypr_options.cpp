@@ -348,13 +348,13 @@ namespace okaru::hypr {
     {
       std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
       if (!out || !(out << next) || !out.flush()) {
-        return "no se pudo escribir " + tmp;
+        return "could not write " + tmp;
       }
     }
     std::filesystem::rename(tmp, path, ec); // atómico: Hyprland nunca lee un archivo a medias
     if (ec) {
       std::filesystem::remove(tmp, ec);
-      return "no se pudo reemplazar " + path.string();
+      return "could not replace " + path.string();
     }
     return std::nullopt;
   }
@@ -363,7 +363,7 @@ namespace okaru::hypr {
   applyOption(compositors::hyprland::HyprlandRuntime& runtime, std::string_view name, const nlohmann::json& value) {
     const auto response = runtime.request("eval " + serializeOption(name, value));
     if (!response.has_value()) {
-      return "Hyprland no respondió";
+      return "Hyprland did not respond";
     }
     if (response->empty() || response->starts_with("ok")) {
       return std::nullopt;

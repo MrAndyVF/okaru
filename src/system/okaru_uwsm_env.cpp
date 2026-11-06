@@ -154,7 +154,7 @@ namespace okaru::uwsm {
     {
       std::ofstream file(tmp, std::ios::binary | std::ios::trunc);
       if (!file || !(file << text)) {
-        return "no se pudo escribir " + tmp;
+        return "could not write " + tmp;
       }
     }
     std::filesystem::rename(tmp, path, ec);

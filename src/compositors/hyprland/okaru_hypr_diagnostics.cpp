@@ -102,19 +102,19 @@ namespace okaru::hypr {
   std::optional<std::string> restoreBackup(const Backup& backup, std::string_view stamp) {
     std::error_code ec;
     if (!std::filesystem::exists(backup.path, ec)) {
-      return "ya no existe " + backup.path.string();
+      return "no longer exists: " + backup.path.string();
     }
     const auto safety =
         backup.target.parent_path() / std::format("{}{}okaru-{}", backup.target.filename().string(), kBak, stamp);
     if (std::filesystem::exists(safety, ec)) {
-      return "ya existe " + safety.string();
+      return "already exists: " + safety.string();
     }
     if (backup.directory) {
       // Carpeta: lo actual se mueve a un lado (no se borra) y la copia toma su lugar.
       if (std::filesystem::exists(backup.target, ec)) {
         std::filesystem::rename(backup.target, safety, ec);
         if (ec) {
-          return "no se pudo respaldar " + backup.target.string() + ": " + ec.message();
+          return "could not back up " + backup.target.string() + ": " + ec.message();
         }
       }
       std::filesystem::copy(backup.path, backup.target, std::filesystem::copy_options::recursive, ec);
@@ -122,18 +122,18 @@ namespace okaru::hypr {
         std::error_code undo;
         std::filesystem::remove_all(backup.target, undo);
         std::filesystem::rename(safety, backup.target, undo);
-        return "no se pudo copiar " + backup.path.string() + ": " + ec.message();
+        return "could not copy " + backup.path.string() + ": " + ec.message();
       }
       return std::nullopt;
     }
     if (std::filesystem::exists(backup.target, ec)) {
       std::filesystem::copy_file(backup.target, safety, ec);
       if (ec) {
-        return "no se pudo respaldar " + backup.target.string() + ": " + ec.message();
+        return "could not back up " + backup.target.string() + ": " + ec.message();
       }
     }
     std::filesystem::copy_file(backup.path, backup.target, std::filesystem::copy_options::overwrite_existing, ec);
-    return ec ? std::optional("no se pudo restaurar " + backup.target.string() + ": " + ec.message()) : std::nullopt;
+    return ec ? std::optional("could not restore " + backup.target.string() + ": " + ec.message()) : std::nullopt;
   }
 
   std::optional<std::string> restoreBackup(const Backup& backup) {

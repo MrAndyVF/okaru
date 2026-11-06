@@ -193,7 +193,9 @@ namespace okaru::hypr {
     }
     const bool windowing = std::ranges::any_of(
         std::vector<std::string_view>{
-            "hl.dsp.focus", "hl.dsp.window.", "hl.dsp.layout", "hl.dsp.workspace", "hl.dsp.group", "mouse:"
+            "hl.dsp.focus", "hl.dsp.window.", "hl.dsp.layout", "hl.dsp.workspace", "hl.dsp.group", "mouse:",
+            // Ayudantes de binds.lua que eligen la acción según el layout.
+            "focus(", "move(", "by_layout("
         },
         [&](std::string_view word) {
           return bind.dispatcher.find(word) != std::string::npos || keys.find(word) != std::string::npos;
@@ -245,19 +247,20 @@ namespace okaru::hypr {
         {"shell", BindCategory::System, {"shell", "noctalia", "okaru"}},
         {"security", BindCategory::System, {"seguridad", "security"}},
         {"session", BindCategory::System, {"sistema", "system", "sesión", "sesion", "session"}},
-        {"audio", BindCategory::Media, {"audio", "sonido", "sound", "volumen", "volume"}},
+        {"audio", BindCategory::Media, {"audio", "audio, multimedia y brillo", "sonido", "sound", "volumen", "volume"}},
         {"brightness", BindCategory::Media, {"brillo", "brightness"}},
         {"media", BindCategory::Media, {"multimedia", "media", "reproducción", "playback"}},
         {"screenshots", BindCategory::Media, {"capturas", "screenshots", "capturas de pantalla"}},
         {"windows", BindCategory::Input, {"ventanas", "windows"}},
-        {"focus", BindCategory::Input, {"foco", "focus"}},
+        {"focus", BindCategory::Input, {"foco", "foco y mover", "focus"}},
+        {"layouts", BindCategory::Input, {"layouts", "layout"}},
         {"move", BindCategory::Input, {"mover ventanas / columnas", "mover ventanas", "move windows", "move"}},
         {"columns", BindCategory::Input, {"columnas", "columns"}},
         {"monitors", BindCategory::Input, {"monitores", "monitors"}},
         {"workspaces", BindCategory::Input, {"workspaces", "escritorios"}},
         {"scratchpad", BindCategory::Input, {"scratchpad", "escritorio especial", "special workspace"}},
         {"size", BindCategory::Input, {"tamaño", "size", "resize"}},
-        {"apps", BindCategory::User, {"aplicaciones", "apps", "applications"}},
+        {"apps", BindCategory::User, {"aplicaciones", "aplicaciones de fábrica", "apps", "applications"}},
         {"other", BindCategory::Other, {"otros", "other"}},
     };
     return kSections;

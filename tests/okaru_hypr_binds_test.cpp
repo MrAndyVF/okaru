@@ -85,6 +85,16 @@ int main() {
            "todo user-binds.lua es User"
        )
       && ok;
+  // Ayudantes de binds.lua que eligen la acción según el layout.
+  for (const std::string dispatcher :
+       {R"(focus("l"))", R"(move("r"))", R"(by_layout({ master = hl.dsp.layout("addmaster") }))"}) {
+    ok = expect(
+             categoryOf(Bind{.keys = "SUPER + H", .dispatcher = dispatcher}) == BindCategory::Input, dispatcher.c_str()
+         )
+        && ok;
+  }
+  ok = expect(sectionIdOf("Layouts (alcance en Ajustes)") == "layouts", "sección Layouts") && ok;
+  ok = expect(sectionIdOf("Foco y mover (flechas o H/J/K/L)") == "focus", "sección Foco y mover") && ok;
 
   // Escritura.
   ok =

@@ -23,7 +23,7 @@ namespace okaru::hypr {
     std::optional<std::string> evalLua(compositors::hyprland::HyprlandRuntime& runtime, const std::string& code) {
       const auto response = runtime.request("eval " + code);
       if (!response.has_value()) {
-        return "Hyprland no respondió";
+        return "Hyprland did not respond";
       }
       if (response->empty() || response->starts_with("ok")) {
         return std::nullopt;
@@ -139,13 +139,13 @@ namespace okaru::hypr {
   setLayout(compositors::hyprland::HyprlandRuntime& runtime, std::string_view target, bool perWorkspace) {
     const auto ws = runtime.requestJson("j/activeworkspace");
     if (!ws || !ws->contains("id") || !(*ws)["id"].is_number_integer()) {
-      return {.error = "Hyprland no respondió"};
+      return {.error = "Hyprland did not respond"};
     }
     const auto id = (*ws)["id"].get<long long>();
     const std::string current = ws->value("tiledLayout", std::string{});
     const auto layout = resolveLayout(current, target);
     if (!layout) {
-      return {.error = std::format("layout desconocido: {}", target)};
+      return {.error = std::format("unknown layout: {}", target)};
     }
 
     const auto path = okaFilePath("layout");
@@ -155,7 +155,7 @@ namespace okaru::hypr {
 
     if (perWorkspace) {
       if (id < 1) {
-        return {.error = "los workspaces especiales usan el layout general"};
+        return {.error = "special workspaces use the global layout"};
       }
       const std::string key = std::to_string(id);
       if (const auto err = evalLua(runtime, ruleFor(key, *layout))) {

@@ -46,6 +46,10 @@ jobs:
           echo "$out"
           echo "$out" | sed -n '/parsing result/,$p' | grep -qx "config ok" \
             || { echo "::error::La configuración de fábrica de Hyprland no pasa la verificación."; exit 1; }
+      - name: La configuración de fábrica de Niri es válida
+        run: |
+          pacman -S --noconfirm --needed niri >/dev/null
+          niri validate -c packaging/defaults/niri/config.kdl
       - name: Meson encuentra todo solo con lo declarado
         run: |
           source "$PKGBUILD"

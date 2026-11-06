@@ -216,14 +216,14 @@ namespace okaru::hypr {
       {
         std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
         if (!out || !(out << text) || !out.flush()) {
-          return "no se pudo escribir " + tmp;
+          return "could not write " + tmp;
         }
       }
       std::error_code ec;
       std::filesystem::rename(tmp, path, ec);
       if (ec) {
         std::filesystem::remove(tmp, ec);
-        return "no se pudo reemplazar " + path.string();
+        return "could not replace " + path.string();
       }
       return std::nullopt;
     }

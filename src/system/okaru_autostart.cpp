@@ -32,11 +32,11 @@ namespace okaru::autostart {
       {
         std::ofstream file(tmp, std::ios::binary | std::ios::trunc);
         if (!file || !(file << text)) {
-          return "no se pudo escribir " + tmp;
+          return "could not write " + tmp;
         }
       }
       std::filesystem::rename(tmp, path, ec);
-      return ec ? std::optional("no se pudo guardar " + path.string() + ": " + ec.message()) : std::nullopt;
+      return ec ? std::optional("could not save " + path.string() + ": " + ec.message()) : std::nullopt;
     }
 
     std::vector<std::string> splitList(std::string_view value) {
@@ -281,7 +281,7 @@ namespace okaru::autostart {
       }
     }
     if (!text.has_value()) {
-      return "no se encontró " + entry.id;
+      return "not found: " + entry.id;
     }
     std::string updated = setKey(*text, "Hidden", enabled ? "false" : "true");
     if (parseDesktopEntry(updated).contains("X-GNOME-Autostart-enabled")) {
@@ -295,19 +295,19 @@ namespace okaru::autostart {
         || exec.empty()
         || name.find('\n') != std::string_view::npos
         || exec.find('\n') != std::string_view::npos) {
-      return "nombre o comando vacío";
+      return "empty name or command";
     }
     const auto path = userDir() / idForName(name);
     std::error_code ec;
     if (std::filesystem::exists(path, ec)) {
-      return "ya existe " + path.filename().string();
+      return "already exists: " + path.filename().string();
     }
     return writeFile(path, newEntryText(name, exec, icon));
   }
 
   std::optional<std::string> remove(const Entry& entry) {
     if (!entry.ownedByOkaru || !entry.user) {
-      return "solo se pueden quitar las entradas que creó OKARU";
+      return "only entries created by OKARU can be removed";
     }
     std::error_code ec;
     std::filesystem::remove(userDir() / entry.id, ec);

@@ -1800,6 +1800,7 @@
           "brightness": "Brillo",
           "columns": "Columnas",
           "focus": "Foco",
+          "layouts": "Layouts",
           "media": "Reproducción",
           "monitors": "Monitores",
           "move": "Mover ventanas",
@@ -2390,7 +2391,8 @@
         "memory": "Memoria",
         "disks": "Discos",
         "changelog": "Novedades",
-        "changelog-soon": "Aquí aparecerán las novedades de cada versión de OKARU."
+        "changelog-desc": "Notas de la última versión, separadas por tipo de cambio.",
+        "changelog-open": "Ver el changelog de la última release"
       },
       "sound": {
         "outputs": "Salidas",

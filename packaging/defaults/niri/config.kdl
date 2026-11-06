@@ -1,0 +1,190 @@
+// OKARU (郁) — configuración de fábrica de Niri. install.sh la copia a ~/.config/niri/config.kdl.
+// La shell arranca sola con la sesión (niri-session → graphical-session.target → okaru.service).
+// Referencia de opciones: https://yalter.github.io/niri/Configuration:-Introduction
+
+input {
+    keyboard {
+        xkb {
+            layout "us"
+        }
+        numlock
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+    focus-follows-mouse max-scroll-amount="0%"
+}
+
+layout {
+    gaps 8
+    center-focused-column "never"
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    default-column-width { proportion 0.5; }
+    focus-ring {
+        width 2
+    }
+    border {
+        off
+    }
+}
+
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+environment {
+    TERMINAL "kitty"
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+// Esquinas rectas, como la shell.
+window-rule {
+    geometry-corner-radius 0
+    clip-to-geometry true
+}
+
+window-rule {
+    match app-id="^dev\\.okaru\\.Okaru"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+}
+
+window-rule {
+    match title="^(Picture in picture|Picture-in-Picture)$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^(pavucontrol|blueman-manager|nm-connection-editor|org\\.gnome\\.Calculator|org\\.gnome\\.FileRoller|com\\.github\\.wwmm\\.easyeffects|org\\.kde\\.kdeconnect\\.app|nwg-look|qt[56]ct)$"
+    open-floating true
+}
+
+// Fondo difuminado de OKARU en la vista general.
+layer-rule {
+    match namespace="^okaru-backdrop"
+    place-within-backdrop true
+}
+
+debug {
+    // Acciones de notificaciones y activar ventanas desde OKARU.
+    honor-xdg-activation-with-invalid-serial
+}
+
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // Apps
+    Mod+Return hotkey-overlay-title="Terminal" { spawn "kitty"; }
+    Mod+E hotkey-overlay-title="Files" { spawn "nautilus" "--new-window"; }
+
+    // OKARU
+    Mod+Space hotkey-overlay-title="Launcher" { spawn "okaru" "msg" "panel-toggle" "launcher"; }
+    Mod+Period hotkey-overlay-title="Emoji Picker" { spawn "okaru" "msg" "panel-toggle" "launcher" "/emo "; }
+    Mod+V hotkey-overlay-title="Clipboard" { spawn "okaru" "msg" "panel-toggle" "clipboard"; }
+    Mod+Comma hotkey-overlay-title="OKARU settings" { spawn "okaru" "msg" "settings-toggle"; }
+    Mod+A hotkey-overlay-title="Control center" { spawn "okaru" "msg" "panel-toggle" "control-center"; }
+    Mod+N hotkey-overlay-title="Notifications" { spawn "okaru" "msg" "panel-toggle" "okaru-notifications"; }
+    Mod+D hotkey-overlay-title="Media" { spawn "okaru" "msg" "panel-toggle" "okaru-media"; }
+    Mod+Y hotkey-overlay-title="Wallpaper" { spawn "okaru" "msg" "panel-toggle" "wallpaper"; }
+    Mod+X hotkey-overlay-title="Session menu" { spawn "okaru" "msg" "panel-toggle" "session"; }
+    Mod+Alt+N hotkey-overlay-title="Night light" { spawn "okaru" "msg" "nightlight-force-toggle"; }
+    Mod+Alt+I hotkey-overlay-title="Caffeine" { spawn "okaru" "msg" "caffeine-toggle"; }
+    Alt+Tab hotkey-overlay-title="Window switcher" { spawn "okaru" "msg" "window-switcher" "hold"; }
+
+    // Session
+    Mod+Alt+L hotkey-overlay-title="Lock" { spawn "okaru" "msg" "session" "lock"; }
+    Mod+Shift+E { quit; }
+    Mod+Shift+P { power-off-monitors; }
+
+    // Audio, media and brightness
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "okaru" "msg" "volume-up" "5"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "okaru" "msg" "volume-down" "5"; }
+    XF86AudioMute allow-when-locked=true { spawn "okaru" "msg" "volume-mute"; }
+    XF86AudioMicMute allow-when-locked=true { spawn "okaru" "msg" "mic-mute"; }
+    XF86AudioPlay allow-when-locked=true { spawn "okaru" "msg" "media" "toggle"; }
+    XF86AudioPause allow-when-locked=true { spawn "okaru" "msg" "media" "toggle"; }
+    XF86AudioPrev allow-when-locked=true { spawn "okaru" "msg" "media" "previous"; }
+    XF86AudioNext allow-when-locked=true { spawn "okaru" "msg" "media" "next"; }
+    XF86MonBrightnessUp allow-when-locked=true { spawn "okaru" "msg" "brightness-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "okaru" "msg" "brightness-down"; }
+
+    // Screenshots
+    Print { spawn "okaru" "msg" "screenshot-region" "--annotate"; }
+    Ctrl+Print { spawn "okaru" "msg" "screenshot-fullscreen"; }
+    Alt+Print { spawn "okaru" "msg" "screenshot-window"; }
+
+    // Windows
+    Mod+Q repeat=false { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Shift+T { toggle-window-floating; }
+    Mod+O repeat=false { toggle-overview; }
+    Mod+W { toggle-column-tabbed-display; }
+
+    // Focus and move (arrows or H/J/K/L)
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-or-workspace-down; }
+    Mod+Up    { focus-window-or-workspace-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H     { focus-column-left; }
+    Mod+J     { focus-window-or-workspace-down; }
+    Mod+K     { focus-window-or-workspace-up; }
+    Mod+L     { focus-column-right; }
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Down  { move-window-down-or-to-workspace-down; }
+    Mod+Shift+Up    { move-window-up-or-to-workspace-up; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+H     { move-column-left; }
+    Mod+Shift+J     { move-window-down-or-to-workspace-down; }
+    Mod+Shift+K     { move-window-up-or-to-workspace-up; }
+    Mod+Shift+L     { move-column-right; }
+
+    // Columns
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+C { center-column; }
+
+    // Size
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { reset-window-height; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // Monitors
+    Mod+Ctrl+Left  { focus-monitor-left; }
+    Mod+Ctrl+Right { focus-monitor-right; }
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+
+    // Workspaces
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
+}
