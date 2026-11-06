@@ -1361,7 +1361,7 @@ struct ShellConfig {
   bool setupWizardEnabled = true;
   bool niriOverviewTypeToLaunchEnabled = false;
   bool niriOverviewCloseOnLaunchEnabled = false;
-  bool polkitAgent = false;
+  bool polkitAgent = true; // OKARU: sin agente, pkexec (sincronizar el greeter, etc.) no tiene dónde pedir la contraseña
   PasswordMaskStyle passwordMaskStyle = PasswordMaskStyle::CircleFilled;
   /// Readline-style editing shortcuts in every text input (Ctrl+A moves to the start instead of selecting all).
   bool readlineShortcuts = false;
