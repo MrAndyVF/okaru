@@ -787,8 +787,6 @@
     "badges": {
       "advanced": "Pokročilé",
       "community": "Komunita",
-      "inherited": "Zděděno",
-      "monitor": "Monitor",
       "official": "Oficiální",
       "override": "Přepsání"
     },
@@ -855,25 +853,12 @@
         },
         "group": {
           "action": "Seskupit",
-          "border": "Ohraničení",
-          "border-description": "Barva obrysu kapsle; ponechte Výchozí pro žádný obrys",
           "clear": "Vyčistit",
           "edit": "Upravit styl",
-          "fill": "Pozadí",
-          "fill-description": "Barva pozadí kapsle; podporovány jsou i pevné hex barvy",
-          "foreground": "Popředí",
-          "foreground-description": "Barva ikon a popisků widgetů v této skupině",
           "hint": "Součást kapslové skupiny",
           "members": "{count} widgetů",
-          "opacity": "Průhlednost",
-          "opacity-description": "Průhlednost pozadí kapsle",
           "orphan": "Neznámá skupina",
-          "padding": "Odsazení",
-          "padding-description": "Vnitřní odsazení mezi okrajem kapsle a widgety v pixelech",
-          "radius": "Zaoblení",
-          "radius-description": "Poloměr zaoblení rohů kapsle v pixelech; Auto dědí zaoblení panelu",
           "selected": "Vybráno: {count}",
-          "style": "Styl",
           "title": "Kapslová skupina",
           "ungroup": "Zrušit seskupení"
         },
@@ -894,7 +879,6 @@
         },
         "lanes": {
           "center": "Střed",
-          "customize": "Přizpůsobit",
           "empty": "Žádné widgety",
           "empty-hint": "Přidejte widget pro naplnění tohoto pruhu.",
           "end": "Konec",
@@ -1407,34 +1391,6 @@
           "description": "Šířka vnitřního obrysu lišty",
           "label": "Šířka obrysu"
         },
-        "capsule-border": {
-          "description": "Výchozí barevná role obrysu kapsle; podporovány jsou i pevné hex barvy",
-          "label": "Obrys kapsle"
-        },
-        "capsule-fill": {
-          "description": "Výchozí barevná role pozadí kapsle; podporovány jsou i pevné hex barvy",
-          "label": "Výplň kapsle"
-        },
-        "capsule-foreground": {
-          "description": "Výchozí barevná role ikony a popisku uvnitř kapslí; podporovány jsou i pevné hex barvy",
-          "label": "Popředí kapsle"
-        },
-        "capsule-opacity": {
-          "description": "Průhlednost pozadí kapslí widgetů",
-          "label": "Průhlednost kapsle"
-        },
-        "capsule-padding": {
-          "description": "Vnitřní odsazení uvnitř kapslí widgetů",
-          "label": "Vnitřní odsazení kapsle"
-        },
-        "capsule-radius": {
-          "description": "Výchozí poloměr rohů pro kapsle widgetů, pilulky ploch a skupiny ploch hlavního panelu; ponechte prázdné pro automatický tvar pilulky nebo nastavte 0 pro pravé úhly",
-          "label": "Poloměr kapsle"
-        },
-        "capsule-thickness": {
-          "description": "Velikost kapsle napříč lištou jako zlomek tloušťky lišty (1.0 vyplní celou lištu)",
-          "label": "Tloušťka kapsle"
-        },
         "center-widgets": {
           "description": "Widgety uprostřed lišty",
           "label": "Widgety uprostřed"
@@ -1517,10 +1473,6 @@
         "thickness": {
           "description": "Tloušťka lišty v pixelech",
           "label": "Tloušťka"
-        },
-        "widget-capsules": {
-          "description": "Obalit widgety pozadím kapsle",
-          "label": "Kapsle widgetů"
         },
         "widget-color": {
           "description": "Výchozí barevná role ikony a popisku pro widgety na této liště; podporovány jsou i pevné hex barvy",

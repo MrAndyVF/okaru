@@ -865,8 +865,6 @@
       "advanced": "Speciális",
       "community": "Közösség",
       "deprecated": "Elévült",
-      "inherited": "Öröklött",
-      "monitor": "Monitor",
       "official": "Hivatalos",
       "override": "Felülbírálás"
     },
@@ -945,8 +943,6 @@
         },
         "group": {
           "action": "Csoport",
-          "border": "Szegély",
-          "border-description": "A kapszula körvonalának színszerepe; hagyd alapértelmezetten, ha nem szeretnél körvonalat",
           "clear": "Törlés",
           "deselect": "Kijelölés megszüntetése",
           "drag": "Újrarendezés",
@@ -961,28 +957,17 @@
           "drawer-glyph-opened": "Nyitva ikon",
           "drawer-glyph-opened-description": "A panel nyitott állapotában a fiók kapcsoló gombján megjelenő szimbólum",
           "edit": "Stílus szerkesztése",
-          "fill": "Háttér",
-          "fill-description": "A kapszula háttérszín szerepe; fix hexadecimális színek is támogatottak",
-          "foreground": "Előtér",
-          "foreground-description": "A csoportban lévő widgetek ikonjának és feliratának színszerepe",
           "hide": "Csoport elrejtése",
           "hide-widget": "Widget elrejtése",
           "hint": "Egy kapszulacsoport része",
           "members": "{count} widget",
-          "opacity": "Átlátszatlanság",
-          "opacity-description": "Kapszula háttérének átlátszósága",
           "orphan": "Ismeretlen csoport",
-          "padding": "Kitöltés",
-          "padding-description": "A kapszula széle és a widgetjei közötti belső margó, képpontban megadva",
-          "radius": "Rádiusz",
-          "radius-description": "A kapszula sarokkerekítése képpontban; az „Automatikus” beállítás örökli a sáv kapszulasugarát",
           "remove-from-group": "Eltávolítás a csoportból",
           "remove-orphan": "Ismeretlen csoport eltávolítása",
           "remove-widget": "Eltávolítás a sávról",
           "selected": "{count} kiválasztva",
           "show": "Csoport mutatása",
           "show-widget": "Widget mutatása",
-          "style": "Stílus",
           "title": "Kapszulacsoport",
           "ungroup": "Csoport bontása"
         },
@@ -1003,7 +988,6 @@
         },
         "lanes": {
           "center": "Közép",
-          "customize": "Testreszabás",
           "empty": "Nincsenek widgetek",
           "empty-hint": "Adj hozzá egy widgetet, hogy kitöltsd ezt a sávot.",
           "end": "Vége",
@@ -1592,34 +1576,6 @@
           "description": "A sáv belső keretszélessége",
           "label": "Szegélyszélesség"
         },
-        "capsule-border": {
-          "description": "Alapértelmezett kapszula körvonal színszerepe; fix hexadecimális színek is támogatottak",
-          "label": "Kapszulaszegély"
-        },
-        "capsule-fill": {
-          "description": "Alapértelmezett kapszula háttérszín szerepköre; fix hexadecimális színek is támogatottak",
-          "label": "Kapszulakitöltés"
-        },
-        "capsule-foreground": {
-          "description": "Alapértelmezett ikon és címke színszerep a kapszulákban; fix hexadecimális színek is támogatottak",
-          "label": "Kapszula előtere"
-        },
-        "capsule-opacity": {
-          "description": "A widgetkapszulák hátterének átlátszatlansága",
-          "label": "Kapszula átlátszatlansága"
-        },
-        "capsule-padding": {
-          "description": "A widgetkapszulák belső margója",
-          "label": "Kapszula belső margója"
-        },
-        "capsule-radius": {
-          "description": "Alapértelmezett kerekítési sugár a widgetkapszulák, munkaterület-pirulák és a tálca munkaterület-csoportjai számára; hagyd üresen az automatikus lekerekített alakhoz, vagy állítsd 0-ra a szögletes sarkokhoz",
-          "label": "Kapszulasugár"
-        },
-        "capsule-thickness": {
-          "description": "A kapszula mérete a sávhoz képest, a sávvastagság törtrészeként megadva (az 1.0 teljesen kitölti a sávot)",
-          "label": "Kapszulavastagság"
-        },
         "center-widgets": {
           "description": "Widgetek a sáv közepén",
           "label": "Középső widgetek"
@@ -1710,10 +1666,6 @@
         "thickness": {
           "description": "Sáv vastagsága pixelben",
           "label": "Vastagság"
-        },
-        "widget-capsules": {
-          "description": "Widgetek kapszulahátterekbe burkolása",
-          "label": "Widgetkapszulák"
         },
         "widget-color": {
           "description": "Az ezen a sávon található widgetek alapértelmezett ikon- és felirat-színe; a fix hexadecimális színek is támogatottak",

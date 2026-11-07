@@ -246,16 +246,10 @@ namespace settings {
   void SettingsControlFactory::makeRow(Flex& section, const SettingEntry& entry, std::unique_ptr<Node> control) {
     auto& ctx = m_ctx;
     const float scale = m_scale;
-    const Config& cfg = m_ctx.config;
     // Range sliders own a second config path (high/critical); both reset and report "override" together.
     const auto* rangeSlider = std::get_if<RangeSliderSetting>(&entry.control);
     const auto* selectSetting = std::get_if<SelectSetting>(&entry.control);
     const bool overridden = ctx.configService != nullptr && settingEntryHasEffectiveOverride(entry, *ctx.configService);
-    const bool redundantGuiOverride =
-        ctx.configService != nullptr && ctx.configService->hasOverride(entry.path) && !overridden;
-    const bool monitorSetting = isMonitorOverrideSettingPath(entry.path);
-    const bool monitorExplicit = monitorOverrideHasExplicitValue(cfg, entry.path) && !redundantGuiOverride;
-    const bool monitorInherited = monitorSetting && !monitorExplicit;
 
     auto titleRow = ui::row({
         .align = FlexAlign::Center,
@@ -267,17 +261,6 @@ namespace settings {
     );
     if (entry.advanced) {
       titleRow->addChild(makeAdvancedBadge());
-    }
-    if (monitorExplicit) {
-      titleRow->addChild(makeStatusBadge(
-          i18n::tr("settings.badges.monitor"), colorSpecFromRole(ColorRole::SecondaryContainer),
-          colorSpecFromRole(ColorRole::OnSecondaryContainer), false
-      ));
-    } else if (monitorInherited) {
-      titleRow->addChild(makeStatusBadge(
-          i18n::tr("settings.badges.inherited"), colorSpecFromRole(ColorRole::SurfaceContainer),
-          colorSpecFromRole(ColorRole::OnSurfaceVariant), false
-      ));
     }
     titleRow->addChild(ui::spacer());
 

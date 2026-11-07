@@ -1041,8 +1041,6 @@
       "advanced": "高级",
       "community": "社区",
       "deprecated": "已弃用",
-      "inherited": "已继承",
-      "monitor": "屏幕",
       "official": "官方",
       "override": "已覆盖"
     },
@@ -1134,10 +1132,6 @@
           "accordion-duration": "展开时长",
           "accordion-duration-description": "悬停时小组件组展开的持续时间（毫秒；设为 0 时立即展开）",
           "action": "组合",
-          "border": "边框",
-          "border-description": "胶囊轮廓的颜色；保持“默认”时不显示轮廓",
-          "border-width": "边框宽度",
-          "border-width-description": "胶囊边框的宽度（像素）；仅设置边框颜色时显示",
           "clear": "清除",
           "deselect": "取消选择",
           "drag": "重新排序",
@@ -1152,21 +1146,11 @@
           "drawer-glyph-opened": "打开图标",
           "drawer-glyph-opened-description": "面板打开时显示在抽屉切换按钮上的图标",
           "edit": "编辑样式",
-          "fill": "背景",
-          "fill-description": "胶囊背景的颜色；支持固定的十六进制颜色值",
-          "foreground": "前景",
-          "foreground-description": "组内小组件图标和标签的颜色",
           "hide": "隐藏组合",
           "hide-widget": "隐藏小组件",
           "hint": "已加入胶囊组",
           "members": "{count} 个小组件",
-          "opacity": "不透明度",
-          "opacity-description": "胶囊背景的不透明度",
           "orphan": "未知组合",
-          "padding": "内边距",
-          "padding-description": "胶囊边缘与其内部小组件之间的内边距（像素）",
-          "radius": "半径",
-          "radius-description": "胶囊的圆角半径（像素）；“自动”将继承状态栏的胶囊圆角设置",
           "remove-from-group": "从组合中移除",
           "remove-orphan": "移除未知组合",
           "remove-widget": "从状态栏移除",
@@ -1175,11 +1159,8 @@
           "settings-widget": "小组件设置",
           "show": "显示组合",
           "show-widget": "显示小组件",
-          "style": "样式",
           "title": "胶囊组",
-          "ungroup": "取消组合",
-          "widget-spacing": "间距",
-          "widget-spacing-description": "组内小组件之间的间距（像素）；“自动”将继承状态栏的小组件间距设置"
+          "ungroup": "取消组合"
         },
         "inspector": {
           "add-instance-title": "将新的{widget}具名小组件添加到{lane}",
@@ -1199,7 +1180,6 @@
         },
         "lanes": {
           "center": "中央区域",
-          "customize": "自定义",
           "empty": "无小组件",
           "empty-hint": "添加一个小组件以填充此区域。",
           "end": "末端区域",
@@ -1929,38 +1909,6 @@
           "description": "状态栏内部轮廓的宽度",
           "label": "边框宽度"
         },
-        "capsule-border": {
-          "description": "胶囊轮廓的默认颜色；支持固定的十六进制颜色值",
-          "label": "胶囊边框"
-        },
-        "capsule-border-width": {
-          "description": "胶囊边框的宽度（像素）；仅设置胶囊边框颜色时显示",
-          "label": "胶囊边框宽度"
-        },
-        "capsule-fill": {
-          "description": "胶囊背景的默认颜色；支持固定的十六进制颜色值",
-          "label": "胶囊背景"
-        },
-        "capsule-foreground": {
-          "description": "胶囊内部图标和标签的默认颜色；支持固定的十六进制颜色值",
-          "label": "胶囊前景"
-        },
-        "capsule-opacity": {
-          "description": "小组件胶囊背景的不透明度",
-          "label": "胶囊不透明度"
-        },
-        "capsule-padding": {
-          "description": "小组件胶囊的内边距",
-          "label": "胶囊内边距"
-        },
-        "capsule-radius": {
-          "description": "小组件胶囊、工作区胶囊和任务栏工作区组的默认圆角半径；设为 0 时显示为直角",
-          "label": "胶囊圆角半径"
-        },
-        "capsule-thickness": {
-          "description": "胶囊厚度占状态栏高度的比例（设为 1.0 时填满状态栏）",
-          "label": "胶囊厚度"
-        },
         "center-widgets": {
           "description": "状态栏中央的小组件",
           "label": "中央小组件"
@@ -2070,10 +2018,6 @@
         "thickness": {
           "description": "状态栏厚度（像素）",
           "label": "厚度"
-        },
-        "widget-capsules": {
-          "description": "为小组件添加胶囊背景",
-          "label": "小组件胶囊"
         },
         "widget-color": {
           "description": "状态栏小组件图标和标签的默认颜色；支持固定的十六进制颜色值",

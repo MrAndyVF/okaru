@@ -628,17 +628,6 @@ namespace settings {
       collectLaneUnknowns(bar.startWidgets, entries, seen, cfg);
       collectLaneUnknowns(bar.centerWidgets, entries, seen, cfg);
       collectLaneUnknowns(bar.endWidgets, entries, seen, cfg);
-      for (const auto& ovr : bar.monitorOverrides) {
-        if (ovr.startWidgets.has_value()) {
-          collectLaneUnknowns(*ovr.startWidgets, entries, seen, cfg);
-        }
-        if (ovr.centerWidgets.has_value()) {
-          collectLaneUnknowns(*ovr.centerWidgets, entries, seen, cfg);
-        }
-        if (ovr.endWidgets.has_value()) {
-          collectLaneUnknowns(*ovr.endWidgets, entries, seen, cfg);
-        }
-      }
     }
 
     std::ranges::sort(entries, [](const auto& a, const auto& b) {

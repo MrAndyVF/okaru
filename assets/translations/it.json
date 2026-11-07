@@ -1031,8 +1031,6 @@
       "advanced": "Avanzato",
       "community": "Community",
       "deprecated": "Deprecato",
-      "inherited": "Ereditato",
-      "monitor": "Monitor",
       "official": "Ufficiale",
       "override": "Override"
     },
@@ -1120,10 +1118,6 @@
           "accordion-direction": "Direzione apertura",
           "accordion-direction-description": "Lato del primo widget in cui si aprono i widget nascosti",
           "action": "Raggruppa",
-          "border": "Bordo",
-          "border-description": "Ruolo colore del contorno capsula; lascia Predefinito per nessun contorno",
-          "border-width": "Dimensione Bordo",
-          "border-width-description": "Spessore del contorno capsula in pixels; disegnata solo quando il colore del bordo è impostato",
           "clear": "Cancella",
           "deselect": "Deseleziona",
           "drag": "Riordina",
@@ -1138,21 +1132,11 @@
           "drawer-glyph-opened": "Icona aperto",
           "drawer-glyph-opened-description": "Glifo mostrato sul pulsante di attivazione/disattivazione del cassetto quando il pannello è aperto",
           "edit": "Modifica stile",
-          "fill": "Sfondo",
-          "fill-description": "Ruolo colore dello sfondo capsula; sono supportati anche codici colore in formato esadecimale",
-          "foreground": "Primo piano",
-          "foreground-description": "Ruolo colore di icone ed etichette per i widget in questo gruppo",
           "hide": "Nascondi gruppo",
           "hide-widget": "Nascondi widget",
           "hint": "Parte di un gruppo capsula",
           "members": "{count} widget",
-          "opacity": "Opacità",
-          "opacity-description": "Opacità dello sfondo capsula",
           "orphan": "Gruppo sconosciuto",
-          "padding": "Spaziatura",
-          "padding-description": "Spaziatura interna tra il bordo della capsula e i suoi widget, in pixel",
-          "radius": "Raggio",
-          "radius-description": "Raggio degli angoli capsula in pixel; Auto eredita il raggio capsula della barra",
           "remove-from-group": "Rimuovi dal gruppo",
           "remove-orphan": "Rimuovi gruppo sconosciuto",
           "remove-widget": "Rimuovi dalla barra",
@@ -1161,11 +1145,8 @@
           "settings-widget": "Impostazioni widget",
           "show": "Mostra gruppo",
           "show-widget": "Mostra widget",
-          "style": "Stile",
           "title": "Gruppo capsula",
-          "ungroup": "Separa gruppo",
-          "widget-spacing": "Spaziatura",
-          "widget-spacing-description": "Spazio tra i widget di questo gruppo, in pixel; Auto eredita la spaziatura dei widget della barra"
+          "ungroup": "Separa gruppo"
         },
         "inspector": {
           "add-instance-title": "Aggiungi nuovo widget {widget} con nome a {lane}",
@@ -1185,7 +1166,6 @@
         },
         "lanes": {
           "center": "Centro",
-          "customize": "Personalizza",
           "empty": "Nessun widget",
           "empty-hint": "Aggiungi un widget per popolare questa corsia.",
           "end": "Fine",
@@ -1909,38 +1889,6 @@
           "description": "Larghezza del contorno interno della barra",
           "label": "Larghezza bordo"
         },
-        "capsule-border": {
-          "description": "Ruolo colore predefinito del contorno capsula; sono supportati anche codici colore in formato esadecimale",
-          "label": "Bordo capsula"
-        },
-        "capsule-border-width": {
-          "description": "Spessore del contorno capsula in pixels; disegnata solo quando il colore del bordo capsula è impostato",
-          "label": "Dimensione Bordo Capsula"
-        },
-        "capsule-fill": {
-          "description": "Ruolo colore predefinito dello sfondo capsula; sono supportati anche codici colore in formato esadecimale",
-          "label": "Riempimento capsula"
-        },
-        "capsule-foreground": {
-          "description": "Ruolo colore predefinito per icone ed etichette dentro le capsule; sono supportati anche codici colore in formato esadecimale",
-          "label": "Primo piano capsula"
-        },
-        "capsule-opacity": {
-          "description": "Opacità degli sfondi capsula dei widget",
-          "label": "Opacità capsula"
-        },
-        "capsule-padding": {
-          "description": "Spaziatura interna nelle capsule widget",
-          "label": "Spaziatura capsula"
-        },
-        "capsule-radius": {
-          "description": "Raggio angoli predefinito per capsule widget, pillole workspace e gruppi workspace della taskbar; lascia vuoto per forma pill automatica, o imposta 0 per angoli quadrati",
-          "label": "Raggio capsula"
-        },
-        "capsule-thickness": {
-          "description": "Dimensioni della capsula sulla barra come frazione dello spessore della barra (1.0 la riempie)",
-          "label": "Spessore capsula"
-        },
         "center-widgets": {
           "description": "Widget al centro della barra",
           "label": "Widget centrali"
@@ -2046,10 +1994,6 @@
         "thickness": {
           "description": "Spessore barra in pixel",
           "label": "Spessore"
-        },
-        "widget-capsules": {
-          "description": "Avvolge i widget in sfondi a capsula",
-          "label": "Capsule widget"
         },
         "widget-color": {
           "description": "Ruolo colore predefinito per icone ed etichette dei widget su questa barra; sono supportati anche codici colore in formato esadecimale",

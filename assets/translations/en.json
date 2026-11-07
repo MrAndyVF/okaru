@@ -1292,8 +1292,6 @@
       "advanced": "Advanced",
       "community": "Community",
       "deprecated": "Deprecated",
-      "inherited": "Inherited",
-      "monitor": "Monitor",
       "official": "Official",
       "okaru": "OKARU",
       "override": "Override"
@@ -1386,10 +1384,6 @@
           "accordion-duration": "Unfold Time",
           "accordion-duration-description": "Milliseconds the group takes to unfold on hover (0 is instant)",
           "action": "Group",
-          "border": "Border",
-          "border-description": "Capsule outline color role; leave on Default for no outline",
-          "border-width": "Border Width",
-          "border-width-description": "Thickness of the capsule outline in pixels; only drawn when a border color is set",
           "clear": "Clear",
           "deselect": "Deselect",
           "drag": "Reorder",
@@ -1404,21 +1398,11 @@
           "drawer-glyph-opened": "Opened Icon",
           "drawer-glyph-opened-description": "Glyph shown on the drawer toggle button when the panel is open",
           "edit": "Edit style",
-          "fill": "Background",
-          "fill-description": "Capsule background color role; fixed hex colors are also supported",
-          "foreground": "Foreground",
-          "foreground-description": "Icon and label color role for widgets in this group",
           "hide": "Hide this group",
           "hide-widget": "Hide this widget",
           "hint": "Part of a capsule group",
           "members": "{count} widgets",
-          "opacity": "Opacity",
-          "opacity-description": "Capsule background opacity",
           "orphan": "Unknown group",
-          "padding": "Padding",
-          "padding-description": "Inner padding between the capsule edge and its widgets, in pixels",
-          "radius": "Radius",
-          "radius-description": "Capsule corner radius in pixels; Auto inherits the bar's capsule radius",
           "remove-from-group": "Remove from group",
           "remove-orphan": "Remove unknown group",
           "remove-widget": "Remove from bar",
@@ -1427,11 +1411,8 @@
           "settings-widget": "Widget settings",
           "show": "Show this group",
           "show-widget": "Show this widget",
-          "style": "Style",
           "title": "Capsule group",
-          "ungroup": "Ungroup",
-          "widget-spacing": "Spacing",
-          "widget-spacing-description": "Gap between widgets in this group, in pixels; Auto inherits the bar's widget spacing"
+          "ungroup": "Ungroup"
         },
         "inspector": {
           "add-instance-title": "Add new named {widget} widget to {lane}",
@@ -1451,7 +1432,6 @@
         },
         "lanes": {
           "center": "Center",
-          "customize": "Customize",
           "empty": "No widgets",
           "empty-hint": "Add a widget to populate this lane.",
           "end": "End",
@@ -2866,38 +2846,6 @@
           "description": "Inside outline width for the bar",
           "label": "Border Width"
         },
-        "capsule-border": {
-          "description": "Default capsule outline color role; fixed hex colors are also supported",
-          "label": "Capsule Border"
-        },
-        "capsule-border-width": {
-          "description": "Thickness of the capsule outline in pixels; only drawn when a capsule border color is set",
-          "label": "Capsule Border Width"
-        },
-        "capsule-fill": {
-          "description": "Default capsule background color role; fixed hex colors are also supported",
-          "label": "Capsule Fill"
-        },
-        "capsule-foreground": {
-          "description": "Default icon and label color role inside capsules; fixed hex colors are also supported",
-          "label": "Capsule Foreground"
-        },
-        "capsule-opacity": {
-          "description": "Opacity of widget capsule backgrounds",
-          "label": "Capsule Opacity"
-        },
-        "capsule-padding": {
-          "description": "Padding inside widget capsules",
-          "label": "Capsule Padding"
-        },
-        "capsule-radius": {
-          "description": "Default corner radius for widget capsules, workspace pills, and taskbar workspace groups; leave blank for automatic pill shape, or set 0 for square corners",
-          "label": "Capsule Radius"
-        },
-        "capsule-thickness": {
-          "description": "Capsule size across the bar as a fraction of the bar thickness (1.0 fills the bar)",
-          "label": "Capsule Thickness"
-        },
         "center-widgets": {
           "description": "Widgets in the center of the bar",
           "label": "Center Widgets"
@@ -3007,10 +2955,6 @@
         "thickness": {
           "description": "Bar thickness in pixels",
           "label": "Thickness"
-        },
-        "widget-capsules": {
-          "description": "Wrap widgets in capsule backgrounds",
-          "label": "Widget Capsules"
         },
         "widget-color": {
           "description": "Default icon and label color role for widgets on this bar; fixed hex colors are also supported",

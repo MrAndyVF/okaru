@@ -106,7 +106,8 @@ namespace security {
     const SecretSchema& schema() {
       static const SecretSchema value = {
           SecretStoreSchemaName.data(),
-          SECRET_SCHEMA_NONE,
+          // Busca solo por atributos: los secretos de antes del rename tienen xdg:schema dev.noctalia.Secret.
+          SECRET_SCHEMA_DONT_MATCH_NAME,
           {
               {"application", SECRET_SCHEMA_ATTRIBUTE_STRING},
               {"scope", SECRET_SCHEMA_ATTRIBUTE_STRING},
@@ -537,7 +538,7 @@ namespace security {
 
   SecretStoreAttributes secretStoreAttributes(const SecretId& id) {
     return {
-        .application = "noctalia",
+        .application = "okaru",
         .scope = id.scope,
         .owner = id.owner,
         .name = id.name,
@@ -720,6 +721,24 @@ namespace security {
     [[nodiscard]] std::optional<SecretStoreStatus> availabilityStatus() const { return m_availabilityStatus; }
 
   private:
+    // Copia un secreto guardado con el nombre viejo ("noctalia") al nuevo y borra el viejo. Si no se
+    // puede guardar el nuevo, devuelve el valor igual y el viejo se queda para el próximo intento.
+    std::optional<SecretStoreBackendResult> migrateLegacySecret(const Request& request) {
+      SecretStoreAttributes legacy = request.attributes;
+      legacy.application = std::string(SecretStoreLegacyApplication);
+      SecretStoreBackendResult found = m_backend->lookup(legacy, *request.cancellation);
+      if (found.status != SecretStoreStatus::Success) {
+        return std::nullopt;
+      }
+      const std::string label = "OKARU " + request.attributes.scope + " " + request.attributes.name;
+      const SecretStoreBackendResult stored =
+          m_backend->store(request.attributes, found.value.bytes(), label, *request.cancellation);
+      if (stored.status == SecretStoreStatus::Success) {
+        (void)m_backend->erase(legacy, *request.cancellation);
+      }
+      return found;
+    }
+
     void workerLoop() {
       while (true) {
         Request request;
@@ -747,6 +766,11 @@ namespace security {
               break;
             case OperationKind::Lookup:
               result = m_backend->lookup(request.attributes, *request.cancellation);
+              if (result.status == SecretStoreStatus::NotFound) {
+                if (auto legacy = migrateLegacySecret(request); legacy.has_value()) {
+                  result = std::move(*legacy);
+                }
+              }
               break;
             case OperationKind::Store:
               result =

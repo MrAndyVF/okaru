@@ -887,8 +887,6 @@
       "advanced": "Avansert",
       "community": "Samfunn",
       "deprecated": "Utgått",
-      "inherited": "Ervd",
-      "monitor": "Skjerm",
       "official": "Offisiell",
       "override": "Overstyr"
     },
@@ -972,8 +970,6 @@
           "accordion-direction": "Retning for avduking",
           "accordion-direction-description": "Sida på fyrste nøytelen som dei andre nøytlane fell ut frå",
           "action": "Gruppe",
-          "border": "Rand",
-          "border-description": "Leten for pilleomritet; lat vera på Vanleg for inkje omrit",
           "clear": "Rydd",
           "deselect": "Avvel",
           "drag": "Ny rekkjefylgje",
@@ -988,21 +984,11 @@
           "drawer-glyph-opened": "Opna merke",
           "drawer-glyph-opened-description": "Symbol som du ser på knappen til å opna og lata att ilåtet når fjøla er open",
           "edit": "Brigda på stil",
-          "fill": "Bakgrunn",
-          "fill-description": "Leten for pillebakgrunnen; hex-leter er stødde òg.",
-          "foreground": "Framgrunn",
-          "foreground-description": "Leten for merke og merkelappar til nøytlar i denne gruppa",
           "hide": "Gøym denne gruppa",
           "hide-widget": "Gøym denne nøytelen",
           "hint": "Del av pillegruppe",
           "members": "{count} nøytlar",
-          "opacity": "Uklårleik",
-          "opacity-description": "Uklårleik for pillebakgrunn",
           "orphan": "Ukjend gruppe",
-          "padding": "Utfylling",
-          "padding-description": "Indre utfylling mellom pilleranda og nøytlane sine, i piksel",
-          "radius": "Radius",
-          "radius-description": "Hyrneradius på pillene i piksel; erver pilleradien åt stonga automatisk.",
           "remove-from-group": "Sletta frå gruppa",
           "remove-orphan": "Sletta ukjend gruppa",
           "remove-widget": "Sletta frå stonga",
@@ -1011,11 +997,8 @@
           "settings-widget": "Nøytelinnstillingar",
           "show": "Syn denne gruppa",
           "show-widget": "Syn denne nøytelen",
-          "style": "Stil",
           "title": "Pillegruppe",
-          "ungroup": "Skil",
-          "widget-spacing": "Mellomrom",
-          "widget-spacing-description": "Rom mellom nøytlar i denne gruppa, i piksel; Auto erver nøytelmellomromet frå stonga."
+          "ungroup": "Skil"
         },
         "inspector": {
           "add-instance-title": "Legg til ny nøytel med namn {widget} i {lane}",
@@ -1035,7 +1018,6 @@
         },
         "lanes": {
           "center": "I midten",
-          "customize": "Måta til",
           "empty": "Ingen nøytlar",
           "empty-hint": "Legg til ein nøytel i feltet.",
           "end": "Ende",
@@ -1643,34 +1625,6 @@
           "description": "Indre omritsbreidde til stonga",
           "label": "Omritsbreidde"
         },
-        "capsule-border": {
-          "description": "Standardlet for pilleomrit; hex-leter er stødde òg.",
-          "label": "Pilleomrit"
-        },
-        "capsule-fill": {
-          "description": "Standardlet for bakgrunnen; hex-leter er stødde òg.",
-          "label": "Pillefyll"
-        },
-        "capsule-foreground": {
-          "description": "Standardlet for merke og merkelappar i piller; hex-leter er stødde òg.",
-          "label": "Pilleframgrunn"
-        },
-        "capsule-opacity": {
-          "description": "Uklårleik for nøytelpillebakgrunnar",
-          "label": "Pilleuklårleik"
-        },
-        "capsule-padding": {
-          "description": "Utfylling i nøytelpiller",
-          "label": "Pilleutfylling"
-        },
-        "capsule-radius": {
-          "description": "Standard hyrneradius for nøytelpiller, arbeidsrompiller og arbeidsgrupper på oppgåvelina; haldt tomt for automatisk pilleform, eller set 0 for rette hyrno",
-          "label": "Pilleradius"
-        },
-        "capsule-thickness": {
-          "description": "Pillestorleik på stonga som brøklut av stongtjukna (1.0 fyller stonga)",
-          "label": "Pilletjukn"
-        },
         "center-widgets": {
           "description": "Nøytlar midt i stonga",
           "label": "Nøytlar i midten"
@@ -1764,10 +1718,6 @@
         "thickness": {
           "description": "Stongtjukn i piksel",
           "label": "Tjukn"
-        },
-        "widget-capsules": {
-          "description": "Gjev nøytlar pillebakgrunnar",
-          "label": "Nøytelpiller"
         },
         "widget-color": {
           "description": "Standardlet for merke og merkelappar til nøytlar på denne stonga; hex-leter er stødde òg.",

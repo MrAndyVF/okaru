@@ -13,7 +13,9 @@
 
 namespace security {
 
-  inline constexpr std::string_view SecretStoreSchemaName = "dev.noctalia.Secret";
+  inline constexpr std::string_view SecretStoreSchemaName = "dev.okaru.Secret";
+  // OKARU: secretos guardados antes del rename (application = "noctalia"); lookup los migra al vuelo.
+  inline constexpr std::string_view SecretStoreLegacyApplication = "noctalia";
 
   struct SecretId {
     std::string scope;

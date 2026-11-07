@@ -865,8 +865,6 @@
       "advanced": "Avançat",
       "community": "Comunitat",
       "deprecated": "Obsolet",
-      "inherited": "Heretat",
-      "monitor": "Monitor",
       "official": "Oficial",
       "override": "Sobreescriu"
     },
@@ -950,8 +948,6 @@
           "accordion-direction": "Direcció de revelació",
           "accordion-direction-description": "Costat del primer giny on es despleguen els ginys ocults",
           "action": "Agrupa",
-          "border": "Vora",
-          "border-description": "Color de la vora de la càpsula; deixa a Per defecte per no tenir vora",
           "clear": "Esborra",
           "deselect": "Desselecciona",
           "drag": "Reordena",
@@ -966,21 +962,11 @@
           "drawer-glyph-opened": "Icona oberta",
           "drawer-glyph-opened-description": "Glif mostrat al botó del calaix quan el panell està obert",
           "edit": "Edita l'estil",
-          "fill": "Fons",
-          "fill-description": "Color de fons de la càpsula; també s'admeten colors hex fixos",
-          "foreground": "Primer pla",
-          "foreground-description": "Color d'icona i etiqueta per als widgets d'aquest grup",
           "hide": "Amaga aquest grup",
           "hide-widget": "Amaga aquest giny",
           "hint": "Part d'un grup de càpsula",
           "members": "{count} widgets",
-          "opacity": "Opacitat",
-          "opacity-description": "Opacitat del fons de la càpsula",
           "orphan": "Grup desconegut",
-          "padding": "Farcit",
-          "padding-description": "Farcit interior entre la vora de la càpsula i els widgets, en píxels",
-          "radius": "Radi",
-          "radius-description": "Radi de les cantonades de la càpsula en píxels; Auto hereta el radi de la barra",
           "remove-from-group": "Elimina del grup",
           "remove-orphan": "Elimina el grup desconegut",
           "remove-widget": "Elimina de la barra",
@@ -989,11 +975,8 @@
           "settings-widget": "Configuració del giny",
           "show": "Mostra aquest grup",
           "show-widget": "Mostra aquest giny",
-          "style": "Estil",
           "title": "Grup de càpsula",
-          "ungroup": "Desagrupa",
-          "widget-spacing": "Espaiat",
-          "widget-spacing-description": "Espai entre ginys d'aquest grup, en píxels; Automàtic hereta l'espaiat de ginys de la barra"
+          "ungroup": "Desagrupa"
         },
         "inspector": {
           "add-instance-title": "Afegeix el widget {widget} a {lane}",
@@ -1013,7 +996,6 @@
         },
         "lanes": {
           "center": "Centre",
-          "customize": "Personalitza",
           "empty": "No hi ha widgets",
           "empty-hint": "Afegeix un widget per omplir aquest carril.",
           "end": "Final",
@@ -1623,34 +1605,6 @@
           "description": "Amplada de la vora interior de la barra",
           "label": "Amplada de la vora"
         },
-        "capsule-border": {
-          "description": "Color de la vora de la càpsula per defecte; també s'admeten colors hex fixos",
-          "label": "Vora de la càpsula"
-        },
-        "capsule-fill": {
-          "description": "Color de fons de la càpsula per defecte; també s'admeten colors hex fixos",
-          "label": "Fons de la càpsula"
-        },
-        "capsule-foreground": {
-          "description": "Color d'icona i etiqueta per defecte dins de les càpsules; també s'admeten colors hex fixos",
-          "label": "Primer pla de la càpsula"
-        },
-        "capsule-opacity": {
-          "description": "Opacitat dels fons de les càpsules dels widgets",
-          "label": "Opacitat de la càpsula"
-        },
-        "capsule-padding": {
-          "description": "Farcit interior de les càpsules dels widgets",
-          "label": "Farcit de la càpsula"
-        },
-        "capsule-radius": {
-          "description": "Radi de les cantonades per defecte per a les càpsules dels widgets, les pastilles d'espais de treball i els grups d'espais de treball de la barra de tasques; deixa en blanc per a forma de pastilla automàtica o posa 0 per a cantonades quadrades",
-          "label": "Radi de la càpsula"
-        },
-        "capsule-thickness": {
-          "description": "Mida de la càpsula a través de la barra com a fracció del gruix de la barra (1.0 omple la barra)",
-          "label": "Gruix de la càpsula"
-        },
         "center-widgets": {
           "description": "Widgets al centre de la barra",
           "label": "Widgets centrals"
@@ -1744,10 +1698,6 @@
         "thickness": {
           "description": "Gruix de la barra en píxels",
           "label": "Gruix"
-        },
-        "widget-capsules": {
-          "description": "Embolcalla els widgets en fons de càpsula",
-          "label": "Càpsules de widgets"
         },
         "widget-color": {
           "description": "Color d'icona i etiqueta per defecte per als widgets d'aquesta barra; també s'admeten colors hex fixos",

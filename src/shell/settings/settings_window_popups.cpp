@@ -277,21 +277,6 @@ namespace {
     }
 
     const auto& lane = path.back();
-    if (path.size() >= 5 && path[2] == "monitor") {
-      const auto* ovr = settings::findMonitorOverride(*bar, path[3]);
-      if (ovr != nullptr) {
-        if (lane == "start") {
-          return ovr->startWidgets.value_or(bar->startWidgets);
-        }
-        if (lane == "center") {
-          return ovr->centerWidgets.value_or(bar->centerWidgets);
-        }
-        if (lane == "end") {
-          return ovr->endWidgets.value_or(bar->endWidgets);
-        }
-      }
-    }
-
     if (lane == "start") {
       return bar->startWidgets;
     }

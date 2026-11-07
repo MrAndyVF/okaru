@@ -882,8 +882,6 @@
       "advanced": "Erweitert",
       "community": "Community",
       "deprecated": "Veraltet",
-      "inherited": "Geerbt",
-      "monitor": "Monitor",
       "official": "Offiziell",
       "override": "Überschreiben"
     },
@@ -967,8 +965,6 @@
           "accordion-direction": "Enthüllungsrichtung",
           "accordion-direction-description": "Seite des ersten Widgets, auf der sich die verborgenen Widgets entfalten",
           "action": "Gruppe",
-          "border": "Rahmen",
-          "border-description": "Farbe des Kapselumrisses; auf Standard belassen, um keinen Umriss anzuzeigen",
           "clear": "Leeren",
           "deselect": "Auswahl aufheben",
           "drag": "Neu anordnen",
@@ -983,21 +979,11 @@
           "drawer-glyph-opened": "Geöffnet-Icon",
           "drawer-glyph-opened-description": "Symbol auf dem Drawer-Toggle-Button, wenn das Panel geöffnet ist",
           "edit": "Stil bearbeiten",
-          "fill": "Hintergrund",
-          "fill-description": "Farbe des Kapselhintergrunds; feste Hex-Farben werden ebenfalls unterstützt",
-          "foreground": "Vordergrund",
-          "foreground-description": "Farbe für Icon und Beschriftung der Widgets in dieser Gruppe",
           "hide": "Diese Gruppe ausblenden",
           "hide-widget": "Dieses Widget ausblenden",
           "hint": "Teil einer Kapselgruppe",
           "members": "{count} Widgets",
-          "opacity": "Deckkraft",
-          "opacity-description": "Deckkraft des Kapselhintergrunds",
           "orphan": "Unbekannte Gruppe",
-          "padding": "Innenabstand",
-          "padding-description": "Innenabstand zwischen dem Kapselrand und seinen Widgets, in Pixeln",
-          "radius": "Radius",
-          "radius-description": "Eckenradius der Kapsel in Pixeln; „Auto“ übernimmt den Kapselradius der Leiste",
           "remove-from-group": "Aus Gruppe entfernen",
           "remove-orphan": "Unbekannte Gruppe entfernen",
           "remove-widget": "Von Leiste entfernen",
@@ -1006,11 +992,8 @@
           "settings-widget": "Widget-Einstellungen",
           "show": "Diese Gruppe anzeigen",
           "show-widget": "Dieses Widget anzeigen",
-          "style": "Stil",
           "title": "Kapselgruppe",
-          "ungroup": "Gruppierung aufheben",
-          "widget-spacing": "Abstand",
-          "widget-spacing-description": "Abstand zwischen Widgets in dieser Gruppe in Pixeln; „Auto“ übernimmt den Widget-Abstand der Leiste"
+          "ungroup": "Gruppierung aufheben"
         },
         "inspector": {
           "add-instance-title": "Neues benanntes {widget}-Widget zu {lane} hinzufügen",
@@ -1030,7 +1013,6 @@
         },
         "lanes": {
           "center": "Mitte",
-          "customize": "Anpassen",
           "empty": "Keine Widgets",
           "empty-hint": "Füge ein Widget hinzu, um diesen Bereich zu füllen.",
           "end": "Ende",
@@ -1647,34 +1629,6 @@
           "description": "Innere Umrissbreite der Leiste",
           "label": "Rahmenbreite"
         },
-        "capsule-border": {
-          "description": "Standardfarbe des Kapselumrisses; feste Hex-Farben werden ebenfalls unterstützt",
-          "label": "Kapselrahmen"
-        },
-        "capsule-fill": {
-          "description": "Standardfarbe des Kapselhintergrunds; feste Hex-Farben werden ebenfalls unterstützt",
-          "label": "Kapselfüllung"
-        },
-        "capsule-foreground": {
-          "description": "Standardfarbe für Icons und Beschriftungen in Kapseln; feste Hex-Farben werden ebenfalls unterstützt",
-          "label": "Kapselvordergrund"
-        },
-        "capsule-opacity": {
-          "description": "Deckkraft der Widget-Kapselhintergründe",
-          "label": "Kapseldeckkraft"
-        },
-        "capsule-padding": {
-          "description": "Innenabstand in Widget-Kapseln",
-          "label": "Kapselinnenabstand"
-        },
-        "capsule-radius": {
-          "description": "Standard-Eckenradius für Widget-Pills, Arbeitsbereichs-Pills und Taskleisten-Arbeitsbereichsgruppen; leer lassen für automatische Pill-Form oder 0 für keine Abrundung festlegen",
-          "label": "Kapselradius"
-        },
-        "capsule-thickness": {
-          "description": "Kapselgröße quer zur Leiste als Anteil der Leistendicke (1.0 füllt die Leiste aus)",
-          "label": "Kapseldicke"
-        },
         "center-widgets": {
           "description": "Widgets in der Mitte der Leiste",
           "label": "Mittlere Widgets"
@@ -1772,10 +1726,6 @@
         "thickness": {
           "description": "Leistendicke in Pixeln",
           "label": "Dicke"
-        },
-        "widget-capsules": {
-          "description": "Umschließe Widgets mit Kapselhintergründen",
-          "label": "Widget-Kapseln"
         },
         "widget-color": {
           "description": "Standardfarbe für Icons und Beschriftungen von Widgets auf dieser Leiste; feste Hex-Farben werden ebenfalls unterstützt",
