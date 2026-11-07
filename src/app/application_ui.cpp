@@ -666,7 +666,8 @@ void Application::initPanelManagerAndPanels() {
                 [=, this] { return std::make_unique<CalendarTab>(&m_configService, &m_calendarService); },
                 760.0F, 560.0F);
     addTabPanel("okaru-weather", "control-center.tabs.weather", "cloud",
-                [=, this] { return std::make_unique<WeatherTab>(&m_weatherService, &m_configService); });
+                [=, this] { return std::make_unique<WeatherTab>(&m_weatherService, &m_configService); },
+                680.0F, 560.0F); // dos columnas: con 460 el pronóstico cortaba los días y la zona horaria partía en dos
     addTabPanel("okaru-notifications", "control-center.tabs.notifications", "bell",
                 [=, this] { return std::make_unique<NotificationsTab>(&m_notificationManager, &m_compositorPlatform); });
     addTabPanel("okaru-monitor", "control-center.tabs.monitor", "brightness-half",
