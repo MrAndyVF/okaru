@@ -1094,7 +1094,13 @@
         "session": "Session",
         "phone": "Phone"
       },
-      "close": "Close"
+      "close": "Close",
+      "avatar": {
+        "pick-title": "Choose a profile picture",
+        "too-large": "Image too large",
+        "too-large-body": "The image is {size} MB; the maximum is 6 MB.",
+        "error": "Could not change the profile picture"
+      }
     },
     "network": {
       "open-vpn-manager": "Manage VPN",
