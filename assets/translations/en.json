@@ -2000,7 +2000,16 @@
         "vrr-3": "Fullscreen games and video",
         "vrr-desc": "Adaptive sync (FreeSync / G-Sync compatible).",
         "vrr-inherit": "Global setting",
-        "vrr-unsupported": "This monitor doesn't report adaptive sync support."
+        "vrr-unsupported": "This monitor doesn't report adaptive sync support.",
+        "unsupported": "Display and workspace settings are available on Hyprland and Niri.",
+        "error-niri": "Niri rejected the change: {error}",
+        "scale-desc-niri": "Niri accepts any scale; apps without fractional-scale support may look blurry.",
+        "vrr-niri-0": "Off",
+        "vrr-niri-1": "On",
+        "vrr-niri-2": "On demand (per window rule)",
+        "niri-include-title": "Enable display and workspace management in Niri",
+        "niri-include-desc": "OKARU saves displays and workspaces in its own files (niri/okaru/outputs.kdl and workspaces.kdl). Enable adds two include lines at the end of {path} and checks them with niri validate. If that file already has output or workspace blocks, remove them so they do not conflict.",
+        "niri-include-activate": "Enable"
       },
       "hypr-label": {
         "decoration": {
@@ -2334,7 +2343,11 @@
         "persistent": "Persistent",
         "remove-confirm": "Confirm",
         "rename-hint": "Press Enter to rename.",
-        "title": "Workspaces"
+        "title": "Workspaces",
+        "intro-niri": "Named workspaces, in the order Niri creates them. Changes apply right away and are saved in niri/okaru/workspaces.kdl; icons are shown in the bar.",
+        "any-output": "Any screen",
+        "move-up": "Move up",
+        "move-down": "Move down"
       },
       "home": {
         "about": "OKARU",

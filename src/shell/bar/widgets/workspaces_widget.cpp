@@ -1440,9 +1440,13 @@ std::string WorkspacesWidget::workspaceLabel(const Workspace& workspace, std::si
     }
   } else if (m_labelSource == WorkspacesLabelSource::Icon) {
     // OKARU: el glifo del workspace como carácter de la fuente de iconos; sin icono, su número.
+    // Niri guarda el icono de sus workspaces con nombre por el nombre (su id no es estable).
     const auto numericId = numericWorkspaceId(workspace);
     const std::string key = numericId.has_value() ? std::to_string(*numericId) : workspace.id;
-    const auto it = m_icons.find(key);
+    auto it = workspace.name.empty() ? m_icons.end() : m_icons.find(workspace.name);
+    if (it == m_icons.end()) {
+      it = m_icons.find(key);
+    }
     const char32_t cp = it != m_icons.end() ? GlyphRegistry::lookup(it->second) : 0;
     if (cp != 0) {
       return StringUtils::utf32ToUtf8(static_cast<std::uint32_t>(cp));
