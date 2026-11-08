@@ -11,6 +11,8 @@ hl.window_rule({ match = { class = "^dev\\.okaru\\.Okaru" }, float = true, size 
 
 -- Selector de archivos del portal y selector de pantalla para compartir
 hl.window_rule({ match = { class = "^xdg-desktop-portal(-gtk)?$" }, float = true, center = true, size = { 900, 600 } })
+-- Selectores que la app abre por su cuenta, sin portal (p. ej. Epic Games Launcher)
+hl.window_rule({ match = { title = "^(Open File|Open Files|Open Folder|Select File|Select Folder|Save File|Save As|Abrir archivo|Abrir carpeta|Seleccionar archivo|Seleccionar carpeta|Guardar como)$" }, float = true, center = true, size = { 900, 600 } })
 hl.window_rule({ match = { class = "^(hyprland-share-picker)$" }, float = true, center = true, size = { 750, 500 } })
 
 -- Utilidades del sistema flotantes y centradas
