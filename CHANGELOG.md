@@ -10,6 +10,91 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.0.4] - 2026-11-08
+
+### English
+
+#### Features
+- Screen recording: while recording, the Capture widget shows the elapsed time and buttons to pause/resume and
+  finish. The time does not advance while paused. The capture panel has the same Pause/Resume button, and
+  `okaru msg capture-pause-toggle` can be bound to a shortcut.
+- Panels now appear with a quick fade, like Omarchy (about 140 ms in, 110 ms out), instead of unfolding
+  downwards.
+- Session menu: actions are confirmed by holding their button, their key or Enter for 300 ms, as in dux-shell.
+  The button fills while held; releasing early shows "Hold to confirm".
+- Font weight: Settings → Appearance → Interface has a Font Weight selector that lists only the weights the
+  chosen font has. All shell text follows it and bold text keeps its difference.
+- Apply font to the whole system (on by default): changing the font or its weight also applies it to GTK, Qt
+  (qt5ct/qt6ct), kitty (open windows reload, so starship and other terminal apps follow), VS Code, Zed and
+  ghostty, using the font's Mono variant for terminals and editors.
+- JetBrainsMono Nerd Font is the default font of the shell, and the installer sets it for the whole system
+  (fontconfig, GTK and kitty).
+- The Hyprland screen-sharing picker (xdg-desktop-portal-hyprland 1.5) follows the OKARU palette through the
+  new Hyprtoolkit template.
+
+#### Fixes
+- File pickers that apps open without the portal (for example Epic Games Launcher) now float, centered, at
+  900×600.
+- The System panel cut the CPU load and disk names ("CP…", "… tra"); it is now wider.
+- Capture widget icons were one pixel lower than the other bar icons.
+- With a heavier font, the Settings sidebar cut its descriptions; it now widens to fit.
+- Greeter: Tab and Enter could reach the hidden power buttons of the old panel (shut down, reboot).
+
+#### Changes
+- Settings: the "Override" badge is gone; settings changed from their default show only the revert icon,
+  the same control as the OKARU pages, with the confirmation in the same row.
+- Lock screen: removed the old login box, the lock screen widgets editor (and its
+  `lockscreen-widgets-edit/exit/toggle-edit` commands) and `lockscreen.tint_intensity`; config migration 22
+  drops them from `settings.toml`.
+- Session menu: `countdown_seconds` was removed (config migration 23).
+- Greeter: removed the old panel, its menus, clock and power buttons, and the options `[clock]`,
+  `[appearance].hide_logo`, `password_style`, `power_buttons_position` and `scheme_selector_position`.
+  Keyboard: Enter logs in, F3 / Shift+F3 change the session.
+- New dependency: `ttf-jetbrains-mono-nerd`.
+- Internal cleanup: about 8,000 lines of unused code removed between the shell and the greeter.
+
+### Español
+
+#### Novedades
+- Grabación de pantalla: mientras graba, el widget Captura muestra el tiempo y botones para pausar/reanudar y
+  terminar. El tiempo no avanza en pausa. El panel de captura tiene el mismo botón Pausar/Reanudar, y
+  `okaru msg capture-pause-toggle` se puede asignar a un atajo.
+- Los paneles aparecen con un fundido rápido, como en Omarchy (unos 140 ms al abrir y 110 ms al cerrar), en
+  lugar de desplegarse hacia abajo.
+- Menú de sesión: las acciones se confirman manteniendo presionado su botón, su tecla o Enter durante 300 ms,
+  como en dux-shell. El botón se llena mientras tanto; si se suelta antes, avisa «Mantén presionado para
+  confirmar».
+- Grosor de la letra: Ajustes → Apariencia → Interfaz tiene un selector de grosor con solo los pesos que tiene
+  la fuente elegida. Todo el texto de la shell lo sigue y la negrita conserva su diferencia.
+- Aplicar la fuente a todo el sistema (activado por defecto): al cambiar la fuente o su grosor se aplica
+  también en GTK, Qt (qt5ct/qt6ct), kitty (las ventanas abiertas se recargan, así que starship y demás apps de
+  terminal la siguen), VS Code, Zed y ghostty, con la variante Mono para terminales y editores.
+- JetBrainsMono Nerd Font es la fuente por defecto de la shell, y el instalador la configura en todo el sistema
+  (fontconfig, GTK y kitty).
+- El selector para compartir pantalla de Hyprland (xdg-desktop-portal-hyprland 1.5) sigue la paleta de OKARU con
+  la nueva plantilla Hyprtoolkit.
+
+#### Correcciones
+- Los selectores de archivos que las apps abren sin el portal (por ejemplo Epic Games Launcher) ahora flotan,
+  centrados, a 900×600.
+- El panel Sistema cortaba la carga de CPU y los nombres de los discos («CP…», «… tra»); ahora es más ancho.
+- Los iconos del widget Captura quedaban un píxel más abajo que los demás iconos de la barra.
+- Con una letra más gruesa, la barra lateral de Ajustes cortaba sus frases; ahora se ensancha para que quepan.
+- Greeter: Tab y Enter podían llegar a los botones de energía ocultos del panel antiguo (apagar, reiniciar).
+
+#### Cambios
+- Ajustes: ya no aparece la etiqueta «Override»; los ajustes cambiados respecto al valor por defecto solo
+  muestran el icono de revertir, el mismo control de las páginas de OKARU, con la confirmación en la misma fila.
+- Pantalla de bloqueo: se quitaron la caja de login antigua, el editor de widgets del bloqueo (y sus comandos
+  `lockscreen-widgets-edit/exit/toggle-edit`) y `lockscreen.tint_intensity`; la migración 22 los borra de
+  `settings.toml`.
+- Menú de sesión: se quitó `countdown_seconds` (migración 23).
+- Greeter: se quitaron el panel antiguo, sus menús, el reloj y los botones de energía, y las opciones `[clock]`,
+  `[appearance].hide_logo`, `password_style`, `power_buttons_position` y `scheme_selector_position`. Teclado:
+  Enter inicia sesión, F3 / Shift+F3 cambian de sesión.
+- Nueva dependencia: `ttf-jetbrains-mono-nerd`.
+- Limpieza interna: unas 8.000 líneas de código sin uso eliminadas entre la shell y el greeter.
+
 ## [1.0.3] - 2026-11-07
 
 ### English
