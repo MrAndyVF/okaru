@@ -254,6 +254,16 @@ void OkaruCapturePanel::addRecordTab(Flex& body, float scale) {
             .onClick = [] { Recorder::instance().stop(); },
         })
     );
+    if (state == RecorderState::Recording) {
+      actions->addChild(
+          ui::button({
+              .text = tr(recorder.paused() ? "resume" : "pause"),
+              .glyph = recorder.paused() ? "player-play" : "player-pause",
+              .variant = ButtonVariant::Default,
+              .onClick = [] { Recorder::instance().togglePause(); },
+          })
+      );
+    }
     if (state == RecorderState::Replay) {
       actions->addChild(
           ui::button({

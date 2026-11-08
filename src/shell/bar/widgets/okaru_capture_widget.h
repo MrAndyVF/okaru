@@ -2,6 +2,7 @@
 
 // OKARU: widget Captura. Un solo icono para capturas y grabación (reemplaza al widget de captura, al
 // plugin de grabación y a su grupo). Clic: menú flotante Captura | Grabación. Clic central: detener.
+// Mientras graba muestra el tiempo y dos botones: pausar/reanudar y terminar.
 
 #include "shell/bar/widget.h"
 
@@ -9,6 +10,8 @@
 #include <string>
 
 class Glyph;
+class InputArea;
+class Label;
 class Timer;
 struct wl_output;
 
@@ -40,6 +43,12 @@ private:
   void syncState();
 
   Glyph* m_glyph = nullptr;
+  Label* m_time = nullptr;
+  InputArea* m_pauseArea = nullptr;
+  Glyph* m_pauseGlyph = nullptr;
+  InputArea* m_stopArea = nullptr;
+  Glyph* m_stopGlyph = nullptr;
+  bool m_isVertical = false;
   int m_listener = 0;
-  std::unique_ptr<Timer> m_tick; // refresca el tiempo del tooltip mientras graba
+  std::unique_ptr<Timer> m_tick; // refresca el tiempo mientras graba
 };

@@ -2,7 +2,8 @@
 
 // OKARU: grabación de pantalla con gpu-screen-recorder, parte de la shell (reemplaza al plugin
 // okaru/screen_recorder). Las opciones viven en [widget.capture]; el widget Captura y su menú
-// la controlan. Detener = SIGINT (gpu-screen-recorder guarda el archivo); replay: SIGUSR1 guarda.
+// la controlan. Detener = SIGINT (gpu-screen-recorder guarda el archivo); replay: SIGUSR1 guarda;
+// pausar / reanudar la grabación normal = SIGUSR2.
 
 #include <chrono>
 #include <cstdint>
@@ -60,12 +61,16 @@ namespace okaru::capture {
 
     [[nodiscard]] bool available() const;
     [[nodiscard]] RecorderState state() const noexcept { return m_state; }
+    // Tiempo grabado; no avanza mientras está en pausa.
     [[nodiscard]] std::chrono::seconds elapsed() const;
+    [[nodiscard]] bool paused() const noexcept { return m_paused; }
     [[nodiscard]] const std::string& lastError() const noexcept { return m_lastError; }
 
     void startRecording(const RecorderOptions& options);
     void startReplay(const RecorderOptions& options);
     void stop();
+    // Solo para la grabación normal (gpu-screen-recorder no pausa el replay).
+    void togglePause();
     void saveReplay();
 
     // Se llama en el hilo principal cada vez que cambia el estado. Devuelve un id para quitarlo.
@@ -81,6 +86,9 @@ namespace okaru::capture {
     RecorderState m_state = RecorderState::Idle;
     std::string m_replayDir; // carpeta del replay activo
     std::chrono::steady_clock::time_point m_startedAt;
+    std::chrono::steady_clock::time_point m_pausedAt;
+    std::chrono::steady_clock::duration m_pausedTotal{};
+    bool m_paused = false;
     std::string m_lastError;
     std::vector<std::pair<int, std::function<void()>>> m_listeners;
     int m_nextListener = 1;

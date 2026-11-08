@@ -773,6 +773,14 @@ void Application::initPanelManagerAndPanels() {
     okaru::capture::Recorder::instance().stop();
     return "ok\n";
   });
+  m_ipcService.bind(okaru::cli::msg::capturePauseToggle, [](const std::string&) -> std::string {
+    auto& recorder = okaru::capture::Recorder::instance();
+    if (recorder.state() != okaru::capture::RecorderState::Recording) {
+      return "error: not recording\n";
+    }
+    recorder.togglePause();
+    return recorder.paused() ? "paused\n" : "resumed\n";
+  });
   m_ipcService.bind(okaru::cli::msg::captureRecordToggle, [this](const std::string&) -> std::string {
     auto& recorder = okaru::capture::Recorder::instance();
     if (recorder.state() != okaru::capture::RecorderState::Idle) {
