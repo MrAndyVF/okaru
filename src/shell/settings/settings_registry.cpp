@@ -169,15 +169,6 @@ namespace settings {
       };
     }
 
-    std::optional<int> radiusStepperValue(const std::optional<double>& value) {
-      if (!value.has_value()) {
-        return std::nullopt;
-      }
-      return std::clamp(static_cast<int>(std::lround(*value)), 0, 80);
-    }
-
-    int radiusStepperFallback(const std::optional<double>& value) { return radiusStepperValue(value).value_or(8); }
-
     template <typename T, std::size_t N> SelectSetting enumSelect(const EnumOption<T> (&options)[N], T selected) {
       std::vector<SelectOption> opts;
       opts.reserve(N);
@@ -362,15 +353,6 @@ namespace settings {
     return nullptr;
   }
 
-  const BarMonitorOverride* findMonitorOverride(const BarConfig& bar, std::string_view match) {
-    for (const auto& ovr : bar.monitorOverrides) {
-      if (ovr.match == match) {
-        return &ovr;
-      }
-    }
-    return nullptr;
-  }
-
   const DockMonitorOverride* findDockMonitorOverride(const DockConfig& dock, std::string_view tableName) {
     const auto it = std::ranges::find(dock.monitorOverrides, tableName, &DockMonitorOverride::tableName);
     return it != dock.monitorOverrides.end() ? &*it : nullptr;
@@ -396,14 +378,6 @@ namespace settings {
 
   bool matchesSettingQuery(const SettingEntry& entry, std::string_view query) {
     return matchesNormalizedSettingQuery(entry, normalizedSettingQuery(query));
-  }
-
-  bool isBarMonitorOverrideSettingPath(const std::vector<std::string>& path) {
-    return path.size() >= 5 && path[0] == "bar" && path[2] == "monitor";
-  }
-
-  bool isDockMonitorOverrideSettingPath(const std::vector<std::string>& path) {
-    return path.size() >= 4 && path[0] == "dock" && path[1] == "monitor";
   }
 
   // OKARU: ya no hay filas por monitor en el registro (barra fija, dock en un solo apartado).
@@ -1782,28 +1756,10 @@ namespace settings {
     }
     {
       auto e = makeEntry(
-          SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.tint-intensity.label"),
-          tr("settings.schema.lockscreen.tint-intensity.description"), {"lockscreen", "tint_intensity"},
-          sliderFor(cfg.lockscreen.tintIntensity, okaru::config::schema::kUnitRange, false), "lock screen tint"
-      );
-      e.visibleWhen = lockscreenOn;
-      entries.push_back(std::move(e));
-    }
-    {
-      auto e = makeEntry(
           SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.monitors.label"),
           tr("settings.schema.lockscreen.monitors.description"), {"lockscreen", "monitors"},
           ListSetting{.items = cfg.lockscreen.monitors, .suggestedOptions = env.availableOutputs},
           "lock screen monitor output connector"
-      );
-      e.visibleWhen = lockscreenOn;
-      entries.push_back(std::move(e));
-    }
-    {
-      auto e = makeEntry(
-          SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.widgets.label"),
-          tr("settings.schema.lockscreen.widgets.description"), {"lockscreen_widgets", "enabled"},
-          ToggleSetting{cfg.lockscreenWidgets.enabled}, "lock screen widgets layout"
       );
       e.visibleWhen = lockscreenOn;
       entries.push_back(std::move(e));
@@ -3711,89 +3667,6 @@ namespace settings {
           tr("settings.schema.bar.show-tooltip.description"), path("show_tooltip"), ToggleSetting{bar.showTooltip},
           "tooltip hover"
       ));
-      entries.push_back(makeEntry(
-          section, "capsules", tr("settings.schema.bar.widget-capsules.label"),
-          tr("settings.schema.bar.widget-capsules.description"), path("capsule"),
-          ToggleSetting{bar.widgetCapsuleDefault}, "pill"
-      ));
-      entries.push_back(makeEntry(
-          section, "capsules", tr("settings.schema.bar.capsule-thickness.label"),
-          tr("settings.schema.bar.capsule-thickness.description"), path("capsule_thickness"),
-          SliderSetting{bar.capsuleThickness, 0.1F, 1.0F, 0.01F, false}, "pill thickness size", true
-      ));
-      const SettingVisibility capsuleOn = [on = bar.widgetCapsuleDefault](const Config&) { return on; };
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-radius.label"),
-            tr("settings.schema.bar.capsule-radius.description"), path("capsule_radius"),
-            OptionalStepperSetting{
-                .value = radiusStepperValue(bar.widgetCapsuleRadius),
-                .minValue = 0,
-                .maxValue = 80,
-                .step = 1,
-                .fallbackValue = radiusStepperFallback(bar.widgetCapsuleRadius),
-                .unsetLabel = tr("common.states.auto"),
-                .customLabel = tr("common.states.custom")
-            },
-            "pill rounded radius", true
-        );
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-fill.label"),
-            tr("settings.schema.bar.capsule-fill.description"), path("capsule_fill"),
-            colorSpecPicker(bar.widgetCapsuleFill), "color pill", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-foreground.label"),
-            tr("settings.schema.bar.capsule-foreground.description"), path("capsule_foreground"),
-            colorSpecPicker(bar.widgetCapsuleForeground, true), "color foreground pill", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-border.label"),
-            tr("settings.schema.bar.capsule-border.description"), path("capsule_border"),
-            colorSpecPicker(bar.widgetCapsuleBorder, true), "color pill outline", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-border-width.label"),
-            tr("settings.schema.bar.capsule-border-width.description"), path("capsule_border_width"),
-            sliderFor(bar.widgetCapsuleBorderWidth, okaru::config::schema::kBarCapsuleBorderWidthRange, false),
-            "pill outline width", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-padding.label"),
-            tr("settings.schema.bar.capsule-padding.description"), path("capsule_padding"),
-            SliderSetting{bar.widgetCapsulePadding, 0.0F, 48.0F, 1.0F, false}, "pill inset", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
-      {
-        auto e = makeEntry(
-            section, "capsules", tr("settings.schema.bar.capsule-opacity.label"),
-            tr("settings.schema.bar.capsule-opacity.description"), path("capsule_opacity"),
-            SliderSetting{bar.widgetCapsuleOpacity, 0.0F, 1.0F, 0.01F, false}, "pill alpha", true
-        );
-        e.visibleWhen = capsuleOn;
-        entries.push_back(std::move(e));
-      }
       entries.push_back(makeEntry(
           section, "widget-list", tr("settings.schema.bar.start-widgets.label"),
           tr("settings.schema.bar.start-widgets.description"), path("start"), ListSetting{.items = bar.startWidgets},

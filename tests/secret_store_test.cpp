@@ -139,6 +139,21 @@ namespace {
       return m_lastAttributes;
     }
 
+    void seed(const security::SecretStoreAttributes& attributes, std::vector<std::uint8_t> value) {
+      std::scoped_lock lock(m_mutex);
+      m_values.insert_or_assign(keyFor(attributes), std::move(value));
+    }
+
+    [[nodiscard]] bool contains(const security::SecretStoreAttributes& attributes) const {
+      std::scoped_lock lock(m_mutex);
+      return m_values.contains(keyFor(attributes));
+    }
+
+    [[nodiscard]] std::string lastLabel() const {
+      std::scoped_lock lock(m_mutex);
+      return m_lastLabel;
+    }
+
     [[nodiscard]] std::thread::id workerThread() const {
       std::scoped_lock lock(m_mutex);
       return m_workerThread;
@@ -210,8 +225,8 @@ namespace {
     const security::SecretId id{.scope = "calendar", .owner = "personal", .name = "refresh-token"};
     const auto attributes = security::secretStoreAttributes(id);
     bool ok = true;
-    ok = expect(security::SecretStoreSchemaName == "dev.noctalia.Secret", "schema name changed") && ok;
-    ok = expect(attributes.application == "noctalia", "application attribute changed") && ok;
+    ok = expect(security::SecretStoreSchemaName == "dev.okaru.Secret", "schema name changed") && ok;
+    ok = expect(attributes.application == "okaru", "application attribute changed") && ok;
     ok = expect(attributes.scope == "calendar", "scope attribute changed") && ok;
     ok = expect(attributes.owner == "personal", "owner attribute changed") && ok;
     ok = expect(attributes.name == "refresh-token", "name attribute changed") && ok;
@@ -430,6 +445,35 @@ namespace {
     ok = expect(!captured.contains(labelMarker), "secret label appeared in logs") && ok;
     return ok;
   }
+  // OKARU: un secreto guardado como "noctalia" se lee, se copia como "okaru" y el viejo se borra.
+  bool legacySecretMigration() {
+    auto backend = std::make_unique<FakeSecretStoreBackend>();
+    auto* fake = backend.get();
+    const security::SecretId id{.scope = "storage", .owner = "encrypted-state", .name = "master-key"};
+    const auto current = security::secretStoreAttributes(id);
+    auto legacy = current;
+    legacy.application = std::string(security::SecretStoreLegacyApplication);
+    const std::vector<std::uint8_t> secret = {4, 0, 2};
+    fake->seed(legacy, secret);
+    security::SecretStore store(std::move(backend));
+
+    bool ok = true;
+    for (int round = 0; round < 2; ++round) {
+      std::optional<SecretStoreStatus> status;
+      std::vector<std::uint8_t> loaded;
+      store.lookup(id, [&status, &loaded](SecretStoreStatus value, security::SecureBuffer bytes) {
+        status = value;
+        loaded.assign(bytes.bytes().begin(), bytes.bytes().end());
+      });
+      ok = dispatchCompletion(store) && ok;
+      ok = expect(status == SecretStoreStatus::Success, "legacy secret was not found") && ok;
+      ok = expect(loaded == secret, "legacy secret value changed") && ok;
+    }
+    ok = expect(fake->contains(current), "legacy secret was not copied to the okaru name") && ok;
+    ok = expect(!fake->contains(legacy), "legacy secret was not erased after migration") && ok;
+    ok = expect(fake->lastLabel() == "OKARU storage master-key", "migrated secret label is wrong") && ok;
+    return ok;
+  }
 } // namespace
 
 int main() {
@@ -439,5 +483,6 @@ int main() {
   ok = statusAndThreadDispatch() && ok;
   ok = cancellationAndDestruction() && ok;
   ok = failureLogsExcludeSecretMaterial() && ok;
+  ok = legacySecretMigration() && ok;
   return ok ? 0 : 1;
 }

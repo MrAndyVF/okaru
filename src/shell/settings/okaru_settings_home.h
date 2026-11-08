@@ -4,7 +4,9 @@
 // novedades de la versión (cuando haya changelog).
 
 class Flex;
+class Renderer;
 
 namespace settings {
-  void addSettingsHome(Flex& content, float scale);
+  // `renderer` hace falta para el logo de arriba; sin él se omite.
+  void addSettingsHome(Flex& content, float scale, Renderer* renderer);
 }

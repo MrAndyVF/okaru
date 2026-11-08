@@ -800,8 +800,6 @@
       "advanced": "Avanzado",
       "community": "Comunidade",
       "deprecated": "Obsoleto",
-      "inherited": "Herdado",
-      "monitor": "Monitor",
       "official": "Oficial",
       "override": "Sobreescribir"
     },
@@ -868,8 +866,6 @@
         },
         "group": {
           "action": "Agrupar",
-          "border": "Bordo",
-          "border-description": "Rol de cor do contorno da cápsula; deixa en Predeterminado para non mostrar contorno",
           "clear": "Limpar",
           "drawer-columns": "Columnas do caixón",
           "drawer-columns-description": "Número de widgets por fila no panel do caixón",
@@ -882,25 +878,14 @@
           "drawer-glyph-opened": "Icona aberta",
           "drawer-glyph-opened-description": "Glifo mostrado no botón do caixón cando o panel está aberto",
           "edit": "Editar estilo",
-          "fill": "Fondo",
-          "fill-description": "Rol de cor do fondo da cápsula; tamén se admiten cores hexadecimais fixas",
-          "foreground": "Primeiro plano",
-          "foreground-description": "Rol de cor da icona e da etiqueta dos widgets deste grupo",
           "hide": "Ocultar este grupo",
           "hide-widget": "Ocultar este widget",
           "hint": "Parte dun grupo de cápsula",
           "members": "{count} widgets",
-          "opacity": "Opacidade",
-          "opacity-description": "Opacidade do fondo da cápsula",
           "orphan": "Grupo descoñecido",
-          "padding": "Recheo",
-          "padding-description": "Recheo interior entre o bordo da cápsula e os seus widgets, en píxeles",
-          "radius": "Radio",
-          "radius-description": "Radio dos cantos da cápsula en píxeles; Auto herda o radio da cápsula da barra",
           "selected": "{count} seleccionados",
           "show": "Mostrar este grupo",
           "show-widget": "Mostrar este widget",
-          "style": "Estilo",
           "title": "Grupo de cápsula",
           "ungroup": "Desagrupar"
         },
@@ -921,7 +906,6 @@
         },
         "lanes": {
           "center": "Centrar",
-          "customize": "Personalizar",
           "empty": "Non hai widgets",
           "empty-hint": "Engade un widget para encher esta zona.",
           "end": "Final",
@@ -1480,34 +1464,6 @@
           "description": "Largura do contorno interior da barra",
           "label": "Largura do bordo"
         },
-        "capsule-border": {
-          "description": "Rol de cor predeterminado do contorno das cápsulas; tamén se admiten cores hexadecimais fixas",
-          "label": "Bordo da cápsula"
-        },
-        "capsule-fill": {
-          "description": "Rol de cor predeterminado do fondo das cápsulas; tamén se admiten cores hexadecimais fixas",
-          "label": "Fondo da cápsula"
-        },
-        "capsule-foreground": {
-          "description": "Rol de cor predeterminado das iconas e etiquetas dentro das cápsulas; tamén se admiten cores hexadecimais fixas",
-          "label": "Primeiro plano da cápsula"
-        },
-        "capsule-opacity": {
-          "description": "Opacidade dos fondos das cápsulas dos widgets",
-          "label": "Opacidade da cápsula"
-        },
-        "capsule-padding": {
-          "description": "Recheo dentro das cápsulas dos widgets",
-          "label": "Recheo da cápsula"
-        },
-        "capsule-radius": {
-          "description": "Radio predeterminado dos cantos das cápsulas dos widgets, das pílulas dos espazos de traballo e dos grupos de espazos da barra de tarefas; déixao en branco para forma de pílula automática ou pon 0 para cantos cadrados",
-          "label": "Radio da cápsula"
-        },
-        "capsule-thickness": {
-          "description": "Tamaño da cápsula na barra como fracción do grosor da barra (1.0 enche a barra)",
-          "label": "Grosor da cápsula"
-        },
         "center-widgets": {
           "description": "Widgets no centro da barra",
           "label": "Widgets centrais"
@@ -1598,10 +1554,6 @@
         "thickness": {
           "description": "Grosor da barra en píxeles",
           "label": "Grosor"
-        },
-        "widget-capsules": {
-          "description": "Envolve os widgets con fondos de cápsula",
-          "label": "Cápsulas dos widgets"
         },
         "widget-color": {
           "description": "Rol de cor predeterminado das iconas e etiquetas dos widgets nesta barra; tamén se admiten cores hexadecimais fixas",
@@ -1937,23 +1889,10 @@
           "description": "Escolle que monitores mostran a pantalla de bloqueo; déixao baleiro para mostralo en todos",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Tinte da cor de superficie sobre o fondo da pantalla de bloqueo",
-          "label": "Intensidade do tinte"
-        },
         "wallpaper": {
           "description": "Imaxe personalizada para o fondo da pantalla de bloqueo. Déixao baleiro para usar o fondo de pantalla do escritorio.",
           "label": "Fondo de pantalla",
           "placeholder": "Usar fondo de pantalla do escritorio"
-        },
-        "widgets": {
-          "description": "Mostra widgets configurables na pantalla de bloqueo",
-          "label": "Widgets da pantalla de bloqueo"
-        },
-        "widgets-editor": {
-          "button": "Alternar editor",
-          "description": "Engade, move e redimensiona widgets na pantalla de bloqueo",
-          "label": "Editor de widgets da pantalla de bloqueo"
         }
       },
       "notifications": {

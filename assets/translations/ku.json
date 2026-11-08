@@ -660,12 +660,9 @@
       "widget": {
         "group": {
           "action": "Kom",
-          "border": "Sînor",
           "clear": "Pak bike",
-          "fill": "Paşrû",
           "hide": "Vê komê veşêre",
           "hide-widget": "Vê sepanokê veşêre",
-          "opacity": "Zelalî",
           "selected": "{count} hate hilbijartin",
           "show": "Vê komê nîşan bide",
           "show-widget": "Vê sepanokê nîşan bide"
@@ -683,7 +680,6 @@
         },
         "lanes": {
           "center": "Navend",
-          "customize": "Kesane bike",
           "empty": "Sepanok tune ne",
           "end": "Dawî",
           "start": "Destpêk"

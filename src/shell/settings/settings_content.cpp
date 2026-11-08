@@ -1317,11 +1317,6 @@ namespace settings {
         std::string displayTitle;
         if (entry.section == SettingsSection::Bar && entry.path.size() >= 2) {
           displayTitle = i18n::tr("settings.entities.bar.label", "name", entry.path[1]);
-          if (isBarMonitorOverrideSettingPath(entry.path)) {
-            displayTitle += " / " + entry.path[3];
-          }
-        } else if (isDockMonitorOverrideSettingPath(entry.path)) {
-          displayTitle = sectionLabel(entry.section) + " / " + entry.path[2];
         } else {
           displayTitle = sectionLabel(entry.section);
         }

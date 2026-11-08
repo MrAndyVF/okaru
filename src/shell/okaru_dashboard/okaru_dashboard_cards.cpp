@@ -3,10 +3,10 @@
 #include "calendar/calendar_service.h"
 #include "config/config_service.h"
 #include "core/build_info.h"
+#include "core/files/directory_scanner.h"
 #include "dbus/accounts/accounts_service.h"
 #include "dbus/bluetooth/bluetooth_service.h"
 #include "dbus/kdeconnect/kdeconnect_service.h"
-#include "shell/okaru_phone/okaru_phone_prefs.h"
 #include "dbus/mpris/mpris_art.h"
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/inetwork_service.h"
@@ -15,12 +15,14 @@
 #include "dbus/upower/upower_service.h"
 #include "i18n/i18n.h"
 #include "notification/notification_manager.h"
+#include "notification/notifications.h"
 #include "pipewire/audio_glyphs.h"
 #include "pipewire/pipewire_service.h"
 #include "render/core/renderer.h"
 #include "render/scene/input_area.h"
 #include "shell/control_center/shortcut_registry.h"
 #include "shell/control_center/tab.h"
+#include "shell/okaru_phone/okaru_phone_prefs.h"
 #include "shell/panel/panel_manager.h"
 #include "shell/profile/avatar_path.h"
 #include "shell/session/session_action_meta.h"
@@ -38,18 +40,18 @@
 #include "ui/controls/image.h"
 #include "ui/controls/label.h"
 #include "ui/controls/slider.h"
+#include "ui/dialogs/file_dialog.h"
 #include "ui/palette.h"
 #include "ui/style.h"
 
-#include <linux/input-event-codes.h>
-#include <wayland-client-protocol.h>
-
 #include <algorithm>
-#include <filesystem>
 #include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <format>
+#include <linux/input-event-codes.h>
 #include <unordered_set>
+#include <wayland-client-protocol.h>
 
 namespace okaru::dashboard {
 
@@ -64,6 +66,42 @@ namespace okaru::dashboard {
       if (!id.empty() && !openHostedDetail(id)) {
         PanelManager::instance().togglePanel(std::string(id));
       }
+    }
+
+    constexpr std::uintmax_t kMaxAvatarBytes = 6ULL * 1024 * 1024;
+
+    // Selector de foto de perfil. No captura la tarjeta: el panel puede cerrarse mientras el diálogo está abierto.
+    void pickAvatar(AccountsService* accounts, ConfigService* config) {
+      FileDialogOptions options;
+      options.mode = FileDialogMode::Open;
+      options.defaultViewMode = FileDialogViewMode::Grid;
+      options.extensions = DirectoryScanner::imageExtensionFilter(true);
+      options.title = tr("avatar.pick-title");
+      (void)FileDialog::open(std::move(options), [accounts, config](std::optional<std::filesystem::path> picked) {
+        if (!picked.has_value()) {
+          return;
+        }
+        std::error_code ec;
+        const std::uintmax_t bytes = std::filesystem::file_size(*picked, ec);
+        if (ec) {
+          notify::error(
+              "OKARU", tr("avatar.error"),
+              i18n::tr(shell::avatarApplyErrorTranslationKey(shell::AvatarApplyError::InvalidPath))
+          );
+          return;
+        }
+        if (bytes > kMaxAvatarBytes) {
+          const std::string size = std::format("{:.1f}", static_cast<double>(bytes) / (1024.0 * 1024.0));
+          notify::error(
+              "OKARU", tr("avatar.too-large"), i18n::tr("okaru.dashboard.avatar.too-large-body", "size", size)
+          );
+          return;
+        }
+        const auto result = shell::applyAvatarPath(accounts, config, picked->string());
+        if (!result.success()) {
+          notify::error("OKARU", tr("avatar.error"), i18n::tr(shell::avatarApplyErrorTranslationKey(result.error)));
+        }
+      });
     }
 
     std::string_view panelFor(std::string_view type) {
@@ -398,9 +436,34 @@ namespace okaru::dashboard {
             .participatesInLayout = false,
             .configure = [](Flex& f) { f.setFill(colorSpecFromRole(ColorRole::Surface, 0.6F)); },
         }));
+        // El área de clic de la tarjeta va debajo de la foto, que tiene la suya.
+        setActivation([] { togglePanel("wallpaper"); });
+        // Foto: al pasar el puntero se atenúa y muestra una cámara; el clic abre el selector de imagen.
         const float avatar = Style::controlHeightLg * 2.6F * scale;
-        addChild(ui::image({.out = &m_avatar, .fit = ImageFit::Cover, .width = avatar, .height = avatar}));
+        auto avatarBox = std::make_unique<ClickFlex>();
+        avatarBox->setAlign(FlexAlign::Center);
+        avatarBox->setJustify(FlexJustify::Center);
+        avatarBox->setMinWidth(avatar);
+        avatarBox->setMinHeight(avatar);
+        avatarBox->addChild(
+            ui::image({
+                .out = &m_avatar,
+                .fit = ImageFit::Cover,
+                .width = avatar,
+                .height = avatar,
+                .participatesInLayout = false,
+            })
+        );
         m_avatar->setBorder(colorSpecFromRole(ColorRole::Primary), Style::borderWidth);
+        avatarBox->addChild(
+            ui::glyph({.out = &m_avatarGlyph, .glyph = "camera", .glyphSize = avatar * 0.32F, .color = onSurface()})
+        );
+        avatarBox->setHoverChanged([this](bool hovered) {
+          m_avatarHovered = hovered;
+          updateAvatarHover();
+        });
+        avatarBox->setActivation([accounts = m_accounts, config = m_config] { pickAvatar(accounts, config); });
+        addChild(std::move(avatarBox));
         auto text = ui::column({.align = FlexAlign::Stretch, .gap = 0.0F, .flexGrow = 1.0F});
         auto name = makeText(Style::fontSizeTitle * scale, onSurface(), FontWeight::Bold);
         name->setText(sessionDisplayName());
@@ -425,7 +488,6 @@ namespace okaru::dashboard {
           extra->addChild(std::move(compositor));
           addChild(std::move(extra));
         }
-        setActivation([] { togglePanel("wallpaper"); });
       }
 
       void sync(Renderer& renderer) override {
@@ -443,10 +505,13 @@ namespace okaru::dashboard {
           if (path.empty()) {
             m_avatar->clear(renderer);
           } else {
+            // targetSize limita el lado MAYOR y Cover recorta el sobrante: el doble cubre fotos de hasta 2:1
+            // sin ampliarlas (antes una 4:3 quedaba a 113×85 y se estiraba, borrosa).
             (void)m_avatar->setSourceFileAsync(
-                renderer, *m_textures, path, static_cast<int>(std::round(m_avatar->width())), false
+                renderer, *m_textures, path, static_cast<int>(std::round(m_avatar->width() * 2.0F)), false
             );
           }
+          updateAvatarHover();
         }
         std::string wallpaper = m_config->getPaletteWallpaperPath();
         std::error_code ec;
@@ -477,10 +542,19 @@ namespace okaru::dashboard {
       }
 
     private:
+      // Sin foto, la cámara se ve siempre; con foto, solo al pasar el puntero.
+      void updateAvatarHover() {
+        const bool hasPhoto = !m_loadedPath.empty();
+        m_avatarGlyph->setVisible(m_avatarHovered || !hasPhoto);
+        m_avatar->setOpacity(m_avatarHovered ? 0.35F : 1.0F);
+      }
+
       ConfigService* m_config;
       AccountsService* m_accounts;
       AsyncTextureCache* m_textures;
       Image* m_avatar = nullptr;
+      Glyph* m_avatarGlyph = nullptr;
+      bool m_avatarHovered = false;
       Image* m_wallpaper = nullptr;
       Flex* m_shade = nullptr;
       Label* m_uptime = nullptr;
@@ -920,6 +994,9 @@ namespace okaru::dashboard {
       setBorder(colorSpecFromRole(ColorRole::OutlineVariant), Style::borderWidth);
     } else {
       clearBorder();
+    }
+    if (m_onHover) {
+      m_onHover(hovered);
     }
   }
 

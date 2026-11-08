@@ -757,8 +757,6 @@
     },
     "badges": {
       "advanced": "Zaawansowane",
-      "inherited": "Dziedziczone",
-      "monitor": "Monitor",
       "override": "Przesłonięcie"
     },
     "calendar-accounts": {
@@ -824,25 +822,12 @@
         },
         "group": {
           "action": "Grupa",
-          "border": "Obramowanie",
-          "border-description": "Rola koloru obramowania kapsułki; zostaw na Domyślny, aby nie było obramowania",
           "clear": "Wyczyść",
           "edit": "Edytuj styl",
-          "fill": "Tło",
-          "fill-description": "Rola koloru tła kapsułki; obsługiwane są również stałe kolory hex",
-          "foreground": "Pierwszy plan",
-          "foreground-description": "Rola koloru ikony i etykiety dla widżetów w tej grupie",
           "hint": "Część grupy kapsułki",
           "members": "{count} widżetów",
-          "opacity": "Krycie",
-          "opacity-description": "Krycie tła kapsułki",
           "orphan": "Nieznana grupa",
-          "padding": "Wypełnienie",
-          "padding-description": "Wewnętrzne wypełnienie między krawędzią kapsułki a jej widżetami, w pikselach",
-          "radius": "Promień",
-          "radius-description": "Promień narożnika kapsułki w pikselach; Auto dziedziczy promień kapsułki paska",
           "selected": "{count} zaznaczono",
-          "style": "Styl",
           "title": "Grupa kapsułki",
           "ungroup": "Rozłącz"
         },
@@ -863,7 +848,6 @@
         },
         "lanes": {
           "center": "Środek",
-          "customize": "Dostosuj",
           "empty": "Brak widżetów",
           "empty-hint": "Dodaj widżet, aby wypełnić ten pas.",
           "end": "Koniec",
@@ -1296,30 +1280,6 @@
           "description": "Szerokość obramowania wewnętrznego paska",
           "label": "Szerokość obramowania"
         },
-        "capsule-border": {
-          "description": "Domyślna rola koloru obramowania kapsułki; obsługiwane są również ustalone kolory heksadecymalne",
-          "label": "Obramowanie kapsułki"
-        },
-        "capsule-fill": {
-          "description": "Domyślna rola koloru tła kapsułki; obsługiwane są również ustalone kolory heksadecymalne",
-          "label": "Wypełnienie kapsułki"
-        },
-        "capsule-foreground": {
-          "description": "Domyślna rola koloru ikony i etykiety wewnątrz kapsułek; obsługiwane są również ustalone kolory heksadecymalne",
-          "label": "Pierwszy plan kapsułki"
-        },
-        "capsule-opacity": {
-          "description": "Krycie tła kapsułek widżetów",
-          "label": "Krycie kapsułki"
-        },
-        "capsule-padding": {
-          "description": "Wypełnienie wewnątrz kapsułek widżetów",
-          "label": "Wypełnienie kapsułki"
-        },
-        "capsule-radius": {
-          "description": "Domyślny promień narożników dla kapsułek widżetów, pigułek obszarów roboczych i grup obszarów roboczych na pasku zadań; pozostaw puste dla automatycznego kształtu pigułki lub ustaw 0 dla ostrych narożników",
-          "label": "Promień kapsułki"
-        },
         "center-widgets": {
           "description": "Widżety w środku paska",
           "label": "Widżety centralne"
@@ -1391,10 +1351,6 @@
         "thickness": {
           "description": "Grubość paska w pikselach",
           "label": "Grubość"
-        },
-        "widget-capsules": {
-          "description": "Opatrz widżety w tła kapsułek",
-          "label": "Kapsułki widżetów"
         },
         "widget-color": {
           "description": "Domyślna rola koloru ikony i etykiety dla widżetów na tym pasku; obsługiwane są również ustalone kolory heksadecymalne",
@@ -1657,23 +1613,10 @@
           "description": "Wybierz które monitory wyświetlają ekran blokady; pozostaw puste by wyświetlać na wszystkich monitorach",
           "label": "Monitory"
         },
-        "tint-intensity": {
-          "description": "Odcień koloru powierzchni nad tłem ekranu blokady",
-          "label": "Intensywność odcienia"
-        },
         "wallpaper": {
           "description": "Niestandardowy obraz tła ekranu blokady; pozostaw puste by użyć tapety pulpitu",
           "label": "Tapeta",
           "placeholder": "Użyj tapety pulpitu"
-        },
-        "widgets": {
-          "description": "Pokaż konfigurowalne widżety na ekranie blokady",
-          "label": "Widżety ekranu blokady"
-        },
-        "widgets-editor": {
-          "button": "Przełącz edytor",
-          "description": "Dodaj, przesuń i zmień rozmiar widżetów na ekranie blokady",
-          "label": "Edytor widżetów ekranu blokady"
         }
       },
       "notifications": {

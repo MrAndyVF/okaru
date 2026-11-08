@@ -832,8 +832,6 @@
       "advanced": "進階",
       "community": "社區",
       "deprecated": "已棄用",
-      "inherited": "已繼承",
-      "monitor": "螢幕",
       "official": "官方",
       "override": "已修改"
     },
@@ -915,7 +913,6 @@
           "accordion-description": "僅顯示第一個小工具；游標停駐膠囊時展開其他小工具",
           "accordion-direction": "展開方向",
           "action": "群組",
-          "border": "邊框",
           "clear": "清除",
           "deselect": "取消選擇",
           "drag": "重新排序"

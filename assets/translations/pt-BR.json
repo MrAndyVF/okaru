@@ -1091,8 +1091,6 @@
       "advanced": "Avançado",
       "community": "Comunidade",
       "deprecated": "Obsoleto",
-      "inherited": "Herdado",
-      "monitor": "Monitor",
       "official": "Oficial",
       "override": "Sobrescrito"
     },
@@ -1184,10 +1182,6 @@
           "accordion-duration": "Tempo de Desdobramento",
           "accordion-duration-description": "Milissegundos que o grupo leva pra desdobrar ao passar o mouse (0 é isntantaneamente)",
           "action": "Grupo",
-          "border": "Borda",
-          "border-description": "Cor do contorno da cápsula; deixe em Padrão para nenhum contorno.",
-          "border-width": "Largura de Borda",
-          "border-width-description": "Espessura do contorno da cápsula em pixels; só desenhado quando a cor de borda está definida",
           "clear": "Apagar",
           "deselect": "Desmarcar",
           "drag": "Reordenar",
@@ -1202,21 +1196,11 @@
           "drawer-glyph-opened": "Ícone de Aberto",
           "drawer-glyph-opened-description": "Glifo exibido no botão de alternância da gaveta quando o painel está aberto",
           "edit": "Editar estilo",
-          "fill": "Plano de fundo",
-          "fill-description": "Função de cor de fundo da cápsula; cores hexadecimais fixas também são suportadas",
-          "foreground": "Primeiro plano",
-          "foreground-description": "Função da cor do ícone e do rótulo para widgets neste grupo",
           "hide": "Ocultar esse grupo",
           "hide-widget": "Ocultar esse widget",
           "hint": "Parte de um grupo de cápsula",
           "members": "{count} widgets",
-          "opacity": "Opacidade",
-          "opacity-description": "Opacidade do plano de fundo da cápsula",
           "orphan": "Grupo desconhecido",
-          "padding": "Espaçamento Interno",
-          "padding-description": "Espaçamento interno entre a borda da cápsula e seus widgets, em pixels.",
-          "radius": "Raio",
-          "radius-description": "Raio do canto da cápsula em pixels; Automaticamente herda o raio da cápsula da barra",
           "remove-from-group": "Remover do grupo",
           "remove-orphan": "Remover grupo desconhecido",
           "remove-widget": "Remover da barra",
@@ -1225,11 +1209,8 @@
           "settings-widget": "Configurações do widget",
           "show": "Exibir este grupo",
           "show-widget": "Exibir este widget",
-          "style": "Estilo",
           "title": "Grupo de cápsula",
-          "ungroup": "Desagrupar",
-          "widget-spacing": "Espaçamento",
-          "widget-spacing-description": "Espaço entre widgets neste grupo em pixels; Herda automaticamente o espaçamento de widget da barra"
+          "ungroup": "Desagrupar"
         },
         "inspector": {
           "add-instance-title": "Adicionar novo widget nomeado {widget} a {lane}",
@@ -1249,7 +1230,6 @@
         },
         "lanes": {
           "center": "Centro",
-          "customize": "Customizar",
           "empty": "Nenhum widget",
           "empty-hint": "Adicionar um widget para preencher essa área",
           "end": "Fim",
@@ -1979,38 +1959,6 @@
           "description": "Largura interna do contorno da barra",
           "label": "Largura da Borda"
         },
-        "capsule-border": {
-          "description": "Cor de contorno padrão da cápsula; cores hexadecimais fixas também são suportadas",
-          "label": "Borda da Cápsula"
-        },
-        "capsule-border-width": {
-          "description": "Espessura do contorno da cápsula em pixels; só desenhado quando a cor da borda da cápsula está definida",
-          "label": "Largura da Borda de Cápsula"
-        },
-        "capsule-fill": {
-          "description": "Função de cor de fundo padrão da cápsula; cores hexadecimais fixas também são suportadas",
-          "label": "Preenchimento da Cápsula"
-        },
-        "capsule-foreground": {
-          "description": "Função padrão de cor do ícone e do rótulo dentro das cápsulas; cores hexadecimais fixas também são suportadas",
-          "label": "Primeiro Plano da Cápsula"
-        },
-        "capsule-opacity": {
-          "description": "Opacidade do plano de fundo das cápsulas dos widgets",
-          "label": "Opacidade da Cápsula"
-        },
-        "capsule-padding": {
-          "description": "Espaçamento interno das cápsulas dos widgets",
-          "label": "Espaçamento Interno da Cápsula"
-        },
-        "capsule-radius": {
-          "description": "Raio de canto padrão para cápsulas de widgets, pílulas da área de trabalho e grupos de áreas de trabalho da barra de tarefas; deixe em branco para formato de pílula automático ou defina como 0 para cantos quadrados",
-          "label": "Raio dos Cantos da Cápsula"
-        },
-        "capsule-thickness": {
-          "description": "Tamanho da cápsula ao longo da barra como uma fração da espessura da barra (1.0 preenche a barra)",
-          "label": "Espessura da Cápsula"
-        },
         "center-widgets": {
           "description": "Widgets no centro da barra",
           "label": "Widgets Centrais"
@@ -2120,10 +2068,6 @@
         "thickness": {
           "description": "Espessura da barra em pixels",
           "label": "Espessura"
-        },
-        "widget-capsules": {
-          "description": "Envolve widgets em fundos de cápsula",
-          "label": "Cápsulas de Widgets"
         },
         "widget-color": {
           "description": "Cor padrão de ícone e rótulo para widgets nesta barra; cores hexadecimais fixas também são suportadas",
@@ -2503,10 +2447,6 @@
           "description": "Escolha em quais monitores a tela de bloqueio será exibida; deixe em branco para exibir em todos os monitores",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Base de cor da superfície sobre o fundo da tela de bloqueio",
-          "label": "Intensidade da Cor"
-        },
         "transition-duration": {
           "description": "Comprimento das animações de bloqueio e desbloqueio em milissegundos",
           "label": "Duração de Transição"
@@ -2519,15 +2459,6 @@
           "description": "Imagem personalizada para o fundo da tela de bloqueio; deixe em branco para usar o papel de parede da área de trabalho.",
           "label": "Papel de Parede",
           "placeholder": "Usar o papel de parede da área de trabalho"
-        },
-        "widgets": {
-          "description": "Exibe widgets configuráveis ​​na tela de bloqueio",
-          "label": "Widgets na Tela de Bloqueio"
-        },
-        "widgets-editor": {
-          "button": "Alternar Editor",
-          "description": "Adicione, mova e redimensione widgets na tela de bloqueio",
-          "label": "Editor de Widgets da Tela de Bloqueio"
         }
       },
       "notifications": {

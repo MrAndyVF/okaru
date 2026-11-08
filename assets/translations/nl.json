@@ -763,8 +763,6 @@
     },
     "badges": {
       "advanced": "Geavanceerd",
-      "inherited": "Overgenomen",
-      "monitor": "Monitor",
       "official": "Officieel",
       "override": "Overschrijven"
     },
@@ -831,25 +829,12 @@
         },
         "group": {
           "action": "Groeperen",
-          "border": "Rand",
-          "border-description": "Kleurrol voor capsule-omtrek; laat op Standaard voor geen omtrek",
           "clear": "Wissen",
           "edit": "Stijl bewerken",
-          "fill": "Achtergrond",
-          "fill-description": "Kleurrol voor capsule-achtergrond; vaste hex-kleuren worden ook ondersteund",
-          "foreground": "Voorgrond",
-          "foreground-description": "Icoon- en labelkleurrol voor widgets in deze groep",
           "hint": "Onderdeel van een capsulegroep",
           "members": "{count} widgets",
-          "opacity": "Transparantie",
-          "opacity-description": "Transparantie van de capsule-achtergrond",
           "orphan": "Onbekende groep",
-          "padding": "Opvulling",
-          "padding-description": "Binnenste opvulling tussen de capsule-rand en de widgets, in pixels",
-          "radius": "Radius",
-          "radius-description": "Capsule-hoekradius in pixels; Auto neemt de capsule-radius van de balk over",
           "selected": "{count} geselecteerd",
-          "style": "Stijl",
           "title": "Capsulegroep",
           "ungroup": "Groep opheffen"
         },
@@ -870,7 +855,6 @@
         },
         "lanes": {
           "center": "Midden",
-          "customize": "Aanpassen",
           "empty": "Geen widgets",
           "empty-hint": "Voeg een widget toe om deze baan te vullen.",
           "end": "Einde",
@@ -1324,30 +1308,6 @@
           "description": "Binnenste randbreedte voor de balk",
           "label": "Randbreedte"
         },
-        "capsule-border": {
-          "description": "Standaard kleurrol voor capsule-omtrek; vaste hex-kleuren worden ook ondersteund",
-          "label": "Capsule-rand"
-        },
-        "capsule-fill": {
-          "description": "Standaard kleurrol voor capsule-achtergrond; vaste hex-kleuren worden ook ondersteund",
-          "label": "Capsule-achtergrond"
-        },
-        "capsule-foreground": {
-          "description": "Standaard kleurrol voor icoon en label binnen capsules; vaste hex-kleuren worden ook ondersteund",
-          "label": "Capsule-voorgrond"
-        },
-        "capsule-opacity": {
-          "description": "Transparantie van widget-capsuleachtergronden",
-          "label": "Capsule-transparantie"
-        },
-        "capsule-padding": {
-          "description": "Opvulling binnen widget-capsules",
-          "label": "Capsule-opvulling"
-        },
-        "capsule-radius": {
-          "description": "Standaard hoekradius voor widget-capsules, werkruimte-pills en taakbalk-werkruimtegroepen; laat leeg voor automatische pill-vorm, of stel in op 0 voor rechte hoeken",
-          "label": "Capsule-radius"
-        },
         "center-widgets": {
           "description": "Widgets in het midden van de balk",
           "label": "Midden-widgets"
@@ -1419,10 +1379,6 @@
         "thickness": {
           "description": "Balkdikte in pixels",
           "label": "Dikte"
-        },
-        "widget-capsules": {
-          "description": "Omwikkel widgets met capsule-achtergronden",
-          "label": "Widget-capsules"
         },
         "widget-color": {
           "description": "Standaard kleurrol voor icoon en label voor widgets op deze balk; vaste hex-kleuren worden ook ondersteund",
@@ -1693,23 +1649,10 @@
           "description": "Kies welke monitoren het vergrendelscherm tonen; laat leeg om op alle te tonen",
           "label": "Monitoren"
         },
-        "tint-intensity": {
-          "description": "Oppervlaktekleurtint over de achtergrond van het vergrendelscherm",
-          "label": "Tintintensiteit"
-        },
         "wallpaper": {
           "description": "Aangepaste afbeelding voor de achtergrond van het vergrendelscherm. Laat leeg om de bureaubladachtergrond te gebruiken.",
           "label": "Achtergrond",
           "placeholder": "Bureaubladachtergrond gebruiken"
-        },
-        "widgets": {
-          "description": "Toon configureerbare widgets op het vergrendelscherm",
-          "label": "Vergrendelscherm-widgets"
-        },
-        "widgets-editor": {
-          "button": "Editor in-/uitschakelen",
-          "description": "Widgets toevoegen, verplaatsen en in grootte wijzigen op het vergrendelscherm",
-          "label": "Widget-editor vergrendelscherm"
         }
       },
       "notifications": {

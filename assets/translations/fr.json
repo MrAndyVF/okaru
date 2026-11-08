@@ -968,8 +968,6 @@
       "advanced": "Avancé",
       "community": "Communauté",
       "deprecated": "Obsolète",
-      "inherited": "Hérité",
-      "monitor": "Écran",
       "official": "Officiel",
       "override": "Remplacer"
     },
@@ -1052,8 +1050,6 @@
           "accordion-direction": "Révéler la direction",
           "accordion-direction-description": "Côté du premier widget où les widgets masqués se déploient",
           "action": "Groupe",
-          "border": "Contour",
-          "border-description": "Rôle de couleur du contour de capsule ; laissez sur Défaut pour aucun contour",
           "clear": "Effacer",
           "deselect": "Désélectionner",
           "drag": "Réorganiser",
@@ -1061,28 +1057,16 @@
           "drawer-glyph-closed": "Icon fermé",
           "drawer-glyph-opened": "Icon ouvert",
           "edit": "Modifier le style",
-          "fill": "Arrière-plan",
-          "fill-description": "Rôle de couleur d’arrière-plan de capsule ; les couleurs hex fixes sont également prises en charge",
-          "foreground": "Premier plan",
-          "foreground-description": "Rôle de couleur des icônes et des libellés pour les widgets de ce groupe",
           "hide": "Cacher ce groupe",
           "hide-widget": "Cacher ce widget",
           "hint": "Fait partie d’un groupe de capsules",
           "members": "{count} widgets",
-          "opacity": "Opacité",
-          "opacity-description": "Opacité de l’arrière-plan de capsule",
           "orphan": "Groupe inconnu",
-          "padding": "Marges internes",
-          "padding-description": "Marges internes entre le bord de la capsule et ses widgets, en pixels",
-          "radius": "Rayon",
-          "radius-description": "Rayon des coins de la capsule en pixels ; Auto hérite du rayon de capsule de la barre",
           "selected": "{count} sélectionné(s)",
           "show": "Montrer ce groupe",
           "show-widget": "Montrer ce widget",
-          "style": "Style",
           "title": "Groupe de capsules",
-          "ungroup": "Dégrouper",
-          "widget-spacing": "Espacement"
+          "ungroup": "Dégrouper"
         },
         "inspector": {
           "add-instance-title": "Ajouter un nouveau widget nommé {widget} dans {lane}",
@@ -1101,7 +1085,6 @@
         },
         "lanes": {
           "center": "Centre",
-          "customize": "Personnaliser",
           "empty": "Pas de widget",
           "empty-hint": "Ajoutez un widget pour remplir cette zone.",
           "end": "Fin",
@@ -1732,34 +1715,6 @@
           "description": "Largeur du contour interne de la barre",
           "label": "Largeur du contour"
         },
-        "capsule-border": {
-          "description": "Rôle de couleur par défaut du contour de capsule ; les couleurs hex fixes sont également prises en charge",
-          "label": "Contour de capsule"
-        },
-        "capsule-fill": {
-          "description": "Rôle de couleur par défaut de l’arrière-plan de capsule ; les couleurs hex fixes sont également prises en charge",
-          "label": "Remplissage de capsule"
-        },
-        "capsule-foreground": {
-          "description": "Rôle de couleur par défaut des icônes et des libellés à l’intérieur des capsules ; les couleurs hex fixes sont également prises en charge",
-          "label": "Premier plan de capsule"
-        },
-        "capsule-opacity": {
-          "description": "Opacité des arrière-plans des capsules de widgets",
-          "label": "Opacité de capsule"
-        },
-        "capsule-padding": {
-          "description": "Marges internes des capsules de widgets",
-          "label": "Marges internes des capsules"
-        },
-        "capsule-radius": {
-          "description": "Rayon de coin par défaut pour les capsules de widgets, les pastilles d’espaces de travail et les groupes d’espaces de travail de la barre des tâches ; laissez vide pour une forme automatique en pastille, ou définissez 0 pour des coins carrés",
-          "label": "Rayon de capsule"
-        },
-        "capsule-thickness": {
-          "description": "Définit la taille des capsules par rapport à l’épaisseur de la barre (1,0 occupe toute l’épaisseur de la barre)",
-          "label": "Épaisseur des capsules"
-        },
         "center-widgets": {
           "description": "Widgets au centre de la barre",
           "label": "Widgets centraux"
@@ -1842,10 +1797,6 @@
         "thickness": {
           "description": "Épaisseur de la barre en pixels",
           "label": "Épaisseur"
-        },
-        "widget-capsules": {
-          "description": "Encapsule les widgets dans des arrière-plans de capsule",
-          "label": "Capsules de widgets"
         },
         "widget-color": {
           "description": "Rôle de couleur par défaut des icônes et des libellés des widgets sur cette barre ; les couleurs hex fixes sont également prises en charge",
@@ -2193,23 +2144,10 @@
           "description": "Détermine sur quels écrans afficher l’écran de verrouillage. Laissez vide pour l’afficher sur tous les écrans",
           "label": "Écrans"
         },
-        "tint-intensity": {
-          "description": "Détermine l’intensité de la teinte appliquée à l’arrière-plan de l’écran de verrouillage",
-          "label": "Intensité de la teinte"
-        },
         "wallpaper": {
           "description": "Utilise une image personnalisée comme arrière-plan de l’écran de verrouillage. Laissez vide pour utiliser le fond d’écran du  bureau.",
           "label": "Fond d’écran",
           "placeholder": "Utiliser le fond d’écran du bureau"
-        },
-        "widgets": {
-          "description": "Affiche des widgets configurables sur l’écran de verrouillage",
-          "label": "Widgets de l'écran de verrouillage"
-        },
-        "widgets-editor": {
-          "button": "Afficher/Masquer l’éditeur",
-          "description": "Ajouter, déplacer et redimensionner les widgets de l’écran de verrouillage",
-          "label": "Éditeur de widgets de l’écran de verrouillage"
         }
       },
       "notifications": {

@@ -813,7 +813,10 @@
     "password-placeholder": "Contraseña",
     "ready": "Ingrese su contraseña y presione Enter.",
     "unlocked": "Desbloqueado",
-    "waiting": "Esperando confirmación de bloqueo…"
+    "waiting": "Esperando confirmación de bloqueo…",
+    "okaru": {
+      "password": "Introduce la contraseña"
+    }
   },
   "notifications": {
     "actions": {
@@ -991,7 +994,13 @@
         "session": "Sesión",
         "phone": "Teléfono"
       },
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "avatar": {
+        "pick-title": "Elige una foto de perfil",
+        "too-large": "Imagen demasiado grande",
+        "too-large-body": "La imagen pesa {size} MB; el máximo es 6 MB.",
+        "error": "No se pudo cambiar la foto de perfil"
+      }
     },
     "network": {
       "open-vpn-manager": "Gestionar VPN",
@@ -1188,8 +1197,6 @@
       "advanced": "Avanzado",
       "community": "Comunidad",
       "deprecated": "Obsoleto",
-      "inherited": "Heredado",
-      "monitor": "Monitor",
       "official": "Oficial",
       "okaru": "OKARU",
       "override": "Sobrescrito"
@@ -1276,10 +1283,6 @@
           "accordion-direction": "Dirección de revelado",
           "accordion-direction-description": "Lado del primer widget por donde se despliegan los widgets ocultos",
           "action": "Grupo",
-          "border": "Borde",
-          "border-description": "Rol de color del contorno de la cápsula; deja en Predeterminado para no tener contorno",
-          "border-width": "Ancho del borde",
-          "border-width-description": "Grosor del contorno de la cápsula en píxeles; solo se dibuja cuando se establece un color de borde",
           "clear": "Eliminar",
           "deselect": "Deseleccionar",
           "drag": "Reordenar",
@@ -1294,21 +1297,11 @@
           "drawer-glyph-opened": "Icono cuando Abierto",
           "drawer-glyph-opened-description": "Icono que se muestra en el botón de alternancia del panel lateral cuando este está abierto",
           "edit": "Eliminar estilo",
-          "fill": "Fondo",
-          "fill-description": "Rol de color de fondo de la cápsula; también se admiten colores hexadecimales fijos",
-          "foreground": "Primer plano",
-          "foreground-description": "Rol de color de icono y etiqueta para los widgets de este grupo",
           "hide": "Ocultar este grupo",
           "hide-widget": "Ocultar este widget",
           "hint": "Parte de un grupo de cápsulas",
           "members": "{count} widgets",
-          "opacity": "Opacidad",
-          "opacity-description": "Opacidad de fondo de la cápsula",
           "orphan": "Grupo desconocido",
-          "padding": "Relleno",
-          "padding-description": "Relleno interior entre el borde de la cápsula y sus widgets, en píxeles",
-          "radius": "Radio",
-          "radius-description": "Radio de esquina de la cápsula en píxeles; Auto hereda el radio de cápsula de la barra",
           "remove-from-group": "Eliminar del grupo",
           "remove-orphan": "Eliminar grupo desconocido",
           "remove-widget": "Eliminar de la barra",
@@ -1317,11 +1310,8 @@
           "settings-widget": "Ajustes de widget",
           "show": "Mostrar este grupo",
           "show-widget": "Mostrar este widget",
-          "style": "Estilo",
           "title": "Grupo de cápsulas",
-          "ungroup": "Desagrupar",
-          "widget-spacing": "Separación",
-          "widget-spacing-description": "Espacio entre los widgets de este grupo, en píxeles; «Auto» hereda el espaciado de widgets de la barra"
+          "ungroup": "Desagrupar"
         },
         "inspector": {
           "add-instance-title": "Añadir nuevo widget con nombre {widget} a {lane}",
@@ -1341,7 +1331,6 @@
         },
         "lanes": {
           "center": "Centro",
-          "customize": "Personalizar",
           "empty": "Sin widgets",
           "empty-hint": "Añade un widget para rellenar este carril.",
           "end": "Fin",
@@ -1884,7 +1873,16 @@
         "vrr-3": "Juegos y video en pantalla completa",
         "vrr-desc": "Sincronización adaptativa (FreeSync / compatible con G-Sync).",
         "vrr-inherit": "Ajuste global",
-        "vrr-unsupported": "Este monitor no reporta soporte de sincronización adaptativa."
+        "vrr-unsupported": "Este monitor no reporta soporte de sincronización adaptativa.",
+        "unsupported": "Los ajustes de pantallas y workspaces están disponibles en Hyprland y Niri.",
+        "error-niri": "Niri rechazó el cambio: {error}",
+        "scale-desc-niri": "Niri acepta cualquier escala; las apps sin soporte de escala fraccionaria pueden verse borrosas.",
+        "vrr-niri-0": "Apagada",
+        "vrr-niri-1": "Encendida",
+        "vrr-niri-2": "Bajo demanda (por regla de ventana)",
+        "niri-include-title": "Activar la gestión de pantallas y workspaces en Niri",
+        "niri-include-desc": "OKARU guarda pantallas y workspaces en archivos propios (niri/okaru/outputs.kdl y workspaces.kdl). Activar agrega dos líneas include al final de {path} y las comprueba con niri validate. Si ese archivo ya tiene bloques output o workspace, quítalos para que no choquen.",
+        "niri-include-activate": "Activar"
       },
       "hypr-desc": {
         "decoration": {
@@ -2375,10 +2373,13 @@
         "persistent": "Persistente",
         "remove-confirm": "Confirmar",
         "rename-hint": "Pulsa Enter para renombrar.",
-        "title": "Workspaces"
+        "title": "Workspaces",
+        "intro-niri": "Workspaces con nombre, en el orden en que Niri los crea. Los cambios se aplican al momento y se guardan en niri/okaru/workspaces.kdl; los iconos se ven en la barra.",
+        "any-output": "Cualquier pantalla",
+        "move-up": "Subir",
+        "move-down": "Bajar"
       },
       "home": {
-        "about": "OKARU",
         "shell-version": "Versión de la shell",
         "compositor": "Compositor",
         "compositor-unknown": "No detectado",
@@ -2392,7 +2393,8 @@
         "disks": "Discos",
         "changelog": "Novedades",
         "changelog-desc": "Notas de la última versión, separadas por tipo de cambio.",
-        "changelog-open": "Ver el changelog de la última release"
+        "changelog-open": "Ver el changelog de la última release",
+        "versions": "Versiones"
       },
       "sound": {
         "outputs": "Salidas",
@@ -2835,38 +2837,6 @@
           "description": "Ancho del contorno interior de la barra",
           "label": "Ancho del borde"
         },
-        "capsule-border": {
-          "description": "Rol de color de contorno de cápsula predeterminado; también se admiten colores hexadecimales fijos",
-          "label": "Borde de la cápsula"
-        },
-        "capsule-border-width": {
-          "description": "Grosor del contorno de la cápsula en píxeles; solo se dibuja cuando se establece un color para el borde de la cápsula",
-          "label": "Ancho del borde de la cápsula"
-        },
-        "capsule-fill": {
-          "description": "Rol de color de fondo de cápsula predeterminado; también se admiten colores hexadecimales fijos",
-          "label": "Relleno de la cápsula"
-        },
-        "capsule-foreground": {
-          "description": "Rol de color de icono y etiqueta predeterminado dentro de las cápsulas; también se admiten colores hexadecimales fijos",
-          "label": "Primer plano de la cápsula"
-        },
-        "capsule-opacity": {
-          "description": "Opacidad de los fondos de cápsula del widget",
-          "label": "Opacidad de la cápsula"
-        },
-        "capsule-padding": {
-          "description": "Relleno dentro de las cápsulas de widgets",
-          "label": "Relleno de la cápsula"
-        },
-        "capsule-radius": {
-          "description": "Radio de esquina predeterminado para las cápsulas de widgets, las píldoras de espacio de trabajo y los grupos de espacio de trabajo de la barra de tareas; deja en blanco para forma de píldora automática, o pon 0 para esquinas cuadradas",
-          "label": "Radio de la cápsula"
-        },
-        "capsule-thickness": {
-          "description": "Tamaño de la cápsula a lo largo de la barra como fracción del grosor de la barra (1.0 llena la barra)",
-          "label": "Grosor de la cápsula"
-        },
         "center-widgets": {
           "description": "Widgets en el centro de la barra",
           "label": "Centrar widgets"
@@ -2972,10 +2942,6 @@
         "thickness": {
           "description": "Grosor de la barra en píxeles",
           "label": "Grosor"
-        },
-        "widget-capsules": {
-          "description": "Envolver widgets en cápsula de fondo",
-          "label": "Cápsulas de widget"
         },
         "widget-color": {
           "description": "Rol de color de icono y etiqueta predeterminado para los widgets de esta barra; también se admiten colores hexadecimales fijos",
@@ -3347,10 +3313,6 @@
           "description": "Elige qué monitores muestran la pantalla de bloqueo; deja vacío para mostrarla en todos los monitores",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Tinte de color de superficie sobre el fondo de la pantalla de bloqueo",
-          "label": "Intensidad del tinte"
-        },
         "transition-duration": {
           "description": "Duración de las animaciones de bloqueo y desbloqueo en milisegundos",
           "label": "Duración de la transición"
@@ -3363,15 +3325,6 @@
           "description": "Imagen personalizada para el fondo de la pantalla de bloqueo. Deja vacío para usar el fondo de pantalla del escritorio",
           "label": "Fondo de Pantalla",
           "placeholder": "Usar fondo de pantalla del escritorio"
-        },
-        "widgets": {
-          "description": "Mostrar widgets configurables en la pantalla de bloqueo",
-          "label": "Widgets de la pantalla de bloqueo"
-        },
-        "widgets-editor": {
-          "button": "Alternar editor",
-          "description": "Añadir, mover y redimensionar widgets en la pantalla de bloqueo",
-          "label": "Editor de widgets de la pantalla de bloqueo"
         }
       },
       "notifications": {

@@ -922,8 +922,6 @@
       "advanced": "고급",
       "community": "커뮤니티",
       "deprecated": "더 이상 사용되지 않음",
-      "inherited": "상속됨",
-      "monitor": "모니터",
       "official": "공식",
       "override": "재정의"
     },
@@ -1006,8 +1004,6 @@
         "group": {
           "accordion": "아코디언",
           "action": "그룹",
-          "border": "테두리",
-          "border-description": "캡슐 외곽선 색상 역할, 외곽선을 보이지 않으려면 기본값으로 두세요",
           "clear": "지우기",
           "deselect": "선택 해제",
           "drag": "재정렬",
@@ -1022,21 +1018,11 @@
           "drawer-glyph-opened": "열린 아이콘",
           "drawer-glyph-opened-description": "패널이 열렸을 때 서랍 전환 버튼에 표시되는 글리프",
           "edit": "스타일 편집",
-          "fill": "배경",
-          "fill-description": "캡슐 배경 색상 역할. 고정 hex 색상도 지원됩니다",
-          "foreground": "전경",
-          "foreground-description": "이 그룹 내 위젯의 아이콘 및 레이블 색상 역할",
           "hide": "이 그룹 숨기기",
           "hide-widget": "이 위젯 숨기기",
           "hint": "캡슐 그룹의 일부",
           "members": "{count}개 위젯",
-          "opacity": "불투명도",
-          "opacity-description": "캡슐 배경 불투명도",
           "orphan": "알 수 없는 그룹",
-          "padding": "여백",
-          "padding-description": "캡슐 가장자리와 위젯 사이의 내부 여백 (픽셀)",
-          "radius": "반지름",
-          "radius-description": "캡슐 모서리 반지름 (픽셀). 자동은 바의 캡슐 반지름을 상속합니다",
           "remove-from-group": "그룹에서 지우기",
           "remove-orphan": "알 수 없는 그룹 지우기",
           "remove-widget": "바에서 지우기",
@@ -1045,10 +1031,8 @@
           "settings-widget": "위젯 설정",
           "show": "이 그룹 표시",
           "show-widget": "이 위젯 표시",
-          "style": "스타일",
           "title": "캡슐 그룹",
-          "ungroup": "그룹 해제",
-          "widget-spacing": "간격"
+          "ungroup": "그룹 해제"
         },
         "inspector": {
           "add-instance-title": "{lane}에 새로운 이름 있는 {widget} 위젯 추가",
@@ -1068,7 +1052,6 @@
         },
         "lanes": {
           "center": "가운데",
-          "customize": "사용자 정의",
           "empty": "위젯 없음",
           "empty-hint": "이 레인을 채우려면 위젯을 추가하세요.",
           "end": "끝",
@@ -1700,34 +1683,6 @@
           "description": "바의 내부 외곽선 너비",
           "label": "테두리 너비"
         },
-        "capsule-border": {
-          "description": "기본 캡슐 외곽선 색상 역할. 고정 Hex 색상도 지원됩니다",
-          "label": "캡슐 테두리"
-        },
-        "capsule-fill": {
-          "description": "기본 캡슐 배경 색상 역할. 고정 Hex 색상도 지원됩니다",
-          "label": "캡슐 채우기"
-        },
-        "capsule-foreground": {
-          "description": "캡슐 내부 기본 아이콘 및 레이블 색상 역할. 고정 Hex 색상도 지원됩니다",
-          "label": "캡슐 전경"
-        },
-        "capsule-opacity": {
-          "description": "위젯 캡슐 배경의 불투명도",
-          "label": "캡슐 불투명도"
-        },
-        "capsule-padding": {
-          "description": "위젯 캡슐 내부 여백",
-          "label": "캡슐 여백"
-        },
-        "capsule-radius": {
-          "description": "위젯 캡슐, 워크스페이스 알약 모양(Pill), 작업 표시줄 워크스페이스 그룹의 기본 모서리 반경(Radius)입니다. 자동 알약 모양으로 설정하려면 비워두고, 직각 모서리로 설정하려면 0을 입력하세요.",
-          "label": "캡슐 반지름"
-        },
-        "capsule-thickness": {
-          "description": "바 두께 대비 캡슐 크기 비율 (1.0이면 바를 가득 채움)",
-          "label": "캡슐 두께"
-        },
         "center-widgets": {
           "description": "바의 가운데에 위치한 위젯",
           "label": "가운데 위젯"
@@ -1824,10 +1779,6 @@
         "thickness": {
           "description": "바 두께 (픽셀)",
           "label": "두께"
-        },
-        "widget-capsules": {
-          "description": "위젯을 캡슐 배경으로 감쌉니다",
-          "label": "위젯 캡슐"
         },
         "widget-color": {
           "description": "이 바의 위젯 기본 아이콘 및 레이블 색상 역할. 고정 Hex 색상도 지원됩니다",
@@ -2191,23 +2142,10 @@
           "description": "잠금 화면을 표시할 모니터 선택. 비워 두면 모든 모니터에 표시",
           "label": "모니터"
         },
-        "tint-intensity": {
-          "description": "잠금 화면 배경 위의 표면 색상 틴트",
-          "label": "틴트 강도"
-        },
         "wallpaper": {
           "description": "잠금 화면 배경에 사용할 사용자 이미지. 비워 두면 데스크톱 배경 화면을 사용합니다",
           "label": "배경 화면",
           "placeholder": "데스크톱 배경 화면 사용"
-        },
-        "widgets": {
-          "description": "잠금 화면에 설정 가능한 위젯 표시",
-          "label": "잠금 화면 위젯"
-        },
-        "widgets-editor": {
-          "button": "편집기 전환",
-          "description": "잠금 화면의 위젯 추가, 이동 및 크기 조정",
-          "label": "잠금 화면 위젯 편집기"
         }
       },
       "notifications": {

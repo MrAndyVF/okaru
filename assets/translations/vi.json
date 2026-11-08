@@ -1030,8 +1030,6 @@
       "advanced": "Nâng cao",
       "community": "Cộng đồng",
       "deprecated": "Lỗi thời",
-      "inherited": "Kế thừa",
-      "monitor": "Màn hình",
       "official": "Chính thức",
       "override": "Ghi đè"
     },
@@ -1117,10 +1115,6 @@
           "accordion-direction": "Hiển thị hướng",
           "accordion-direction-description": "Phía của tiện ích đầu tiên nơi các widget ẩn bung ra",
           "action": "Nhóm",
-          "border": "Viền",
-          "border-description": "Vai trò màu sắc đường viền của Vùng chứa; để Mặc định nếu không muốn có đường viền",
-          "border-width": "Độ dày viền",
-          "border-width-description": "Độ dày của viền viên nang tính theo pixel, chỉ hiển thị khi màu viền được thiết lập",
           "clear": "Xóa",
           "deselect": "Bỏ chọn",
           "drag": "Sắp xếp lại",
@@ -1135,21 +1129,11 @@
           "drawer-glyph-opened": "Biểu tượng khi mở",
           "drawer-glyph-opened-description": "Ký tự biểu tượng hiển thị trên nút chuyển đổi của ngăn ứng dụng khi bảng điều khiển đang mở",
           "edit": "Chỉnh sửa kiểu dáng",
-          "fill": "Nền",
-          "fill-description": "Vai trò màu nền của khung chứa; cũng hỗ trợ các mã màu hex cố định",
-          "foreground": "Nền trước",
-          "foreground-description": "Vai trò màu sắc của biểu tượng và nhãn cho các widget trong nhóm này",
           "hide": "Ẩn nhóm này",
           "hide-widget": "Ẩn widget này",
           "hint": "Một phần của nhóm Capsule",
           "members": "{count} tiện ích",
-          "opacity": "Độ mờ đục",
-          "opacity-description": "Độ mờ nền của Capsule",
           "orphan": "Nhóm không xác định",
-          "padding": "Khoảng đệm",
-          "padding-description": "Khoảng đệm bên trong giữa cạnh của Capsule và các Widget của nó, tính bằng pixel",
-          "radius": "Bán kính",
-          "radius-description": "Bán kính góc của Capsule theo pixel; Tự động kế thừa bán kính capsule của Bar",
           "remove-from-group": "Bỏ khỏi group",
           "remove-orphan": "Bỏ group vô danh",
           "remove-widget": "Bỏ khỏi thanh",
@@ -1158,11 +1142,8 @@
           "settings-widget": "Cài đặt Widget",
           "show": "Hiện nhóm này",
           "show-widget": "Hiện widget này",
-          "style": "Phong cách",
           "title": "Nhóm khung",
-          "ungroup": "Tách nhóm",
-          "widget-spacing": "Ngăn cách",
-          "widget-spacing-description": "Khoảng cách giữa các widget trong nhóm này (tính bằng pixel); chế độ Tự động sẽ kế thừa khoảng cách widget của thanh công cụ."
+          "ungroup": "Tách nhóm"
         },
         "inspector": {
           "add-instance-title": "Thêm mới tiện ích có tên {widget} vào khu vực {lane}",
@@ -1182,7 +1163,6 @@
         },
         "lanes": {
           "center": "Trung tâm",
-          "customize": "Tùy chỉnh",
           "empty": "Không có widget nào",
           "empty-hint": "Thêm một widget để lấp đầy làn này.",
           "end": "Kết thúc",
@@ -1877,34 +1857,6 @@
           "description": "Chiều rộng đường viền bên trong cho thanh Bar",
           "label": "Độ rộng viền"
         },
-        "capsule-border": {
-          "description": "Vai trò màu viền capsule mặc định; màu hex cố định cũng được hỗ trợ",
-          "label": "Viền Capsule"
-        },
-        "capsule-fill": {
-          "description": "Vai trò màu nền mặc định của khung chứa; mã màu hex cố định cũng được hỗ trợ",
-          "label": "Kiểu đổ đầy vùng chứa"
-        },
-        "capsule-foreground": {
-          "description": "Vai trò màu sắc mặc định cho biểu tượng và nhãn bên trong các vùng chứa; màu hex cố định cũng được hỗ trợ",
-          "label": "Khung Tiền cảnh"
-        },
-        "capsule-opacity": {
-          "description": "Độ mờ của nền viên nang tiện ích",
-          "label": "Độ mờ Vỏ bọc"
-        },
-        "capsule-padding": {
-          "description": "Khoảng đệm bên trong các viên nang widget",
-          "label": "Khoảng đệm Viên nang"
-        },
-        "capsule-radius": {
-          "description": "Bán kính bo góc mặc định cho các capsule widget, pill workspace và nhóm workspace trên taskbar; để trống để có hình dạng pill tự động, hoặc đặt 0 để có góc vuông",
-          "label": "Bán kính khung bo tròn"
-        },
-        "capsule-thickness": {
-          "description": "Kích thước viên nang theo chiều ngang của thanh, tính theo tỷ lệ độ dày của thanh (1.0 sẽ lấp đầy toàn bộ thanh)",
-          "label": "Độ dày viên nang"
-        },
         "center-widgets": {
           "description": "Widgets ở giữa Bar",
           "label": "Căn giữa các tiện ích"
@@ -2001,10 +1953,6 @@
         "thickness": {
           "description": "Độ dày của Thanh tính bằng pixel",
           "label": "Độ dày"
-        },
-        "widget-capsules": {
-          "description": "Bọc các Widget trong nền viên nang",
-          "label": "Vỏ bọc Widget"
         },
         "widget-color": {
           "description": "Vai trò màu sắc mặc định cho biểu tượng và nhãn của các tiện ích trên thanh này; mã màu hex cố định cũng được hỗ trợ",
@@ -2369,23 +2317,10 @@
           "description": "Chọn màn hình hiển thị màn hình khóa; để trống để hiển thị trên tất cả các màn hình",
           "label": "Màn hình"
         },
-        "tint-intensity": {
-          "description": "Lớp phủ màu bề mặt trên nền màn hình khóa",
-          "label": "Cường độ màu"
-        },
         "wallpaper": {
           "description": "Ảnh tùy chỉnh cho nền màn hình khóa; để trống để sử dụng hình nền máy tính",
           "label": "Hình nền",
           "placeholder": "Sử dụng hình nền màn hình nền"
-        },
-        "widgets": {
-          "description": "Hiển thị tiện ích tùy chỉnh trên màn hình khóa",
-          "label": "Màn hình khóa tiện ích"
-        },
-        "widgets-editor": {
-          "button": "Bật/tắt trình chỉnh sửa",
-          "description": "Thêm, di chuyển và thay đổi kích thước các Widget trên màn hình khóa",
-          "label": "Trình chỉnh sửa Widget Màn hình khóa"
         }
       },
       "notifications": {

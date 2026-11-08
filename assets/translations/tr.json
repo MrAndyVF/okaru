@@ -884,8 +884,6 @@
       "advanced": "Gelişmiş",
       "community": "Topluluk",
       "deprecated": "Kullanımdan Kaldırıldı",
-      "inherited": "Devralındı",
-      "monitor": "Monitör",
       "official": "Resmi",
       "override": "Geçersiz Kılma"
     },
@@ -969,8 +967,6 @@
           "accordion-direction": "Açılma yönü",
           "accordion-direction-description": "Gizli araçların hangi yöne doğru açılacağını belirler",
           "action": "Grup",
-          "border": "Kenarlık",
-          "border-description": "Kapsül kenarlık rengi rolü; kenarlıksız olması için Varsayılan'da bırakın",
           "clear": "Temizle",
           "deselect": "Seçimi Kaldır",
           "drag": "Sırala",
@@ -985,21 +981,11 @@
           "drawer-glyph-opened": "Açık Simge",
           "drawer-glyph-opened-description": "Panel açıkken çekmece düğmesinde gösterilecek simge",
           "edit": "Stili düzenle",
-          "fill": "Arka Plan",
-          "fill-description": "Kapsül arka plan rengi; sabit hex renkleri de desteklenir",
-          "foreground": "Ön Plan",
-          "foreground-description": "Bu gruptaki araçların simge ve yazı rengi",
           "hide": "Bu grubu gizle",
           "hide-widget": "Bu aracı gizle",
           "hint": "Bir kapsül grubunun parçası",
           "members": "{count} araç",
-          "opacity": "Şeffaflık",
-          "opacity-description": "Kapsül arka plan şeffaflığı",
           "orphan": "Bilinmeyen grup",
-          "padding": "İç Boşluk",
-          "padding-description": "Kapsül kenarı ile araçları arasındaki piksel cinsinden iç boşluk",
-          "radius": "Kavis",
-          "radius-description": "Piksel cinsinden kapsül köşesi kavisi; 'Otomatik' çubuğun kavis ayarını devralır",
           "remove-from-group": "Gruptan çıkar",
           "remove-orphan": "Bilinmeyen grubu kaldır",
           "remove-widget": "Çubuktan kaldır",
@@ -1008,11 +994,8 @@
           "settings-widget": "Araç ayarları",
           "show": "Bu grubu göster",
           "show-widget": "Bu aracı göster",
-          "style": "Stil",
           "title": "Kapsül grubu",
-          "ungroup": "Grubu dağıt",
-          "widget-spacing": "Aralık",
-          "widget-spacing-description": "Bu gruptaki araçlar arasındaki piksel cinsinden boşluk; 'Otomatik' çubuğun araç boşluğunu devralır"
+          "ungroup": "Grubu dağıt"
         },
         "inspector": {
           "add-instance-title": "{lane} alanına '{widget}' isminde yeni bir araç ekle",
@@ -1032,7 +1015,6 @@
         },
         "lanes": {
           "center": "Orta",
-          "customize": "Özelleştir",
           "empty": "Araç yok",
           "empty-hint": "Bu alanı doldurmak için bir araç ekleyin.",
           "end": "Son",
@@ -1656,34 +1638,6 @@
           "description": "Çubuğun içe doğru kenarlık kalınlığı",
           "label": "Kenarlık Kalınlığı"
         },
-        "capsule-border": {
-          "description": "Varsayılan kapsül kenarlığı renk rolü; sabit hex renkleri de desteklenir",
-          "label": "Kapsül Kenarlığı"
-        },
-        "capsule-fill": {
-          "description": "Varsayılan kapsül arka plan renk rolü; sabit hex renkleri de desteklenir",
-          "label": "Kapsül Dolgusu"
-        },
-        "capsule-foreground": {
-          "description": "Kapsül içindeki varsayılan simge ve yazı renk rolü; sabit hex renkleri de desteklenir",
-          "label": "Kapsül Ön Planı"
-        },
-        "capsule-opacity": {
-          "description": "Araç kapsülü arka planlarının şeffaflığı",
-          "label": "Kapsül Şeffaflığı"
-        },
-        "capsule-padding": {
-          "description": "Araç kapsüllerinin iç boşluğu",
-          "label": "Kapsül İç Boşluğu"
-        },
-        "capsule-radius": {
-          "description": "Araç kapsülleri, çalışma alanı göstergeleri ve görev çubuğu grupları için varsayılan köşe kavisi; otomatik şekil için boş bırakın veya kare köşeler için 0 yapın",
-          "label": "Kapsül Kavisi"
-        },
-        "capsule-thickness": {
-          "description": "Çubuk genelinde kapsül boyutunun çubuk kalınlığına oranı (1.0 çubuğu tamamen doldurur)",
-          "label": "Kapsül Kalınlığı"
-        },
         "center-widgets": {
           "description": "Çubuğun ortasındaki araçlar",
           "label": "Orta Araçlar"
@@ -1777,10 +1731,6 @@
         "thickness": {
           "description": "Piksel cinsinden çubuk kalınlığı",
           "label": "Kalınlık"
-        },
-        "widget-capsules": {
-          "description": "Araçları kapsül arka planları ile sar",
-          "label": "Araç Kapsülleri"
         },
         "widget-color": {
           "description": "Bu çubuktaki araçlar için varsayılan simge ve yazı renk rolü; sabit hex renkleri de desteklenir",
@@ -2148,23 +2098,10 @@
           "description": "Kilit ekranının hangi monitörlerde görüneceğini seçin; tüm monitörlerde görünmesi için boş bırakın",
           "label": "Monitörler"
         },
-        "tint-intensity": {
-          "description": "Kilit ekranı arka planı üzerindeki yüzey renk tonu yoğunluğu",
-          "label": "Renk Tonu Yoğunluğu"
-        },
         "wallpaper": {
           "description": "Kilit ekranı özel arka planı; masaüstü duvar kağıdını kullanmak için boş bırakın",
           "label": "Duvar Kağıdı",
           "placeholder": "Masaüstü duvar kağıdını kullan"
-        },
-        "widgets": {
-          "description": "Kilit ekranında araçları göster",
-          "label": "Kilit Ekranı Araçları"
-        },
-        "widgets-editor": {
-          "button": "Düzenleyiciyi Aç",
-          "description": "Kilit ekranına araçlar ekleyin, taşıyın ve yeniden boyutlandırın",
-          "label": "Kilit Ekranı Araç Düzenleyici"
         }
       },
       "notifications": {

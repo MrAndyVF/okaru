@@ -5,7 +5,9 @@
 #include "core/build_info.h"
 #include "i18n/i18n.h"
 #include "net/url_open.h"
+#include "shell/lockscreen/okaru_lock_view.h"
 #include "shell/settings/settings_content_common.h"
+#include "system/hardware_info.h"
 #include "system/okaru_system_info.h"
 #include "ui/builders.h"
 #include "ui/palette.h"
@@ -59,20 +61,46 @@ namespace settings {
 
   } // namespace
 
-  void addSettingsHome(Flex& content, float scale) {
+  void addSettingsHome(Flex& content, float scale, Renderer* renderer) {
     const auto info = okaru::sysinfo::collect();
     compositors::hyprland::HyprlandRuntime runtime;
     const auto hypr = runtime.requestSocketPath().empty() ? std::nullopt : okaru::hypr::queryVersion(runtime);
 
-    Flex* shell = addSettingsCard(content, tr("about"), scale);
-    shell->addChild(
-        makeLabel("OKARU (郁)", Style::fontSizeTitle * scale, colorSpecFromRole(ColorRole::Primary), FontWeight::Bold)
-    );
+    // Logo como en el greeter y el bloqueo: 郁 en el acento y OKARU en el color de texto del tema.
+    if (renderer != nullptr) {
+      const float logoHeight = std::round(72.0F * scale);
+      const float logoWidth = std::round(logoHeight * lockscreen::kOkaruLogoAspect);
+      const std::string path =
+          lockscreen::okaruLogoPath(colorForRole(ColorRole::Primary), colorForRole(ColorRole::OnSurface));
+      auto logo = ui::image({.fit = ImageFit::Contain, .width = logoWidth, .height = logoHeight});
+      if (!path.empty() && logo->setSourceFile(*renderer, path, static_cast<int>(logoWidth * 2.0F), false)) {
+        auto row = ui::row({
+            .justify = FlexJustify::Center,
+            .paddingV = Style::spaceMd * scale,
+            .fillWidth = true,
+        });
+        row->addChild(std::move(logo));
+        content.addChild(std::move(row));
+      }
+    }
+
+    Flex* shell = addSettingsCard(content, tr("versions"), scale);
     shell->addChild(infoRow(scale, tr("shell-version"), okaru::build_info::displayVersion()));
-    shell->addChild(infoRow(
-        scale, tr("compositor"),
-        hypr.has_value() ? std::format("Hyprland {} ({})", hypr->version, hypr->commit) : tr("compositor-unknown")
-    ));
+    // Hyprland da versión y commit por su socket; los demás (Niri) por `<compositor> --version`, que la tarjeta
+    // de perfil ya resolvió al arrancar. Mientras tanto, al menos el nombre.
+    std::string compositor;
+    if (hypr.has_value()) {
+      compositor = std::format("Hyprland {} ({})", hypr->version, hypr->commit);
+    } else if (const auto line = compositorVersionLine({}); line.has_value() && !line->empty()) {
+      compositor = *line;
+    } else if (
+        const std::string label = compositorLabel(); !label.empty() && label != i18n::tr("system.hardware.unknown")
+    ) {
+      compositor = label;
+    } else {
+      compositor = tr("compositor-unknown");
+    }
+    shell->addChild(infoRow(scale, tr("compositor"), compositor));
 
     Flex* system = addSettingsCard(content, tr("system"), scale);
     system->addChild(infoRow(scale, tr("os"), info.os));

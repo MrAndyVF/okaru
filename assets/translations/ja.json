@@ -1091,8 +1091,6 @@
       "advanced": "詳細設定",
       "community": "コミュニティ",
       "deprecated": "非推奨",
-      "inherited": "継承済み",
-      "monitor": "画面",
       "official": "公式",
       "override": "上書き"
     },
@@ -1184,10 +1182,6 @@
           "accordion-duration": "展開時間",
           "accordion-duration-description": "ポインターを重ねたときにグループが展開するまでの時間（ミリ秒）。0で瞬時に展開",
           "action": "グループ",
-          "border": "枠線",
-          "border-description": "カプセルアウトラインの色。「既定」のままにするとアウトラインを表示しません",
-          "border-width": "アウトラインの太さ",
-          "border-width-description": "カプセルアウトラインの太さ（ピクセル）。アウトラインの色が設定されている場合のみ表示",
           "clear": "消去",
           "deselect": "選択を解除",
           "drag": "並べ替え",
@@ -1202,21 +1196,11 @@
           "drawer-glyph-opened": "開いているときのアイコン",
           "drawer-glyph-opened-description": "ドロワーパネルを開いているときに、開閉ボタンに表示するアイコン",
           "edit": "スタイルを編集",
-          "fill": "背景",
-          "fill-description": "カプセルの背景色。固定の16進数カラーコードにも対応",
-          "foreground": "前景色",
-          "foreground-description": "このグループ内のウィジェットに使用するアイコンとラベルの色",
           "hide": "このグループを非表示",
           "hide-widget": "このウィジェットを非表示",
           "hint": "カプセルグループの一部",
           "members": "{count}個のウィジェット",
-          "opacity": "不透明度",
-          "opacity-description": "カプセル背景の不透明度",
           "orphan": "参照先不明のグループ",
-          "padding": "内側余白",
-          "padding-description": "カプセルの端から内側への余白",
-          "radius": "角丸半径",
-          "radius-description": "カプセルの角丸半径（ピクセル）。「自動」ではバーのカプセル半径を継承",
           "remove-from-group": "グループから外す",
           "remove-orphan": "参照先不明のグループを削除",
           "remove-widget": "バーから削除",
@@ -1225,11 +1209,8 @@
           "settings-widget": "ウィジェット設定",
           "show": "このグループを表示",
           "show-widget": "このウィジェットを表示",
-          "style": "スタイル",
           "title": "カプセルグループ",
-          "ungroup": "グループ化を解除",
-          "widget-spacing": "間隔",
-          "widget-spacing-description": "このグループ内のウィジェット間隔（ピクセル）。「自動」ではバーのウィジェット間隔を継承"
+          "ungroup": "グループ化を解除"
         },
         "inspector": {
           "add-instance-title": "新しい名前付きウィジェット「{widget}」を{lane}に追加",
@@ -1249,7 +1230,6 @@
         },
         "lanes": {
           "center": "中央",
-          "customize": "カスタマイズ",
           "empty": "ウィジェットがありません",
           "empty-hint": "このレーンにウィジェットを追加してください。",
           "end": "終端",
@@ -1982,38 +1962,6 @@
           "description": "バー内側アウトラインの太さ",
           "label": "枠線の太さ"
         },
-        "capsule-border": {
-          "description": "既定のカプセル枠線に使用する色。固定の16進数カラーコードにも対応",
-          "label": "カプセルの枠線"
-        },
-        "capsule-border-width": {
-          "description": "カプセルの枠線の太さ（ピクセル）。枠線の色が設定されている場合のみ表示",
-          "label": "カプセルの枠線の太さ"
-        },
-        "capsule-fill": {
-          "description": "既定のカプセル背景に使用する色。固定の16進数カラーコードにも対応",
-          "label": "カプセルの背景色"
-        },
-        "capsule-foreground": {
-          "description": "カプセル内のアイコンとラベルに使用する既定の色。固定の16進数カラーコードにも対応",
-          "label": "カプセルの前景色"
-        },
-        "capsule-opacity": {
-          "description": "ウィジェットのカプセル背景の不透明度",
-          "label": "カプセルの不透明度"
-        },
-        "capsule-padding": {
-          "description": "ウィジェットのカプセル内の余白",
-          "label": "カプセルの内側余白"
-        },
-        "capsule-radius": {
-          "description": "ウィジェットのカプセル、ワークスペースピル、タスクバーのワークスペースグループに使用する既定の角丸半径。空欄では自動的にピル形状になり、0では角が直角になります",
-          "label": "カプセルの角丸半径"
-        },
-        "capsule-thickness": {
-          "description": "バーの太さに対するカプセルの大きさの比率（1.0でバーの太さ全体を使用）",
-          "label": "カプセルの太さ"
-        },
         "center-widgets": {
           "description": "バー中央のウィジェット",
           "label": "中央のウィジェット"
@@ -2123,10 +2071,6 @@
         "thickness": {
           "description": "バーの太さ（ピクセル）",
           "label": "太さ"
-        },
-        "widget-capsules": {
-          "description": "ウィジェットをカプセル背景で囲む",
-          "label": "ウィジェットカプセル"
         },
         "widget-color": {
           "description": "このバーのウィジェットに使用する既定のアイコンとラベルの色。固定の16進数カラーコードにも対応",
@@ -2506,10 +2450,6 @@
           "description": "ロック画面を表示する画面を選択します。空欄の場合はすべての画面に表示します",
           "label": "画面"
         },
-        "tint-intensity": {
-          "description": "ロック画面の背景に表面色を重ねて着色",
-          "label": "着色の強さ"
-        },
         "transition-duration": {
           "description": "ロック・ロック解除アニメーションの長さ（ミリ秒）",
           "label": "切替時間"
@@ -2522,15 +2462,6 @@
           "description": "ロック画面の背景に使用するカスタム画像。空欄の場合はデスクトップの壁紙を使用",
           "label": "壁紙",
           "placeholder": "デスクトップの壁紙を使用する"
-        },
-        "widgets": {
-          "description": "ロック画面に設定可能なウィジェットを表示",
-          "label": "ロック画面ウィジェット"
-        },
-        "widgets-editor": {
-          "button": "編集モードを切替",
-          "description": "ロック画面のウィジェットを追加、移動、サイズ変更",
-          "label": "ロック画面ウィジェット編集"
         }
       },
       "notifications": {

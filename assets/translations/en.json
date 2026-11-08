@@ -903,7 +903,10 @@
     "password-placeholder": "Password",
     "ready": "Type your password and press Enter.",
     "unlocked": "Unlocked",
-    "waiting": "Waiting for lock confirmation…"
+    "waiting": "Waiting for lock confirmation…",
+    "okaru": {
+      "password": "Enter password"
+    }
   },
   "notifications": {
     "actions": {
@@ -1094,7 +1097,13 @@
         "session": "Session",
         "phone": "Phone"
       },
-      "close": "Close"
+      "close": "Close",
+      "avatar": {
+        "pick-title": "Choose a profile picture",
+        "too-large": "Image too large",
+        "too-large-body": "The image is {size} MB; the maximum is 6 MB.",
+        "error": "Could not change the profile picture"
+      }
     },
     "network": {
       "open-vpn-manager": "Manage VPN",
@@ -1292,8 +1301,6 @@
       "advanced": "Advanced",
       "community": "Community",
       "deprecated": "Deprecated",
-      "inherited": "Inherited",
-      "monitor": "Monitor",
       "official": "Official",
       "okaru": "OKARU",
       "override": "Override"
@@ -1386,10 +1393,6 @@
           "accordion-duration": "Unfold Time",
           "accordion-duration-description": "Milliseconds the group takes to unfold on hover (0 is instant)",
           "action": "Group",
-          "border": "Border",
-          "border-description": "Capsule outline color role; leave on Default for no outline",
-          "border-width": "Border Width",
-          "border-width-description": "Thickness of the capsule outline in pixels; only drawn when a border color is set",
           "clear": "Clear",
           "deselect": "Deselect",
           "drag": "Reorder",
@@ -1404,21 +1407,11 @@
           "drawer-glyph-opened": "Opened Icon",
           "drawer-glyph-opened-description": "Glyph shown on the drawer toggle button when the panel is open",
           "edit": "Edit style",
-          "fill": "Background",
-          "fill-description": "Capsule background color role; fixed hex colors are also supported",
-          "foreground": "Foreground",
-          "foreground-description": "Icon and label color role for widgets in this group",
           "hide": "Hide this group",
           "hide-widget": "Hide this widget",
           "hint": "Part of a capsule group",
           "members": "{count} widgets",
-          "opacity": "Opacity",
-          "opacity-description": "Capsule background opacity",
           "orphan": "Unknown group",
-          "padding": "Padding",
-          "padding-description": "Inner padding between the capsule edge and its widgets, in pixels",
-          "radius": "Radius",
-          "radius-description": "Capsule corner radius in pixels; Auto inherits the bar's capsule radius",
           "remove-from-group": "Remove from group",
           "remove-orphan": "Remove unknown group",
           "remove-widget": "Remove from bar",
@@ -1427,11 +1420,8 @@
           "settings-widget": "Widget settings",
           "show": "Show this group",
           "show-widget": "Show this widget",
-          "style": "Style",
           "title": "Capsule group",
-          "ungroup": "Ungroup",
-          "widget-spacing": "Spacing",
-          "widget-spacing-description": "Gap between widgets in this group, in pixels; Auto inherits the bar's widget spacing"
+          "ungroup": "Ungroup"
         },
         "inspector": {
           "add-instance-title": "Add new named {widget} widget to {lane}",
@@ -1451,7 +1441,6 @@
         },
         "lanes": {
           "center": "Center",
-          "customize": "Customize",
           "empty": "No widgets",
           "empty-hint": "Add a widget to populate this lane.",
           "end": "End",
@@ -2000,7 +1989,16 @@
         "vrr-3": "Fullscreen games and video",
         "vrr-desc": "Adaptive sync (FreeSync / G-Sync compatible).",
         "vrr-inherit": "Global setting",
-        "vrr-unsupported": "This monitor doesn't report adaptive sync support."
+        "vrr-unsupported": "This monitor doesn't report adaptive sync support.",
+        "unsupported": "Display and workspace settings are available on Hyprland and Niri.",
+        "error-niri": "Niri rejected the change: {error}",
+        "scale-desc-niri": "Niri accepts any scale; apps without fractional-scale support may look blurry.",
+        "vrr-niri-0": "Off",
+        "vrr-niri-1": "On",
+        "vrr-niri-2": "On demand (per window rule)",
+        "niri-include-title": "Enable display and workspace management in Niri",
+        "niri-include-desc": "OKARU saves displays and workspaces in its own files (niri/okaru/outputs.kdl and workspaces.kdl). Enable adds two include lines at the end of {path} and checks them with niri validate. If that file already has output or workspace blocks, remove them so they do not conflict.",
+        "niri-include-activate": "Enable"
       },
       "hypr-label": {
         "decoration": {
@@ -2334,10 +2332,13 @@
         "persistent": "Persistent",
         "remove-confirm": "Confirm",
         "rename-hint": "Press Enter to rename.",
-        "title": "Workspaces"
+        "title": "Workspaces",
+        "intro-niri": "Named workspaces, in the order Niri creates them. Changes apply right away and are saved in niri/okaru/workspaces.kdl; icons are shown in the bar.",
+        "any-output": "Any screen",
+        "move-up": "Move up",
+        "move-down": "Move down"
       },
       "home": {
-        "about": "OKARU",
         "shell-version": "Shell version",
         "compositor": "Compositor",
         "compositor-unknown": "Not detected",
@@ -2351,7 +2352,8 @@
         "disks": "Disks",
         "changelog": "What's new",
         "changelog-desc": "Release notes of the latest version, grouped by type of change.",
-        "changelog-open": "View the latest release changelog"
+        "changelog-open": "View the latest release changelog",
+        "versions": "Versions"
       },
       "sound": {
         "outputs": "Outputs",
@@ -2866,38 +2868,6 @@
           "description": "Inside outline width for the bar",
           "label": "Border Width"
         },
-        "capsule-border": {
-          "description": "Default capsule outline color role; fixed hex colors are also supported",
-          "label": "Capsule Border"
-        },
-        "capsule-border-width": {
-          "description": "Thickness of the capsule outline in pixels; only drawn when a capsule border color is set",
-          "label": "Capsule Border Width"
-        },
-        "capsule-fill": {
-          "description": "Default capsule background color role; fixed hex colors are also supported",
-          "label": "Capsule Fill"
-        },
-        "capsule-foreground": {
-          "description": "Default icon and label color role inside capsules; fixed hex colors are also supported",
-          "label": "Capsule Foreground"
-        },
-        "capsule-opacity": {
-          "description": "Opacity of widget capsule backgrounds",
-          "label": "Capsule Opacity"
-        },
-        "capsule-padding": {
-          "description": "Padding inside widget capsules",
-          "label": "Capsule Padding"
-        },
-        "capsule-radius": {
-          "description": "Default corner radius for widget capsules, workspace pills, and taskbar workspace groups; leave blank for automatic pill shape, or set 0 for square corners",
-          "label": "Capsule Radius"
-        },
-        "capsule-thickness": {
-          "description": "Capsule size across the bar as a fraction of the bar thickness (1.0 fills the bar)",
-          "label": "Capsule Thickness"
-        },
         "center-widgets": {
           "description": "Widgets in the center of the bar",
           "label": "Center Widgets"
@@ -3007,10 +2977,6 @@
         "thickness": {
           "description": "Bar thickness in pixels",
           "label": "Thickness"
-        },
-        "widget-capsules": {
-          "description": "Wrap widgets in capsule backgrounds",
-          "label": "Widget Capsules"
         },
         "widget-color": {
           "description": "Default icon and label color role for widgets on this bar; fixed hex colors are also supported",
@@ -3390,10 +3356,6 @@
           "description": "Choose which monitors show the lock screen; leave empty to show on all monitors",
           "label": "Monitors"
         },
-        "tint-intensity": {
-          "description": "Surface-color tint over the lock screen background",
-          "label": "Tint Intensity"
-        },
         "transition-duration": {
           "description": "Length of the lock and unlock animations in milliseconds",
           "label": "Transition Duration"
@@ -3406,15 +3368,6 @@
           "description": "Custom image for the lock screen background; leave empty to use the desktop wallpaper",
           "label": "Wallpaper",
           "placeholder": "Use desktop wallpaper"
-        },
-        "widgets": {
-          "description": "Show configurable widgets on the lock screen",
-          "label": "Lockscreen Widgets"
-        },
-        "widgets-editor": {
-          "button": "Toggle Editor",
-          "description": "Add, move, and resize widgets on the lock screen",
-          "label": "Lockscreen Widget Editor"
         }
       },
       "notifications": {

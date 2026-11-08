@@ -65,17 +65,6 @@ namespace settings {
         collectWidgetReferenceNames(bar.startWidgets, seen);
         collectWidgetReferenceNames(bar.centerWidgets, seen);
         collectWidgetReferenceNames(bar.endWidgets, seen);
-        for (const auto& ovr : bar.monitorOverrides) {
-          if (ovr.startWidgets.has_value()) {
-            collectWidgetReferenceNames(*ovr.startWidgets, seen);
-          }
-          if (ovr.centerWidgets.has_value()) {
-            collectWidgetReferenceNames(*ovr.centerWidgets, seen);
-          }
-          if (ovr.endWidgets.has_value()) {
-            collectWidgetReferenceNames(*ovr.endWidgets, seen);
-          }
-        }
       }
       return seen.contains(key);
     }

@@ -1045,8 +1045,6 @@
       "advanced": "Avansat",
       "community": "Comunitate",
       "deprecated": "Învechit",
-      "inherited": "Moștenit",
-      "monitor": "Monitor",
       "official": "Oficial",
       "override": "Suprascriere"
     },
@@ -1138,10 +1136,6 @@
           "accordion-duration": "Durata desfășurării",
           "accordion-duration-description": "Milisecunde necesare grupului pentru a se desfășura la hover (0 este instant)",
           "action": "Grup",
-          "border": "Chenar",
-          "border-description": "Rolul culorii conturului capsulei; lasă pe Implicit pentru fără contur",
-          "border-width": "Grosime chenar",
-          "border-width-description": "Grosimea conturului capsulei în pixeli; se desenează doar când este setată o culoare de chenar",
           "clear": "Golește",
           "deselect": "Deselectează",
           "drag": "Reordonează",
@@ -1156,21 +1150,11 @@
           "drawer-glyph-opened": "Pictogramă deschisă",
           "drawer-glyph-opened-description": "Pictograma afișată pe butonul sertarului când panoul este deschis",
           "edit": "Editează stilul",
-          "fill": "Fundal",
-          "fill-description": "Rolul culorii de fundal al capsulei; sunt acceptate și culori hex fixe",
-          "foreground": "Prim-plan",
-          "foreground-description": "Rolul culorii pictogramei și etichetei pentru widgeturile din acest grup",
           "hide": "Ascunde acest grup",
           "hide-widget": "Ascunde acest widget",
           "hint": "Face parte dintr-un grup capsulă",
           "members": "{count} widgeturi",
-          "opacity": "Opacitate",
-          "opacity-description": "Opacitatea fundalului capsulei",
           "orphan": "Grup necunoscut",
-          "padding": "Spațiu interior",
-          "padding-description": "Spațiul interior dintre marginea capsulei și widgeturile sale, în pixeli",
-          "radius": "Rază",
-          "radius-description": "Raza colțurilor capsulei în pixeli; Auto moștenește raza capsulei barei",
           "remove-from-group": "Elimină din grup",
           "remove-orphan": "Elimină grupul necunoscut",
           "remove-widget": "Elimină din bară",
@@ -1179,11 +1163,8 @@
           "settings-widget": "Setările widgetului",
           "show": "Arată acest grup",
           "show-widget": "Arată acest widget",
-          "style": "Stil",
           "title": "Grup capsulă",
-          "ungroup": "Anulează gruparea",
-          "widget-spacing": "Spațiere",
-          "widget-spacing-description": "Distanța dintre widgeturile din acest grup, în pixeli; Auto moștenește spațierea widgeturilor din bară"
+          "ungroup": "Anulează gruparea"
         },
         "inspector": {
           "add-instance-title": "Adaugă un widget {widget} numit nou în {lane}",
@@ -1203,7 +1184,6 @@
         },
         "lanes": {
           "center": "Centru",
-          "customize": "Personalizează",
           "empty": "Niciun widget",
           "empty-hint": "Adaugă un widget pentru a popula această zonă.",
           "end": "Sfârșit",
@@ -1933,38 +1913,6 @@
           "description": "Grosimea conturului interior al barei",
           "label": "Grosime chenar"
         },
-        "capsule-border": {
-          "description": "Rolul implicit al culorii conturului capsulei; sunt acceptate și culori hex fixe",
-          "label": "Chenar capsulă"
-        },
-        "capsule-border-width": {
-          "description": "Grosimea conturului capsulei în pixeli; se desenează doar când este setată o culoare de chenar a capsulei",
-          "label": "Grosime chenar capsulă"
-        },
-        "capsule-fill": {
-          "description": "Rolul implicit al culorii de fundal al capsulei; sunt acceptate și culori hex fixe",
-          "label": "Umplere capsulă"
-        },
-        "capsule-foreground": {
-          "description": "Rolul implicit al culorii pictogramei și etichetei din capsule; sunt acceptate și culori hex fixe",
-          "label": "Prim-plan capsulă"
-        },
-        "capsule-opacity": {
-          "description": "Opacitatea fundalurilor capsulelor widgeturilor",
-          "label": "Opacitate capsulă"
-        },
-        "capsule-padding": {
-          "description": "Spațiul interior din capsulele widgeturilor",
-          "label": "Spațiu interior capsulă"
-        },
-        "capsule-radius": {
-          "description": "Raza implicită a colțurilor pentru capsulele widgeturilor, pastilele spațiilor de lucru și grupurile de spații de lucru din bara de activități; lasă gol pentru forma automată de pastilă sau setează 0 pentru colțuri drepte",
-          "label": "Raza capsulei"
-        },
-        "capsule-thickness": {
-          "description": "Dimensiunea capsulei pe lățimea barei ca fracțiune din grosimea barei (1.0 umple bara)",
-          "label": "Grosime capsulă"
-        },
         "center-widgets": {
           "description": "Widgeturile din centrul barei",
           "label": "Widgeturi centrale"
@@ -2074,10 +2022,6 @@
         "thickness": {
           "description": "Grosimea barei în pixeli",
           "label": "Grosime"
-        },
-        "widget-capsules": {
-          "description": "Învelește widgeturile în fundaluri de tip capsulă",
-          "label": "Capsule widgeturi"
         },
         "widget-color": {
           "description": "Rolul implicit al culorii pictogramei și etichetei pentru widgeturile de pe această bară; sunt acceptate și culori hex fixe",
@@ -2453,10 +2397,6 @@
           "description": "Alege ce monitoare afișează ecranul de blocare; lasă gol pentru a-l afișa pe toate monitoarele",
           "label": "Monitoare"
         },
-        "tint-intensity": {
-          "description": "Nuanța culorii suprafeței peste fundalul ecranului de blocare",
-          "label": "Intensitatea nuanței"
-        },
         "transition-duration": {
           "description": "Durata animațiilor de blocare și deblocare în milisecunde",
           "label": "Durata tranziției"
@@ -2469,15 +2409,6 @@
           "description": "Imagine personalizată pentru fundalul ecranului de blocare; lasă gol pentru a folosi fundalul desktopului",
           "label": "Fundal",
           "placeholder": "Folosește fundalul desktopului"
-        },
-        "widgets": {
-          "description": "Arată widgeturi configurabile pe ecranul de blocare",
-          "label": "Widgeturi ecran de blocare"
-        },
-        "widgets-editor": {
-          "button": "Comută editorul",
-          "description": "Adaugă, mută și redimensionează widgeturi pe ecranul de blocare",
-          "label": "Editor de widgeturi pentru ecranul de blocare"
         }
       },
       "notifications": {
