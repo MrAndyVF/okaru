@@ -6,7 +6,6 @@
 #include "render/scene/input_area.h"
 #include "shell/desktop/desktop_widget_settings_registry.h"
 #include "shell/desktop/editor/desktop_widgets_editor.h"
-#include "shell/lockscreen/lockscreen_login_box.h"
 #include "shell/settings/color_spec_picker.h"
 #include "shell/settings/path_browse.h"
 #include "shell/settings/settings_content_common.h"
@@ -896,30 +895,6 @@ void DesktopWidgetsEditor::applySettingChange(const std::string& key, WidgetSett
         settingChangeAffectsInspectorVisibility(state->type, key) || key == "background" || collectionValue;
     state->settings[key] = value;
 
-    if (lockscreen_login_box::isLoginBoxWidget(*state)
-        && (key == lockscreen_login_box::kLayoutKey
-            || key == lockscreen_login_box::kShowSessionButtonsKey
-            || key == lockscreen_login_box::kShowMediaKey
-            || key == lockscreen_login_box::kShowWeatherKey)) {
-      float screenWidth = 1920.0F;
-      if (OverlaySurface* layoutSurface = findSurfaceForWidget(m_selectedWidgetId);
-          layoutSurface != nullptr && layoutSurface->surface != nullptr) {
-        screenWidth = static_cast<float>(layoutSurface->surface->width());
-      }
-      const lockscreen_login_box::LoginBoxStyle style = lockscreen_login_box::resolveStyle(state->settings);
-      const bool showInfo = lockscreen_login_box::styleShowsInfoExtras(style);
-      if (key == lockscreen_login_box::kLayoutKey) {
-        lockscreen_login_box::defaultPanelSize(
-            screenWidth, state->boxWidth, state->boxHeight, style.layout, style.showSessionButtons, showInfo
-        );
-      } else {
-        state->boxHeight = lockscreen_login_box::defaultPanelHeight(style.layout, style.showSessionButtons, showInfo);
-        lockscreen_login_box::clampPanelSize(
-            screenWidth, state->boxWidth, state->boxHeight, style.layout, style.showSessionButtons, showInfo
-        );
-      }
-    }
-
     OverlaySurface* surface = findSurfaceForWidget(m_selectedWidgetId);
     if (surface == nullptr) {
       return;
@@ -1023,19 +998,6 @@ void DesktopWidgetsEditor::resetSelectedWidgetSettings() {
     }
 
     desktop_settings::applyAllDesktopWidgetDefaultSettings(state->settings, state->type);
-    if (lockscreen_login_box::isLoginBoxWidget(*state)) {
-      lockscreen_login_box::normalizeSettings(state->settings);
-      float screenWidth = 1920.0F;
-      if (OverlaySurface* surface = findSurfaceForWidget(m_selectedWidgetId);
-          surface != nullptr && surface->surface != nullptr) {
-        screenWidth = static_cast<float>(surface->surface->width());
-      }
-      const lockscreen_login_box::LoginBoxStyle style = lockscreen_login_box::resolveStyle(state->settings);
-      lockscreen_login_box::defaultPanelSize(
-          screenWidth, state->boxWidth, state->boxHeight, style.layout, style.showSessionButtons,
-          lockscreen_login_box::styleShowsInfoExtras(style)
-      );
-    }
     requestLayout();
   });
 }

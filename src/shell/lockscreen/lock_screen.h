@@ -25,15 +25,12 @@ class ConfigService;
 
 class CompositorPlatform;
 class FingerprintAuthenticator;
-class HttpClient;
 class LockSurface;
-class MprisService;
 class RenderContext;
 class SessionActionRunner;
 class SharedTextureCache;
 class SystemBus;
 class WaylandConnection;
-class WeatherService;
 enum class LockscreenTransition : std::uint8_t;
 
 class LockScreen {
@@ -49,9 +46,7 @@ public:
       std::function<void()> onLocked, std::function<void()> onUnlocked, std::function<void()> onLockAborted,
       std::function<void()> onReadyForSleep
   );
-  void setLoginBoxServices(
-      SessionActionRunner* sessionActions, MprisService* mpris, const WeatherService* weather, HttpClient* httpClient
-  );
+  void setSessionActions(SessionActionRunner* sessionActions);
   bool lock();
   void primeDesktopCaptures();
   void clearPrimedDesktopCaptures();
@@ -64,7 +59,6 @@ public:
   void onWallpaperChanged();
   void onConfigChanged();
   void onLockKeysChanged();
-  void onKeyboardLayoutChanged();
   void requestLayout();
   void requestUpdate();
   /// After suspend/resume, discard pending callbacks on active lock surfaces
@@ -144,7 +138,6 @@ private:
   void updatePromptOnSurfaces();
   void updateIndicatorsOnSurfaces();
   void applyIndicatorsToSurface(LockSurface& surface) const;
-  void cycleKeyboardLayout();
   void handlePasswordEdited(const std::string& value);
   void tryAuthenticate();
   void handleAuthResult(std::uint64_t generation, const PamAuthenticator::Result& result);
@@ -202,9 +195,6 @@ private:
   std::function<void()> m_onReadyForSleep;
   std::shared_ptr<void> m_aliveGuard = std::make_shared<int>(0);
   SessionActionRunner* m_sessionActions = nullptr;
-  MprisService* m_mpris = nullptr;
-  const WeatherService* m_weather = nullptr;
-  HttpClient* m_httpClient = nullptr;
   Timer m_suspendTimeoutTimer;
   Timer m_outputPowerOffTimer;
   // CLOCK_BOOTTIME millis when the lock flow started; grace expires gracePeriodSeconds after it.

@@ -259,7 +259,6 @@ transition              = ["fade", "wipe", "disc", "stripes", "zoom", "honeycomb
 transition_duration     = 1500        # lock/unlock animation length in milliseconds
 edge_smoothness         = 0.3         # transition edge feathering (0.0 = sharp, 1.0 = soft)
 blur_intensity          = 0.5         # lock screen background blur (0.0 = none, 1.0 = maximum)
-tint_intensity          = 0.3         # surface-color tint over the lock screen background
 # wallpaper             = ""          # optional image path for the lock screen; empty uses the desktop wallpaper
 # monitors              = ["DP-1"]    # connectors that show the lock screen; empty shows all monitors, others stay black
 
@@ -520,22 +519,6 @@ enabled = false
 # rotation = 0.0
 
 # [desktop_widgets.widget.clock_main.settings]
-# format = "{:%H:%M}"
-# background_opacity = 0.8
-
-# [lockscreen_widgets]
-# enabled = false
-# widget_order = ["clock_main"]
-
-# [lockscreen_widgets.widget.clock_main]
-# type     = "clock"
-# output   = "DP-1"
-# cx       = 1600.0
-# cy       = 120.0
-# scale    = 1.5
-# rotation = 0.0
-
-# [lockscreen_widgets.widget.clock_main.settings]
 # format = "{:%H:%M}"
 # background_opacity = 0.8
 

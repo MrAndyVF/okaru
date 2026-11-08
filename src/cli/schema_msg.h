@@ -607,15 +607,6 @@ namespace okaru::cli {
     inline constexpr Command keyboardLayoutCycle{
         "keyboard-layout-cycle", "Switch to the next keyboard layout", {}, {}, {}, {}, {}, false
     };
-    inline constexpr Command lockscreenWidgetsEdit{
-        "lockscreen-widgets-edit", "Open the lockscreen widgets editor", {}, {}, {}, {}, {}, false
-    };
-    inline constexpr Command lockscreenWidgetsExit{
-        "lockscreen-widgets-exit", "Close the lockscreen widgets editor", {}, {}, {}, {}, {}, false
-    };
-    inline constexpr Command lockscreenWidgetsToggleEdit{
-        "lockscreen-widgets-toggle-edit", "Toggle lockscreen widgets edit mode", {}, {}, {}, {}, {}, false
-    };
     inline constexpr Command logLevelSet{
         "log-level-set", "Set the console log level", {}, {}, {}, kMsgLogLevelSetPositionals, {}, false
     };
@@ -1027,9 +1018,6 @@ namespace okaru::cli {
       msg::keyboardBacklightUp,
       msg::hyprLayout, // OKARU
       msg::keyboardLayoutCycle,
-      msg::lockscreenWidgetsEdit,
-      msg::lockscreenWidgetsExit,
-      msg::lockscreenWidgetsToggleEdit,
       msg::logLevelSet,
       msg::logLevelStatus,
       msg::media,

@@ -612,7 +612,6 @@ struct LockscreenConfig {
   float transitionDurationMs = 1500.0F;
   float edgeSmoothness = 0.3F;
   float blurIntensity = 0.9F; // OKARU: mucho blur y atenuado, para que se lea la marca (igual que el greeter)
-  float tintIntensity = 0.45F;
   std::string wallpaper;
   std::vector<std::string> monitors;
 
@@ -815,15 +814,6 @@ struct DesktopWidgetsConfig {
   std::vector<DesktopWidgetState> widgets;
 
   bool operator==(const DesktopWidgetsConfig&) const = default;
-};
-
-struct LockscreenWidgetsConfig {
-  bool enabled = false;
-  std::int32_t schemaVersion = 2;
-  DesktopWidgetsGridState grid;
-  std::vector<DesktopWidgetState> widgets;
-
-  bool operator==(const LockscreenWidgetsConfig&) const = default;
 };
 
 struct OsdKindsConfig {
@@ -1997,7 +1987,6 @@ struct Config {
   WallpaperConfig wallpaper;
   BackdropConfig backdrop;
   LockscreenConfig lockscreen;
-  LockscreenWidgetsConfig lockscreenWidgets;
   DockConfig dock;
   DesktopWidgetsConfig desktopWidgets;
   HotCornersConfig hotCorners;
@@ -2030,7 +2019,6 @@ struct ConfigChangeSet {
   bool bars = true;
   bool widgets = true;
   bool desktopWidgets = true;
-  bool lockscreenWidgets = true;
   bool wallpaper = true;
   bool backdrop = true;
   bool lockscreen = true;
@@ -2061,7 +2049,6 @@ struct ConfigChangeSet {
     return bars
         || widgets
         || desktopWidgets
-        || lockscreenWidgets
         || wallpaper
         || backdrop
         || lockscreen

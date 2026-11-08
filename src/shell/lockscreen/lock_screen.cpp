@@ -14,7 +14,6 @@
 #include "i18n/i18n.h"
 #include "render/render_context.h"
 #include "shell/desktop/desktop_widget_layout.h"
-#include "shell/keyboard_layout_label.h"
 #include "shell/lockscreen/lock_surface.h"
 #include "shell/lockscreen/lockscreen_session_actions.h"
 #include "shell/session/session_action_runner.h"
@@ -146,16 +145,11 @@ void LockScreen::setSessionHooks(
   m_onReadyForSleep = std::move(onReadyForSleep);
 }
 
-void LockScreen::setLoginBoxServices(
-    SessionActionRunner* sessionActions, MprisService* mpris, const WeatherService* weather, HttpClient* httpClient
-) {
+void LockScreen::setSessionActions(SessionActionRunner* sessionActions) {
   m_sessionActions = sessionActions;
-  m_mpris = mpris;
-  m_weather = weather;
-  m_httpClient = httpClient;
   for (auto& instance : m_instances) {
     if (instance.surface != nullptr) {
-      instance.surface->setLoginBoxServices(m_sessionActions, m_mpris, m_weather, m_httpClient);
+      instance.surface->setSessionActions(m_sessionActions);
     }
   }
 }
@@ -332,8 +326,7 @@ void LockScreen::finishUnlock() {
   m_activeTransition.reset();
   m_transitionSuppressed = false;
 
-  // Tear down widgets while lock surfaces still exist. Session hooks run only after
-  // isActive() is false so LockscreenWidgetsController::applyVisibility() hides first.
+  // Session hooks run only after isActive() is false.
   if (wasLockedInteractive && m_onSessionUnlocked) {
     m_onSessionUnlocked();
   }
@@ -1204,7 +1197,7 @@ void LockScreen::applyLockscreenStyle(LockSurface& surface) const {
     return;
   }
   const auto& lockscreen = m_configService->config().lockscreen;
-  surface.setBackgroundStyle(lockscreen.blurIntensity, lockscreen.tintIntensity);
+  surface.setBackgroundStyle(lockscreen.blurIntensity);
 }
 
 bool LockScreen::isInteractiveOutput(const WaylandOutput& output) const {
@@ -1316,9 +1309,8 @@ void LockScreen::createInstance(const WaylandOutput& output) {
   surface->setSleepReadyCallback([this] { handleSleepReady(); });
   surface->setTransitionCallback([this] { handleTransitionStateChanged(); });
   surface->setOnLogin([this] { tryAuthenticate(); });
-  surface->setOnCycleLayout([this] { cycleKeyboardLayout(); });
   surface->setOnPasswordChanged([this](const std::string& value) { handlePasswordEdited(value); });
-  surface->setLoginBoxServices(m_sessionActions, m_mpris, m_weather, m_httpClient);
+  surface->setSessionActions(m_sessionActions);
   surface->setPromptState(m_user, m_password, m_status, m_statusIsError, m_authenticating);
   applyIndicatorsToSurface(*surface);
 
@@ -1381,21 +1373,7 @@ void LockScreen::updatePromptOnSurfaces() {
 }
 
 void LockScreen::applyIndicatorsToSurface(LockSurface& surface) const {
-  const bool capsLock = m_wayland != nullptr && m_wayland->keyboardLockKeysState().capsLock;
-  bool hasMultipleLayouts = false;
-  bool switchable = false;
-  std::string layoutLabel;
-  if (m_compositorPlatform != nullptr) {
-    hasMultipleLayouts = m_compositorPlatform->keyboardLayoutNames().size() > 1;
-    switchable = m_compositorPlatform->hasKeyboardLayoutBackend();
-    const std::string layoutName = m_compositorPlatform->currentKeyboardLayoutName();
-    layoutLabel = m_configService != nullptr
-        ? resolveKeyboardLayoutLabel(
-              layoutName, KeyboardLayoutDisplayMode::Short, m_configService->config().shell.keyboardLayout.customLabels
-          )
-        : formatKeyboardLayoutLabel(layoutName, KeyboardLayoutDisplayMode::Short);
-  }
-  surface.setKeyboardIndicators(capsLock, hasMultipleLayouts, switchable, std::move(layoutLabel));
+  surface.setCapsLock(m_wayland != nullptr && m_wayland->keyboardLockKeysState().capsLock);
 }
 
 void LockScreen::updateIndicatorsOnSurfaces() {
@@ -1406,21 +1384,7 @@ void LockScreen::updateIndicatorsOnSurfaces() {
   }
 }
 
-void LockScreen::cycleKeyboardLayout() {
-  if (m_compositorPlatform == nullptr || !m_compositorPlatform->cycleKeyboardLayout()) {
-    return;
-  }
-  updateIndicatorsOnSurfaces();
-}
-
 void LockScreen::onLockKeysChanged() {
-  if (!isActive()) {
-    return;
-  }
-  updateIndicatorsOnSurfaces();
-}
-
-void LockScreen::onKeyboardLayoutChanged() {
   if (!isActive()) {
     return;
   }

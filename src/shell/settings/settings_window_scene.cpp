@@ -456,9 +456,6 @@ namespace {
     if (section == "lockscreen") {
       return schema::writeTable(cfg.lockscreen, schema::lockscreenSchema());
     }
-    if (section == "lockscreen_widgets") {
-      return schema::writeTable(cfg.lockscreenWidgets, schema::lockscreenWidgetsSchema());
-    }
     if (section == "nightlight") {
       return schema::writeTable(cfg.nightlight, schema::nightlightSchema());
     }

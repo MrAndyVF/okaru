@@ -88,11 +88,10 @@ namespace okaru::config::schema {
   }
 
   std::span<const std::string_view> customRootKeys() {
-    static constexpr std::array<std::string_view, 8> kKeys = {
+    static constexpr std::array<std::string_view, 7> kKeys = {
         "bar",
         "widget",
         "desktop_widgets",
-        "lockscreen_widgets",
         "plugin_settings",
         "include",
         "config_version",

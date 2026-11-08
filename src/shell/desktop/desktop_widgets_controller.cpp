@@ -7,7 +7,6 @@
 #include "shell/desktop/desktop_widgets_host.h"
 #include "shell/desktop/editor/desktop_widgets_editor.h"
 #include "shell/desktop/editor/desktop_widgets_editor_types.h"
-#include "shell/lockscreen/lockscreen_widgets_controller.h"
 
 #include <algorithm>
 #include <charconv>
@@ -93,7 +92,6 @@ DesktopWidgetsController::~DesktopWidgetsController() = default;
 void DesktopWidgetsController::initialize(const DesktopWidgetsControllerServices& services) {
   m_wayland = &services.widgets.wayland;
   m_config = services.widgets.config;
-  m_lockscreenWidgets = services.lockscreenWidgets;
   m_renderContext = services.widgets.renderContext;
   m_host = std::make_unique<DesktopWidgetsHost>();
   m_host->initialize(services.widgets);
@@ -332,9 +330,6 @@ void DesktopWidgetsController::requestRedraw() {
 void DesktopWidgetsController::enterEdit() {
   if (!m_initialized || m_editor == nullptr || m_host == nullptr || isEditing()) {
     return;
-  }
-  if (m_lockscreenWidgets != nullptr && m_lockscreenWidgets->isEditing()) {
-    m_lockscreenWidgets->exitEdit();
   }
   if (m_config != nullptr && !m_config->config().desktopWidgets.enabled) {
     return;

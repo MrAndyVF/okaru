@@ -344,13 +344,6 @@ namespace config_export {
     }
 
     // Root keys whose shape is not a plain section schema.
-    root.insert_or_assign(
-        "lockscreen_widgets",
-        widgetsPlacementTable(
-            config.lockscreenWidgets.enabled, config.lockscreenWidgets.schemaVersion, config.lockscreenWidgets.grid,
-            config.lockscreenWidgets.widgets
-        )
-    );
     root.insert_or_assign("desktop_widgets", desktopWidgetsTable(config.desktopWidgets));
 
     toml::table barRoot;

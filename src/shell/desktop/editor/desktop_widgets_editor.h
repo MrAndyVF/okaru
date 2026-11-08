@@ -20,8 +20,6 @@
 
 class Box;
 class ConfigService;
-class SharedTextureCache;
-class WallpaperNode;
 class InputArea;
 class RenderContext;
 class WaylandConnection;
@@ -126,15 +124,6 @@ private:
     bool inspectorPositionInitialized = false;
     std::unique_ptr<SelectDropdownPopup> selectPopup;
     bool pointerInside = false;
-    bool wallpaperPreviewActive = false;
-    std::string wallpaperPreviewPath;
-    SharedTextureCache::Lease wallpaperPreviewLease;
-    // Lease for wallpaperPreviewPath while it decodes; swapped into wallpaperPreviewLease once ready.
-    SharedTextureCache::Lease wallpaperPreviewPendingLease;
-    std::string wallpaperPreviewLoadedPath;
-    std::string wallpaperPreviewPendingPath;
-    std::string wallpaperPreviewFailedPath;
-    WallpaperNode* wallpaperPreview = nullptr;
   };
 
   struct DragState {
@@ -163,8 +152,6 @@ private:
   void createSurface(const WaylandOutput& output);
   void rebuildScene(OverlaySurface& surface);
   void prepareFrame(OverlaySurface& surface, bool needsUpdate, bool needsLayout);
-  void releaseWallpaperPreview(OverlaySurface& surface);
-  void updateWallpaperPreview(OverlaySurface& surface);
   void applyViewState(EditorWidgetView& view, const DesktopWidgetState& state, bool refreshContent);
   void updateViewTransforms(const std::string* relayoutWidgetId = nullptr);
   // Live resize preview: grow the box (handles/outline) and scale the content on the GPU instead
@@ -226,7 +213,6 @@ private:
   WaylandConnection* m_wayland = nullptr;
   ConfigService* m_config = nullptr;
   RenderContext* m_renderContext = nullptr;
-  SharedTextureCache* m_textureCache = nullptr;
   std::unique_ptr<DesktopWidgetFactory> m_factory;
   std::string m_addWidgetType = "clock";
   std::function<void()> m_exitRequestedCallback;

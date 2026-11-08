@@ -1065,6 +1065,29 @@ size = "small"
     );
   }
 
+  // OKARU: el bloqueo propio deja sin uso [lockscreen_widgets] y lockscreen.tint_intensity.
+  void checkLockscreenCleanupMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 21
+[lockscreen]
+blur_intensity = 0.8
+tint_intensity = 0.45
+[lockscreen_widgets]
+enabled = true
+[lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+type = "login_box"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 21, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "lockscreen cleanup migration was not applied");
+    expect(sidecar["lockscreen_widgets"].node() == nullptr, "lockscreen_widgets was not removed");
+    expect(
+        sidecar["lockscreen"]["tint_intensity"].node() == nullptr
+            && sidecar["lockscreen"]["blur_intensity"].value<double>() == std::optional<double>{0.8},
+        "lockscreen tint_intensity was not removed or blur_intensity was lost"
+    );
+  }
+
   void checkPaletteRoleNamesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 15
@@ -1274,6 +1297,7 @@ int main() {
   checkRemovedKeysMigration();
   checkIntegratedModulesMigration();
   checkNativePhoneMigration();
+  checkLockscreenCleanupMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();
