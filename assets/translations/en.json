@@ -1275,17 +1275,12 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirm Reset",
-      "reset": "Reset"
-    },
     "badges": {
       "advanced": "Advanced",
       "community": "Community",
       "deprecated": "Deprecated",
       "official": "Official",
-      "okaru": "OKARU",
-      "override": "Override"
+      "okaru": "OKARU"
     },
     "calendar-accounts": {
       "add-title": "Add Calendar Account",

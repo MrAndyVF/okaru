@@ -840,16 +840,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirma el restabliment",
-      "reset": "Restableix"
-    },
     "badges": {
       "advanced": "Avançat",
       "community": "Comunitat",
       "deprecated": "Obsolet",
-      "official": "Oficial",
-      "override": "Sobreescriu"
+      "official": "Oficial"
     },
     "calendar-accounts": {
       "add-title": "Afegeix un compte de calendari",

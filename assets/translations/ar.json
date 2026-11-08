@@ -873,16 +873,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "تأكيد إعادة الضبط",
-      "reset": "إعادة ضبط"
-    },
     "badges": {
       "advanced": "متقدم",
       "community": "مجتمعي",
       "deprecated": "مهجور",
-      "official": "رسمي",
-      "override": "تجاوز"
+      "official": "رسمي"
     },
     "calendar-accounts": {
       "add-title": "إضافة حساب تقويم",

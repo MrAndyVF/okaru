@@ -781,15 +781,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Restablecer"
-    },
     "badges": {
       "advanced": "Avanzado",
       "community": "Comunidade",
       "deprecated": "Obsoleto",
-      "official": "Oficial",
-      "override": "Sobreescribir"
+      "official": "Oficial"
     },
     "calendar-accounts": {
       "add-title": "Engadir conta de calendario",

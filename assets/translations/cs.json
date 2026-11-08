@@ -770,14 +770,10 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Obnovit"
-    },
     "badges": {
       "advanced": "Pokročilé",
       "community": "Komunita",
-      "official": "Oficiální",
-      "override": "Přepsání"
+      "official": "Oficiální"
     },
     "calendar-accounts": {
       "add-title": "Přidat účet kalendáře",

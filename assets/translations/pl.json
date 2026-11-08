@@ -744,12 +744,8 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Resetuj"
-    },
     "badges": {
-      "advanced": "Zaawansowane",
-      "override": "Przesłonięcie"
+      "advanced": "Zaawansowane"
     },
     "calendar-accounts": {
       "add-title": "Dodaj konto kalendarza",

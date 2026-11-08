@@ -1065,16 +1065,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmar Redefinição",
-      "reset": "Redefinir"
-    },
     "badges": {
       "advanced": "Avançado",
       "community": "Comunidade",
       "deprecated": "Obsoleto",
-      "official": "Oficial",
-      "override": "Sobrescrito"
+      "official": "Oficial"
     },
     "calendar-accounts": {
       "add-title": "Adicionar Conta de Calendário",

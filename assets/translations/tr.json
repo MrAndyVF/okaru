@@ -860,16 +860,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Sıfırlamayı Onayla",
-      "reset": "Sıfırla"
-    },
     "badges": {
       "advanced": "Gelişmiş",
       "community": "Topluluk",
       "deprecated": "Kullanımdan Kaldırıldı",
-      "official": "Resmi",
-      "override": "Geçersiz Kılma"
+      "official": "Resmi"
     },
     "calendar-accounts": {
       "add-title": "Takvim Hesabı Ekle",

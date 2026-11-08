@@ -942,16 +942,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmer la réinitialisation",
-      "reset": "Réinitialiser"
-    },
     "badges": {
       "advanced": "Avancé",
       "community": "Communauté",
       "deprecated": "Obsolète",
-      "official": "Officiel",
-      "override": "Remplacer"
+      "official": "Officiel"
     },
     "calendar-accounts": {
       "add-title": "Ajouter un compte au calendrier",

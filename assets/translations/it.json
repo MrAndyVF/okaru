@@ -1005,16 +1005,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Conferma reset",
-      "reset": "Ripristina"
-    },
     "badges": {
       "advanced": "Avanzato",
       "community": "Community",
       "deprecated": "Deprecato",
-      "official": "Ufficiale",
-      "override": "Override"
+      "official": "Ufficiale"
     },
     "calendar-accounts": {
       "add-title": "Aggiungi account calendario",

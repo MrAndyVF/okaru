@@ -807,16 +807,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "確認恢復預設值",
-      "reset": "恢復預設值"
-    },
     "badges": {
       "advanced": "進階",
       "community": "社區",
       "deprecated": "已棄用",
-      "official": "官方",
-      "override": "已修改"
+      "official": "官方"
     },
     "calendar-accounts": {
       "add-title": "新增行事曆帳號",

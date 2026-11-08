@@ -857,16 +857,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Zurücksetzen bestätigen",
-      "reset": "Zurücksetzen"
-    },
     "badges": {
       "advanced": "Erweitert",
       "community": "Community",
       "deprecated": "Veraltet",
-      "official": "Offiziell",
-      "override": "Überschreiben"
+      "official": "Offiziell"
     },
     "calendar-accounts": {
       "add-title": "Kalenderkonto hinzufügen",

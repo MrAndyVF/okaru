@@ -897,16 +897,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "초기화 확인",
-      "reset": "초기화"
-    },
     "badges": {
       "advanced": "고급",
       "community": "커뮤니티",
       "deprecated": "더 이상 사용되지 않음",
-      "official": "공식",
-      "override": "재정의"
+      "official": "공식"
     },
     "calendar-accounts": {
       "add-title": "캘린더 계정 추가",

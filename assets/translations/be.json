@@ -1065,16 +1065,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Пацвярдзіць скід",
-      "reset": "Скінуць"
-    },
     "badges": {
       "advanced": "Пашыраныя",
       "community": "Ад супольнасці",
       "deprecated": "Састарэла",
-      "official": "Афіцыйны",
-      "override": "Перавызначэнне"
+      "official": "Афіцыйны"
     },
     "calendar-accounts": {
       "add-title": "Дадаць уліковы запіс календара",
