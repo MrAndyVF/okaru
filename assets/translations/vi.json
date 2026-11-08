@@ -1022,10 +1022,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Xác nhận đặt lại",
-      "reset": "Đặt lại"
-    },
     "badges": {
       "advanced": "Nâng cao",
       "community": "Cộng đồng",

@@ -890,10 +890,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "تأكيد إعادة الضبط",
-      "reset": "إعادة ضبط"
-    },
     "badges": {
       "advanced": "متقدم",
       "community": "مجتمعي",

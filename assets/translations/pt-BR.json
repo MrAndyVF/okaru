@@ -1083,10 +1083,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmar Redefinição",
-      "reset": "Redefinir"
-    },
     "badges": {
       "advanced": "Avançado",
       "community": "Comunidade",

@@ -1083,10 +1083,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Пацвярдзіць скід",
-      "reset": "Скінуць"
-    },
     "badges": {
       "advanced": "Пашыраныя",
       "community": "Ад супольнасці",

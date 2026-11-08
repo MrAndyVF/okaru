@@ -1083,10 +1083,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "リセットを確定",
-      "reset": "リセット"
-    },
     "badges": {
       "advanced": "詳細設定",
       "community": "コミュニティ",

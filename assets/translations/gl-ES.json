@@ -793,9 +793,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Restablecer"
-    },
     "badges": {
       "advanced": "Avanzado",
       "community": "Comunidade",

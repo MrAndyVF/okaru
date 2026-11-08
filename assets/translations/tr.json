@@ -876,10 +876,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Sıfırlamayı Onayla",
-      "reset": "Sıfırla"
-    },
     "badges": {
       "advanced": "Gelişmiş",
       "community": "Topluluk",

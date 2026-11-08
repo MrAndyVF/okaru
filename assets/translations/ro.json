@@ -1037,10 +1037,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmă resetarea",
-      "reset": "Resetare"
-    },
     "badges": {
       "advanced": "Avansat",
       "community": "Comunitate",

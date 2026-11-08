@@ -752,9 +752,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Resetuj"
-    },
     "badges": {
       "advanced": "Zaawansowane"
     },

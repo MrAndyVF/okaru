@@ -960,10 +960,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmer la réinitialisation",
-      "reset": "Réinitialiser"
-    },
     "badges": {
       "advanced": "Avancé",
       "community": "Communauté",

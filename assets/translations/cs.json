@@ -781,9 +781,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Obnovit"
-    },
     "badges": {
       "advanced": "Pokročilé",
       "community": "Komunita",

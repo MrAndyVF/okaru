@@ -1023,10 +1023,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Conferma reset",
-      "reset": "Ripristina"
-    },
     "badges": {
       "advanced": "Avanzato",
       "community": "Community",

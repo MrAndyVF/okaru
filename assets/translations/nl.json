@@ -758,9 +758,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Herstellen"
-    },
     "badges": {
       "advanced": "Geavanceerd",
       "official": "Officieel"

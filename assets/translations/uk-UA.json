@@ -1026,10 +1026,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Підтвердити скидання",
-      "reset": "Скинути"
-    },
     "badges": {
       "advanced": "Додаткові",
       "community": "Спільнота",

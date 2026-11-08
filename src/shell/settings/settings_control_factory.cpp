@@ -167,47 +167,80 @@ namespace settings {
     || path == std::vector<std::string>{"theme", "templates", "enable_community_templates"};
   }
 
-  std::unique_ptr<Button> SettingsControlFactory::makeResetButton(const std::vector<std::string>& path) {
+  std::unique_ptr<Node> SettingsControlFactory::makeResetButton(const std::vector<std::string>& path) {
     return makeGroupedResetButton(std::vector<std::vector<std::string>>{path});
   }
 
-  std::unique_ptr<Button>
+  std::unique_ptr<Node>
   SettingsControlFactory::makeResetButton(const std::vector<std::string>& path, std::function<void()> onConfirmed) {
     return makeGroupedResetButton(std::vector<std::vector<std::string>>{path}, std::move(onConfirmed));
   }
 
-  std::unique_ptr<Button> SettingsControlFactory::makeGroupedResetButton(
+  bool SettingsControlFactory::isResetPending(const std::vector<std::vector<std::string>>& paths) const {
+    return m_ctx.isResetConfirmationPending && m_ctx.isResetConfirmationPending(paths);
+  }
+
+  // Igual que el control de revertir de las páginas OKARU (Ventanas): icono "restore"; al pulsarlo, la fila pide
+  // confirmación con Cancelar / Restablecer en lugar del control.
+  std::unique_ptr<Node> SettingsControlFactory::makeGroupedResetButton(
       std::vector<std::vector<std::string>> paths, std::function<void()> onConfirmed
   ) {
     auto& ctx = m_ctx;
     const float scale = m_scale;
-    const bool pendingConfirmation = ctx.isResetConfirmationPending && ctx.isResetConfirmationPending(paths);
-    // Solo icono: el segundo clic (en rojo) confirma; el texto queda en el tooltip.
-    return ui::button({
-        .glyph = "arrow-back-up",
-        .glyphSize = Style::fontSizeBody * scale,
-        .variant = pendingConfirmation ? ButtonVariant::Destructive : ButtonVariant::Ghost,
-        .tooltip = i18n::tr(pendingConfirmation ? "settings.actions.confirm-reset" : "settings.actions.reset"),
-        .minWidth = Style::controlHeightSm * scale,
-        .minHeight = Style::controlHeightSm * scale,
-        .paddingV = Style::spaceXs * scale,
-        .paddingH = Style::spaceXs * scale,
-        .radius = Style::scaledRadiusMd(scale),
-        .onClick = [clearOverrides = ctx.clearOverrides, requestConfirmation = ctx.requestResetConfirmation,
-                    requestRebuild = ctx.requestRebuild, paths = std::move(paths), onConfirmed = std::move(onConfirmed),
-                    pendingConfirmation] mutable {
-          if (!pendingConfirmation) {
-            requestConfirmation(paths);
+    if (!isResetPending(paths)) {
+      return ui::button({
+          .glyph = "restore",
+          .glyphSize = Style::fontSizeBody * scale,
+          .variant = ButtonVariant::Ghost,
+          .tooltip = i18n::tr("settings.okaru.windows.reset"),
+          .minWidth = Style::controlHeightSm * scale,
+          .minHeight = Style::controlHeightSm * scale,
+          .radius = Style::scaledRadiusMd(scale),
+          .onClick = [requestConfirmation = ctx.requestResetConfirmation, requestRebuild = ctx.requestRebuild,
+                      paths] mutable {
+            requestConfirmation(std::move(paths));
             requestRebuild();
-            return;
-          }
+          },
+      });
+    }
+
+    const auto smallButton =
+        [scale](std::string label, std::string glyph, ButtonVariant variant, std::function<void()> onClick) {
+          return ui::button({
+              .text = std::move(label),
+              .glyph = std::move(glyph),
+              .fontSize = Style::fontSizeCaption * scale,
+              .glyphSize = Style::fontSizeBody * scale,
+              .variant = variant,
+              .minHeight = Style::controlHeightSm * scale,
+              .paddingH = Style::spaceSm * scale,
+              .radius = Style::scaledRadiusMd(scale),
+              .onClick = std::move(onClick),
+          });
+        };
+    auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale});
+    row->addChild(makeLabel(
+        i18n::tr("settings.okaru.windows.reset-confirm"), Style::fontSizeCaption * scale,
+        colorSpecFromRole(ColorRole::OnSurface), FontWeight::Bold
+    ));
+    row->addChild(smallButton(
+        i18n::tr("settings.okaru.windows.cancel"), "circle-x", ButtonVariant::Ghost,
+        [requestConfirmation = ctx.requestResetConfirmation, requestRebuild = ctx.requestRebuild] {
+          requestConfirmation({});
+          requestRebuild();
+        }
+    ));
+    row->addChild(smallButton(
+        i18n::tr("settings.okaru.windows.reset-action"), "restore", ButtonVariant::Destructive,
+        [clearOverrides = ctx.clearOverrides, paths = std::move(paths), onConfirmed = std::move(onConfirmed)] mutable {
           if (onConfirmed) {
             onConfirmed();
             return;
           }
           clearOverrides(std::move(paths));
-        },
-    });
+        }
+    ));
+    return row;
   }
 
   std::unique_ptr<Flex> SettingsControlFactory::makeStatusBadge(
@@ -269,21 +302,21 @@ namespace settings {
     }
 
     auto actions = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
+    std::vector<std::vector<std::string>> resetPaths{entry.path};
+    if (rangeSlider != nullptr) {
+      resetPaths.push_back(rangeSlider->highPath);
+    } else if (selectSetting != nullptr && !selectSetting->linkedPath.empty()) {
+      resetPaths.push_back(selectSetting->linkedPath);
+    }
+    const bool confirmingReset = overridden && isResetPending(resetPaths);
     if (overridden) {
-      if (rangeSlider != nullptr) {
-        actions->addChild(
-            makeGroupedResetButton(std::vector<std::vector<std::string>>{entry.path, rangeSlider->highPath})
-        );
-      } else if (selectSetting != nullptr && !selectSetting->linkedPath.empty()) {
-        actions->addChild(
-            makeGroupedResetButton(std::vector<std::vector<std::string>>{entry.path, selectSetting->linkedPath})
-        );
-      } else {
-        actions->addChild(makeResetButton(entry.path));
-      }
+      actions->addChild(makeGroupedResetButton(std::move(resetPaths)));
     }
     tagTabFocusKey(*control, joinSettingPath(entry.path));
-    actions->addChild(std::move(control));
+    // Mientras se confirma el reset, la confirmación ocupa el lugar del control (como en las páginas OKARU).
+    if (!confirmingReset) {
+      actions->addChild(std::move(control));
+    }
 
     auto row = ui::row(
         {.align = FlexAlign::Center,

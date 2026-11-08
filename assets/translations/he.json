@@ -874,10 +874,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "אישור איפוס",
-      "reset": "איפוס"
-    },
     "badges": {
       "advanced": "מתקדם",
       "community": "קהילה",

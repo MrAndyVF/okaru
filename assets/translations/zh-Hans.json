@@ -1033,10 +1033,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "确认重置",
-      "reset": "重置"
-    },
     "badges": {
       "advanced": "高级",
       "community": "社区",

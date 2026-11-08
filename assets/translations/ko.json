@@ -914,10 +914,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "초기화 확인",
-      "reset": "초기화"
-    },
     "badges": {
       "advanced": "고급",
       "community": "커뮤니티",

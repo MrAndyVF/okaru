@@ -879,10 +879,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Stadfest nullstilling",
-      "reset": "Nullstill"
-    },
     "badges": {
       "advanced": "Avansert",
       "community": "Samfunn",

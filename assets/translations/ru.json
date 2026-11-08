@@ -1083,10 +1083,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Подтвердить сброс",
-      "reset": "Сбросить"
-    },
     "badges": {
       "advanced": "Расширенное",
       "community": "Сообщество",
