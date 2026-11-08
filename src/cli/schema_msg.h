@@ -545,6 +545,9 @@ namespace okaru::cli {
         "capture-record-toggle", "Start or stop a screen recording with the Capture widget options", {}, {}, {}, {}, {},
         false
     };
+    inline constexpr Command capturePauseToggle{
+        "capture-pause-toggle", "Pause or resume the screen recording", {}, {}, {}, {}, {}, false
+    };
     // OKARU
     inline constexpr Command authPromptOpen{"auth-prompt-open",
                                             "Open a password request (okaru askpass)",
@@ -1019,6 +1022,7 @@ namespace okaru::cli {
       msg::authPromptResult, // OKARU
       msg::captureRecordToggle, // OKARU
       msg::captureStop, // OKARU
+      msg::capturePauseToggle, // OKARU
       msg::greeterSync,
       msg::keyboardBacklightDown,
       msg::keyboardBacklightOsd,
