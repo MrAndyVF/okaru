@@ -188,3 +188,7 @@ binds {
     Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
     Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
 }
+
+// OKARU: pantallas y workspaces que administra Ajustes.
+include optional=true "okaru/outputs.kdl"
+include optional=true "okaru/workspaces.kdl"

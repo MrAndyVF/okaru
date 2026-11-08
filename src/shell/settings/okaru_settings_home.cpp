@@ -6,6 +6,7 @@
 #include "i18n/i18n.h"
 #include "net/url_open.h"
 #include "shell/settings/settings_content_common.h"
+#include "system/hardware_info.h"
 #include "system/okaru_system_info.h"
 #include "ui/builders.h"
 #include "ui/palette.h"
@@ -69,10 +70,21 @@ namespace settings {
         makeLabel("OKARU (郁)", Style::fontSizeTitle * scale, colorSpecFromRole(ColorRole::Primary), FontWeight::Bold)
     );
     shell->addChild(infoRow(scale, tr("shell-version"), okaru::build_info::displayVersion()));
-    shell->addChild(infoRow(
-        scale, tr("compositor"),
-        hypr.has_value() ? std::format("Hyprland {} ({})", hypr->version, hypr->commit) : tr("compositor-unknown")
-    ));
+    // Hyprland da versión y commit por su socket; los demás (Niri) por `<compositor> --version`, que la tarjeta
+    // de perfil ya resolvió al arrancar. Mientras tanto, al menos el nombre.
+    std::string compositor;
+    if (hypr.has_value()) {
+      compositor = std::format("Hyprland {} ({})", hypr->version, hypr->commit);
+    } else if (const auto line = compositorVersionLine({}); line.has_value() && !line->empty()) {
+      compositor = *line;
+    } else if (
+        const std::string label = compositorLabel(); !label.empty() && label != i18n::tr("system.hardware.unknown")
+    ) {
+      compositor = label;
+    } else {
+      compositor = tr("compositor-unknown");
+    }
+    shell->addChild(infoRow(scale, tr("compositor"), compositor));
 
     Flex* system = addSettingsCard(content, tr("system"), scale);
     system->addChild(infoRow(scale, tr("os"), info.os));

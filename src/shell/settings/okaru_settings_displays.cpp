@@ -1,7 +1,10 @@
 #include "shell/settings/okaru_settings_displays.h"
 
+#include "compositors/compositor_detect.h"
 #include "compositors/hyprland/hyprland_runtime.h"
 #include "compositors/hyprland/okaru_hypr_outputs.h"
+#include "compositors/niri/niri_runtime.h"
+#include "compositors/niri/okaru_niri_config.h"
 #include "core/timer_manager.h"
 #include "i18n/i18n.h"
 #include "shell/settings/settings_content_common.h"
@@ -30,6 +33,7 @@ namespace settings {
     // en cada cambio, y la cuenta regresiva debe seguir (y revertir) aunque se cierre la ventana.
     struct DisplaysState {
       compositors::hyprland::HyprlandRuntime runtime;
+      compositors::niri::NiriRuntime niri;
       std::vector<OutputInfo> infos;
       std::vector<OutputRule> applied; // lo que está en vivo y confirmado
       std::vector<OutputRule> pending; // lo que el usuario está editando
@@ -57,8 +61,39 @@ namespace settings {
       }
     }
 
+    // Niri: el archivo okaru/outputs.kdl es la aplicación (Niri recarga solo); Hyprland: hl.monitor en vivo.
+    bool niriMode() { return compositors::isNiri() && state().niri.available(); }
+
+    std::optional<std::string> applyLive(const std::vector<OutputRule>& rules, const std::string& primary) {
+      return niriMode() ? okaru::niri::writeOutputs(rules, primary)
+                        : okaru::hypr::applyLive(state().runtime, rules, primary);
+    }
+
+    std::optional<std::string> persist(const std::vector<OutputRule>& rules, const std::string& primary) {
+      return niriMode() ? std::nullopt : okaru::hypr::writeFileRules(rules, primary);
+    }
+
     void reload() {
       auto& s = state();
+      if (niriMode()) {
+        s.infos = okaru::niri::queryOutputs(s.niri);
+        std::string primary;
+        const auto fileRules = okaru::niri::readOutputs(&primary);
+        s.applied.clear();
+        for (const auto& info : s.infos) {
+          s.applied.push_back(okaru::niri::ruleFor(info, fileRules));
+        }
+        s.pending = s.applied;
+        s.appliedPrimary = primary;
+        s.pendingPrimary = primary;
+        s.loaded = true;
+        const bool exists = std::ranges::contains(s.applied, s.selected, &OutputRule::output);
+        if (!exists && !s.applied.empty()) {
+          const auto focused = std::ranges::find_if(s.infos, &OutputInfo::focused);
+          s.selected = focused != s.infos.end() ? focused->name : s.applied.front().output;
+        }
+        return;
+      }
       s.infos = okaru::hypr::queryOutputs(s.runtime);
       const auto fileRules = okaru::hypr::readFileRules();
       s.applied.clear();
@@ -101,13 +136,13 @@ namespace settings {
       s.countdown.stop();
       s.confirming = false;
       if (keep) {
-        if (auto err = okaru::hypr::writeFileRules(s.pending, s.pendingPrimary)) {
+        if (auto err = persist(s.pending, s.pendingPrimary)) {
           s.error = *err;
         }
         s.applied = s.pending;
         s.appliedPrimary = s.pendingPrimary;
       } else {
-        if (auto err = okaru::hypr::applyLive(s.runtime, s.revertTo, s.revertPrimary)) {
+        if (auto err = applyLive(s.revertTo, s.revertPrimary)) {
           s.error = *err;
         }
         s.applied = s.revertTo;
@@ -125,9 +160,9 @@ namespace settings {
       okaru::hypr::normalizePositions(s.pending);
       s.revertTo = s.applied;
       s.revertPrimary = s.appliedPrimary;
-      if (auto err = okaru::hypr::applyLive(s.runtime, s.pending, s.pendingPrimary)) {
+      if (auto err = applyLive(s.pending, s.pendingPrimary)) {
         s.error = *err;
-        (void)okaru::hypr::applyLive(s.runtime, s.revertTo, s.revertPrimary);
+        (void)applyLive(s.revertTo, s.revertPrimary);
         s.pending = s.applied;
         s.pendingPrimary = s.appliedPrimary;
         rebuild();
@@ -277,6 +312,7 @@ namespace settings {
       }
       const OutputRule rule = *rulePtr;
       const std::string name = rule.output;
+      const bool niri = niriMode();
       const std::string title = info->description.empty() ? name : std::format("{} — {}", name, info->description);
       Flex* body = addSettingsCard(content, title, scale);
 
@@ -384,7 +420,8 @@ namespace settings {
         }
       }
       body->addChild(settingRow(
-          scale, i18n::tr("settings.okaru.displays.scale"), i18n::tr("settings.okaru.displays.scale-desc"),
+          scale, i18n::tr("settings.okaru.displays.scale"),
+          i18n::tr(niri ? "settings.okaru.displays.scale-desc-niri" : "settings.okaru.displays.scale-desc"),
           selectControl(scale, scaleLabels, scaleIndex, [name](std::size_t index) {
             edit(name, [value = kScales[index]](OutputRule& r) { r.scale = value; });
           })
@@ -404,32 +441,38 @@ namespace settings {
           )
       ));
 
-      // Espejo.
-      std::vector<std::string> mirrorLabels{i18n::tr("settings.okaru.displays.mirror-none")};
-      std::vector<std::string> mirrorTargets{""};
-      for (const auto& other : s.pending) {
-        if (other.output != name && !other.disabled && other.mirror.empty()) {
-          mirrorLabels.push_back(other.output);
-          mirrorTargets.push_back(other.output);
+      // Espejo (solo Hyprland).
+      if (!niri) {
+        std::vector<std::string> mirrorLabels{i18n::tr("settings.okaru.displays.mirror-none")};
+        std::vector<std::string> mirrorTargets{""};
+        for (const auto& other : s.pending) {
+          if (other.output != name && !other.disabled && other.mirror.empty()) {
+            mirrorLabels.push_back(other.output);
+            mirrorTargets.push_back(other.output);
+          }
         }
+        const auto mirrorIt = std::ranges::find(mirrorTargets, rule.mirror);
+        body->addChild(settingRow(
+            scale, i18n::tr("settings.okaru.displays.mirror"), i18n::tr("settings.okaru.displays.mirror-desc"),
+            selectControl(
+                scale, mirrorLabels,
+                mirrorIt == mirrorTargets.end() ? 0 : static_cast<std::size_t>(mirrorIt - mirrorTargets.begin()),
+                [name, mirrorTargets](std::size_t index) {
+                  edit(name, [target = mirrorTargets[index]](OutputRule& r) { r.mirror = target; });
+                }
+            )
+        ));
       }
-      const auto mirrorIt = std::ranges::find(mirrorTargets, rule.mirror);
-      body->addChild(settingRow(
-          scale, i18n::tr("settings.okaru.displays.mirror"), i18n::tr("settings.okaru.displays.mirror-desc"),
-          selectControl(
-              scale, mirrorLabels,
-              mirrorIt == mirrorTargets.end() ? 0 : static_cast<std::size_t>(mirrorIt - mirrorTargets.begin()),
-              [name, mirrorTargets](std::size_t index) {
-                edit(name, [target = mirrorTargets[index]](OutputRule& r) { r.mirror = target; });
-              }
-          )
-      ));
 
       // Frecuencia variable.
+      // Hyprland: heredar y 0-3; Niri: apagada, encendida y bajo demanda (0-2).
       std::vector<std::string> vrrLabels;
-      for (int i = -1; i <= 3; ++i) {
+      const int vrrFirst = niri ? 0 : -1;
+      const int vrrLast = niri ? 2 : 3;
+      for (int i = vrrFirst; i <= vrrLast; ++i) {
         vrrLabels.push_back(
-            i18n::tr(std::format("settings.okaru.displays.vrr-{}", i < 0 ? "inherit" : std::to_string(i)))
+            niri ? i18n::tr(std::format("settings.okaru.displays.vrr-niri-{}", i))
+                 : i18n::tr(std::format("settings.okaru.displays.vrr-{}", i < 0 ? "inherit" : std::to_string(i)))
         );
       }
       body->addChild(settingRow(
@@ -437,94 +480,100 @@ namespace settings {
           info->vrrCapable ? i18n::tr("settings.okaru.displays.vrr-desc")
                            : i18n::tr("settings.okaru.displays.vrr-unsupported"),
           selectControl(
-              scale, vrrLabels, static_cast<std::size_t>(std::clamp(rule.vrr, -1, 3) + 1),
-              [name](std::size_t index) {
-                edit(name, [index](OutputRule& r) { r.vrr = static_cast<int>(index) - 1; });
+              scale, vrrLabels, static_cast<std::size_t>(std::clamp(rule.vrr, vrrFirst, vrrLast) - vrrFirst),
+              [name, vrrFirst](std::size_t index) {
+                edit(name, [index, vrrFirst](OutputRule& r) { r.vrr = static_cast<int>(index) + vrrFirst; });
               },
               info->vrrCapable
           )
       ));
 
-      // Profundidad de color.
-      body->addChild(settingRow(
-          scale, i18n::tr("settings.okaru.displays.bitdepth"), i18n::tr("settings.okaru.displays.bitdepth-desc"),
-          selectControl(scale, {"8 bits", "10 bits"}, rule.bitdepth == 10 ? 1 : 0, [name](std::size_t index) {
-            edit(name, [index](OutputRule& r) { r.bitdepth = index == 1 ? 10 : 8; });
-          })
-      ));
-
-      // Gestión de color.
-      static const std::vector<std::string> kCm{"srgb", "wide", "edid", "dcip3", "dp3", "adobe", "hdr", "hdredid"};
-      std::vector<std::string> cmLabels;
-      for (const auto& cm : kCm) {
-        cmLabels.push_back(i18n::tr("settings.okaru.displays.cm-" + cm));
-      }
-      const auto cmIt = std::ranges::find(kCm, rule.cm);
-      const bool hdr = rule.cm.starts_with("hdr");
-      body->addChild(settingRow(
-          scale, i18n::tr("settings.okaru.displays.cm"),
-          info->hdrCapable ? i18n::tr("settings.okaru.displays.cm-desc")
-                           : i18n::tr("settings.okaru.displays.cm-desc-nohdr"),
-          selectControl(
-              scale, cmLabels, cmIt == kCm.end() ? 0 : static_cast<std::size_t>(cmIt - kCm.begin()),
-              [name](std::size_t index) { edit(name, [index](OutputRule& r) { r.cm = kCm[index]; }); }
-          )
-      ));
-      if (hdr) {
-        const auto sliderRow = [&](const std::string& key, double value, double min, double max,
-                                   std::function<void(OutputRule&, double)> apply) {
-          body->addChild(settingRow(
-              scale, i18n::tr("settings.okaru.displays." + key), {},
-              ui::slider({
-                  .minValue = min,
-                  .maxValue = max,
-                  .step = 0.05,
-                  .value = value,
-                  .width = Style::sliderDefaultWidth * scale,
-                  .onValueChanged =
-                      [name, apply](double v) {
-                        if (auto* r = pendingRule(name)) {
-                          apply(*r, v);
-                        }
-                      },
-                  .onDragEnd = [] { rebuild(); },
-              })
-          ));
-        };
-        sliderRow("sdr-brightness", rule.sdrBrightness, 0.5, 2.0, [](OutputRule& r, double v) { r.sdrBrightness = v; });
-        sliderRow("sdr-saturation", rule.sdrSaturation, 0.5, 1.5, [](OutputRule& r, double v) { r.sdrSaturation = v; });
-      }
-
-      // Área reservada: margen fijo por lado, sumado al que piden barras y paneles.
-      auto sides = ui::row({.align = FlexAlign::End, .gap = Style::spaceSm * scale});
-      const auto addSide = [&](const char* key, int value, int OutputRule::* field) {
-        auto column = ui::column(
-            {.align = FlexAlign::Start, .gap = Style::spaceXs * scale},
-            makeLabel(
-                i18n::tr(std::string("settings.okaru.displays.reserved-") + key), Style::fontSizeCaption * scale,
-                colorSpecFromRole(ColorRole::OnSurfaceVariant)
-            )
-        );
-        column->addChild(
-            ui::stepper({
-                .minValue = 0,
-                .maxValue = 2000,
-                .step = 1,
-                .value = value,
-                .scale = scale,
-                .onValueCommitted = [name, field](int v) { edit(name, [field, v](OutputRule& r) { r.*field = v; }); },
+      // Profundidad de color, gestión de color, SDR y área reservada: solo Hyprland.
+      if (!niri) {
+        body->addChild(settingRow(
+            scale, i18n::tr("settings.okaru.displays.bitdepth"), i18n::tr("settings.okaru.displays.bitdepth-desc"),
+            selectControl(scale, {"8 bits", "10 bits"}, rule.bitdepth == 10 ? 1 : 0, [name](std::size_t index) {
+              edit(name, [index](OutputRule& r) { r.bitdepth = index == 1 ? 10 : 8; });
             })
-        );
-        sides->addChild(std::move(column));
-      };
-      addSide("top", rule.reservedTop, &OutputRule::reservedTop);
-      addSide("right", rule.reservedRight, &OutputRule::reservedRight);
-      addSide("bottom", rule.reservedBottom, &OutputRule::reservedBottom);
-      addSide("left", rule.reservedLeft, &OutputRule::reservedLeft);
-      body->addChild(settingRow(
-          scale, i18n::tr("settings.okaru.displays.reserved"), i18n::tr("settings.okaru.displays.reserved-desc"),
-          std::move(sides)
-      ));
+        ));
+
+        // Gestión de color.
+        static const std::vector<std::string> kCm{"srgb", "wide", "edid", "dcip3", "dp3", "adobe", "hdr", "hdredid"};
+        std::vector<std::string> cmLabels;
+        for (const auto& cm : kCm) {
+          cmLabels.push_back(i18n::tr("settings.okaru.displays.cm-" + cm));
+        }
+        const auto cmIt = std::ranges::find(kCm, rule.cm);
+        const bool hdr = rule.cm.starts_with("hdr");
+        body->addChild(settingRow(
+            scale, i18n::tr("settings.okaru.displays.cm"),
+            info->hdrCapable ? i18n::tr("settings.okaru.displays.cm-desc")
+                             : i18n::tr("settings.okaru.displays.cm-desc-nohdr"),
+            selectControl(
+                scale, cmLabels, cmIt == kCm.end() ? 0 : static_cast<std::size_t>(cmIt - kCm.begin()),
+                [name](std::size_t index) { edit(name, [index](OutputRule& r) { r.cm = kCm[index]; }); }
+            )
+        ));
+        if (hdr) {
+          const auto sliderRow = [&](const std::string& key, double value, double min, double max,
+                                     std::function<void(OutputRule&, double)> apply) {
+            body->addChild(settingRow(
+                scale, i18n::tr("settings.okaru.displays." + key), {},
+                ui::slider({
+                    .minValue = min,
+                    .maxValue = max,
+                    .step = 0.05,
+                    .value = value,
+                    .width = Style::sliderDefaultWidth * scale,
+                    .onValueChanged =
+                        [name, apply](double v) {
+                          if (auto* r = pendingRule(name)) {
+                            apply(*r, v);
+                          }
+                        },
+                    .onDragEnd = [] { rebuild(); },
+                })
+            ));
+          };
+          sliderRow("sdr-brightness", rule.sdrBrightness, 0.5, 2.0, [](OutputRule& r, double v) {
+            r.sdrBrightness = v;
+          });
+          sliderRow("sdr-saturation", rule.sdrSaturation, 0.5, 1.5, [](OutputRule& r, double v) {
+            r.sdrSaturation = v;
+          });
+        }
+
+        // Área reservada: margen fijo por lado, sumado al que piden barras y paneles.
+        auto sides = ui::row({.align = FlexAlign::End, .gap = Style::spaceSm * scale});
+        const auto addSide = [&](const char* key, int value, int OutputRule::* field) {
+          auto column = ui::column(
+              {.align = FlexAlign::Start, .gap = Style::spaceXs * scale},
+              makeLabel(
+                  i18n::tr(std::string("settings.okaru.displays.reserved-") + key), Style::fontSizeCaption * scale,
+                  colorSpecFromRole(ColorRole::OnSurfaceVariant)
+              )
+          );
+          column->addChild(
+              ui::stepper({
+                  .minValue = 0,
+                  .maxValue = 2000,
+                  .step = 1,
+                  .value = value,
+                  .scale = scale,
+                  .onValueCommitted = [name, field](int v) { edit(name, [field, v](OutputRule& r) { r.*field = v; }); },
+              })
+          );
+          sides->addChild(std::move(column));
+        };
+        addSide("top", rule.reservedTop, &OutputRule::reservedTop);
+        addSide("right", rule.reservedRight, &OutputRule::reservedRight);
+        addSide("bottom", rule.reservedBottom, &OutputRule::reservedBottom);
+        addSide("left", rule.reservedLeft, &OutputRule::reservedLeft);
+        body->addChild(settingRow(
+            scale, i18n::tr("settings.okaru.displays.reserved"), i18n::tr("settings.okaru.displays.reserved-desc"),
+            std::move(sides)
+        ));
+      }
 
       body->addChild(makeLabel(
           i18n::tr("settings.okaru.displays.position", "x", std::to_string(rule.x), "y", std::to_string(rule.y)),
@@ -551,7 +600,9 @@ namespace settings {
       if (s.confirming) {
         message = i18n::tr("settings.okaru.displays.confirm", "seconds", std::to_string(s.secondsLeft));
       } else if (!s.error.empty()) {
-        message = i18n::tr("settings.okaru.displays.error", "error", s.error);
+        message = i18n::tr(
+            niriMode() ? "settings.okaru.displays.error-niri" : "settings.okaru.displays.error", "error", s.error
+        );
       } else {
         message = i18n::tr("settings.okaru.displays.pending");
       }
@@ -604,15 +655,56 @@ namespace settings {
 
   } // namespace
 
+  bool addNiriIncludeNotice(Flex& content, float scale, const std::function<void()>& rebuild) {
+    if (okaru::niri::includesActive()) {
+      return false;
+    }
+    static std::string error; // sobrevive a la reconstrucción de la ventana
+    Flex* body = addSettingsCard(content, i18n::tr("settings.okaru.displays.niri-include-title"), scale);
+    auto desc = makeLabel(
+        i18n::tr("settings.okaru.displays.niri-include-desc", "path", okaru::niri::configPath().string()),
+        Style::fontSizeBody * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant)
+    );
+    desc->setMaxLines(6);
+    body->addChild(std::move(desc));
+    if (!error.empty()) {
+      auto label = makeLabel(
+          i18n::tr("settings.okaru.displays.error-niri", "error", error), Style::fontSizeCaption * scale,
+          colorSpecFromRole(ColorRole::Error), FontWeight::Bold
+      );
+      label->setMaxLines(6);
+      body->addChild(std::move(label));
+    }
+    auto actions = ui::row({.align = FlexAlign::Center, .justify = FlexJustify::End, .fillWidth = true});
+    actions->addChild(
+        ui::button({
+            .text = i18n::tr("settings.okaru.displays.niri-include-activate"),
+            .variant = ButtonVariant::Primary,
+            .onClick = [rebuild] {
+              error = okaru::niri::activateIncludes().value_or("");
+              if (rebuild) {
+                rebuild();
+              }
+            },
+        })
+    );
+    body->addChild(std::move(actions));
+    return true;
+  }
+
   void addSettingsDisplays(Flex& content, SettingsDisplaysContext ctx) {
     auto& s = state();
     s.rebuild = std::move(ctx.requestRebuild);
     const float scale = ctx.scale;
 
-    if (s.runtime.requestSocketPath().empty()) { // solo hace falta el socket de peticiones
+    if (niriMode()) {
+      if (addNiriIncludeNotice(content, scale, s.rebuild)) {
+        return;
+      }
+    } else if (s.runtime.requestSocketPath().empty()) { // solo hace falta el socket de peticiones
       Flex* body = addSettingsCard(content, i18n::tr("settings.okaru.displays.arrangement"), scale);
       body->addChild(makeLabel(
-          i18n::tr("settings.okaru.displays.hyprland-only"), Style::fontSizeBody * scale,
+          i18n::tr("settings.okaru.displays.unsupported"), Style::fontSizeBody * scale,
           colorSpecFromRole(ColorRole::OnSurfaceVariant)
       ));
       return;
