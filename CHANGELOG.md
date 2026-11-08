@@ -10,6 +10,64 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.0.3] - 2026-11-07
+
+### English
+
+#### Features
+- New lock screen in the style of Omarchy: the wallpaper heavily blurred under a dark veil, the 郁 + OKARU
+  logo from the installer (kanji in the accent color), the user and password in a pixel font, and logout,
+  suspend, reboot and shutdown as pixel icons.
+- The greeter has the same design as the lock screen, with a session selector at the bottom (click or scroll).
+- Settings → Home shows the 郁 + OKARU logo at the top.
+- Control center: change the profile picture from the profile card (hover the photo; up to 6 MB).
+- Niri: Settings → Displays and Workspaces now work on Niri. OKARU writes its own `niri/okaru/outputs.kdl` and
+  `workspaces.kdl`, checked with `niri validate`, and offers to add the two `include` lines to `config.kdl`.
+- Settings → Home shows Niri and its version as the compositor.
+
+#### Fixes
+- The profile picture in the control center looked blurry.
+- The weather panel cut the day names in the forecast and wrapped the time zone onto two lines.
+- On Niri, Settings → Home showed the compositor as "Not detected".
+
+#### Changes
+- Keyring secrets are now stored as OKARU (`dev.okaru.Secret`); the ones saved under the old name are migrated
+  automatically the first time they are read.
+- New dependency: `ttf-bigblueterminal-nerd` (okaru and okaru-greeter).
+- Lock screen: stronger blur by default; the tint and lock screen widgets settings were removed because the new
+  design no longer shows them.
+- Settings: removed per-monitor bar options and bar capsule styles that could no longer take effect.
+- The stock Niri config includes the OKARU display and workspace files.
+
+### Español
+
+#### Novedades
+- Pantalla de bloqueo nueva al estilo de Omarchy: el fondo de pantalla muy desenfocado bajo un velo oscuro,
+  el logo 郁 + OKARU del instalador (el kanji en el color de acento), el usuario y la contraseña en tipografía
+  pixelada, y cerrar sesión, suspender, reiniciar y apagar como iconos pixelados.
+- El greeter tiene el mismo diseño que la pantalla de bloqueo, con un selector de sesión abajo (clic o rueda).
+- Ajustes → Inicio muestra el logo 郁 + OKARU arriba.
+- Centro de control: cambiar la foto de perfil desde la tarjeta de perfil (pasar el puntero por la foto;
+  hasta 6 MB).
+- Niri: Ajustes → Pantallas y Workspaces ya funcionan en Niri. OKARU escribe sus propios
+  `niri/okaru/outputs.kdl` y `workspaces.kdl`, comprobados con `niri validate`, y ofrece añadir las dos líneas
+  `include` a `config.kdl`.
+- Ajustes → Inicio muestra Niri y su versión como compositor.
+
+#### Correcciones
+- La foto de perfil del centro de control se veía borrosa.
+- El panel del clima cortaba los nombres de los días del pronóstico y partía la zona horaria en dos líneas.
+- En Niri, Ajustes → Inicio mostraba el compositor como "No detectado".
+
+#### Cambios
+- Los secretos del llavero se guardan ahora como OKARU (`dev.okaru.Secret`); los guardados con el nombre
+  anterior se migran solos la primera vez que se leen.
+- Nueva dependencia: `ttf-bigblueterminal-nerd` (okaru y okaru-greeter).
+- Pantalla de bloqueo: más desenfoque por defecto; se quitaron de Ajustes el tinte y los widgets de la pantalla
+  de bloqueo, que el diseño nuevo ya no muestra.
+- Ajustes: se quitaron opciones de la barra por monitor y estilos de cápsulas que ya no podían tener efecto.
+- La configuración de fábrica de Niri incluye los archivos de pantallas y workspaces de OKARU.
+
 ## [1.0.2] - 2026-11-06
 
 ### English
