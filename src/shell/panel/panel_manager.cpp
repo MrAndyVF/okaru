@@ -258,33 +258,12 @@ namespace {
     return false;
   }
 
-  [[nodiscard]] float panelRevealContentOpacity(float reveal) {
-    const float v = std::clamp(reveal, 0.0F, 1.0F);
-    if (v <= 0.15F) {
-      return 0.0F;
-    }
-    return std::clamp((v - 0.15F) / 0.85F, 0.0F, 1.0F);
-  }
-
-  [[nodiscard]] AttachedRevealDirection
-  detachedRevealDirection(std::string_view panelPosition, std::string_view barPosition) {
-    if (panelPosition == "top_left" || panelPosition == "top_center" || panelPosition == "top_right") {
-      return AttachedRevealDirection::Down;
-    }
-    if (panelPosition == "bottom_left" || panelPosition == "bottom_center" || panelPosition == "bottom_right") {
-      return AttachedRevealDirection::Up;
-    }
-    if (panelPosition == "center_left") {
-      return AttachedRevealDirection::Right;
-    }
-    if (panelPosition == "center_right") {
-      return AttachedRevealDirection::Left;
-    }
-    if (panelPosition == "center") {
-      return AttachedRevealDirection::Down;
-    }
-    return attached_panel::revealDirection(barPosition);
-  }
+  // OKARU: los paneles aparecen con un fundido, como las capas de omarchy (fadeLayersIn ≈ 140 ms,
+  // fadeLayersOut ≈ 110 ms), en lugar de desplegarse hacia abajo.
+  constexpr float kPanelFadeInMs = 140.0F;
+  constexpr float kPanelFadeOutMs = 110.0F;
+  // El desenfoque del compositor no se puede atenuar: entra cuando el panel ya se ve casi entero.
+  constexpr float kPanelBlurFromProgress = 0.6F;
 
   [[nodiscard]] bool usesConfiguredFloatingLayer(std::string_view panelId) {
     return panelId == "clipboard"
@@ -588,7 +567,6 @@ void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest reques
   // OKARU: desde la barra el menú sale junto al widget ("auto"); sin widget (atajo, IPC), al centro.
   (void)pluginPanel;
   const std::string panelPosition = request.hasAnchorPosition ? "auto" : "center";
-  const AttachedRevealDirection detachedDirection = detachedRevealDirection(panelPosition, barConfig.position);
   const bool useScreenPosition = panelPosition != "auto" && panelPosition != "center";
   const bool useCenterScreenLayout = panelPosition == "center";
   const bool useFloatingAnchor = !useCenterScreenLayout && request.hasAnchorPosition; // OKARU
@@ -870,7 +848,6 @@ void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest reques
     m_detachedBleedRight = 0;
     m_detachedBleedBottom = 0;
     m_detachedRevealProgress = 1.0F;
-    m_detachedRevealDirection = AttachedRevealDirection::Down;
     m_keyboardRelaxTimer.stop();
     m_sourceBarName.clear();
     m_contentFit = {};
@@ -893,7 +870,6 @@ void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest reques
   // This path publishes the compositor blur region before the first scene build.
   // Keep detached panels hidden until buildScene applies the opening reveal.
   m_detachedRevealProgress = 0.0F;
-  m_detachedRevealDirection = detachedDirection;
   configureSurfaceCallbacks(*m_surface);
   if (wantsOutsideDismiss) {
     m_panelOutputInputRect = detachedPanelInputRect;
@@ -1098,7 +1074,7 @@ void PanelManager::closePanel(bool animateClose) {
     const std::uint64_t gen = ++m_destroyGeneration;
     m_animations.cancelForOwner(m_sceneRoot.get());
     m_animations.animate(
-        m_detachedRevealProgress, 0.0F, Style::animNormal, Easing::EaseInQuad,
+        m_detachedRevealProgress, 0.0F, kPanelFadeOutMs, Easing::Linear,
         [this](float v) { applyDetachedReveal(v); },
         [this, gen] {
           DeferredCall::callLater([this, gen] {
@@ -1230,7 +1206,6 @@ void PanelManager::destroyPanel() {
   m_detachedBleedRight = 0;
   m_detachedBleedBottom = 0;
   m_detachedRevealProgress = 1.0F;
-  m_detachedRevealDirection = AttachedRevealDirection::Down;
   m_keyboardRelaxTimer.stop();
   m_sourceBarName.clear();
   m_contentFit = {};
@@ -1762,27 +1737,10 @@ void PanelManager::applyDetachedReveal(float progress) {
             m_contentFit.slotInsetY + static_cast<std::int32_t>(m_panelVisualHeight) + m_detachedBleedBottom
         )
       : surfaceH;
-  float clipX = 0.0F;
-  float clipY = spanY;
-  float clipW = surfaceW;
-  float clipH = spanH;
-
-  switch (m_detachedRevealDirection) {
-  case AttachedRevealDirection::Down:
-    clipH = std::round(spanH * m_detachedRevealProgress);
-    break;
-  case AttachedRevealDirection::Up:
-    clipH = std::round(spanH * m_detachedRevealProgress);
-    clipY = spanY + spanH - clipH;
-    break;
-  case AttachedRevealDirection::Right:
-    clipW = std::round(surfaceW * m_detachedRevealProgress);
-    break;
-  case AttachedRevealDirection::Left:
-    clipW = std::round(surfaceW * m_detachedRevealProgress);
-    clipX = surfaceW - clipW;
-    break;
-  }
+  const float clipX = 0.0F;
+  const float clipY = spanY;
+  const float clipW = surfaceW;
+  const float clipH = spanH;
 
   if (m_detachedRevealClipNode != nullptr && m_detachedRevealContentNode != nullptr) {
     m_detachedRevealClipNode->setPosition(clipX, clipY);
@@ -1791,13 +1749,14 @@ void PanelManager::applyDetachedReveal(float progress) {
     m_detachedRevealContentNode->setFrameSize(surfaceW, surfaceH);
   }
 
-  if (m_contentNode != nullptr) {
-    m_contentNode->setOpacity(panelRevealContentOpacity(m_detachedRevealProgress));
+  if (m_detachedRevealClipNode != nullptr) {
+    m_detachedRevealClipNode->setOpacity(m_detachedRevealProgress);
   }
+  const bool blurVisible = m_detachedRevealProgress >= kPanelBlurFromProgress;
   applyPanelCompositorBlur(
       m_panelInsetX, m_panelInsetY, static_cast<int>(m_panelVisualWidth), static_cast<int>(m_panelVisualHeight),
-      static_cast<int>(std::lround(clipX)), static_cast<int>(std::lround(clipY)), static_cast<int>(std::lround(clipW)),
-      static_cast<int>(std::lround(clipH))
+      static_cast<int>(std::lround(clipX)), static_cast<int>(std::lround(clipY)),
+      blurVisible ? static_cast<int>(std::lround(clipW)) : 0, blurVisible ? static_cast<int>(std::lround(clipH)) : 0
   );
 }
 
@@ -2015,7 +1974,7 @@ void PanelManager::buildScene(std::uint32_t width, std::uint32_t height) {
 
     applyDetachedReveal(0.0F);
     m_animations.animate(
-        0.0F, 1.0F, Style::animNormal, Easing::EaseOutCubic, [this](float v) { applyDetachedReveal(v); }, {},
+        0.0F, 1.0F, kPanelFadeInMs, Easing::EaseOutCubic, [this](float v) { applyDetachedReveal(v); }, {},
         m_sceneRoot.get()
     );
 

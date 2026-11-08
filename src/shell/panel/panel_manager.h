@@ -4,7 +4,6 @@
 #include "core/timer_manager.h"
 #include "render/animation/animation_manager.h"
 #include "render/scene/input_dispatcher.h"
-#include "shell/panel/attached_panel_context.h"
 #include "shell/panel/panel_click_shield.h"
 #include "shell/panel/persistent_panel_host.h"
 #include "ui/dialogs/layer_popup_host.h"
@@ -286,7 +285,6 @@ private:
   std::int32_t m_detachedBleedRight = 0;
   std::int32_t m_detachedBleedBottom = 0;
   float m_detachedRevealProgress = 1.0F;
-  AttachedRevealDirection m_detachedRevealDirection = AttachedRevealDirection::Down;
   Timer m_keyboardRelaxTimer;
   Timer m_captureCloseTimer;
   wl_callback* m_captureCloseFrame = nullptr;
