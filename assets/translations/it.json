@@ -2425,10 +2425,6 @@
           "description": "Scegli quali monitor mostrano il blocco schermo; lascia vuoto per mostrare su tutti i monitor",
           "label": "Monitor"
         },
-        "tint-intensity": {
-          "description": "Tinta del colore superficie sopra lo sfondo del blocco schermo",
-          "label": "Intensità tinta"
-        },
         "transition-duration": {
           "description": "Durata delle animazioni di blocco e sblocco in millisecondi",
           "label": "Durata della transizione"
@@ -2441,15 +2437,6 @@
           "description": "Immagine personalizzata per lo sfondo del blocco schermo; lascia vuoto per usare lo sfondo del desktop",
           "label": "Sfondo",
           "placeholder": "Usa sfondo desktop"
-        },
-        "widgets": {
-          "description": "Mostra widget configurabili sul blocco schermo",
-          "label": "Widget blocco schermo"
-        },
-        "widgets-editor": {
-          "button": "Attiva/disattiva editor",
-          "description": "Aggiungi, sposta e ridimensiona widget sul blocco schermo",
-          "label": "Editor widget blocco schermo"
         }
       },
       "notifications": {

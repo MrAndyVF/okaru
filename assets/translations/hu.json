@@ -2068,23 +2068,10 @@
           "description": "Válaszd ki, mely kijelzőkön jelenjen meg a zárolási képernyő; hagyd üresen, hogy minden monitoron megjelenjen",
           "label": "Monitorok"
         },
-        "tint-intensity": {
-          "description": "Felületszín színezés a képernyőzár háttere felett",
-          "label": "Színezés intenzitása"
-        },
         "wallpaper": {
           "description": "Egyedi kép a záróképernyő hátteréhez. Hagyd üresen, ha az asztali háttérképet szeretnéd használni.",
           "label": "Háttérkép",
           "placeholder": "Asztali háttérkép használata"
-        },
-        "widgets": {
-          "description": "Konfigurálható widgetek megjelenítése a zárolási képernyőn",
-          "label": "Zárképernyő Widgetek"
-        },
-        "widgets-editor": {
-          "button": "Szerkesztő váltása",
-          "description": "Widgetek hozzáadása, mozgatása és átméretezése a zárolási képernyőn",
-          "label": "Zárolási képernyő Widget Szerkesztő"
         }
       },
       "notifications": {

@@ -1693,23 +1693,10 @@
           "description": "Kies welke monitoren het vergrendelscherm tonen; laat leeg om op alle te tonen",
           "label": "Monitoren"
         },
-        "tint-intensity": {
-          "description": "Oppervlaktekleurtint over de achtergrond van het vergrendelscherm",
-          "label": "Tintintensiteit"
-        },
         "wallpaper": {
           "description": "Aangepaste afbeelding voor de achtergrond van het vergrendelscherm. Laat leeg om de bureaubladachtergrond te gebruiken.",
           "label": "Achtergrond",
           "placeholder": "Bureaubladachtergrond gebruiken"
-        },
-        "widgets": {
-          "description": "Toon configureerbare widgets op het vergrendelscherm",
-          "label": "Vergrendelscherm-widgets"
-        },
-        "widgets-editor": {
-          "button": "Editor in-/uitschakelen",
-          "description": "Widgets toevoegen, verplaatsen en in grootte wijzigen op het vergrendelscherm",
-          "label": "Widget-editor vergrendelscherm"
         }
       },
       "notifications": {

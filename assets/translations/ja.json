@@ -2506,10 +2506,6 @@
           "description": "ロック画面を表示する画面を選択します。空欄の場合はすべての画面に表示します",
           "label": "画面"
         },
-        "tint-intensity": {
-          "description": "ロック画面の背景に表面色を重ねて着色",
-          "label": "着色の強さ"
-        },
         "transition-duration": {
           "description": "ロック・ロック解除アニメーションの長さ（ミリ秒）",
           "label": "切替時間"
@@ -2522,15 +2518,6 @@
           "description": "ロック画面の背景に使用するカスタム画像。空欄の場合はデスクトップの壁紙を使用",
           "label": "壁紙",
           "placeholder": "デスクトップの壁紙を使用する"
-        },
-        "widgets": {
-          "description": "ロック画面に設定可能なウィジェットを表示",
-          "label": "ロック画面ウィジェット"
-        },
-        "widgets-editor": {
-          "button": "編集モードを切替",
-          "description": "ロック画面のウィジェットを追加、移動、サイズ変更",
-          "label": "ロック画面ウィジェット編集"
         }
       },
       "notifications": {

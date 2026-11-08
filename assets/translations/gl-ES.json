@@ -1937,23 +1937,10 @@
           "description": "Escolle que monitores mostran a pantalla de bloqueo; déixao baleiro para mostralo en todos",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Tinte da cor de superficie sobre o fondo da pantalla de bloqueo",
-          "label": "Intensidade do tinte"
-        },
         "wallpaper": {
           "description": "Imaxe personalizada para o fondo da pantalla de bloqueo. Déixao baleiro para usar o fondo de pantalla do escritorio.",
           "label": "Fondo de pantalla",
           "placeholder": "Usar fondo de pantalla do escritorio"
-        },
-        "widgets": {
-          "description": "Mostra widgets configurables na pantalla de bloqueo",
-          "label": "Widgets da pantalla de bloqueo"
-        },
-        "widgets-editor": {
-          "button": "Alternar editor",
-          "description": "Engade, move e redimensiona widgets na pantalla de bloqueo",
-          "label": "Editor de widgets da pantalla de bloqueo"
         }
       },
       "notifications": {

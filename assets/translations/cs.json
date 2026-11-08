@@ -1843,23 +1843,10 @@
           "description": "Vybrat, které monitory zobrazují uzamykací obrazovku; ponechte prázdné pro zobrazení na všech monitorech",
           "label": "Monitory"
         },
-        "tint-intensity": {
-          "description": "Zabarvení povrchovou barvou přes pozadí uzamykací obrazovky",
-          "label": "Intenzita zabarvení"
-        },
         "wallpaper": {
           "description": "Vlastní obrázek pro pozadí uzamykací obrazovky. Ponechte prázdné pro použití tapety plochy.",
           "label": "Tapeta",
           "placeholder": "Použít tapetu plochy"
-        },
-        "widgets": {
-          "description": "Zobrazit konfigurovatelné widgety na uzamykací obrazovce",
-          "label": "Widgety uzamykací obrazovky"
-        },
-        "widgets-editor": {
-          "button": "Přepnout editor",
-          "description": "Přidávat, přesouvat a měnit velikost widgetů na uzamykací obrazovce",
-          "label": "Editor widgetů uzamykací obrazovky"
         }
       },
       "notifications": {

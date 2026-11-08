@@ -2449,10 +2449,6 @@
           "description": "选择显示锁屏的屏幕；留空时在所有屏幕上显示",
           "label": "屏幕"
         },
-        "tint-intensity": {
-          "description": "在锁屏背景上叠加 surface 色调",
-          "label": "着色强度"
-        },
         "transition-duration": {
           "description": "锁定和解锁动画的持续时间（毫秒）",
           "label": "过渡时长"
@@ -2465,15 +2461,6 @@
           "description": "锁屏背景的自定义图片；留空时使用桌面壁纸",
           "label": "壁纸",
           "placeholder": "使用桌面壁纸"
-        },
-        "widgets": {
-          "description": "在锁屏上显示可配置的小组件",
-          "label": "锁屏小组件"
-        },
-        "widgets-editor": {
-          "button": "开启/关闭编辑器",
-          "description": "在锁屏上添加、移动和调整小组件大小",
-          "label": "锁屏小组件编辑器"
         }
       },
       "notifications": {

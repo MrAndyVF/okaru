@@ -2503,10 +2503,6 @@
           "description": "Escolha em quais monitores a tela de bloqueio será exibida; deixe em branco para exibir em todos os monitores",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Base de cor da superfície sobre o fundo da tela de bloqueio",
-          "label": "Intensidade da Cor"
-        },
         "transition-duration": {
           "description": "Comprimento das animações de bloqueio e desbloqueio em milissegundos",
           "label": "Duração de Transição"
@@ -2519,15 +2515,6 @@
           "description": "Imagem personalizada para o fundo da tela de bloqueio; deixe em branco para usar o papel de parede da área de trabalho.",
           "label": "Papel de Parede",
           "placeholder": "Usar o papel de parede da área de trabalho"
-        },
-        "widgets": {
-          "description": "Exibe widgets configuráveis ​​na tela de bloqueio",
-          "label": "Widgets na Tela de Bloqueio"
-        },
-        "widgets-editor": {
-          "button": "Alternar Editor",
-          "description": "Adicione, mova e redimensione widgets na tela de bloqueio",
-          "label": "Editor de Widgets da Tela de Bloqueio"
         }
       },
       "notifications": {

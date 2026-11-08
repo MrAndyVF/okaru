@@ -2115,23 +2115,10 @@
           "description": "Tria quins monitors mostren la pantalla de bloqueig; deixa buit per mostrar a tots els monitors",
           "label": "Monitors"
         },
-        "tint-intensity": {
-          "description": "Tint de color de superfície sobre el fons de la pantalla de bloqueig",
-          "label": "Intensitat del tint"
-        },
         "wallpaper": {
           "description": "Imatge personalitzada per al fons de la pantalla de bloqueig; deixa buit per utilitzar el fons de pantalla de l'escriptori",
           "label": "Fons de pantalla",
           "placeholder": "Utilitza el fons de pantalla de l'escriptori"
-        },
-        "widgets": {
-          "description": "Mostra widgets configurables a la pantalla de bloqueig",
-          "label": "Widgets de la pantalla de bloqueig"
-        },
-        "widgets-editor": {
-          "button": "Commuta l'editor",
-          "description": "Afegeix, mou i redimensiona widgets a la pantalla de bloqueig",
-          "label": "Editor de widgets de la pantalla de bloqueig"
         }
       },
       "notifications": {

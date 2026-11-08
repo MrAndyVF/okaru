@@ -2143,23 +2143,10 @@
           "description": "Wähle, welche Monitore den Sperrbildschirm anzeigen; leer lassen, um ihn auf allen Monitoren anzuzeigen",
           "label": "Monitore"
         },
-        "tint-intensity": {
-          "description": "Oberflächenfarbige Tönung über dem Hintergrund des Sperrbildschirms",
-          "label": "Tönungsintensität"
-        },
         "wallpaper": {
           "description": "Benutzerdefiniertes Bild für den Hintergrund des Sperrbildschirms; leer lassen, um das Desktop-Hintergrundbild zu verwenden",
           "label": "Hintergrundbild",
           "placeholder": "Desktop-Hintergrundbild verwenden"
-        },
-        "widgets": {
-          "description": "Zeige konfigurierbare Widgets auf dem Sperrbildschirm",
-          "label": "Sperrbildschirm-Widgets"
-        },
-        "widgets-editor": {
-          "button": "Editor umschalten",
-          "description": "Hinzufügen, verschieben und skalieren von Widgets auf dem Sperrbildschirm",
-          "label": "Sperrbildschirm-Widget-Editor"
         }
       },
       "notifications": {

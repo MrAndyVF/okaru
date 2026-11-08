@@ -2193,23 +2193,10 @@
           "description": "Détermine sur quels écrans afficher l’écran de verrouillage. Laissez vide pour l’afficher sur tous les écrans",
           "label": "Écrans"
         },
-        "tint-intensity": {
-          "description": "Détermine l’intensité de la teinte appliquée à l’arrière-plan de l’écran de verrouillage",
-          "label": "Intensité de la teinte"
-        },
         "wallpaper": {
           "description": "Utilise une image personnalisée comme arrière-plan de l’écran de verrouillage. Laissez vide pour utiliser le fond d’écran du  bureau.",
           "label": "Fond d’écran",
           "placeholder": "Utiliser le fond d’écran du bureau"
-        },
-        "widgets": {
-          "description": "Affiche des widgets configurables sur l’écran de verrouillage",
-          "label": "Widgets de l'écran de verrouillage"
-        },
-        "widgets-editor": {
-          "button": "Afficher/Masquer l’éditeur",
-          "description": "Ajouter, déplacer et redimensionner les widgets de l’écran de verrouillage",
-          "label": "Éditeur de widgets de l’écran de verrouillage"
         }
       },
       "notifications": {

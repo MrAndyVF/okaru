@@ -2369,23 +2369,10 @@
           "description": "Chọn màn hình hiển thị màn hình khóa; để trống để hiển thị trên tất cả các màn hình",
           "label": "Màn hình"
         },
-        "tint-intensity": {
-          "description": "Lớp phủ màu bề mặt trên nền màn hình khóa",
-          "label": "Cường độ màu"
-        },
         "wallpaper": {
           "description": "Ảnh tùy chỉnh cho nền màn hình khóa; để trống để sử dụng hình nền máy tính",
           "label": "Hình nền",
           "placeholder": "Sử dụng hình nền màn hình nền"
-        },
-        "widgets": {
-          "description": "Hiển thị tiện ích tùy chỉnh trên màn hình khóa",
-          "label": "Màn hình khóa tiện ích"
-        },
-        "widgets-editor": {
-          "button": "Bật/tắt trình chỉnh sửa",
-          "description": "Thêm, di chuyển và thay đổi kích thước các Widget trên màn hình khóa",
-          "label": "Trình chỉnh sửa Widget Màn hình khóa"
         }
       },
       "notifications": {

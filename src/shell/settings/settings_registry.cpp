@@ -1782,28 +1782,10 @@ namespace settings {
     }
     {
       auto e = makeEntry(
-          SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.tint-intensity.label"),
-          tr("settings.schema.lockscreen.tint-intensity.description"), {"lockscreen", "tint_intensity"},
-          sliderFor(cfg.lockscreen.tintIntensity, okaru::config::schema::kUnitRange, false), "lock screen tint"
-      );
-      e.visibleWhen = lockscreenOn;
-      entries.push_back(std::move(e));
-    }
-    {
-      auto e = makeEntry(
           SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.monitors.label"),
           tr("settings.schema.lockscreen.monitors.description"), {"lockscreen", "monitors"},
           ListSetting{.items = cfg.lockscreen.monitors, .suggestedOptions = env.availableOutputs},
           "lock screen monitor output connector"
-      );
-      e.visibleWhen = lockscreenOn;
-      entries.push_back(std::move(e));
-    }
-    {
-      auto e = makeEntry(
-          SettingsSection::Security, "lock-screen", tr("settings.schema.lockscreen.widgets.label"),
-          tr("settings.schema.lockscreen.widgets.description"), {"lockscreen_widgets", "enabled"},
-          ToggleSetting{cfg.lockscreenWidgets.enabled}, "lock screen widgets layout"
       );
       e.visibleWhen = lockscreenOn;
       entries.push_back(std::move(e));

@@ -186,6 +186,8 @@ LockSurface::LockSurface(WaylandConnection& connection, ConfigService* config) :
     m_widgetLayer = m_root.addChild(std::move(widgetLayer));
   }
 
+  m_okaru.build(m_root);
+
   m_root.addChild(
       ui::flex(
           FlexDirection::Vertical,
@@ -1217,6 +1219,7 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
         }
     );
     m_widgetLayer->setVisible(false);
+    m_okaru.setVisible(false);
     m_loginPanel->setVisible(false);
     m_passwordField->setVisible(false);
     if (m_passwordRevealButton != nullptr) {
@@ -1324,6 +1327,14 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
       );
     }
   }
+
+  if (loginVisible) {
+    layoutOkaru(renderer, sw, sh);
+    layoutTransitionCover();
+    syncTransitionCover();
+    return;
+  }
+  m_okaru.setVisible(false);
 
   m_loginPanel->setFill(loginStyle.panelFill);
   m_loginPanel->setBorder(colorForRole(ColorRole::OutlineVariant, loginStyle.panelOpacity), Style::borderWidth);
@@ -1575,6 +1586,69 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
   }
   layoutTransitionCover();
   syncTransitionCover();
+}
+
+void LockSurface::layoutOkaru(Renderer& renderer, float width, float height) {
+  // La vista reemplaza todo lo anterior: caja de login, panel de estado, widgets y tinte de la paleta.
+  m_widgetLayer->setVisible(false);
+  m_loginPanel->setVisible(false);
+  if (m_authPanel != nullptr) {
+    m_authPanel->setVisible(false);
+  }
+  if (m_tintOverlay != nullptr) {
+    m_tintOverlay->setVisible(false);
+  }
+  m_okaru.adoptPasswordField(m_passwordField);
+
+  // Cerrar sesión, suspender, reiniciar y apagar, de las acciones de sesión configuradas y en ese orden.
+  std::vector<lockscreen::OkaruLockAction> actions;
+  const auto configured = resolveSessionActions();
+  for (const std::string_view wanted : {"logout", "suspend", "reboot", "shutdown"}) {
+    const auto it = std::ranges::find_if(configured, [wanted](const SessionPanelActionConfig& cfg) {
+      return cfg.action == wanted || (wanted == "suspend" && cfg.action == "lock_and_suspend");
+    });
+    if (it == configured.end()) {
+      continue;
+    }
+    actions.push_back({
+        .label = it->label.has_value() && !it->label->empty() ? *it->label : i18n::tr(session_action::labelKey(wanted)),
+        .icon = std::string(wanted),
+        .onClick = [this, cfg = *it] {
+          if (m_sessionActions != nullptr && !m_authenticating) {
+            m_sessionActions->invoke(cfg);
+          }
+        },
+    });
+  }
+  m_okaru.setActions(std::move(actions));
+
+  // Estado: errores y Bloq Mayús siempre; "verificando" y mensajes de PAM mientras duran; nada en reposo.
+  std::string status;
+  bool statusError = false;
+  if (m_error) {
+    status = m_status;
+    statusError = true;
+  } else if (m_capsLock) {
+    status = i18n::tr("lockscreen.caps-lock-on");
+    statusError = true;
+  } else if (m_authenticating || !m_status.empty()) {
+    status = m_status;
+  }
+
+  const auto codepoints = static_cast<std::size_t>(std::ranges::count_if(m_password, [](char c) {
+    return (static_cast<unsigned char>(c) & 0xC0U) != 0x80U;
+  }));
+  m_okaru.layout(
+      renderer, width, height,
+      lockscreen::OkaruLockState{
+          .user = m_user,
+          .passwordLength = codepoints,
+          .placeholder = i18n::tr("lockscreen.okaru.password"),
+          .status = std::move(status),
+          .statusError = statusError,
+          .authenticating = m_authenticating,
+      }
+  );
 }
 
 void LockSurface::updateCopy() {
