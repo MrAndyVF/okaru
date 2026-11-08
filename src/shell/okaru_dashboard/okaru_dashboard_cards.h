@@ -28,6 +28,8 @@ namespace okaru::dashboard {
   class ClickFlex : public Flex {
   public:
     void setActivation(std::function<void()> onClick, std::function<void()> onRightClick = {});
+    // Avisa al entrar y salir el puntero (además del borde de hover).
+    void setHoverChanged(std::function<void(bool)> onHover) { m_onHover = std::move(onHover); }
 
   protected:
     void doLayout(Renderer& renderer) override;
@@ -38,6 +40,7 @@ namespace okaru::dashboard {
   private:
     void applyHover(bool hovered);
     InputArea* m_area = nullptr;
+    std::function<void(bool)> m_onHover;
   };
 
   class DashboardCard : public ClickFlex {

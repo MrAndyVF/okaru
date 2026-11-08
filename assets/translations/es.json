@@ -991,7 +991,13 @@
         "session": "Sesión",
         "phone": "Teléfono"
       },
-      "close": "Cerrar"
+      "close": "Cerrar",
+      "avatar": {
+        "pick-title": "Elige una foto de perfil",
+        "too-large": "Imagen demasiado grande",
+        "too-large-body": "La imagen pesa {size} MB; el máximo es 6 MB.",
+        "error": "No se pudo cambiar la foto de perfil"
+      }
     },
     "network": {
       "open-vpn-manager": "Gestionar VPN",
