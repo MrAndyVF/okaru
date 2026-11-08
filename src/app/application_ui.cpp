@@ -673,7 +673,8 @@ void Application::initPanelManagerAndPanels() {
     addTabPanel("okaru-monitor", "control-center.tabs.monitor", "brightness-half",
                 [=, this] { return std::make_unique<MonitorTab>(m_brightnessService.get(), &m_configService); });
     addTabPanel("okaru-system", "control-center.tabs.system", "activity",
-                [=, this] { return std::make_unique<SystemTab>(m_systemMonitor.get()); });
+                [=, this] { return std::make_unique<SystemTab>(m_systemMonitor.get()); },
+                620.0F, 560.0F); // dos columnas: con 460 «Recursos» cortaba la carga y los discos (/mnt/…)
     addTabPanel("okaru-ports", "okaru.ports.title", "plug-connected", // OKARU
                 [=, this] { return std::make_unique<OkaruPortsTab>(m_systemMonitor.get()); }, 460.0F, 560.0F);
     addTabPanel("okaru-screen-time", "control-center.tabs.screen-time", "hourglass",
