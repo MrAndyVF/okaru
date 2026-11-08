@@ -2771,8 +2771,6 @@
       "command-label": "Каманда абалонкі",
       "command-placeholder": "Неабавязковая каманда bash; пакіньце поле пустым, каб выкарыстоўваць убудаваныя паводзіны",
       "command-required-placeholder": "Каманда абалонкі для выканання",
-      "countdown-seconds-description": "Чакаць столькі секунд перад запускам. Націсніце яшчэ раз, каб пацвердзіць адразу. 0 — запуск адразу.",
-      "countdown-seconds-label": "Адваротны адлік (секунды)",
       "glyph-label": "Гліф",
       "glyph-picker-title": "Гліф дзеяння",
       "kind-section-label": "Паводзіны",

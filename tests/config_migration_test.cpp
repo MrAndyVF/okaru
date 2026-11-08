@@ -1088,6 +1088,26 @@ type = "login_box"
     );
   }
 
+  // OKARU: la cuenta regresiva por acción del menú de sesión se reemplazó por mantener presionado.
+  void checkSessionHoldMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 22
+[[shell.session.actions]]
+action = "shutdown"
+countdown_seconds = 5.0
+variant = "destructive"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 22, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "session hold migration was not applied");
+    const auto* row = sidecar["shell"]["session"]["actions"][0].as_table();
+    expect(
+        row != nullptr && !row->contains("countdown_seconds")
+            && (*row)["variant"].value<std::string>() == std::optional<std::string>{"destructive"},
+        "countdown_seconds was not removed or the row lost other keys"
+    );
+  }
+
   void checkPaletteRoleNamesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 15
@@ -1298,6 +1318,7 @@ int main() {
   checkIntegratedModulesMigration();
   checkNativePhoneMigration();
   checkLockscreenCleanupMigration();
+  checkSessionHoldMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

@@ -3006,8 +3006,6 @@
       "command-label": "Kabuk komutu",
       "command-placeholder": "İsteğe bağlı bash komutu, yerleşik davranış için boş bırakın",
       "command-required-placeholder": "Çalıştırılacak kabuk komutu",
-      "countdown-seconds-description": "Çalıştırmadan önce bu kadar saniye bekle. Anında onaylamak için tekrar etkinleştir. 0 hemen çalıştırır.",
-      "countdown-seconds-label": "Geri Sayım (saniye)",
       "glyph-label": "Sembol",
       "glyph-picker-title": "Eylem sembolü",
       "kind-section-label": "Davranış",

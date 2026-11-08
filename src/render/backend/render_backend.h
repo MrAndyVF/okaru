@@ -145,10 +145,6 @@ public:
       float surfaceWidth, float surfaceHeight, float width, float height, const SpinnerStyle& style,
       const Mat3& transform
   ) = 0;
-  virtual void drawCountdownRing(
-      float surfaceWidth, float surfaceHeight, float width, float height, const CountdownRingStyle& style,
-      const Mat3& transform
-  ) = 0;
   virtual void drawScreenCorner(
       float surfaceWidth, float surfaceHeight, float width, float height, const ScreenCornerStyle& style,
       const Mat3& transform

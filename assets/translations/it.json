@@ -3511,8 +3511,6 @@
       "command-label": "Comando shell",
       "command-placeholder": "Comando bash opzionale, lascia vuoto per comportamento di default",
       "command-required-placeholder": "Comando shell da eseguire",
-      "countdown-seconds-description": "Attendi questi secondi prima di eseguire. Seleziona di nuovo per confermare immediatamente. 0 esegue subito.",
-      "countdown-seconds-label": "Conto alla rovescia (secondi)",
       "glyph-label": "Glifo",
       "glyph-picker-title": "Glifo azione",
       "kind-section-label": "Comportamento",

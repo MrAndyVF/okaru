@@ -1736,7 +1736,6 @@ namespace okaru::config::schema {
                 );
               }
           ),
-          field(&SessionPanelActionConfig::countdownSeconds, "countdown_seconds"),
       };
       return s;
     }

@@ -3633,8 +3633,6 @@
       "command-label": "Comando do Shell",
       "command-placeholder": "Comando bash opcional; deixe em branco para o comportamento padrão",
       "command-required-placeholder": "Comando Shell para executar",
-      "countdown-seconds-description": "Aguarde esse número de segundos antes da execução. Ative novamente para confirmar imediatamente. 0 é executado imediatamente.",
-      "countdown-seconds-label": "Contagem regressiva (segundos)",
       "glyph-label": "Símbolo",
       "glyph-picker-title": "Ação do Símbolo",
       "kind-section-label": "Comportamento",

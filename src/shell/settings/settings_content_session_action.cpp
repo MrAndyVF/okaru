@@ -267,24 +267,7 @@ namespace settings {
         .configure = [](Select& select) { select.setFillWidth(true); },
     });
 
-    const int countdownValue = std::clamp(static_cast<int>(std::lround(row.countdownSeconds)), 0, 60);
-    auto countdownStepper = ui::stepper({
-        .minValue = 0,
-        .maxValue = 60,
-        .step = 1,
-        .value = countdownValue,
-        .scale = scale,
-        .valueSuffix = std::optional<std::string>{"s"},
-        .onValueCommitted = [&row, persist](int value) {
-          row.countdownSeconds = static_cast<double>(value);
-          persist();
-        },
-    });
-
-    fields->addChild(pair(
-        field(i18n::tr("settings.session-actions.variant-label"), std::move(variantSelect), 1.0F),
-        field(i18n::tr("settings.session-actions.countdown-seconds-label"), std::move(countdownStepper), 1.0F)
-    ));
+    fields->addChild(field(i18n::tr("settings.session-actions.variant-label"), std::move(variantSelect), 1.0F));
 
     // Shortcuts: the clear button always holds its slot so both recorders keep the
     // same width whether or not a chord is set.

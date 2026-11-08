@@ -3056,8 +3056,6 @@
       "command-label": "쉘 명령어",
       "command-placeholder": "선택적 bash 명령어. 기본 제공 동작을 사용하려면 비워 두세요",
       "command-required-placeholder": "실행할 쉘 명령어",
-      "countdown-seconds-description": "실행 전 대기할 초 수. 다시 활성화하면 즉시 확인합니다. 0이면 즉시 실행됩니다.",
-      "countdown-seconds-label": "카운트다운 (초)",
       "glyph-label": "글리프",
       "glyph-picker-title": "작업 글리프",
       "kind-section-label": "동작",

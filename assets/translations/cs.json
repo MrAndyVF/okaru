@@ -2514,8 +2514,6 @@
       "command-label": "Příkaz shellu",
       "command-placeholder": "Volitelný příkaz bash, ponechte prázdné pro vestavěné chování",
       "command-required-placeholder": "Příkaz shellu ke spuštění",
-      "countdown-seconds-description": "Před spuštěním počkat tento počet sekund. Opětovnou aktivací potvrdíte okamžitě. 0 spustí ihned.",
-      "countdown-seconds-label": "Odpočet (sekundy)",
       "glyph-label": "Ikona",
       "glyph-picker-title": "Ikona akce",
       "kind-section-label": "Chování",

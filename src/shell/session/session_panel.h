@@ -5,6 +5,7 @@
 #include "ui/style.h"
 
 #include <cmath>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ class Button;
 class Flex;
 class GridView;
 class InputArea;
-class CountdownRing;
+class Label;
 class Renderer;
 class ConfigService;
 class SessionActionRunner;
@@ -37,17 +38,22 @@ public:
   [[nodiscard]] PanelPlacement panelPlacement() const noexcept override;
 
 private:
-  struct ActionCountdownOverlay {
+  // OKARU: como dux-shell, una acción se confirma manteniendo presionado su botón (o su tecla) kHoldMs;
+  // el botón se llena mientras tanto y, si se suelta antes, avisa que hay que mantenerlo.
+  struct HoldOverlay {
     Flex* root = nullptr;
-    Box* scrim = nullptr;
-    CountdownRing* ring = nullptr;
+    Box* fill = nullptr;
+    Label* hint = nullptr;
   };
 
-  struct PendingCountdown {
+  struct Hold {
     std::size_t index = 0;
-    double remainingMs = 0.0;
-    double totalMs = 0.0;
+    double elapsedMs = 0.0;
+    std::uint32_t keySym = 0; // 0 = mouse
   };
+
+  static constexpr double kHoldMs = 300.0;
+  static constexpr double kHintMs = 2000.0;
 
   static constexpr float kActionButtonMinHeight = 112.0F;
   static constexpr float kButtonMinWidth = 152.0F;
@@ -56,16 +62,15 @@ private:
   void doLayout(Renderer& renderer, float width, float height) override;
   void doUpdate(Renderer& renderer) override;
   void onPanelCardOpacityChanged(float opacity) override;
-  void armEntry(std::size_t index);
+  void beginHold(std::size_t index, std::uint32_t keySym);
+  // Soltar antes de tiempo cancela y muestra el aviso en ese botón.
+  void endHold(std::size_t index);
   void executeEntry(std::size_t index);
-  void cancelCountdown();
   void updateSelectionVisuals();
-  void updateCountdownVisuals();
-  void layoutCountdownOverlays(Renderer& renderer);
-  void restoreEntryBadges();
-  void hideCountdownOverlays();
-  void attachCountdownOverlay(Button& button, ActionCountdownOverlay& overlay, float scale);
-  void syncCountdownOverlayColors(std::size_t index);
+  void updateHoldVisuals();
+  void layoutHoldOverlays(Renderer& renderer);
+  void attachHoldOverlay(Button& button, HoldOverlay& overlay, float scale);
+  void requestHoldFrame();
   [[nodiscard]] std::vector<SessionPanelActionConfig> effectiveActions() const;
   [[nodiscard]] Button* createActionButton(const SessionPanelActionConfig& cfg, std::size_t index, float scale);
   [[nodiscard]] std::size_t entryCountForLayout() const;
@@ -76,10 +81,12 @@ private:
   GridView* m_rootLayout = nullptr;
   std::vector<SessionPanelActionConfig> m_visibleEntries;
   std::vector<Button*> m_visibleButtons;
-  std::vector<ActionCountdownOverlay> m_countdownOverlays;
+  std::vector<HoldOverlay> m_holdOverlays;
   std::vector<std::optional<std::string>> m_entryShortcutBadges;
   std::optional<std::size_t> m_selectedIndex;
-  std::optional<PendingCountdown> m_pendingCountdown;
+  std::optional<Hold> m_hold;
+  std::optional<std::size_t> m_hintIndex;
+  double m_hintRemainingMs = 0.0;
   bool m_actionQueued = false;
   ConfigService* m_config = nullptr;
   SessionActionRunner* m_actionRunner = nullptr;

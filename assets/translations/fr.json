@@ -2976,8 +2976,6 @@
       "command-label": "Commande shell",
       "command-placeholder": "Commande bash optionnelle, laisser vide pour utiliser le comportement par défaut",
       "command-required-placeholder": "Commande shell à exécuter",
-      "countdown-seconds-description": "Attendre ce nombre de secondes avant l'exécution. Active à nouveau pour confirmer immédiatement. 0 exécute tout de suite.",
-      "countdown-seconds-label": "Compte à rebours (secondes)",
       "glyph-label": "Glyphe",
       "glyph-picker-title": "Glyphe de l’action",
       "kind-section-label": "Comportement",

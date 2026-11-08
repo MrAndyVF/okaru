@@ -3040,8 +3040,6 @@
       "command-label": "أمر الغلاف",
       "command-placeholder": "أمر bash اختياري، اتركه فارغاً للسلوك المدمج",
       "command-required-placeholder": "أمر الغلاف للتشغيل",
-      "countdown-seconds-description": "الانتظار لعدد هذه الثواني قبل التشغيل. 0 يعني التشغيل فوراً.",
-      "countdown-seconds-label": "العد التنازلي (بالثواني)",
       "glyph-label": "الرمز",
       "glyph-picker-title": "رمز الإجراء",
       "kind-section-label": "السلوك",

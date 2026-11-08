@@ -2932,7 +2932,6 @@
       "command-label": "Команда оболонки",
       "command-placeholder": "Необов'язкова команда bash, залиште порожнім для вбудованої поведінки",
       "command-required-placeholder": "Команда оболонки для виконання",
-      "countdown-seconds-label": "Зворотний відлік (с)",
       "glyph-label": "Гліф",
       "glyph-picker-title": "Гліф дії",
       "kind-section-label": "Поведінка",
