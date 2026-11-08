@@ -13,7 +13,7 @@ readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packagin
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS_ROOT="/usr/share/okaru/defaults"
-readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts)
+readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts ttf-jetbrains-mono-nerd)
 # Lo básico de cada compositor: sesión, portal de capturas/compartir pantalla y, en Niri, apps X11.
 readonly HYPR_PACKAGES=(hyprland uwsm xdg-desktop-portal-hyprland)
 readonly NIRI_PACKAGES=(niri xdg-desktop-portal-gnome xwayland-satellite)
@@ -334,6 +334,25 @@ default_apps() {
   systemctl --user enable okaru.service
 }
 
+# JetBrainsMono Nerd Font en todo el sistema: fontconfig (interfaz, serif y monoespaciada), GTK y kitty.
+# No pisa nada propio: el archivo de fontconfig solo se copia si no existe y kitty solo si no fija font_family.
+system_font() {
+  local config="${XDG_CONFIG_HOME:-$HOME/.config}"
+  local fc="$config/fontconfig/conf.d/50-okaru-font.conf"
+  if [[ ! -e $fc ]]; then
+    mkdir -p "$(dirname "$fc")"
+    cp -v "$DEFAULTS_ROOT/fontconfig/50-okaru-font.conf" "$fc"
+  fi
+  fc-cache -f >/dev/null 2>&1 || true
+  gsettings set org.gnome.desktop.interface font-name 'JetBrainsMono Nerd Font 11' || true
+  gsettings set org.gnome.desktop.interface monospace-font-name 'JetBrainsMono Nerd Font Mono 11' || true
+  local kitty="$config/kitty/kitty.conf"
+  if ! grep -qs '^[[:space:]]*font_family' "$kitty"; then
+    mkdir -p "$(dirname "$kitty")"
+    printf '\n# OKARU\nfont_family JetBrainsMono Nerd Font Mono\n' >>"$kitty"
+  fi
+}
+
 greeter() {
   local conf=/etc/greetd/config.toml
   [[ -f $conf ]] && sudo cp -v "$conf" "${conf}.bak-$(date +%Y%m%d-%H%M%S)"
@@ -385,6 +404,7 @@ main() {
     run_step "Configuración de fábrica de $(compositor_name)" compositor_config
   fi
   run_step "Apps por defecto y servicio de la shell" default_apps
+  run_step "Fuente del sistema (JetBrainsMono Nerd Font)" system_font
   if $WANT_GREETER; then run_step "OKARU Greeter con greetd" greeter; fi
   finish
 }

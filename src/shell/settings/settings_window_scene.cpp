@@ -1655,6 +1655,7 @@ std::unique_ptr<Flex> SettingsWindow::buildBody(
           .availableBars = availableBars,
           .scale = scale,
           .globalSearchActive = !m_searchQuery.empty(),
+          .renderer = m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr,
           .sidebarScrollState = m_sidebarScrollState,
           .contentScrollState = m_contentScrollState,
           .selectedSection = m_selectedSection,

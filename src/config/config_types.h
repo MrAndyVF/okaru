@@ -1340,7 +1340,11 @@ struct ShellConfig {
   bool popupShadows = true;
   bool cardBorders = true;
   bool showCloseButtons = true;
-  std::string fontFamily = "sans-serif";
+  std::string fontFamily = "JetBrainsMono Nerd Font"; // OKARU: fuente de la shell y del sistema
+  // OKARU: peso base del texto (400 = Regular); el texto en negrita conserva su diferencia.
+  int fontWeight = 400;
+  // OKARU: al cambiar familia o peso, aplicarlos también a GTK, Qt, kitty, VS Code, Zed y ghostty.
+  bool syncSystemFont = true;
   std::string lang; // empty = auto-detect from $LC_ALL/$LC_MESSAGES/$LANG
   std::string timeFormat = "{:%H:%M}";
   std::string dateFormat = "%A, %x";

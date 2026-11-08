@@ -58,6 +58,8 @@ public:
   void cleanup();
 
   void setFontFamily(std::string family);
+  // OKARU: peso base (400 = Regular). Cada peso pedido se desplaza en (base - 400), así la negrita sigue más gruesa.
+  void setBaseWeight(int weight);
   void setBaseDirection(bool rtl);
   void notifyFontConfigChanged();
 
@@ -215,6 +217,7 @@ private:
   bool m_fontConfigInitialized = false;
   std::uint64_t m_syncedFontGeneration = 0;
   std::string m_fontFamily = "sans-serif";
+  int m_baseWeightOffset = 0;
   bool m_baseDirRtl = false;
 
   PangoFontMap* m_fontMap = nullptr;      // owned

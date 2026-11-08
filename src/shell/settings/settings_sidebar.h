@@ -12,6 +12,8 @@ class Flex;
 class Node;
 class RovingListNavHost;
 
+class Renderer;
+
 namespace settings {
   enum class SettingsSection : std::uint8_t;
 
@@ -21,6 +23,8 @@ namespace settings {
     const std::vector<std::string>& availableBars;
     float scale = 1.0F;
     bool globalSearchActive = false;
+    // Para medir los textos de los módulos: con letra más gruesa (shell.font_weight) la barra se ensancha.
+    Renderer* renderer = nullptr;
 
     ScrollViewState& sidebarScrollState;
     ScrollViewState& contentScrollState;
