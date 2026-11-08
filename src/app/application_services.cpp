@@ -828,7 +828,6 @@ void Application::reconcileOutputSurfaces() {
   m_bar.onOutputChange();
   m_dock.onOutputChange();
   m_desktopWidgetsController.onOutputChange();
-  m_lockscreenWidgetsController.onOutputChange();
   m_screenCorners.onOutputChange();
   m_hotCorners.onOutputChange();
   m_lockScreen.onOutputChange();
@@ -882,9 +881,6 @@ void Application::initWaylandCallbacks() {
     m_bar.refresh();
     if (m_configService.config().osd.kinds.keyboardLayout) {
       m_keyboardLayoutOsd.onLayoutChanged(m_compositorPlatform, m_configService.config());
-    }
-    if (m_lockScreen.isActive()) {
-      m_lockScreen.onKeyboardLayoutChanged();
     }
   });
   m_compositorPlatform.setToplevelChangeCallback([this] {
@@ -1558,19 +1554,14 @@ void Application::initSessionBusServices() {
         m_bar.refresh();
         m_desktopWidgetsController.requestUpdate();
         m_mediaOsd.onMprisChanged(*m_mprisService);
-        if (m_lockScreen.isActive()) {
-          m_lockScreen.requestUpdate();
-        }
         if (shouldRefreshControlCenter()) {
           m_panelManager.refresh();
         }
       });
-      m_lockScreen.setLoginBoxServices(&m_sessionActionRunner, m_mprisService.get(), &m_weatherService, &m_httpClient);
       kLog.info("mpris discovery active");
     } catch (const std::exception& e) {
       kLog.warn("mpris disabled: {}", e.what());
       m_mprisService.reset();
-      m_lockScreen.setLoginBoxServices(&m_sessionActionRunner, nullptr, &m_weatherService, &m_httpClient);
       m_notificationManager.addInternal(
           "OKARU", i18n::tr("notifications.internal.mpris-disabled"), e.what(), Urgency::Low
       );
@@ -1684,9 +1675,6 @@ void Application::initSessionBusServices() {
   m_weatherService.addChangeCallback([this, shouldRefreshControlCenter] {
     m_bar.refresh();
     m_desktopWidgetsController.requestLayout();
-    if (m_lockScreen.isActive()) {
-      m_lockScreen.requestUpdate();
-    }
     if (shouldRefreshControlCenter()) {
       m_panelManager.refresh();
     }

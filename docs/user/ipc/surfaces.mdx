@@ -55,10 +55,3 @@ Use <IpcCommand command="bar-hide" /> when you want the bar to stay hidden until
 | Hide widgets     | <IpcCommand command="desktop-widgets-hide" />        | Hide desktop widgets now, tearing down their instances so rendering and compute stop. Runtime only - does not change the saved setting, and resets on restart.           |
 | Toggle widgets   | <IpcCommand command="desktop-widgets-toggle" />      | Flip current visibility; prints `shown` or `hidden`. Runtime only - does not change the saved setting. Changing the saved Desktop > Widgets toggle cancels the override. |
 
-## Lockscreen Widgets
-
-| Action           | Command                                                 | Description                                               |
-| ---------------- | ------------------------------------------------------- | --------------------------------------------------------- |
-| Enter edit mode  | <IpcCommand command="lockscreen-widgets-edit" />        | Edit lockscreen widget layout (session must be unlocked). |
-| Exit edit mode   | <IpcCommand command="lockscreen-widgets-exit" />        | Leave lockscreen widget edit mode.                        |
-| Toggle edit mode | <IpcCommand command="lockscreen-widgets-toggle-edit" /> | Switch lockscreen widget edit mode on or off.             |

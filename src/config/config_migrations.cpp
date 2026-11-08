@@ -37,6 +37,7 @@ namespace okaru::config {
     constexpr int kOkaruIntegratedModulesMigrationVersion = 19;  // OKARU
     constexpr int kOkaruPaletteRenameMigrationVersion = 20;      // OKARU
     constexpr int kOkaruNativePhoneMigrationVersion = 21;        // OKARU
+    constexpr int kOkaruLockscreenCleanupMigrationVersion = 22;  // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -1015,6 +1016,14 @@ namespace okaru::config {
       removeNativePlugins(root, kNativePhonePluginIds);
     }
 
+    // OKARU: el bloqueo propio ya no tiene widgets, caja de login configurable ni tinte.
+    void migrateLockscreenCleanupSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      root.erase("lockscreen_widgets");
+      if (auto* lockscreen = root["lockscreen"].as_table(); lockscreen != nullptr) {
+        lockscreen->erase("tint_intensity");
+      }
+    }
+
     // OKARU: la paleta integrada "Noctalia" pasó a llamarse "OKARU" ([theme].builtin y favoritos).
     void renameBuiltinPaletteIn(toml::node& node) {
       if (auto* table = node.as_table(); table != nullptr) {
@@ -1183,6 +1192,11 @@ namespace okaru::config {
             .toVersion = kOkaruNativePhoneMigrationVersion,
             .summary = "phone: the phone-connect module is now the native phone widget, panel and card",
             .apply = migrateNativePhoneSidecar,
+        },
+        {
+            .toVersion = kOkaruLockscreenCleanupMigrationVersion,
+            .summary = "lockscreen: drop lockscreen widgets and tint_intensity",
+            .apply = migrateLockscreenCleanupSidecar,
         },
     };
     return migrations;

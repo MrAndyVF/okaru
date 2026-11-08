@@ -130,38 +130,12 @@ void Application::initUiRenderSurfacesAndSettings() {
   m_settingsWindow.setIpcService(&m_ipcService);
   m_settingsWindow.setAsyncTextureCache(&m_asyncTextureCache);
   m_settingsWindow.setOpenDesktopWidgetEditor([this] {
-    if (m_lockscreenWidgetsController.isEditing()) {
-      m_lockscreenWidgetsController.exitEdit();
-    }
     const bool wasEditing = m_desktopWidgetsController.isEditing();
     m_desktopWidgetsController.toggleEdit();
     if (!wasEditing && m_desktopWidgetsController.isEditing()) {
       notify::info(
           "OKARU", i18n::tr("notifications.internal.desktop-widgets-editor"),
           i18n::tr("notifications.internal.desktop-widgets-editor-enabled")
-      );
-    }
-  });
-  m_settingsWindow.setOpenLockscreenWidgetEditor([this] {
-    if (!m_configService.isLockScreenEnabled()) {
-      return;
-    }
-    if (m_lockScreen.isActive()) {
-      notify::info(
-          "OKARU", i18n::tr("notifications.internal.lockscreen-widgets-editor"),
-          i18n::tr("notifications.internal.lockscreen-widgets-editor-blocked-locked")
-      );
-      return;
-    }
-    if (m_desktopWidgetsController.isEditing()) {
-      m_desktopWidgetsController.exitEdit();
-    }
-    const bool wasEditing = m_lockscreenWidgetsController.isEditing();
-    m_lockscreenWidgetsController.toggleEdit();
-    if (!wasEditing && m_lockscreenWidgetsController.isEditing()) {
-      notify::info(
-          "OKARU", i18n::tr("notifications.internal.lockscreen-widgets-editor"),
-          i18n::tr("notifications.internal.lockscreen-widgets-editor-enabled")
       );
     }
   });
@@ -307,7 +281,7 @@ void Application::initLockScreenAndSession() {
   m_lockScreen.initialize(
       m_wayland, &m_renderContext, &m_configService, &m_sharedTextureCache, m_systemBus.get(), &m_compositorPlatform
   );
-  m_lockScreen.setLoginBoxServices(&m_sessionActionRunner, m_mprisService.get(), &m_weatherService, &m_httpClient);
+  m_lockScreen.setSessionActions(&m_sessionActionRunner);
   m_wallpaper.setAutomationGate([this] {
     if (m_lockScreen.isActive()) {
       return false;
@@ -320,12 +294,10 @@ void Application::initLockScreenAndSession() {
       m_logindService->setLockBeforeSuspendEnabled(m_configService.shouldLockBeforeSuspend());
     }
     m_lockScreen.onConfigChanged();
-    m_lockscreenWidgetsController.onLockStateChanged();
   });
   m_lockScreen.setSessionHooks(
       [this] {
         m_idleGraceOverlay.hide();
-        m_lockscreenWidgetsController.onLockStateChanged();
         m_idleManager.setSessionLocked(true);
         m_screenTimeService.setSessionLocked(true);
         m_hookManager.fire(HookKind::SessionLocked);
@@ -338,7 +310,6 @@ void Application::initLockScreenAndSession() {
       },
       [this] {
         m_idleGraceOverlay.hide();
-        m_lockscreenWidgetsController.onLockStateChanged();
         m_idleManager.setSessionLocked(false);
         m_screenTimeService.setSessionLocked(false);
         m_hookManager.fire(HookKind::SessionUnlocked);
@@ -355,7 +326,6 @@ void Application::initLockScreenAndSession() {
       },
       [this] {
         m_idleGraceOverlay.hide();
-        m_lockscreenWidgetsController.onLockStateChanged();
         releaseSleepDelayInhibitIfPending();
         requestAllSurfacesRedraw();
       },
@@ -428,9 +398,6 @@ void Application::initInputDispatch() {
     if (m_pluginLayerHost.onPointerEvent(event)) {
       return;
     }
-    if (m_lockscreenWidgetsController.onPointerEvent(event)) {
-      return;
-    }
     if (m_desktopWidgetsController.onPointerEvent(event)) {
       return;
     }
@@ -492,10 +459,6 @@ void Application::initInputDispatch() {
       return;
     }
     if (m_screenshotService.onKeyboardEvent(event)) {
-      return;
-    }
-    if (m_lockscreenWidgetsController.isEditing()) {
-      m_lockscreenWidgetsController.onKeyboardEvent(event);
       return;
     }
     if (m_desktopWidgetsController.isEditing()) {
@@ -1027,19 +990,8 @@ void Application::initBarDockAndLayout() {
   m_configService.addReloadCallback([this] { m_hotCorners.onConfigReload(); });
 
   m_layerPopupHosts.registerHost(
-      [this](wl_surface* surface) {
-        if (auto context = m_lockscreenWidgetsController.popupParentContextForSurface(surface); context.has_value()) {
-          return context;
-        }
-        return m_desktopWidgetsController.popupParentContextForSurface(surface);
-      },
-      {}, {},
-      [this] {
-        if (auto context = m_lockscreenWidgetsController.fallbackPopupParentContext(); context.has_value()) {
-          return context;
-        }
-        return m_desktopWidgetsController.fallbackPopupParentContext();
-      }
+      [this](wl_surface* surface) { return m_desktopWidgetsController.popupParentContextForSurface(surface); }, {}, {},
+      [this] { return m_desktopWidgetsController.fallbackPopupParentContext(); }
   );
   m_layerPopupHosts.registerHost(
       [this](wl_surface* surface) { return m_panelManager.popupParentContextForSurface(surface); },
@@ -1097,13 +1049,6 @@ void Application::initWidgetControllersAndCallbacks() {
       .sysmon = m_systemMonitor.get(),
       .scriptDeps = desktopWidgetScriptDeps,
   };
-  const DesktopWidgetServices lockscreenWidgetServices{
-      .wayland = m_wayland,
-      .config = &m_configService,
-      .renderContext = &m_renderContext,
-      .runtime = desktopWidgetRuntime,
-      .textureCache = &m_sharedTextureCache,
-  };
   const DesktopWidgetServices desktopWidgetServices{
       .wayland = m_wayland,
       .config = &m_configService,
@@ -1111,28 +1056,18 @@ void Application::initWidgetControllersAndCallbacks() {
       .runtime = desktopWidgetRuntime,
       .textureCache = &m_sharedTextureCache,
   };
-  m_lockscreenWidgetsController.initialize({
-      .widgets = lockscreenWidgetServices,
-      .lockScreen = m_lockScreen,
-      .bar = m_bar,
-      .dock = m_dock,
-      .desktopWidgets = &m_desktopWidgetsController,
-  });
   m_desktopWidgetsController.initialize({
       .widgets = desktopWidgetServices,
-      .lockscreenWidgets = &m_lockscreenWidgetsController,
   });
   m_desktopWidgetsController.setOnEnterEditCallback([this] { m_settingsWindow.closeForWidgetEditor(); });
-  m_lockscreenWidgetsController.setOnEnterEditCallback([this] { m_settingsWindow.closeForWidgetEditor(); });
   const auto restoreSettingsAfterWidgetEditor = [this] {
     DeferredCall::callLater([this] {
-      if (!m_desktopWidgetsController.isEditing() && !m_lockscreenWidgetsController.isEditing()) {
+      if (!m_desktopWidgetsController.isEditing()) {
         m_settingsWindow.reopenAfterWidgetEditor();
       }
     });
   };
   m_desktopWidgetsController.setOnExitEditCallback(restoreSettingsAfterWidgetEditor);
-  m_lockscreenWidgetsController.setOnExitEditCallback(restoreSettingsAfterWidgetEditor);
   m_iconThemePollSource.setChangeCallback([this] { onIconThemeChanged(); });
 
   std::string lastShellFontFamily = m_configService.config().shell.fontFamily;
@@ -1149,7 +1084,6 @@ void Application::initWidgetControllersAndCallbacks() {
         m_bar.reload();
         m_dock.requestLayout();
         m_desktopWidgetsController.requestLayout();
-        m_lockscreenWidgetsController.requestLayout();
         m_panelManager.requestLayout();
         m_notificationToast.requestLayout();
         m_lockScreen.onFontChanged();
@@ -1180,7 +1114,6 @@ void Application::initWidgetControllersAndCallbacks() {
         m_bar.requestLayout();
         m_dock.requestLayout();
         m_desktopWidgetsController.requestLayout();
-        m_lockscreenWidgetsController.requestLayout();
         m_panelManager.requestLayout();
         m_notificationToast.requestLayout();
         m_lockScreen.onFontChanged();
@@ -1199,12 +1132,9 @@ void Application::initWidgetControllersAndCallbacks() {
 
   m_timeService.setTickCallback([this] {
     m_wallpaper.onSecondTick();
-    if (m_lockScreen.isActive()) {
-      m_lockscreenWidgetsController.onSecondTick();
-    } else {
+    if (!m_lockScreen.isActive()) {
       m_bar.onSecondTick();
       m_desktopWidgetsController.onSecondTick();
-      m_lockscreenWidgetsController.onSecondTick();
       m_settingsWindow.onSecondTick();
     }
   });
@@ -1255,10 +1185,9 @@ void Application::initWidgetControllersAndCallbacks() {
 
 TimeService::Precision Application::timePrecisionNeeded() const {
   // Only a visible clock that renders seconds needs the finer boundary. The
-  // bar, desktop, and lockscreen hosts each report only their live widgets.
+  // bar and desktop hosts each report only their live widgets.
   if (m_bar.wantsSecondTicks()
       || m_desktopWidgetsController.wantsSecondTicks()
-      || m_lockscreenWidgetsController.wantsSecondTicks()
       || m_settingsWindow.wantsSecondTicks()) {
     return TimeService::Precision::Second;
   }

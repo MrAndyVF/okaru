@@ -379,7 +379,6 @@ location = "https://example.invalid/bad"
         .transitionDurationMs = 900.0F,
         .edgeSmoothness = 0.7F,
         .blurIntensity = 0.6F,
-        .tintIntensity = 0.25F,
         .monitors = {"DP-1"}
     };
     c.system.monitor.enabled = false;

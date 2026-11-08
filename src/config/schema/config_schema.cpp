@@ -143,7 +143,6 @@ namespace okaru::config::schema {
         field(&LockscreenConfig::transitionDurationMs, "transition_duration", kLockscreenTransitionDurationRange),
         field(&LockscreenConfig::edgeSmoothness, "edge_smoothness", kUnitRange),
         field(&LockscreenConfig::blurIntensity, "blur_intensity", kUnitRange),
-        field(&LockscreenConfig::tintIntensity, "tint_intensity", kUnitRange),
         pathStringField(&LockscreenConfig::wallpaper, "wallpaper"),
         field(&LockscreenConfig::monitors, "monitors"),
     };
@@ -437,15 +436,6 @@ namespace okaru::config::schema {
         field(&DesktopWidgetsConfig::enabled, "enabled"),
         field(&DesktopWidgetsConfig::schemaVersion, "schema_version"),
         subTable(&DesktopWidgetsConfig::grid, "grid", desktopWidgetsGridSchema()),
-    };
-    return s;
-  }
-
-  const Schema<LockscreenWidgetsConfig>& lockscreenWidgetsSchema() {
-    static const Schema<LockscreenWidgetsConfig> s = {
-        field(&LockscreenWidgetsConfig::enabled, "enabled"),
-        field(&LockscreenWidgetsConfig::schemaVersion, "schema_version"),
-        subTable(&LockscreenWidgetsConfig::grid, "grid", desktopWidgetsGridSchema()),
     };
     return s;
   }
@@ -2018,10 +2008,6 @@ namespace okaru::config::schema {
       // they are custom root keys rather than SectionSpec rows.
       if (section == "desktop_widgets") {
         collectUnknownKeys(tbl, desktopWidgetsSchema(), section, unknown);
-        return true;
-      }
-      if (section == "lockscreen_widgets") {
-        collectUnknownKeys(tbl, lockscreenWidgetsSchema(), section, unknown);
         return true;
       }
       return false;

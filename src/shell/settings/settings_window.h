@@ -114,9 +114,6 @@ public:
   // Drop cached plugin-store files for a source that just advanced its git revision.
   void invalidatePluginSourceCache(const std::string& sourceName);
   void setOpenDesktopWidgetEditor(std::function<void()> callback) { m_openDesktopWidgetEditor = std::move(callback); }
-  void setOpenLockscreenWidgetEditor(std::function<void()> callback) {
-    m_openLockscreenWidgetEditor = std::move(callback);
-  }
   void setOpenWallpaperPanel(std::function<void()> callback) { m_openWallpaperPanel = std::move(callback); }
   void setPluginManager(scripting::PluginManager* manager) { m_pluginManager = manager; }
   void setScreenSaverService(ScreenSaverService* service) { m_screenSaverService = service; }
@@ -374,7 +371,6 @@ private:
   bool m_statusIsError = false;
   bool m_pendingEncryptedStorageReset = false;
   std::function<void()> m_openDesktopWidgetEditor;
-  std::function<void()> m_openLockscreenWidgetEditor;
   std::function<void()> m_openWallpaperPanel;
   std::function<void()> m_syncGreeterAppearance;
   std::function<void()> m_resetLauncherUsage;

@@ -158,9 +158,6 @@ namespace desktop_settings {
         return i18n::tr(spec.labelKey);
       }
     }
-    if (type == "login_box") {
-      return i18n::tr("desktop-widgets.editor.types.login-box");
-    }
     if (auto entry = resolvePluginDesktopWidget(type); entry.has_value() && !entry->manifest->name.empty()) {
       return entry->manifest->name;
     }
@@ -169,16 +166,6 @@ namespace desktop_settings {
   }
 
   std::vector<WidgetSettingSpec> commonDesktopWidgetSettingSpecs(std::string_view type) {
-    if (type == "login_box") {
-      auto bgColor = colorSpec("background_color", "surface_container");
-      auto bgRadius = intSpec("background_radius", 12.0, 0.0, 32.0, 1.0);
-      auto bgOpacity = doubleSpec("background_opacity", 0.88, 0.0, 1.0, 0.01);
-      return {
-          std::move(bgColor),
-          std::move(bgOpacity),
-          std::move(bgRadius),
-      };
-    }
 
     if (type == "button") {
       return {};
@@ -460,29 +447,6 @@ namespace desktop_settings {
       add(stepperIntSpec("scroll_step", 5, 1.0, 25.0, 1.0));
       add(fontFamilySpec());
       add(boolSpec("shadow", true));
-    } else if (type == "login_box") {
-      add(segmentedSpec(
-          "layout", "regular",
-          {{"compact", "settings.widgets.options.compact"}, {"regular", "settings.widgets.options.regular"}}
-      ));
-      const WidgetSettingVisibility regularOnly{"layout", {"regular"}};
-      auto showSessionButtons = boolSpec("show_session_buttons", true);
-      showSessionButtons.visibleWhen = regularOnly;
-      add(std::move(showSessionButtons));
-      auto showMedia = boolSpec("show_media", true);
-      showMedia.visibleWhen = regularOnly;
-      add(std::move(showMedia));
-      auto showWeather = boolSpec("show_weather", true);
-      showWeather.visibleWhen = regularOnly;
-      add(std::move(showWeather));
-      add(boolSpec("show_login_button", true));
-      add(boolSpec("show_password_reveal", true));
-      add(boolSpec("show_unlock_hint", true));
-      add(boolSpec("show_caps_lock", true));
-      add(boolSpec("show_keyboard_layout", true));
-      add(doubleSpec("input_opacity", 1.0, 0.0, 1.0, 0.01));
-      add(intSpec("input_radius", 6.0, 0.0, 32.0, 1.0));
-      add(boolSpec("center_password_text", false));
     }
 
     return specs;

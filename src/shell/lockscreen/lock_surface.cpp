@@ -3,8 +3,6 @@
 #include "capture/screencopy_capture.h"
 #include "core/log.h"
 #include "core/ui_phase.h"
-#include "dbus/mpris/mpris_art.h"
-#include "dbus/mpris/mpris_service.h"
 #include "ext-session-lock-v1-client-protocol.h"
 #include "i18n/i18n.h"
 #include "render/core/blur_cache.h"
@@ -12,32 +10,19 @@
 #include "render/core/shared_texture_cache.h"
 #include "render/render_context.h"
 #include "render/scene/wallpaper_node.h"
-#include "shell/lockscreen/lockscreen_login_box.h"
 #include "shell/lockscreen/lockscreen_session_actions.h"
-#include "shell/lockscreen/lockscreen_widgets_host.h"
 #include "shell/session/session_action_meta.h"
 #include "shell/session/session_action_runner.h"
-#include "system/weather_service.h"
-#include "time/time_format.h"
 #include "ui/builders.h"
-#include "ui/controls/button.h"
-#include "ui/controls/image.h"
-#include "ui/controls/label.h"
 #include "ui/controls/lockscreen_transition_cover.h"
 #include "ui/palette.h"
 #include "ui/style.h"
-#include "util/clamp.h"
 #include "wayland/wayland_connection.h"
 #include "wayland/wayland_seat.h"
 
 #include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <ctime>
-#include <format>
 #include <memory>
 #include <string_view>
-#include <tuple>
 #include <utility>
 #include <wayland-client-core.h>
 
@@ -49,107 +34,12 @@ namespace {
       .configure = &LockSurface::handleConfigure,
   };
 
-  constexpr float kMediaArtSize = lockscreen_login_box::kRegularMediaArtSize;
-  constexpr float kWeatherGlyphSize = 28.0F;
-  constexpr float kForecastGlyphSize = lockscreen_login_box::kRegularForecastGlyphSize;
-  constexpr float kLayoutChipMaxWidth = 96.0F;
-  constexpr int kForecastDayCountPaired = 3;
-  constexpr int kForecastDayCountAlone = 5;
-  constexpr float kWeatherCurrentMinText = 56.0F;
-
-  [[nodiscard]] int fitForecastDays(
-      Renderer& renderer, float weatherBudget, float weatherGlyphSize, float forecastGlyphSize, float captionSize,
-      int maxDays
-  ) {
-    if (maxDays <= 0 || weatherBudget <= 0.0F) {
-      return 0;
-    }
-    // Vertical forecast column width is dominated by the hi/lo caption.
-    const float tempsW = renderer.measureText("99°/99°", captionSize).width;
-    const float dayW = renderer.measureText("Wed", captionSize).width;
-    const float colW = std::max({tempsW, dayW, forecastGlyphSize}) + Style::spaceXs;
-    const float currentMin = weatherGlyphSize + Style::spaceSm + kWeatherCurrentMinText;
-    float remaining = weatherBudget - currentMin - Style::spaceMd;
-    if (remaining < colW) {
-      return 0;
-    }
-    const int fit = 1 + static_cast<int>((remaining - colW) / (colW + Style::spaceSm));
-    return std::clamp(fit, 0, maxDays);
-  }
-
-  [[nodiscard]] float forecastBlockWidth(Renderer& renderer, int dayCount, float forecastGlyphSize, float captionSize) {
-    if (dayCount <= 0) {
-      return 0.0F;
-    }
-    const float tempsW = renderer.measureText("99°/99°", captionSize).width;
-    const float dayW = renderer.measureText("Wed", captionSize).width;
-    const float colW = std::max({tempsW, dayW, forecastGlyphSize}) + Style::spaceXs;
-    return colW * static_cast<float>(dayCount) + Style::spaceSm * static_cast<float>(dayCount - 1);
-  }
-
   bool parseColorWallpaperPath(std::string_view path, Color& out) {
     constexpr std::string_view kPrefix = "color:";
     if (!path.starts_with(kPrefix)) {
       return false;
     }
     return tryParseHexColor(path.substr(kPrefix.size()), out);
-  }
-
-  [[nodiscard]] ButtonVariant buttonVariantFor(SessionActionButtonVariant variant) {
-    switch (variant) {
-    case SessionActionButtonVariant::Default:
-      return ButtonVariant::Default;
-    case SessionActionButtonVariant::Primary:
-      return ButtonVariant::Primary;
-    case SessionActionButtonVariant::Secondary:
-      return ButtonVariant::Secondary;
-    case SessionActionButtonVariant::Destructive:
-      return ButtonVariant::Destructive;
-    case SessionActionButtonVariant::Outline:
-      return ButtonVariant::Outline;
-    case SessionActionButtonVariant::Ghost:
-      return ButtonVariant::Ghost;
-    }
-    return ButtonVariant::Default;
-  }
-
-  // Default/Ghost use SurfaceContainer or clear fills that disappear on the
-  // SurfaceContainer login panel; Outline gives a readable Surface chip.
-  [[nodiscard]] ButtonVariant lockscreenSessionVariant(SessionActionButtonVariant variant) {
-    switch (variant) {
-    case SessionActionButtonVariant::Default:
-    case SessionActionButtonVariant::Ghost:
-      return ButtonVariant::Outline;
-    case SessionActionButtonVariant::Primary:
-    case SessionActionButtonVariant::Secondary:
-    case SessionActionButtonVariant::Destructive:
-    case SessionActionButtonVariant::Outline:
-      return buttonVariantFor(variant);
-    }
-    return ButtonVariant::Outline;
-  }
-
-  [[nodiscard]] std::string weekdayAbbrev(const std::string& isoDate) {
-    if (isoDate.size() != 10) {
-      return isoDate;
-    }
-    std::tm tm{};
-    tm.tm_year = std::stoi(isoDate.substr(0, 4)) - 1900;
-    tm.tm_mon = std::stoi(isoDate.substr(5, 2)) - 1;
-    tm.tm_mday = std::stoi(isoDate.substr(8, 2));
-    if (std::mktime(&tm) == -1) {
-      return isoDate;
-    }
-    const std::string weekday = formatStrftime("%a", tm);
-    return weekday.empty() ? isoDate : weekday;
-  }
-
-  [[nodiscard]] std::string todayIso(std::int32_t utcOffsetSeconds) {
-    const auto now = std::chrono::system_clock::now() + std::chrono::seconds{utcOffsetSeconds};
-    const std::time_t time = std::chrono::system_clock::to_time_t(now);
-    std::tm tm{};
-    gmtime_r(&time, &tm);
-    return formatStrftime("%Y-%m-%d", tm);
   }
 
 } // namespace
@@ -167,325 +57,16 @@ LockSurface::LockSurface(WaylandConnection& connection, ConfigService* config) :
 
   m_backgroundLayer->addChild(
       ui::box({
-          .out = &m_tintOverlay,
-          .visible = false,
-          .configure = [](Box& box) { box.setZIndex(1); },
-      })
-  );
-
-  m_backgroundLayer->addChild(
-      ui::box({
           .out = &m_backdrop,
           .configure = [](Box& box) { box.setZIndex(-1); },
       })
   );
 
-  {
-    auto widgetLayer = ui::node({});
-    widgetLayer->setZIndex(2);
-    m_widgetLayer = m_root.addChild(std::move(widgetLayer));
-  }
-
   m_okaru.build(m_root);
 
   m_root.addChild(
-      ui::flex(
-          FlexDirection::Vertical,
-          {
-              .out = &m_loginPanel,
-              .align = FlexAlign::Stretch,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceSm,
-              .paddingV = Style::spaceLg,
-              .paddingH = Style::spaceLg,
-              .configure = [](Flex& flex) { flex.setZIndex(2); },
-          }
-      )
-  );
-
-  m_loginPanel->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_infoRow,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceMd,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .visible = false,
-          }
-      )
-  );
-
-  m_infoRow->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_mediaBlock,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceSm,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-              .flexGrow = 1.0F,
-              .visible = false,
-          }
-      )
-  );
-  m_mediaBlock->addChild(
-      ui::image({
-          .out = &m_mediaArt,
-          .fit = ImageFit::Cover,
-          .radius = kMediaArtSize * 0.5F,
-          .width = kMediaArtSize,
-          .height = kMediaArtSize,
-          .visible = false,
-      })
-  );
-  m_mediaBlock->addChild(
-      ui::glyph({
-          .out = &m_mediaFallbackGlyph,
-          .glyph = "disc",
-          .glyphSize = 18.0F,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-          .visible = false,
-      })
-  );
-  m_mediaBlock->addChild(
-      ui::flex(
-          FlexDirection::Vertical,
-          {
-              .out = &m_mediaTextColumn,
-              .align = FlexAlign::Stretch,
-              .justify = FlexJustify::Center,
-              .gap = 2.0F,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-              .flexGrow = 1.0F,
-          }
-      )
-  );
-  m_mediaTextColumn->addChild(
-      ui::label({
-          .out = &m_mediaTitle,
-          .fontSize = Style::fontSizeBody,
-          .fontWeight = FontWeight::Bold,
-          .color = colorSpecFromRole(ColorRole::OnSurface),
-          .maxLines = 1,
-          .textAlign = TextAlign::Start,
-      })
-  );
-  m_mediaTextColumn->addChild(
-      ui::label({
-          .out = &m_mediaArtist,
-          .fontSize = Style::fontSizeCaption,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-          .maxLines = 1,
-          .textAlign = TextAlign::Start,
-      })
-  );
-
-  m_infoRow->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_weatherBlock,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::End,
-              .gap = Style::spaceMd,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-              .flexGrow = 1.0F,
-              .visible = false,
-          }
-      )
-  );
-  m_weatherBlock->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_weatherCurrent,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceSm,
-              .widthPolicy = FlexSizePolicy::Content,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-          }
-      )
-  );
-  m_weatherCurrent->addChild(
-      ui::glyph({
-          .out = &m_weatherGlyph,
-          .glyph = "weather-cloud",
-          .glyphSize = kWeatherGlyphSize,
-          .color = colorSpecFromRole(ColorRole::Primary),
-      })
-  );
-  m_weatherCurrent->addChild(
-      ui::flex(
-          FlexDirection::Vertical,
-          {
-              .out = &m_weatherTextColumn,
-              .align = FlexAlign::Stretch,
-              .justify = FlexJustify::Center,
-              .gap = 2.0F,
-              .widthPolicy = FlexSizePolicy::Content,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-          }
-      )
-  );
-  m_weatherTextColumn->addChild(
-      ui::label({
-          .out = &m_weatherTemp,
-          .fontSize = Style::fontSizeBody,
-          .fontWeight = FontWeight::Bold,
-          .color = colorSpecFromRole(ColorRole::Primary),
-          .maxLines = 1,
-          .textAlign = TextAlign::Start,
-      })
-  );
-  m_weatherTextColumn->addChild(
-      ui::label({
-          .out = &m_weatherMeta,
-          .fontSize = Style::fontSizeCaption,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-          .maxLines = 1,
-          .textAlign = TextAlign::Start,
-      })
-  );
-  m_weatherBlock->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_forecastRow,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceSm,
-              .widthPolicy = FlexSizePolicy::Content,
-              .heightPolicy = FlexSizePolicy::Content,
-              .clipChildren = true,
-          }
-      )
-  );
-  for (auto& column : m_forecastColumns) {
-    m_forecastRow->addChild(
-        ui::flex(
-            FlexDirection::Vertical,
-            {
-                .out = &column.column,
-                .align = FlexAlign::Center,
-                .justify = FlexJustify::Center,
-                .gap = 2.0F,
-                .widthPolicy = FlexSizePolicy::Content,
-                .heightPolicy = FlexSizePolicy::Content,
-                .visible = false,
-            }
-        )
-    );
-    column.column->addChild(
-        ui::label({
-            .out = &column.day,
-            .fontSize = Style::fontSizeCaption,
-            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-            .maxLines = 1,
-            .textAlign = TextAlign::Center,
-        })
-    );
-    column.column->addChild(
-        ui::glyph({
-            .out = &column.glyph,
-            .glyph = "weather-cloud",
-            .glyphSize = kForecastGlyphSize,
-            .color = colorSpecFromRole(ColorRole::Primary),
-        })
-    );
-    column.column->addChild(
-        ui::label({
-            .out = &column.temps,
-            .fontSize = Style::fontSizeCaption,
-            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-            .maxLines = 1,
-            .textAlign = TextAlign::Center,
-        })
-    );
-  }
-
-  // Auth panel is a sibling of the login panel (child of root), not a flex row inside it.
-  // It floats above (or below) the login box without affecting panel dimensions.
-  m_root.addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_authPanel,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Center,
-              .gap = Style::spaceXs,
-              .paddingV = Style::spaceMd,
-              .paddingH = Style::spaceMd,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .visible = false,
-              .participatesInLayout = false,
-              .configure = [](Flex& flex) { flex.setZIndex(7); },
-          }
-      )
-  );
-  m_authPanel->addChild(
-      ui::label({
-          .out = &m_authLabel,
-          .fontSize = Style::fontSizeCaption,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-          .maxLines = 1,
-          .textAlign = TextAlign::Center,
-          .configure = [](Label& label) {
-            label.setZIndex(2);
-            label.setFlexGrow(1.0F);
-          },
-      })
-  );
-
-  m_loginPanel->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_loginContentRow,
-              .align = FlexAlign::Center,
-              .justify = FlexJustify::Start,
-              .gap = Style::spaceSm,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-          }
-      )
-  );
-
-  m_loginContentRow->addChild(
-      ui::button({
-          .out = &m_layoutChip,
-          .text = "",
-          .glyph = "keyboard",
-          .fontSize = Style::fontSizeCaption,
-          .variant = ButtonVariant::Secondary,
-          .visible = false,
-          .onClick =
-              [this] {
-                if (m_onCycleLayout) {
-                  m_onCycleLayout();
-                }
-              },
-          .configure = [](Button& button) { button.setZIndex(2); },
-      })
-  );
-
-  m_loginContentRow->addChild(
       ui::input({
           .out = &m_passwordField,
-          .placeholder = i18n::tr("lockscreen.password-placeholder"),
           .passwordMode = true,
           .onChange =
               [this](const std::string& value) {
@@ -499,67 +80,9 @@ LockSurface::LockSurface(WaylandConnection& connection, ConfigService* config) :
                   m_onLogin();
                 }
               },
-          .configure =
-              [](Input& input) {
-                input.setZIndex(2);
-                input.setFlexGrow(1.0F);
-              },
       })
   );
-
-  m_loginContentRow->addChild(
-      ui::button({
-          .out = &m_passwordRevealButton,
-          .text = "",
-          .glyph = "eye",
-          .glyphSize = 16.0F,
-          .variant = ButtonVariant::Ghost,
-          .onClick =
-              [this] {
-                if (m_passwordField == nullptr) {
-                  return;
-                }
-                const bool revealed = !m_passwordField->passwordRevealed();
-                m_passwordField->setPasswordRevealed(revealed);
-                if (m_passwordRevealButton != nullptr) {
-                  m_passwordRevealButton->setGlyph(revealed ? "eye-off" : "eye");
-                }
-              },
-          .configure = [](Button& button) { button.setZIndex(2); },
-      })
-  );
-
-  m_loginContentRow->addChild(
-      ui::button({
-          .out = &m_loginButton,
-          .text = "",
-          .glyph = "check",
-          .glyphSize = 16.0F,
-          .variant = ButtonVariant::Primary,
-          .onClick =
-              [this] {
-                if (m_onLogin) {
-                  m_onLogin();
-                }
-              },
-          .configure = [](Button& button) { button.setZIndex(2); },
-      })
-  );
-
-  m_loginPanel->addChild(
-      ui::flex(
-          FlexDirection::Horizontal,
-          {
-              .out = &m_sessionRow,
-              .align = FlexAlign::Stretch,
-              .justify = FlexJustify::SpaceBetween,
-              .gap = Style::spaceSm,
-              .widthPolicy = FlexSizePolicy::Fill,
-              .heightPolicy = FlexSizePolicy::Content,
-              .visible = false,
-          }
-      )
-  );
+  m_okaru.adoptPasswordField(m_passwordField);
 
   {
     auto transitionCover = std::make_unique<LockscreenTransitionCover>();
@@ -583,7 +106,6 @@ LockSurface::LockSurface(WaylandConnection& connection, ConfigService* config) :
 
 LockSurface::~LockSurface() {
   invalidateSleepFrame();
-  m_aliveGuard.reset();
   releaseCaptureTextures();
   m_connection.unregisterSurface(m_surface);
   if (m_lockSurface != nullptr) {
@@ -603,14 +125,8 @@ LockSurface::~LockSurface() {
   }
 }
 
-void LockSurface::setLoginBoxServices(
-    SessionActionRunner* sessionActions, MprisService* mpris, const WeatherService* weather, HttpClient* httpClient
-) {
+void LockSurface::setSessionActions(SessionActionRunner* sessionActions) {
   m_sessionActions = sessionActions;
-  m_mpris = mpris;
-  m_weather = weather;
-  m_httpClient = httpClient;
-  rebuildSessionButtons();
   requestUpdate();
 }
 
@@ -676,9 +192,6 @@ void LockSurface::setLockedState(bool locked) {
     if (m_passwordField != nullptr) {
       m_passwordField->setPasswordRevealed(false);
     }
-    if (m_passwordRevealButton != nullptr) {
-      m_passwordRevealButton->setGlyph("eye");
-    }
     focusPasswordField();
   } else {
     m_inputDispatcher.setFocus(nullptr);
@@ -715,19 +228,11 @@ void LockSurface::setPromptState(
   requestUpdate();
 }
 
-void LockSurface::setKeyboardIndicators(
-    bool capsLock, bool hasMultipleLayouts, bool layoutSwitchable, std::string layoutLabel
-) {
-  if (m_capsLock == capsLock
-      && m_hasMultipleLayouts == hasMultipleLayouts
-      && m_layoutSwitchable == layoutSwitchable
-      && m_layoutLabel == layoutLabel) {
+void LockSurface::setCapsLock(bool capsLock) {
+  if (m_capsLock == capsLock) {
     return;
   }
   m_capsLock = capsLock;
-  m_hasMultipleLayouts = hasMultipleLayouts;
-  m_layoutSwitchable = layoutSwitchable;
-  m_layoutLabel = std::move(layoutLabel);
   requestUpdate();
 }
 
@@ -915,12 +420,11 @@ bool LockSurface::exitTransitionComplete() const noexcept {
   return m_transitionPhase == TransitionPhase::Disabled || m_transitionPhase == TransitionPhase::ExitComplete;
 }
 
-void LockSurface::setBackgroundStyle(float blurIntensity, float tintIntensity) {
-  if (m_blurIntensity == blurIntensity && m_tintIntensity == tintIntensity) {
+void LockSurface::setBackgroundStyle(float blurIntensity) {
+  if (m_blurIntensity == blurIntensity) {
     return;
   }
   m_blurIntensity = blurIntensity;
-  m_tintIntensity = tintIntensity;
   m_captureDirty = true;
   m_blurCache.invalidate();
   m_wallpaperDirty = true;
@@ -946,8 +450,6 @@ void LockSurface::setBlackout(bool blackout) {
 }
 
 void LockSurface::setOnLogin(std::function<void()> onLogin) { m_onLogin = std::move(onLogin); }
-
-void LockSurface::setOnCycleLayout(std::function<void()> onCycleLayout) { m_onCycleLayout = std::move(onCycleLayout); }
 
 void LockSurface::setOnPasswordChanged(std::function<void(const std::string&)> onPasswordChanged) {
   m_onPasswordChanged = std::move(onPasswordChanged);
@@ -1082,9 +584,6 @@ void LockSurface::layoutCoverOnly(std::uint32_t width, std::uint32_t height) {
   const auto sh = static_cast<float>(height);
   m_root.setSize(sw, sh);
   m_backgroundLayer->setVisible(false);
-  m_widgetLayer->setVisible(false);
-  m_loginPanel->setVisible(false);
-  m_authPanel->setVisible(false);
   layoutTransitionCover();
   syncTransitionCover();
 }
@@ -1164,7 +663,6 @@ void LockSurface::prepareFrame(bool needsUpdate, bool needsLayout) {
   }
 
   context->makeCurrent(renderTarget());
-  Renderer& renderer = renderTarget().renderer();
 
   if (m_transitionPhase == TransitionPhase::Cover) {
     if (ensureTransitionCaptureTexture()) {
@@ -1177,14 +675,9 @@ void LockSurface::prepareFrame(bool needsUpdate, bool needsLayout) {
     syncTransitionCover();
   }
 
-  if (m_widgetsHost != nullptr) {
-    m_widgetsHost->prepareFrame(*this, needsUpdate, needsLayout);
-  }
-
   if (needsUpdate) {
     UiPhaseScope updatePhase(UiPhase::Update);
     updateCopy();
-    syncRegularExtras(renderer);
   }
 
   if (needsUpdate || needsLayout) {
@@ -1201,16 +694,15 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
 
   const auto sw = static_cast<float>(width);
   const auto sh = static_cast<float>(height);
+  m_root.setSize(sw, sh);
+  m_backgroundLayer->setVisible(true);
+  m_backgroundLayer->setPosition(0.0F, 0.0F);
+  m_backgroundLayer->setSize(sw, sh);
+  m_backdrop->setPosition(0.0F, 0.0F);
+  m_backdrop->setSize(sw, sh);
 
   if (m_blackout) {
-    m_root.setSize(sw, sh);
-    m_backgroundLayer->setVisible(true);
-    m_backgroundLayer->setPosition(0.0F, 0.0F);
-    m_backgroundLayer->setSize(sw, sh);
     m_wallpaper->setVisible(false);
-    m_tintOverlay->setVisible(false);
-    m_backdrop->setPosition(0.0F, 0.0F);
-    m_backdrop->setSize(sw, sh);
     m_backdrop->setVisible(true);
     m_backdrop->setStyle(
         RoundedRectStyle{
@@ -1218,26 +710,8 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
             .fillMode = FillMode::Solid,
         }
     );
-    m_widgetLayer->setVisible(false);
     m_okaru.setVisible(false);
-    m_loginPanel->setVisible(false);
     m_passwordField->setVisible(false);
-    if (m_passwordRevealButton != nullptr) {
-      m_passwordRevealButton->setVisible(false);
-    }
-    m_loginButton->setVisible(false);
-    if (m_infoRow != nullptr) {
-      m_infoRow->setVisible(false);
-    }
-    if (m_sessionRow != nullptr) {
-      m_sessionRow->setVisible(false);
-    }
-    if (m_layoutChip != nullptr) {
-      m_layoutChip->setVisible(false);
-    }
-    if (m_authPanel != nullptr) {
-      m_authPanel->setVisible(false);
-    }
     layoutTransitionCover();
     syncTransitionCover();
     return;
@@ -1245,65 +719,12 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
 
   applyWallpaperTexture();
 
-  m_backgroundLayer->setVisible(true);
   m_wallpaper->setVisible(true);
-  m_widgetLayer->setVisible(true);
-  const bool loginVisible = isLoginBoxEnabled();
-  const lockscreen_login_box::LoginBoxStyle loginStyle = resolveLoginStyle();
-  m_loginPanel->setVisible(loginVisible);
-  m_loginContentRow->setVisible(loginVisible);
-  m_passwordField->setVisible(loginVisible);
-  if (m_passwordRevealButton != nullptr) {
-    const bool showReveal = loginVisible && loginStyle.showPasswordReveal;
-    m_passwordRevealButton->setVisible(showReveal);
-    if (!showReveal) {
-      m_passwordField->setPasswordRevealed(false);
-      m_passwordRevealButton->setGlyph("eye");
-    }
-  }
-  m_loginButton->setVisible(loginVisible && loginStyle.showLoginButton);
-
-  const bool regular = loginVisible && loginStyle.layout == lockscreen_login_box::LayoutMode::Regular;
-  ensureLayoutChipInPasswordRow();
-  if (regular && loginStyle.showSessionButtons) {
-    rebuildSessionButtons();
-  }
-  const bool showSession = regular && loginStyle.showSessionButtons && !m_sessionButtons.empty();
-  const bool showInfoConfigured = regular && lockscreen_login_box::styleShowsInfoExtras(loginStyle);
-  float panelHeight = lockscreen_login_box::defaultPanelHeight(loginStyle.layout, showSession, showInfoConfigured);
-  float panelWidth = lockscreen_login_box::defaultPanelWidth(sw, loginStyle.layout);
-  float panelX = std::round((sw - panelWidth) * 0.5F);
-  float panelY = std::max(Style::spaceLg, sh - panelHeight - 84.0F);
-  if (m_config != nullptr) {
-    if (const DesktopWidgetState* loginBox = lockscreen_login_box::findForOutput(
-            m_config->config().lockscreenWidgets.widgets, m_connection.outputs(), m_outputKey
-        );
-        loginBox != nullptr) {
-      float cx = loginBox->cx;
-      float cy = loginBox->cy;
-      // Fit height to visible chrome so disabling media/weather/sessions does not leave empty panel space.
-      panelHeight = lockscreen_login_box::defaultPanelHeight(loginStyle.layout, showSession, showInfoConfigured);
-      panelWidth = lockscreen_login_box::resolvePanelWidth(sw, loginBox->boxWidth, loginStyle.layout);
-      panelX = cx - panelWidth * 0.5F;
-      panelY = cy - panelHeight * 0.5F;
-    }
-  }
-
-  panelX = util::clampOrdered(panelX, Style::spaceLg, sw - panelWidth - Style::spaceLg);
-  panelY = util::clampOrdered(panelY, Style::spaceLg, sh - panelHeight - Style::spaceLg);
-
-  m_root.setSize(sw, sh);
-
-  m_backgroundLayer->setPosition(0.0F, 0.0F);
-  m_backgroundLayer->setSize(sw, sh);
-
   m_wallpaper->setPosition(0.0F, 0.0F);
   m_wallpaper->setSize(sw, sh);
   m_wallpaper->setFillMode(m_wallpaperFillMode);
   m_wallpaper->setFillColor(m_wallpaperFillColor);
 
-  m_backdrop->setPosition(0.0F, 0.0F);
-  m_backdrop->setSize(sw, sh);
   m_backdrop->setVisible(m_wallpaperFillColor.a > 0.0F);
   m_backdrop->setStyle(
       RoundedRectStyle{
@@ -1312,294 +733,13 @@ void LockSurface::layoutScene(std::uint32_t width, std::uint32_t height) {
       }
   );
 
-  if (m_tintOverlay != nullptr) {
-    m_tintOverlay->setPosition(0.0F, 0.0F);
-    m_tintOverlay->setSize(sw, sh);
-    const float tintIntensity = m_tintIntensity;
-    const bool showTint = tintIntensity > 0.0F;
-    m_tintOverlay->setVisible(showTint);
-    if (showTint) {
-      m_tintOverlay->setStyle(
-          RoundedRectStyle{
-              .fill = colorForRole(ColorRole::Surface, tintIntensity),
-              .fillMode = FillMode::Solid,
-          }
-      );
-    }
-  }
-
-  if (loginVisible) {
-    layoutOkaru(renderer, sw, sh);
-    layoutTransitionCover();
-    syncTransitionCover();
-    return;
-  }
-  m_okaru.setVisible(false);
-
-  m_loginPanel->setFill(loginStyle.panelFill);
-  m_loginPanel->setBorder(colorForRole(ColorRole::OutlineVariant, loginStyle.panelOpacity), Style::borderWidth);
-  m_loginPanel->setRadius(Style::scaledRadius(loginStyle.panelRadius));
-  m_loginPanel->setSoftness(1.0F);
-  m_loginPanel->setClipChildren(true);
-
-  const float contentWidth = std::max(0.0F, panelWidth - 2.0F * Style::spaceLg);
-
-  m_loginPanel->setJustify(regular ? FlexJustify::Start : FlexJustify::Center);
-
-  const bool mediaReady = m_mpris != nullptr && m_mpris->activePlayer().has_value();
-  const bool weatherReady = m_weather != nullptr && m_weather->enabled() && m_weather->hasData();
-  const auto extras = lockscreen_login_box::resolveInfoExtrasVisibility(regular, loginStyle, mediaReady, weatherReady);
-  const bool showMedia = extras.showMedia;
-  const bool showWeather = extras.showWeather;
-  const bool showInfoExtras = showMedia || showWeather;
-  const bool weatherAlone = showWeather && !showMedia;
-  const bool mediaAlone = showMedia && !showWeather;
-  const float mediaBudget = lockscreen_login_box::infoExtraBudget(contentWidth, showMedia, showWeather);
-  const float weatherBudget = lockscreen_login_box::infoExtraBudget(contentWidth, showWeather, showMedia);
-  const int maxForecastDays = weatherAlone ? kForecastDayCountAlone : kForecastDayCountPaired;
-  // Placeholder until fonts/glyphs are scaled below; recomputed after contentScale.
-  int forecastDaysFit = 0;
-  const bool showLayoutChip =
-      loginVisible && loginStyle.showKeyboardLayout && m_layoutChip != nullptr && m_layoutChip->visible();
-
-  const lockscreen_login_box::RegularRowHeights rows = regular
-      ? lockscreen_login_box::regularRowHeights(panelHeight, showSession, showInfoExtras)
-      : lockscreen_login_box::RegularRowHeights{};
-  const float contentScale = regular ? rows.scale : 1.0F;
-  m_regularContentScale = contentScale;
-  const float captionSize = Style::fontSizeCaption * contentScale;
-  const float bodySize = Style::fontSizeBody * contentScale;
-  const float mediaArtSize = kMediaArtSize * contentScale;
-  const float weatherGlyphSize = kWeatherGlyphSize * contentScale;
-  const float forecastGlyphSize = kForecastGlyphSize * contentScale;
-  const float sessionGlyphSize = 16.0F * contentScale;
-
-  forecastDaysFit = showWeather
-      ? fitForecastDays(renderer, weatherBudget, weatherGlyphSize, forecastGlyphSize, captionSize, maxForecastDays)
-      : 0;
-  const bool showForecast = forecastDaysFit > 0;
-  const float forecastWidth =
-      showForecast ? forecastBlockWidth(renderer, forecastDaysFit, forecastGlyphSize, captionSize) : 0.0F;
-
-  if (m_mediaArt != nullptr) {
-    m_mediaArt->setSize(mediaArtSize, mediaArtSize);
-    m_mediaArt->setRadius(mediaArtSize * 0.5F);
-  }
-  if (m_mediaFallbackGlyph != nullptr) {
-    m_mediaFallbackGlyph->setGlyphSize(18.0F * contentScale);
-  }
-  if (m_mediaTitle != nullptr) {
-    m_mediaTitle->setFontSize(bodySize);
-  }
-  if (m_mediaArtist != nullptr) {
-    m_mediaArtist->setFontSize(captionSize);
-  }
-  if (m_mediaBlock != nullptr) {
-    m_mediaBlock->setVisible(showMedia);
-    m_mediaBlock->setMaxWidth(mediaBudget);
-    m_mediaBlock->setFlexGrow(showMedia ? 1.0F : 0.0F);
-    m_mediaBlock->setJustify(mediaAlone ? FlexJustify::Center : FlexJustify::Start);
-  }
-  if (m_weatherBlock != nullptr) {
-    m_weatherBlock->setVisible(showWeather);
-    m_weatherBlock->setMaxWidth(weatherBudget);
-    m_weatherBlock->setFlexGrow(showWeather ? 1.0F : 0.0F);
-    m_weatherBlock->setJustify(weatherAlone ? FlexJustify::Center : FlexJustify::End);
-  }
-  if (m_forecastRow != nullptr) {
-    m_forecastRow->setVisible(showForecast);
-  }
-  for (std::size_t i = 0; i < m_forecastColumns.size(); ++i) {
-    auto& column = m_forecastColumns[i];
-    if (column.column == nullptr) {
-      continue;
-    }
-    if (!showForecast || i >= static_cast<std::size_t>(forecastDaysFit)) {
-      column.column->setVisible(false);
-      continue;
-    }
-    // Re-show columns that sync filled but a prior narrower layout hid.
-    if (column.day != nullptr && !column.day->text().empty()) {
-      column.column->setVisible(true);
-    }
-  }
-  if (m_weatherGlyph != nullptr) {
-    m_weatherGlyph->setGlyphSize(weatherGlyphSize);
-  }
-  if (m_weatherTemp != nullptr) {
-    m_weatherTemp->setFontSize(bodySize);
-  }
-  if (m_weatherMeta != nullptr) {
-    m_weatherMeta->setFontSize(captionSize);
-  }
-  for (auto& column : m_forecastColumns) {
-    if (column.day != nullptr) {
-      column.day->setFontSize(captionSize);
-    }
-    if (column.glyph != nullptr) {
-      column.glyph->setGlyphSize(forecastGlyphSize);
-    }
-    if (column.temps != nullptr) {
-      column.temps->setFontSize(captionSize);
-    }
-  }
-
-  const float mediaTextMax = std::max(48.0F, mediaBudget - mediaArtSize - Style::spaceSm);
-  if (m_mediaTitle != nullptr) {
-    m_mediaTitle->setMaxWidth(mediaTextMax);
-    m_mediaTitle->setEllipsize(TextEllipsize::End);
-    m_mediaTitle->setAutoScroll(false);
-  }
-  if (m_mediaArtist != nullptr) {
-    m_mediaArtist->setMaxWidth(mediaTextMax);
-    m_mediaArtist->setEllipsize(TextEllipsize::End);
-  }
-
-  // Reserve measured forecast width so current weather + forecast never overflow the half-row.
-  const float weatherTextMax = showForecast
-      ? std::max(
-            kWeatherCurrentMinText, weatherBudget - weatherGlyphSize - Style::spaceSm - Style::spaceMd - forecastWidth
-        )
-      : std::max(kWeatherCurrentMinText, weatherBudget - weatherGlyphSize - Style::spaceSm);
-  if (m_weatherTemp != nullptr) {
-    m_weatherTemp->setMaxWidth(weatherTextMax);
-    m_weatherTemp->setEllipsize(TextEllipsize::End);
-  }
-  if (m_weatherMeta != nullptr) {
-    m_weatherMeta->setMaxWidth(weatherTextMax);
-    m_weatherMeta->setEllipsize(TextEllipsize::End);
-    m_weatherMeta->setVisible(showWeather && weatherBudget >= 160.0F && !m_weatherMeta->text().empty());
-  }
-
-  // Scale info / status / password / session by the same factor so extra panel
-  // height is shared, not absorbed only by session buttons.
-  if (m_infoRow != nullptr) {
-    m_infoRow->setVisible(regular && showInfoExtras);
-    m_infoRow->setMaxWidth(contentWidth);
-    m_infoRow->setMinHeight(regular && showInfoExtras ? rows.info : 0.0F);
-    m_infoRow->setMaxHeight(regular && showInfoExtras ? rows.info : 0.0F);
-    m_infoRow->setFlexGrow(0.0F);
-    m_infoRow->setJustify((mediaAlone || weatherAlone) ? FlexJustify::Center : FlexJustify::Start);
-  }
-
-  const float controlHeight = regular ? rows.password : Style::controlHeight;
-  m_loginContentRow->setMinHeight(controlHeight);
-  m_loginContentRow->setMaxHeight(controlHeight);
-  m_loginContentRow->setMaxWidth(contentWidth);
-  m_loginContentRow->setFlexGrow(0.0F);
-
-  if (m_sessionRow != nullptr) {
-    m_sessionRow->setVisible(showSession);
-    m_sessionRow->setMaxWidth(contentWidth);
-    m_sessionRow->setMinHeight(showSession ? rows.session : 0.0F);
-    m_sessionRow->setMaxHeight(showSession ? rows.session : 0.0F);
-    m_sessionRow->setFlexGrow(0.0F);
-    if (showSession) {
-      const float gaps = Style::spaceSm * static_cast<float>(std::max<std::size_t>(1, m_sessionButtons.size()) - 1);
-      const float buttonMaxWidth = m_sessionButtons.empty()
-          ? contentWidth
-          : std::max(48.0F, (contentWidth - gaps) / static_cast<float>(m_sessionButtons.size()));
-      for (Button* button : m_sessionButtons) {
-        if (button == nullptr) {
-          continue;
-        }
-        button->setMaxWidth(buttonMaxWidth);
-        button->setMinHeight(0.0F);
-        button->setMaxHeight(0.0F);
-        button->setFillHeight(true);
-        button->setGlyphSize(sessionGlyphSize);
-        button->setFontSize(captionSize);
-        button->setRadius(Style::scaledRadius(loginStyle.inputRadius));
-      }
-    }
-  }
-
-  if (showLayoutChip) {
-    m_layoutChip->setRadius(Style::scaledRadius(loginStyle.inputRadius));
-    m_layoutChip->setMaxWidth(kLayoutChipMaxWidth);
-    m_layoutChip->setFontSize(captionSize);
-    m_layoutChip->setGlyphSize(captionSize);
-    m_layoutChip->setMinHeight(controlHeight);
-    m_layoutChip->setMaxHeight(controlHeight);
-  }
-
-  m_passwordField->setSurfaceOpacity(loginStyle.inputOpacity);
-  m_passwordField->setFrameRadius(loginStyle.inputRadius);
-  m_passwordField->setTextAlign(loginStyle.centerPasswordText ? TextAlign::Center : TextAlign::Start);
-  m_passwordField->setControlHeight(controlHeight);
-  m_passwordField->setFontSize(bodySize);
-
-  const bool showLoginButton = loginVisible && loginStyle.showLoginButton;
-  m_loginButton->setVisible(showLoginButton);
-  if (showLoginButton) {
-    m_loginButton->setRadius(Style::scaledRadius(loginStyle.inputRadius));
-    m_loginButton->setSize(controlHeight, controlHeight);
-    m_loginButton->setGlyphSize(sessionGlyphSize);
-  }
-
-  if (m_passwordRevealButton != nullptr) {
-    m_passwordRevealButton->setRadius(Style::scaledRadius(loginStyle.inputRadius));
-    m_passwordRevealButton->setSize(controlHeight, controlHeight);
-    m_passwordRevealButton->setGlyphSize(sessionGlyphSize);
-  }
-
-  m_loginPanel->arrange(renderer, LayoutRect{panelX, panelY, panelWidth, panelHeight});
-
-  // Auth panel: sibling above/below the login box (flips below when near the top edge).
-  if (m_authPanel != nullptr && m_authLabel != nullptr) {
-    bool statusError = false;
-    const std::string authText = resolveStatusText(loginStyle, statusError);
-    const bool showAuth = m_locked && !m_blackout && loginVisible && !authText.empty();
-    m_authPanel->setVisible(showAuth);
-    m_authLabel->setVisible(showAuth);
-    if (showAuth) {
-      m_authLabel->setText(authText);
-      m_authLabel->setColor(colorSpecFromRole(statusError ? ColorRole::Error : ColorRole::OnSurfaceVariant));
-      const float authFontSize = captionSize + (regular ? contentScale : 1.0F);
-      m_authLabel->setFontSize(authFontSize);
-      m_authLabel->setEllipsize(TextEllipsize::End);
-
-      const float authPadV = Style::spaceMd * (regular ? contentScale : 1.0F);
-      const float authPadH = Style::spaceMd * (regular ? contentScale : 1.0F);
-      const float authW = panelWidth;
-      const float authH = authPadV * 2.0F + authFontSize;
-      const float labelMaxW = std::max(0.0F, authW - authPadH * 2.0F);
-
-      m_authPanel->setPadding(authPadV, authPadH);
-      m_authPanel->setFill(loginStyle.panelFill);
-      m_authPanel->setBorder(colorForRole(ColorRole::OutlineVariant, loginStyle.panelOpacity), Style::borderWidth);
-      m_authPanel->setRadius(Style::scaledRadius(loginStyle.panelRadius));
-      m_authPanel->setSoftness(1.0F);
-      m_authPanel->setMinWidth(authW);
-      m_authPanel->setMaxWidth(authW);
-      m_authPanel->setMinHeight(authH);
-      m_authPanel->setMaxHeight(authH);
-      m_authLabel->setMaxWidth(labelMaxW);
-
-      const float authGap = Style::spaceSm;
-      const float authX = panelX;
-      const float authYAbove = panelY - authGap - authH;
-      const float authYBelow = panelY + panelHeight + authGap;
-      const float authY = (authYAbove >= Style::spaceLg) ? authYAbove : authYBelow;
-      m_authPanel->arrange(renderer, LayoutRect{authX, authY, authW, authH});
-    }
-  }
+  m_passwordField->setVisible(true);
+  layoutOkaru(renderer, sw, sh);
   layoutTransitionCover();
   syncTransitionCover();
 }
 
 void LockSurface::layoutOkaru(Renderer& renderer, float width, float height) {
-  // La vista reemplaza todo lo anterior: caja de login, panel de estado, widgets y tinte de la paleta.
-  m_widgetLayer->setVisible(false);
-  m_loginPanel->setVisible(false);
-  if (m_authPanel != nullptr) {
-    m_authPanel->setVisible(false);
-  }
-  if (m_tintOverlay != nullptr) {
-    m_tintOverlay->setVisible(false);
-  }
-  m_okaru.adoptPasswordField(m_passwordField);
-
   // Cerrar sesión, suspender, reiniciar y apagar, de las acciones de sesión configuradas y en ese orden.
   std::vector<lockscreen::OkaruLockAction> actions;
   const auto configured = resolveSessionActions();
@@ -1654,354 +794,12 @@ void LockSurface::layoutOkaru(Renderer& renderer, float width, float height) {
 void LockSurface::updateCopy() {
   m_passwordField->setValue(m_password);
   m_passwordField->setEnabled(!m_authenticating);
-  if (m_passwordRevealButton != nullptr) {
-    m_passwordRevealButton->setEnabled(!m_authenticating);
-  }
-  if (m_loginButton != nullptr) {
-    m_loginButton->setEnabled(!m_authenticating);
-  }
-  for (Button* button : m_sessionButtons) {
-    if (button != nullptr) {
-      button->setEnabled(!m_authenticating);
-    }
-  }
-
-  const lockscreen_login_box::LoginBoxStyle style = resolveLoginStyle();
-
-  if (m_authPanel != nullptr && m_authLabel != nullptr) {
-    bool isError = false;
-    const std::string text = resolveStatusText(style, isError);
-    const bool show = m_locked && !m_blackout && !text.empty() && isLoginBoxEnabled();
-    m_authPanel->setVisible(show);
-    m_authLabel->setVisible(show);
-    if (show) {
-      m_authLabel->setText(text);
-      m_authLabel->setColor(colorSpecFromRole(isError ? ColorRole::Error : ColorRole::OnSurfaceVariant));
-    }
-  }
-
-  if (m_layoutChip != nullptr) {
-    const bool show =
-        m_locked && !m_blackout && style.showKeyboardLayout && m_hasMultipleLayouts && isLoginBoxEnabled();
-    m_layoutChip->setVisible(show);
-    if (show) {
-      m_layoutChip->setGlyph("keyboard");
-      m_layoutChip->setText(m_layoutLabel.empty() ? "—" : m_layoutLabel);
-      m_layoutChip->setEnabled(m_layoutSwitchable);
-    }
-  }
 }
 
 std::vector<SessionPanelActionConfig> LockSurface::resolveSessionActions() const {
   const std::vector<SessionPanelActionConfig> src =
       m_config != nullptr ? m_config->config().shell.session.actions : defaultSessionPanelActions();
   return lockscreen::resolveSessionActions(src, defaultSessionPanelActions());
-}
-
-void LockSurface::ensureLayoutChipInPasswordRow() {
-  if (m_layoutChip == nullptr || m_loginContentRow == nullptr || m_passwordField == nullptr) {
-    return;
-  }
-  if (m_layoutChip->parent() == m_loginContentRow) {
-    // Keep the keyboard chip before the password field.
-    const auto& children = m_loginContentRow->children();
-    if (!children.empty() && children.front().get() == m_layoutChip) {
-      return;
-    }
-  }
-
-  Node* currentParent = m_layoutChip->parent();
-  if (currentParent == nullptr) {
-    return;
-  }
-
-  std::unique_ptr<Node> owned = currentParent->removeChild(m_layoutChip);
-  if (owned == nullptr) {
-    return;
-  }
-
-  std::unique_ptr<Node> password;
-  std::unique_ptr<Node> loginButton;
-  if (m_passwordField->parent() == m_loginContentRow) {
-    password = m_loginContentRow->removeChild(m_passwordField);
-  }
-  if (m_loginButton != nullptr && m_loginButton->parent() == m_loginContentRow) {
-    loginButton = m_loginContentRow->removeChild(m_loginButton);
-  }
-
-  m_loginContentRow->addChild(std::move(owned));
-  if (password != nullptr) {
-    m_loginContentRow->addChild(std::move(password));
-  }
-  if (loginButton != nullptr) {
-    m_loginContentRow->addChild(std::move(loginButton));
-  }
-}
-
-void LockSurface::rebuildSessionButtons() {
-  if (m_sessionRow == nullptr) {
-    return;
-  }
-
-  const auto actions = resolveSessionActions();
-  const bool showShortcuts = m_config == nullptr || m_config->config().shell.session.showShortcuts;
-  std::vector<std::string> badges;
-  badges.reserve(actions.size());
-  std::vector<std::string> keys;
-  keys.reserve(actions.size());
-  for (const auto& action : actions) {
-    badges.push_back(
-        showShortcuts && action.lockscreenShortcut.has_value() ? keyChordDisplayLabel(*action.lockscreenShortcut)
-                                                               : std::string{}
-    );
-    keys.push_back(
-        action.action + "|" + (action.label.value_or("")) + "|" + (action.glyph.value_or("")) + "|" + badges.back()
-    );
-  }
-  if (keys == m_lastSessionActionKeys && !m_sessionButtons.empty()) {
-    return;
-  }
-  m_lastSessionActionKeys = std::move(keys);
-
-  while (!m_sessionRow->children().empty()) {
-    m_sessionRow->removeChild(m_sessionRow->children().front().get());
-  }
-  m_sessionButtons.clear();
-
-  if (m_sessionActions == nullptr) {
-    return;
-  }
-
-  for (std::size_t i = 0; i < actions.size(); ++i) {
-    const auto& cfg = actions[i];
-    const std::string_view labelKey =
-        cfg.action == "lock_and_suspend" ? session_action::labelKey("suspend") : session_action::labelKey(cfg.action);
-    const std::string labelText = cfg.label.has_value() && !cfg.label->empty() ? *cfg.label : i18n::tr(labelKey);
-    auto button = ui::button({
-        .out = nullptr,
-        .text = labelText,
-        .glyph = cfg.glyph.has_value() && !cfg.glyph->empty() ? *cfg.glyph : session_action::defaultGlyph(cfg.action),
-        .fontSize = Style::fontSizeCaption,
-        .glyphSize = 16.0F,
-        .contentAlign = ButtonContentAlign::Center,
-        .variant = lockscreenSessionVariant(cfg.variant),
-        .minHeight = 0.0F,
-        .maxHeight = 0.0F,
-        .paddingV = Style::spaceXs,
-        .paddingH = Style::spaceSm,
-        .gap = Style::spaceXs,
-        .radius = Style::scaledRadiusMd(),
-        .flexGrow = 1.0F,
-        .onClick =
-            [this, cfg] {
-              if (m_sessionActions != nullptr) {
-                m_sessionActions->invoke(cfg);
-              }
-            },
-        .configure =
-            [hint = badges[i]](Button& control) {
-              control.setDirection(FlexDirection::Horizontal);
-              control.setAlign(FlexAlign::Center);
-              control.setJustify(FlexJustify::Center);
-              control.setFillHeight(true);
-              // An inline trailing hint, not the corner badge: these buttons are too
-              // compact for an overlay, which would cover the centered label.
-              if (!hint.empty()) {
-                auto hintLabel = std::make_unique<Label>();
-                hintLabel->setText(hint);
-                hintLabel->setFontSize(Style::fontSizeCaption * 0.85F);
-                hintLabel->setOpacity(0.6F);
-                control.addChild(std::move(hintLabel));
-              }
-            },
-    });
-    m_sessionButtons.push_back(button.get());
-    m_sessionRow->addChild(std::move(button));
-  }
-}
-
-void LockSurface::syncRegularExtras(Renderer& renderer) {
-  const lockscreen_login_box::LoginBoxStyle style = resolveLoginStyle();
-  const bool regular =
-      m_locked && !m_blackout && isLoginBoxEnabled() && style.layout == lockscreen_login_box::LayoutMode::Regular;
-  const bool mediaReady = m_mpris != nullptr && m_mpris->activePlayer().has_value();
-  const bool weatherReady = m_weather != nullptr && m_weather->enabled() && m_weather->hasData();
-  const auto extras = lockscreen_login_box::resolveInfoExtrasVisibility(regular, style, mediaReady, weatherReady);
-
-  if (m_mediaBlock != nullptr && extras.showMedia && m_mediaTitle != nullptr && m_mediaArtist != nullptr) {
-    const auto active = m_mpris != nullptr ? m_mpris->activePlayer() : std::nullopt;
-    std::string title;
-    std::string artist;
-    std::string artUrl;
-    if (active.has_value()) {
-      title = active->title;
-      artist = mpris::joinArtists(active->artists);
-      artUrl = mpris::effectiveArtUrl(*active);
-    }
-    if (title.empty()) {
-      title = i18n::tr("desktop-widgets.media.nothing-playing");
-    }
-    const bool titleChanged = title != m_lastMediaTitle;
-    const bool artistChanged = artist != m_lastMediaArtist;
-    const bool artChanged = artUrl != m_lastArtUrl;
-    if (titleChanged) {
-      m_lastMediaTitle = title;
-      m_mediaTitle->setText(title);
-    }
-    if (artistChanged) {
-      m_lastMediaArtist = artist;
-      m_mediaArtist->setText(artist);
-      m_mediaArtist->setVisible(!artist.empty());
-    }
-    if (artChanged || (m_mediaArt != nullptr && !artUrl.empty() && !m_mediaArt->hasImage())) {
-      m_lastArtUrl = artUrl;
-      const int targetPx = static_cast<int>(std::round(kMediaArtSize * std::max(1.0F, m_regularContentScale)));
-      bool hasArt = false;
-      if (m_mediaArt != nullptr) {
-        if (!artUrl.empty()) {
-          const std::string artPath = mpris::resolveArtworkSource(
-              m_httpClient, m_pendingArtDownloads, artUrl, [this] { requestUpdate(); }, m_aliveGuard
-          );
-          if (!artPath.empty()) {
-            hasArt = m_mediaArt->setSourceFile(renderer, artPath, targetPx, true, true);
-          }
-          if (!hasArt) {
-            m_mediaArt->clear(renderer);
-          }
-        } else {
-          m_mediaArt->clear(renderer);
-        }
-        m_mediaArt->setVisible(hasArt);
-      }
-      if (m_mediaFallbackGlyph != nullptr) {
-        m_mediaFallbackGlyph->setVisible(!hasArt);
-      }
-    }
-  }
-
-  if (m_weatherBlock != nullptr) {
-    // Visibility/budgets are owned by layout; only push content when shown.
-    if (extras.showWeather && m_weatherGlyph != nullptr && m_weatherTemp != nullptr && m_weatherMeta != nullptr) {
-      std::string fingerprint;
-      std::string glyphName = "weather-cloud";
-      std::string tempText = "--";
-      std::string metaText;
-      std::vector<std::tuple<std::string, std::string, std::string>> forecast;
-
-      if (weatherReady) {
-        const auto& snapshot = m_weather->snapshot();
-        glyphName = WeatherService::glyphForCode(snapshot.current.weatherCode, snapshot.current.isDay);
-        const int temp = static_cast<int>(std::lround(m_weather->displayTemperature(snapshot.current.temperatureC)));
-        tempText = std::format("{}{}", temp, m_weather->displayTemperatureUnit());
-        const bool imperial = m_weather->useImperial();
-        const double wind = imperial ? snapshot.current.windSpeedKmh * 0.621371 : snapshot.current.windSpeedKmh;
-        const char* windUnit = imperial
-            ? "mph"
-            : (snapshot.currentUnits.windSpeed.empty() ? "km/h" : snapshot.currentUnits.windSpeed.c_str());
-        metaText = std::format("{} {}", static_cast<int>(std::lround(wind)), windUnit);
-        const bool showLocation = m_config == nullptr || m_config->config().shell.showLocation;
-        if (showLocation && !snapshot.locationName.empty()) {
-          metaText = std::format("{} · {}", metaText, snapshot.locationName);
-        }
-
-        const bool weatherAlone = extras.showWeather && !extras.showMedia;
-        const int forecastDayCount = weatherAlone ? kForecastDayCountAlone : kForecastDayCountPaired;
-        const bool firstForecastIsToday = !snapshot.forecastDays.empty()
-            && snapshot.forecastDays.front().dateIso == todayIso(snapshot.utcOffsetSeconds);
-        const std::size_t forecastStart = firstForecastIsToday ? 1 : 0;
-        for (int i = 0; i < forecastDayCount; ++i) {
-          const std::size_t dayIndex = forecastStart + static_cast<std::size_t>(i);
-          if (dayIndex >= snapshot.forecastDays.size()) {
-            break;
-          }
-          const auto& day = snapshot.forecastDays[dayIndex];
-          forecast.emplace_back(
-              weekdayAbbrev(day.dateIso), WeatherService::glyphForCode(day.weatherCode, true),
-              std::format(
-                  "{}°/{}°", static_cast<int>(std::lround(m_weather->displayTemperature(day.temperatureMinC))),
-                  static_cast<int>(std::lround(m_weather->displayTemperature(day.temperatureMaxC)))
-              )
-          );
-        }
-        fingerprint = std::format(
-            "{}|{}|{}|{}|{}|{}", glyphName, tempText, metaText, forecast.size(), showLocation, weatherAlone
-        );
-      } else {
-        fingerprint = "nodata";
-      }
-
-      if (fingerprint != m_lastWeatherFingerprint) {
-        m_lastWeatherFingerprint = fingerprint;
-        m_weatherGlyph->setGlyph(glyphName);
-        m_weatherTemp->setText(tempText);
-        m_weatherMeta->setText(metaText);
-        m_weatherMeta->setVisible(!metaText.empty());
-        for (std::size_t i = 0; i < m_forecastColumns.size(); ++i) {
-          auto& column = m_forecastColumns[i];
-          const bool visible = i < forecast.size();
-          if (column.column != nullptr) {
-            column.column->setVisible(visible);
-          }
-          if (!visible) {
-            continue;
-          }
-          column.day->setText(std::get<0>(forecast[i]));
-          column.glyph->setGlyph(std::get<1>(forecast[i]));
-          column.temps->setText(std::get<2>(forecast[i]));
-          column.temps->setVisible(true);
-        }
-      }
-    } else {
-      m_lastWeatherFingerprint.clear();
-    }
-  }
-}
-
-lockscreen_login_box::LoginBoxStyle LockSurface::resolveLoginStyle() const {
-  if (m_config == nullptr) {
-    return lockscreen_login_box::LoginBoxStyle{};
-  }
-  if (const DesktopWidgetState* loginBox = lockscreen_login_box::findForOutput(
-          m_config->config().lockscreenWidgets.widgets, m_connection.outputs(), m_outputKey
-      );
-      loginBox != nullptr) {
-    return lockscreen_login_box::resolveStyle(loginBox->settings);
-  }
-  return lockscreen_login_box::LoginBoxStyle{};
-}
-
-bool LockSurface::isLoginBoxEnabled() const {
-  if (m_config == nullptr) {
-    return true;
-  }
-  if (const DesktopWidgetState* loginBox = lockscreen_login_box::findForOutput(
-          m_config->config().lockscreenWidgets.widgets, m_connection.outputs(), m_outputKey
-      );
-      loginBox != nullptr) {
-    return loginBox->enabled;
-  }
-  return true;
-}
-
-std::string LockSurface::resolveStatusText(const lockscreen_login_box::LoginBoxStyle& style, bool& isError) const {
-  isError = false;
-  // Errors always show. Caps Lock has its own toggle. Everything else (idle hint,
-  // authenticating, PAM prompts) is gated by showUnlockHint.
-  if (m_error) {
-    isError = true;
-    return m_status;
-  }
-  if (m_capsLock && style.showCapsLock) {
-    isError = true;
-    return i18n::tr("lockscreen.caps-lock-on");
-  }
-  if (!style.showUnlockHint) {
-    return {};
-  }
-  if (m_authenticating || !m_status.empty()) {
-    return m_status;
-  }
-  return i18n::tr("lockscreen.ready");
 }
 
 void LockSurface::applyWallpaperTexture() {
