@@ -31,8 +31,7 @@ namespace lockscreen {
     constexpr Color kVeil = rgba(0.0F, 0.0F, 0.0F, 0.55F);
     constexpr Color kFieldFill = rgba(0.0F, 0.0F, 0.0F, 0.35F);
     constexpr std::size_t kMaxDots = 24;
-    // Proporción de assets/okaru-logo.svg (ancho / alto); se regenera con tools/okaru-logo-svg.py.
-    constexpr float kLogoAspect = 647.3F / 200.0F;
+    constexpr float kLogoAspect = kOkaruLogoAspect;
     // Tipografía pixelada para el usuario, a juego con los bloques del logo (paquete ttf-bigblueterminal-nerd).
     constexpr const char* kPixelFont = "BigBlueTermPlus Nerd Font";
 
@@ -84,6 +83,34 @@ namespace lockscreen {
     }
 
   } // namespace
+
+  std::string okaruLogoPath(const Color& kanji, const Color& name) {
+    std::ifstream in(paths::assetPath("okaru-logo.svg"));
+    std::stringstream buffer;
+    buffer << in.rdbuf();
+    std::string svg = buffer.str();
+    if (svg.empty()) {
+      return {};
+    }
+    const std::string kanjiHex = hexOf(kanji);
+    const std::string nameHex = hexOf(name);
+    const auto recolor = [&svg](std::string_view from, const std::string& to) {
+      if (const auto at = svg.find(from); at != std::string::npos) {
+        std::string replaced(from);
+        replaced.replace(replaced.size() - 8, 7, to); // fill="#rrggbb": el color son los 7 antes de la comilla
+        svg.replace(at, from.size(), replaced);
+      }
+    };
+    recolor("id=\"kanji\" fill=\"#7095c8\"", kanjiHex);
+    recolor("id=\"name\" fill=\"#ffffff\"", nameHex);
+    recolor("id=\"shadow\" fill=\"#ffffff\"", nameHex);
+    const char* runtime = std::getenv("XDG_RUNTIME_DIR");
+    const std::filesystem::path dir = runtime != nullptr && runtime[0] != '\0' ? std::filesystem::path(runtime)
+                                                                               : std::filesystem::temp_directory_path();
+    const auto path = dir / std::format("okaru-logo-{}-{}.svg", kanjiHex.substr(1), nameHex.substr(1));
+    std::ofstream(path, std::ios::trunc) << svg;
+    return path.string();
+  }
 
   void OkaruLockView::build(Node& root) {
     root.addChild(ui::box({.out = &m_veil, .configure = [](Box& box) { box.setZIndex(1); }}));
@@ -185,7 +212,7 @@ namespace lockscreen {
     if (key == m_logoKey) {
       return;
     }
-    const std::string path = tintedAsset("okaru-logo.svg", "id=\"kanji\" fill=\"#7095c8\"", accent);
+    const std::string path = okaruLogoPath(colorForRole(ColorRole::Primary), rgba(1.0F, 1.0F, 1.0F, 1.0F));
     // Se rasteriza con el lado mayor al ancho que va a ocupar.
     const int targetSize = static_cast<int>(std::lround(static_cast<float>(heightPx) * kLogoAspect));
     if (!path.empty() && m_logo->setSourceFile(renderer, path, targetSize, false)) {

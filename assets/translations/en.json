@@ -2339,7 +2339,6 @@
         "move-down": "Move down"
       },
       "home": {
-        "about": "OKARU",
         "shell-version": "Shell version",
         "compositor": "Compositor",
         "compositor-unknown": "Not detected",
@@ -2353,7 +2352,8 @@
         "disks": "Disks",
         "changelog": "What's new",
         "changelog-desc": "Release notes of the latest version, grouped by type of change.",
-        "changelog-open": "View the latest release changelog"
+        "changelog-open": "View the latest release changelog",
+        "versions": "Versions"
       },
       "sound": {
         "outputs": "Outputs",

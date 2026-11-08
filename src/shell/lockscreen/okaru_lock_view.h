@@ -21,7 +21,16 @@ class Label;
 class Node;
 class Renderer;
 
+struct Color;
+
 namespace lockscreen {
+
+  // Proporción de assets/okaru-logo.svg (ancho / alto); se regenera con tools/okaru-logo-svg.py.
+  inline constexpr float kOkaruLogoAspect = 647.3F / 200.0F;
+
+  // Copia del logo (en $XDG_RUNTIME_DIR) con el kanji y el nombre en los colores dados. La usan el bloqueo
+  // (nombre blanco sobre el velo) y Ajustes → Inicio (nombre en el color de texto del tema).
+  [[nodiscard]] std::string okaruLogoPath(const Color& kanji, const Color& name);
 
   struct OkaruLockAction {
     std::string label;

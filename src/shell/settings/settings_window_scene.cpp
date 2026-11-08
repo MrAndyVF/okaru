@@ -1334,7 +1334,9 @@ void SettingsWindow::rebuildSettingsContent() {
 
   // OKARU: Home, la portada de los ajustes.
   if (m_selectedSection == "home") {
-    settings::addSettingsHome(*m_contentContainer, scale);
+    settings::addSettingsHome(
+        *m_contentContainer, scale, m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr
+    );
     return;
   }
 
