@@ -3647,8 +3647,6 @@
       "command-label": "シェルコマンド",
       "command-placeholder": "任意のbashコマンド。内蔵動作を使用する場合は空欄",
       "command-required-placeholder": "実行するシェルコマンド",
-      "countdown-seconds-description": "実行までの待機時間（秒）。もう一度実行すると即座に確定します。0の場合はすぐに実行します。",
-      "countdown-seconds-label": "カウントダウン（秒）",
       "glyph-label": "アイコン",
       "glyph-picker-title": "操作アイコン",
       "kind-section-label": "動作",

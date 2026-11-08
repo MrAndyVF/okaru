@@ -11,9 +11,9 @@
 #include "ui/builders.h"
 #include "ui/controls/box.h"
 #include "ui/controls/button.h"
-#include "ui/controls/countdown_ring.h"
 #include "ui/controls/flex.h"
 #include "ui/controls/grid_view.h"
+#include "ui/controls/label.h"
 #include "ui/palette.h"
 #include "ui/style.h"
 #include "util/string_utils.h"
@@ -28,7 +28,7 @@
 namespace {
 
   constexpr Logger kLog("session");
-  constexpr float kCountdownScrimAlpha = 0.58F;
+  constexpr float kHoldFillAlpha = 0.58F;
 
   [[nodiscard]] ButtonVariant buttonVariantFor(SessionActionButtonVariant variant) {
     switch (variant) {
@@ -143,10 +143,10 @@ void SessionPanel::create() {
   m_rootLayout = rootLayout.get();
 
   m_visibleButtons.clear();
-  m_countdownOverlays.clear();
+  m_holdOverlays.clear();
   m_entryShortcutBadges.clear();
   m_visibleButtons.reserve(m_visibleEntries.size());
-  m_countdownOverlays.reserve(m_visibleEntries.size());
+  m_holdOverlays.reserve(m_visibleEntries.size());
   m_entryShortcutBadges.reserve(m_visibleEntries.size());
   for (std::size_t i = 0; i < m_visibleEntries.size(); ++i) {
     const auto& cfg = m_visibleEntries[i];
@@ -156,10 +156,10 @@ void SessionPanel::create() {
       m_entryShortcutBadges.emplace_back();
     }
     if (Button* b = createActionButton(cfg, i, scale); b != nullptr) {
-      ActionCountdownOverlay overlay{};
-      attachCountdownOverlay(*b, overlay, scale);
+      HoldOverlay overlay{};
+      attachHoldOverlay(*b, overlay, scale);
       m_visibleButtons.push_back(b);
-      m_countdownOverlays.push_back(overlay);
+      m_holdOverlays.push_back(overlay);
       rootLayout->addChild(std::unique_ptr<Button>(b));
     }
   }
@@ -200,7 +200,15 @@ Button* SessionPanel::createActionButton(const SessionPanelActionConfig& cfg, st
       .gap = Style::spaceSm * scale,
       .radius = Style::scaledRadiusLg(scale),
       .flexGrow = 1.0F,
-      .onClick = [this, index] { armEntry(index); },
+      .onPress =
+          [this, index](float /*x*/, float /*y*/, bool pressed) {
+            if (pressed) {
+              beginHold(index, 0);
+            } else {
+              endHold(index);
+            }
+          },
+      .onLeave = [this, index] { endHold(index); },
       .configure =
           [](Button& control) {
             control.setDirection(FlexDirection::Vertical);
@@ -213,56 +221,34 @@ Button* SessionPanel::createActionButton(const SessionPanelActionConfig& cfg, st
   return button.release();
 }
 
-void SessionPanel::attachCountdownOverlay(Button& button, ActionCountdownOverlay& overlay, float scale) {
-  const float ringSize = 64.0F * scale;
-
+void SessionPanel::attachHoldOverlay(Button& button, HoldOverlay& overlay, float scale) {
   auto overlayRoot = ui::column({
       .out = &overlay.root,
       .align = FlexAlign::Center,
-      .justify = FlexJustify::Center,
+      .justify = FlexJustify::End,
+      .clipChildren = true,
       .visible = false,
       .participatesInLayout = false,
       .configure = [](Flex& root) { root.setZIndex(0); },
   });
-
-  auto scrim = ui::box({
-      .out = &overlay.scrim,
+  overlayRoot->addChild(ui::box({
+      .out = &overlay.fill,
       .radius = Style::scaledRadiusLg(scale),
       .participatesInLayout = false,
       .configure = [](Box& box) { box.setZIndex(0); },
-  });
-  overlayRoot->addChild(std::move(scrim));
-
-  auto ring = std::make_unique<CountdownRing>();
-  ring->setRingSize(ringSize);
-  ring->setThickness(std::max(5.0F, 5.5F * scale));
-  ring->setFontSize(22.0F * scale);
-  ring->setParticipatesInLayout(false);
-  ring->setZIndex(1);
-  overlay.ring = ring.get();
-  overlayRoot->addChild(std::move(ring));
-
+  }));
+  overlayRoot->addChild(ui::label({
+      .out = &overlay.hint,
+      .text = i18n::tr("session.hold-to-confirm"),
+      .fontSize = Style::fontSizeCaption * scale,
+      .fontWeight = FontWeight::Bold,
+      .maxLines = 2,
+      .textAlign = TextAlign::Center,
+      .visible = false,
+      .participatesInLayout = false,
+      .configure = [](Label& label) { label.setZIndex(1); },
+  }));
   button.addChild(std::move(overlayRoot));
-}
-
-void SessionPanel::syncCountdownOverlayColors(std::size_t index) {
-  if (index >= m_countdownOverlays.size() || index >= m_visibleEntries.size()) {
-    return;
-  }
-  ActionCountdownOverlay& overlay = m_countdownOverlays[index];
-  const SessionActionButtonVariant variant = m_visibleEntries[index].variant;
-  const Button::ButtonPalette buttonPalette = Button::defaultPalette(buttonVariantFor(variant));
-  const Button::ButtonStateColors& state = buttonPalette.pressed;
-
-  ColorSpec scrimFill = state.bg;
-  scrimFill.alpha *= kCountdownScrimAlpha;
-
-  if (overlay.scrim != nullptr) {
-    overlay.scrim->setFill(scrimFill);
-  }
-  if (overlay.ring != nullptr) {
-    overlay.ring->setColor(state.label);
-  }
 }
 
 void SessionPanel::onPanelCardOpacityChanged(float opacity) {
@@ -275,41 +261,47 @@ void SessionPanel::onPanelCardOpacityChanged(float opacity) {
 
 void SessionPanel::onOpen(std::string_view /*context*/) {
   m_selectedIndex.reset();
-  m_pendingCountdown.reset();
+  m_hold.reset();
+  m_hintIndex.reset();
   m_actionQueued = false;
-  hideCountdownOverlays();
-  restoreEntryBadges();
+  updateHoldVisuals();
   updateSelectionVisuals();
 }
 
-void SessionPanel::armEntry(std::size_t index) {
-  if (index >= m_visibleEntries.size()) {
-    return;
+void SessionPanel::requestHoldFrame() {
+  if (root() != nullptr) {
+    root()->markPaintDirty();
   }
-
-  const SessionPanelActionConfig& cfg = m_visibleEntries[index];
-  if (cfg.countdownSeconds <= 0.0) {
-    executeEntry(index);
-    return;
-  }
-
-  if (m_pendingCountdown.has_value() && m_pendingCountdown->index == index) {
-    executeEntry(index);
-    return;
-  }
-
-  cancelCountdown();
-  m_pendingCountdown = PendingCountdown{
-      .index = index,
-      .remainingMs = cfg.countdownSeconds * 1000.0,
-      .totalMs = cfg.countdownSeconds * 1000.0,
-  };
-  m_selectedIndex = index;
-  updateSelectionVisuals();
-  updateCountdownVisuals();
   PanelManager::instance().requestLayout();
   PanelManager::instance().requestFrameTick();
   PanelManager::instance().refresh();
+}
+
+void SessionPanel::beginHold(std::size_t index, std::uint32_t keySym) {
+  if (index >= m_visibleEntries.size() || m_actionQueued) {
+    return;
+  }
+  if (m_hold.has_value() && m_hold->index == index) {
+    return; // repetición de tecla o segundo press del mismo botón
+  }
+  m_hold = Hold{.index = index, .elapsedMs = 0.0, .keySym = keySym};
+  m_hintIndex.reset();
+  m_selectedIndex = index;
+  updateSelectionVisuals();
+  updateHoldVisuals();
+  requestHoldFrame();
+}
+
+void SessionPanel::endHold(std::size_t index) {
+  if (!m_hold.has_value() || m_hold->index != index) {
+    return;
+  }
+  m_hold.reset();
+  m_hintIndex = index;
+  m_hintRemainingMs = kHintMs;
+  updateSelectionVisuals();
+  updateHoldVisuals();
+  requestHoldFrame();
 }
 
 void SessionPanel::executeEntry(std::size_t index) {
@@ -324,7 +316,7 @@ void SessionPanel::executeEntry(std::size_t index) {
 
   const SessionPanelActionConfig cfg = m_visibleEntries[index];
   m_actionQueued = true;
-  m_pendingCountdown.reset();
+  m_hold.reset();
   DeferredCall::callLater([actionRunner, cfg] {
     auto& manager = PanelManager::instance();
     if (cfg.action == "lock" || cfg.action == "lock_and_suspend") {
@@ -336,136 +328,105 @@ void SessionPanel::executeEntry(std::size_t index) {
   });
 }
 
-void SessionPanel::cancelCountdown() {
-  if (!m_pendingCountdown.has_value()) {
-    return;
-  }
-  m_pendingCountdown.reset();
-  hideCountdownOverlays();
-  restoreEntryBadges();
-  updateSelectionVisuals();
-  if (root() != nullptr) {
-    root()->markPaintDirty();
-  }
-  PanelManager::instance().refresh();
-}
-
-void SessionPanel::hideCountdownOverlays() {
-  for (auto& overlay : m_countdownOverlays) {
+void SessionPanel::updateHoldVisuals() {
+  for (std::size_t i = 0; i < m_holdOverlays.size() && i < m_visibleEntries.size(); ++i) {
+    HoldOverlay& overlay = m_holdOverlays[i];
+    const bool holding = m_hold.has_value() && m_hold->index == i;
+    const bool hinting = m_hintIndex.has_value() && *m_hintIndex == i;
     if (overlay.root != nullptr) {
-      overlay.root->setVisible(false);
+      overlay.root->setVisible(holding || hinting);
+    }
+    const Button::ButtonStateColors& pressed =
+        Button::defaultPalette(buttonVariantFor(m_visibleEntries[i].variant)).pressed;
+    if (overlay.fill != nullptr) {
+      ColorSpec fill = pressed.bg;
+      fill.alpha *= kHoldFillAlpha;
+      overlay.fill->setFill(fill);
+      overlay.fill->setVisible(holding);
+    }
+    if (overlay.hint != nullptr) {
+      overlay.hint->setColor(pressed.label);
+      overlay.hint->setVisible(hinting);
     }
   }
 }
 
-void SessionPanel::restoreEntryBadges() {
-  for (std::size_t i = 0; i < m_visibleButtons.size(); ++i) {
+void SessionPanel::layoutHoldOverlays(Renderer& renderer) {
+  const float progress =
+      m_hold.has_value() ? static_cast<float>(std::clamp(m_hold->elapsedMs / kHoldMs, 0.0, 1.0)) : 0.0F;
+  for (std::size_t i = 0; i < m_visibleButtons.size() && i < m_holdOverlays.size(); ++i) {
     Button* button = m_visibleButtons[i];
-    if (button == nullptr) {
-      continue;
-    }
-    if (i < m_entryShortcutBadges.size()
-        && m_entryShortcutBadges[i].has_value()
-        && m_config->config().shell.session.showShortcuts) {
-      button->setBadge(*m_entryShortcutBadges[i]);
-    } else {
-      button->setBadge("");
-    }
-  }
-}
-
-void SessionPanel::updateCountdownVisuals() {
-  hideCountdownOverlays();
-  restoreEntryBadges();
-
-  if (!m_pendingCountdown.has_value()) {
-    return;
-  }
-
-  const std::size_t pendingIndex = m_pendingCountdown->index;
-  if (pendingIndex >= m_countdownOverlays.size()) {
-    return;
-  }
-
-  const int seconds = std::max(1, static_cast<int>(std::ceil(m_pendingCountdown->remainingMs / 1000.0)));
-  const float progress = m_pendingCountdown->totalMs > 0.0
-      ? static_cast<float>(std::clamp(m_pendingCountdown->remainingMs / m_pendingCountdown->totalMs, 0.0, 1.0))
-      : 0.0F;
-
-  ActionCountdownOverlay& overlay = m_countdownOverlays[pendingIndex];
-  if (overlay.root != nullptr) {
-    overlay.root->setVisible(true);
-  }
-  syncCountdownOverlayColors(pendingIndex);
-  if (overlay.ring != nullptr) {
-    overlay.ring->setProgress(progress);
-    overlay.ring->setSeconds(seconds);
-  }
-  if (pendingIndex < m_visibleButtons.size()) {
-    if (Button* button = m_visibleButtons[pendingIndex]; button != nullptr) {
-      button->setBadge("");
-    }
-  }
-}
-
-void SessionPanel::layoutCountdownOverlays(Renderer& renderer) {
-  for (std::size_t i = 0; i < m_visibleButtons.size() && i < m_countdownOverlays.size(); ++i) {
-    Button* button = m_visibleButtons[i];
-    ActionCountdownOverlay& overlay = m_countdownOverlays[i];
+    HoldOverlay& overlay = m_holdOverlays[i];
     if (button == nullptr || overlay.root == nullptr) {
       continue;
     }
-
     const float width = button->width();
     const float height = button->height();
     overlay.root->setPosition(0.0F, 0.0F);
     overlay.root->setFrameSize(width, height);
-
-    if (overlay.scrim != nullptr) {
-      overlay.scrim->setPosition(0.0F, 0.0F);
-      overlay.scrim->setFrameSize(width, height);
-      overlay.scrim->setSize(width, height);
+    if (overlay.fill != nullptr) {
+      // Se llena de izquierda a derecha durante kHoldMs.
+      const float fillW = std::round(width * progress);
+      overlay.fill->setPosition(0.0F, 0.0F);
+      overlay.fill->setFrameSize(fillW, height);
+      overlay.fill->setSize(fillW, height);
     }
-
-    if (overlay.ring != nullptr) {
-      const float ringSize = overlay.ring->ringSize();
-      const float ringX = (width - ringSize) * 0.5F;
-      const float ringY = (height - ringSize) * 0.5F;
-      overlay.ring->setPosition(ringX, ringY);
-      overlay.ring->layout(renderer);
+    if (overlay.hint != nullptr && overlay.hint->visible()) {
+      const float pad = Style::spaceSm * contentScale();
+      overlay.hint->setMaxWidth(std::max(0.0F, width - 2.0F * pad));
+      overlay.hint->measure(renderer);
+      overlay.hint->setPosition(
+          std::round((width - overlay.hint->width()) * 0.5F), std::round(height - overlay.hint->height() - pad)
+      );
     }
   }
 }
 
 void SessionPanel::onFrameTick(float deltaMs) {
-  if (!m_pendingCountdown.has_value()) {
-    return;
+  bool animating = false;
+  if (m_hold.has_value()) {
+    m_hold->elapsedMs += static_cast<double>(deltaMs);
+    if (m_hold->elapsedMs >= kHoldMs) {
+      executeEntry(m_hold->index);
+      return;
+    }
+    animating = true;
   }
-
-  m_pendingCountdown->remainingMs -= static_cast<double>(deltaMs);
-  if (m_pendingCountdown->remainingMs <= 0.0) {
-    const std::size_t index = m_pendingCountdown->index;
-    executeEntry(index);
-    return;
+  if (m_hintIndex.has_value()) {
+    m_hintRemainingMs -= static_cast<double>(deltaMs);
+    if (m_hintRemainingMs <= 0.0) {
+      m_hintIndex.reset();
+      updateHoldVisuals();
+    } else {
+      animating = true;
+    }
   }
-
-  updateCountdownVisuals();
-  PanelManager::instance().requestLayout();
-  if (root() != nullptr) {
+  if (animating) {
+    requestHoldFrame();
+  } else if (root() != nullptr) {
     root()->markPaintDirty();
+    PanelManager::instance().refresh();
   }
-  PanelManager::instance().requestFrameTick();
-  PanelManager::instance().refresh();
 }
 
 bool SessionPanel::handleGlobalKey(std::uint32_t sym, std::uint32_t modifiers, bool pressed, bool preedit) {
-  if (!pressed || preedit) {
+  if (preedit) {
+    return false;
+  }
+  // Soltar la tecla con la que se está manteniendo una acción.
+  if (!pressed) {
+    if (m_hold.has_value() && m_hold->keySym != 0 && m_hold->keySym == sym) {
+      endHold(m_hold->index);
+      return true;
+    }
     return false;
   }
 
   if (KeybindMatcher::matches(KeybindAction::Cancel, sym, modifiers)) {
-    if (m_pendingCountdown.has_value()) {
-      cancelCountdown();
+    if (m_hold.has_value()) {
+      m_hold.reset();
+      updateHoldVisuals();
+      requestHoldFrame();
       return true;
     }
     return false;
@@ -478,21 +439,18 @@ bool SessionPanel::handleGlobalKey(std::uint32_t sym, std::uint32_t modifiers, b
   for (std::size_t i = 0; i < m_visibleEntries.size(); ++i) {
     const auto& entryConfig = m_visibleEntries[i];
     if (entryConfig.shortcut.has_value() && keyChordMatches(*entryConfig.shortcut, sym, modifiers)) {
-      armEntry(i);
+      beginHold(i, sym);
       return true;
     }
   }
 
   const std::size_t lastIndex = m_visibleButtons.size() - 1;
 
-  const auto cancelCountdownOnSelectionChange = [this](std::optional<std::size_t> nextIndex) {
-    if (m_pendingCountdown.has_value() && (!nextIndex.has_value() || *nextIndex != m_pendingCountdown->index)) {
-      cancelCountdown();
+  const auto moveSelection = [this](std::size_t index) {
+    if (m_hold.has_value() && m_hold->index != index) {
+      m_hold.reset();
+      updateHoldVisuals();
     }
-  };
-
-  const auto moveSelection = [this, &cancelCountdownOnSelectionChange](std::size_t index) {
-    cancelCountdownOnSelectionChange(index);
     m_selectedIndex = index;
     updateSelectionVisuals();
     if (root() != nullptr) {
@@ -550,7 +508,7 @@ bool SessionPanel::handleGlobalKey(std::uint32_t sym, std::uint32_t modifiers, b
     }
     Button* button = m_visibleButtons[*m_selectedIndex];
     if (button != nullptr && button->enabled()) {
-      armEntry(*m_selectedIndex);
+      beginHold(*m_selectedIndex, sym);
       return true;
     }
   }
@@ -564,8 +522,8 @@ void SessionPanel::updateSelectionVisuals() {
     if (button == nullptr) {
       continue;
     }
-    const bool countdownActive = m_pendingCountdown.has_value() && m_pendingCountdown->index == i;
-    if (countdownActive) {
+    const bool holdActive = m_hold.has_value() && m_hold->index == i;
+    if (holdActive) {
       button->setSelected(false);
       button->setHoveredVisual(false);
       button->setPressedVisual(true);
@@ -592,18 +550,19 @@ void SessionPanel::doLayout(Renderer& renderer, float width, float height) {
       button->updateInputArea();
     }
   }
-  layoutCountdownOverlays(renderer);
+  layoutHoldOverlays(renderer);
 }
 
 void SessionPanel::doUpdate(Renderer& /*renderer*/) {}
 
 void SessionPanel::onClose() {
-  m_pendingCountdown.reset();
+  m_hold.reset();
+  m_hintIndex.reset();
   m_selectedIndex.reset();
   m_rootLayout = nullptr;
   m_visibleEntries.clear();
   m_visibleButtons.clear();
-  m_countdownOverlays.clear();
+  m_holdOverlays.clear();
   m_entryShortcutBadges.clear();
   clearReleasedRoot();
 }

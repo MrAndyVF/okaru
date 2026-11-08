@@ -3009,8 +3009,6 @@
       "command-label": "פקודת Shell",
       "command-placeholder": "פקודת bash אופציונלית, השאר ריק עבור התנהגות מובנית",
       "command-required-placeholder": "פקודת Shell להרצה",
-      "countdown-seconds-description": "המתן מספר שניות זה לפני ההרצה. הפעל שוב כדי לאשר באופן מיידי. 0 מריץ בבת אחת.",
-      "countdown-seconds-label": "ספירה לאחור (שניות)",
       "glyph-label": "גליף",
       "glyph-picker-title": "גליף פעולה",
       "kind-section-label": "התנהגות",

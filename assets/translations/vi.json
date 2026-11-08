@@ -3056,7 +3056,6 @@
       "command-label": "Lệnh shell",
       "command-placeholder": "Lệnh bash tùy chọn, để trống nếu muốn dùng hành vi tích hợp sẵn",
       "command-required-placeholder": "Lệnh shell để chạy",
-      "countdown-seconds-label": "Đếm ngược (giây)",
       "glyph-label": "Biểu tượng",
       "glyph-picker-title": "Biểu tượng hành động",
       "kind-section-label": "Hành vi",

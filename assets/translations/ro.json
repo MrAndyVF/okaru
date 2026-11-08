@@ -3576,8 +3576,6 @@
       "command-label": "Comandă shell",
       "command-placeholder": "Comandă bash opțională; lasă gol pentru comportamentul integrat",
       "command-required-placeholder": "Comanda shell de executat",
-      "countdown-seconds-description": "Așteaptă acest număr de secunde înainte de executare. Activează din nou pentru a confirma imediat. 0 execută imediat.",
-      "countdown-seconds-label": "Numărătoare inversă (secunde)",
       "glyph-label": "Pictogramă",
       "glyph-picker-title": "Pictograma acțiunii",
       "kind-section-label": "Comportament",

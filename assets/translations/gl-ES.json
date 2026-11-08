@@ -2632,8 +2632,6 @@
       "command-label": "Comando de shell",
       "command-placeholder": "Comando bash opcional; déixao baleiro para o comportamento integrado",
       "command-required-placeholder": "Comando de shell para executar",
-      "countdown-seconds-description": "Agarda estes segundos antes de executar. Activa de novo para confirmar inmediatamente. 0 executa ao instante.",
-      "countdown-seconds-label": "Conta atrás (segundos)",
       "glyph-label": "Glifo",
       "glyph-picker-title": "Glifo da acción",
       "kind-section-label": "Comportamento",

@@ -3009,8 +3009,6 @@
       "command-label": "Shell-Befehl",
       "command-placeholder": "Optionaler Bash-Befehl, leer lassen für Standardverhalten",
       "command-required-placeholder": "Shell-Befehl zum Ausführen",
-      "countdown-seconds-description": "Warte diese Anzahl an Sekunden, bevor die Aktion ausgeführt wird. Erneut aktivieren, um sofort zu bestätigen. 0 führt sofort aus.",
-      "countdown-seconds-label": "Countdown (Sekunden)",
       "glyph-label": "Symbol",
       "glyph-picker-title": "Aktionssymbol",
       "kind-section-label": "Verhalten",

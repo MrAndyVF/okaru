@@ -2981,8 +2981,6 @@
       "command-label": "Ordre de shell",
       "command-placeholder": "Ordre bash opcional, deixa buit per al comportament integrat",
       "command-required-placeholder": "Ordre de shell a executar",
-      "countdown-seconds-description": "Espera aquest nombre de segons abans d'executar. Torna a activar per confirmar immediatament. 0 s'executa a l'instant.",
-      "countdown-seconds-label": "Compte enrere (segons)",
       "glyph-label": "Glif",
       "glyph-picker-title": "Glif de l'acció",
       "kind-section-label": "Comportament",

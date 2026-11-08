@@ -3647,8 +3647,6 @@
       "command-label": "Команда оболочки",
       "command-placeholder": "Необязательная команда bash, оставьте пустым для встроенного поведения",
       "command-required-placeholder": "Выполняемая терминальная команда",
-      "countdown-seconds-description": "Задержка перед запуском в секундах. Повторная активация выполнит действие немедленно. При \"0\" запуск происходит без задержки.",
-      "countdown-seconds-label": "Обратный отсчёт (секунды)",
       "glyph-label": "Глиф",
       "glyph-picker-title": "Глиф действия",
       "kind-section-label": "Поведение",

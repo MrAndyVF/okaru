@@ -1272,7 +1272,8 @@
     "errors": {
       "lock-body": "The session lock protocol is not available.",
       "lock-title": "Lock unavailable"
-    }
+    },
+    "hold-to-confirm": "Hold to confirm"
   },
   "settings": {
     "actions": {
@@ -4565,8 +4566,6 @@
       "command-label": "Shell command",
       "command-placeholder": "Optional bash command, leave empty for built-in behavior",
       "command-required-placeholder": "Shell command to run",
-      "countdown-seconds-description": "Wait this many seconds before running. Activate again to confirm immediately. 0 runs at once.",
-      "countdown-seconds-label": "Countdown (seconds)",
       "glyph-label": "Glyph",
       "glyph-picker-title": "Action glyph",
       "kind-section-label": "Behavior",

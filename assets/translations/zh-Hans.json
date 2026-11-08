@@ -3556,8 +3556,6 @@
       "command-label": "Shell 命令",
       "command-placeholder": "可选的 Bash 命令；留空时使用内置行为",
       "command-required-placeholder": "执行的 Shell 命令",
-      "countdown-seconds-description": "执行前等待的时间。再次触发可立即确认。设为 0 时直接执行。",
-      "countdown-seconds-label": "倒计时（秒）",
       "glyph-label": "图标",
       "glyph-picker-title": "操作图标",
       "kind-section-label": "行为",

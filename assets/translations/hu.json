@@ -2900,8 +2900,6 @@
       "command-label": "Shell parancs",
       "command-placeholder": "Opcionális bash parancs, hagyd üresen a beépített viselkedéshez",
       "command-required-placeholder": "Futtatandó shell-parancs",
-      "countdown-seconds-description": "Indítás előtt várjon ennyi másodpercet. Az azonnali megerősítéshez nyomd meg újra a gombot. Egy időben 0 fut.",
-      "countdown-seconds-label": "Visszaszámlálás (másodperc)",
       "glyph-label": "Glifa",
       "glyph-picker-title": "Művelet szimbólum",
       "kind-section-label": "Viselkedés",

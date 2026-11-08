@@ -1169,7 +1169,8 @@
     "errors": {
       "lock-body": "El protocolo de bloqueo de sesión no está disponible.",
       "lock-title": "Bloqueo no disponible"
-    }
+    },
+    "hold-to-confirm": "Mantén presionado para confirmar"
   },
   "settings": {
     "actions": {
@@ -4401,8 +4402,6 @@
       "command-label": "Comando del shell",
       "command-placeholder": "Comando bash opcional, deja vacío para el comportamiento integrado",
       "command-required-placeholder": "Comando del shell a ejecutar",
-      "countdown-seconds-description": "Espera esta cantidad de segundos antes de ejecutar. Actívalo de nuevo para confirmar de inmediato. 0 se ejecuta al instante.",
-      "countdown-seconds-label": "Cuenta atrás (segundos)",
       "glyph-label": "Glifo",
       "glyph-picker-title": "Glifo de acción",
       "kind-section-label": "Comportamiento",

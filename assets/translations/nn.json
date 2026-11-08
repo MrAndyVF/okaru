@@ -2994,8 +2994,6 @@
       "command-label": "Skalkommando",
       "command-placeholder": "Valfri bash-kommando, haldt dette tomt for innebygd åtburd",
       "command-required-placeholder": "Skalkommando for å køyra",
-      "countdown-seconds-description": "Vent so mange sekund før du køyrer. Slå på att for å stadfesta med det same. 0 køyrer med det same.",
-      "countdown-seconds-label": "Nedteljing (sekund)",
       "glyph-label": "Symbol",
       "glyph-picker-title": "Gjerningssymbol",
       "kind-section-label": "Åtburd",
