@@ -1034,8 +1034,7 @@
       "advanced": "Додаткові",
       "community": "Спільнота",
       "deprecated": "Застаріло",
-      "official": "Офіційні",
-      "override": "Змінено"
+      "official": "Офіційні"
     },
     "calendar-accounts": {
       "add-title": "Додати обліковий запис календаря",

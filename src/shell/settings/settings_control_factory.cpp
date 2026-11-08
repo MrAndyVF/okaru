@@ -182,13 +182,16 @@ namespace settings {
     auto& ctx = m_ctx;
     const float scale = m_scale;
     const bool pendingConfirmation = ctx.isResetConfirmationPending && ctx.isResetConfirmationPending(paths);
+    // Solo icono: el segundo clic (en rojo) confirma; el texto queda en el tooltip.
     return ui::button({
-        .text = i18n::tr(pendingConfirmation ? "settings.actions.confirm-reset" : "settings.actions.reset"),
-        .fontSize = Style::fontSizeCaption * scale,
+        .glyph = "arrow-back-up",
+        .glyphSize = Style::fontSizeBody * scale,
         .variant = pendingConfirmation ? ButtonVariant::Destructive : ButtonVariant::Ghost,
+        .tooltip = i18n::tr(pendingConfirmation ? "settings.actions.confirm-reset" : "settings.actions.reset"),
+        .minWidth = Style::controlHeightSm * scale,
         .minHeight = Style::controlHeightSm * scale,
         .paddingV = Style::spaceXs * scale,
-        .paddingH = Style::spaceSm * scale,
+        .paddingH = Style::spaceXs * scale,
         .radius = Style::scaledRadiusMd(scale),
         .onClick = [clearOverrides = ctx.clearOverrides, requestConfirmation = ctx.requestResetConfirmation,
                     requestRebuild = ctx.requestRebuild, paths = std::move(paths), onConfirmed = std::move(onConfirmed),
@@ -222,13 +225,6 @@ namespace settings {
     );
   }
 
-  std::unique_ptr<Flex> SettingsControlFactory::makeOverrideBadge() {
-    return makeStatusBadge(
-        i18n::tr("settings.badges.override"), colorSpecFromRole(ColorRole::PrimaryContainer),
-        colorSpecFromRole(ColorRole::OnPrimaryContainer), false
-    );
-  }
-
   std::unique_ptr<Flex> SettingsControlFactory::makeAdvancedBadge() {
     return makeStatusBadge(
         i18n::tr("settings.badges.advanced"), colorSpecFromRole(ColorRole::SurfaceContainer),
@@ -236,11 +232,8 @@ namespace settings {
     );
   }
 
-  std::unique_ptr<Flex> SettingsControlFactory::makeOverrideResetActions(const std::vector<std::string>& path) {
-    const float scale = m_scale;
-    return ui::row(
-        {.align = FlexAlign::Center, .gap = Style::spaceSm * scale}, makeOverrideBadge(), makeResetButton(path)
-    );
+  std::unique_ptr<Flex> SettingsControlFactory::makeResetActions(const std::vector<std::string>& path) {
+    return ui::row({.align = FlexAlign::Center}, makeResetButton(path));
   }
 
   void SettingsControlFactory::makeRow(Flex& section, const SettingEntry& entry, std::unique_ptr<Node> control) {
@@ -277,7 +270,6 @@ namespace settings {
 
     auto actions = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
     if (overridden) {
-      actions->addChild(makeOverrideBadge());
       if (rangeSlider != nullptr) {
         actions->addChild(
             makeGroupedResetButton(std::vector<std::vector<std::string>>{entry.path, rangeSlider->highPath})
@@ -1117,7 +1109,7 @@ namespace settings {
 
     std::unique_ptr<Flex> overrideActions;
     if (overridden && !compactTitleDescription) {
-      overrideActions = makeOverrideResetActions(entry.path);
+      overrideActions = makeResetActions(entry.path);
     }
 
     ui::FlexProps copyProps{.align = FlexAlign::Start, .fillWidth = true};

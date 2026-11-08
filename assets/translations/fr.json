@@ -968,8 +968,7 @@
       "advanced": "Avancé",
       "community": "Communauté",
       "deprecated": "Obsolète",
-      "official": "Officiel",
-      "override": "Remplacer"
+      "official": "Officiel"
     },
     "calendar-accounts": {
       "add-title": "Ajouter un compte au calendrier",

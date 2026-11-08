@@ -1198,8 +1198,7 @@
       "community": "Comunidad",
       "deprecated": "Obsoleto",
       "official": "Oficial",
-      "okaru": "OKARU",
-      "override": "Sobrescrito"
+      "okaru": "OKARU"
     },
     "calendar-accounts": {
       "add-title": "Agregar Cuenta de Calendario",

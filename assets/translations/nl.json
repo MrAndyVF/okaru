@@ -763,8 +763,7 @@
     },
     "badges": {
       "advanced": "Geavanceerd",
-      "official": "Officieel",
-      "override": "Overschrijven"
+      "official": "Officieel"
     },
     "calendar-accounts": {
       "add-title": "Agenda-account toevoegen",

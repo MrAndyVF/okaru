@@ -1041,8 +1041,7 @@
       "advanced": "高级",
       "community": "社区",
       "deprecated": "已弃用",
-      "official": "官方",
-      "override": "已覆盖"
+      "official": "官方"
     },
     "calendar-accounts": {
       "add-title": "添加日历账户",

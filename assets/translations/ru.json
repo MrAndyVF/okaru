@@ -1091,8 +1091,7 @@
       "advanced": "Расширенное",
       "community": "Сообщество",
       "deprecated": "Устаревший",
-      "official": "Официальный",
-      "override": "Изменён"
+      "official": "Официальный"
     },
     "calendar-accounts": {
       "add-title": "Добавить учётную запись календаря",

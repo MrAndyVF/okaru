@@ -1045,8 +1045,7 @@
       "advanced": "Avansat",
       "community": "Comunitate",
       "deprecated": "Învechit",
-      "official": "Oficial",
-      "override": "Suprascriere"
+      "official": "Oficial"
     },
     "calendar-accounts": {
       "add-title": "Adaugă cont de calendar",

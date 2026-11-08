@@ -1091,8 +1091,7 @@
       "advanced": "詳細設定",
       "community": "コミュニティ",
       "deprecated": "非推奨",
-      "official": "公式",
-      "override": "上書き"
+      "official": "公式"
     },
     "calendar-accounts": {
       "add-title": "カレンダーアカウントを追加",

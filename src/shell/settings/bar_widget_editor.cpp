@@ -2803,23 +2803,6 @@ namespace settings {
               FontWeight::Bold
           )
       );
-      if (overridden) {
-        laneHeader->addChild(
-            ui::row(
-                {
-                    .align = FlexAlign::Center,
-                    .paddingV = 0,
-                    .paddingH = Style::spaceXs * ctx.scale,
-                    .fill = colorSpecFromRole(ColorRole::PrimaryContainer),
-                    .radius = Style::scaledRadiusSm(ctx.scale),
-                },
-                makeLabel(
-                    i18n::tr("settings.badges.override"), Style::fontSizeCaption * ctx.scale,
-                    colorSpecFromRole(ColorRole::OnPrimaryContainer), FontWeight::Bold
-                )
-            )
-        );
-      }
       laneHeader->addChild(ui::spacer());
       // Reset reverts the whole lane: its widget list and the capsule groups it holds.
       if (overridden || hasGuiOverride) {

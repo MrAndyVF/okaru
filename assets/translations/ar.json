@@ -898,8 +898,7 @@
       "advanced": "متقدم",
       "community": "مجتمعي",
       "deprecated": "مهجور",
-      "official": "رسمي",
-      "override": "تجاوز"
+      "official": "رسمي"
     },
     "calendar-accounts": {
       "add-title": "إضافة حساب تقويم",

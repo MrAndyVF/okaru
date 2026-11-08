@@ -1091,8 +1091,7 @@
       "advanced": "Avançado",
       "community": "Comunidade",
       "deprecated": "Obsoleto",
-      "official": "Oficial",
-      "override": "Sobrescrito"
+      "official": "Oficial"
     },
     "calendar-accounts": {
       "add-title": "Adicionar Conta de Calendário",

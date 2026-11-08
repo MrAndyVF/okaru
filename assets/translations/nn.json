@@ -887,8 +887,7 @@
       "advanced": "Avansert",
       "community": "Samfunn",
       "deprecated": "Utgått",
-      "official": "Offisiell",
-      "override": "Overstyr"
+      "official": "Offisiell"
     },
     "calendar-accounts": {
       "add-title": "Legg til kalenderkonto",
