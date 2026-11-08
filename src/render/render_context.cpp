@@ -147,6 +147,16 @@ bool RenderContext::makeCurrent(RenderTarget& target) {
   return m_backend != nullptr && !m_graphicsResetPending && m_backend->makeCurrent(target);
 }
 
+void RenderContext::setTextFontWeight(int weight) {
+  if (m_textFontWeight == weight) {
+    return;
+  }
+  makeCurrentNoSurface();
+  m_textFontWeight = weight;
+  m_textRenderer.setBaseWeight(weight);
+  ++m_textMetricsGeneration;
+}
+
 void RenderContext::setTextFontFamily(std::string family) {
   if (family.empty()) {
     family = "sans-serif";

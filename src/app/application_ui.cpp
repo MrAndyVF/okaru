@@ -4,7 +4,9 @@
 #include "compositors/compositor_detect.h"
 #include "config/config_types.h"
 #include "core/deferred_call.h"
+#include "core/files/resource_paths.h"
 #include "core/log.h"
+#include "core/process/process.h"
 #include "dbus/idle/screensaver_service.h"
 #include "dbus/logind/logind_service.h"
 #include "dbus/notification/notification_service.h"
@@ -118,6 +120,7 @@ void Application::initUiRenderSurfacesAndSettings() {
     m_asyncTextureCache.setMakeCurrentCallback([this] { m_renderContext.backend().makeCurrentNoSurface(); });
   }
   m_renderContext.setTextFontFamily(m_configService.config().shell.fontFamily);
+  m_renderContext.setTextFontWeight(m_configService.config().shell.fontWeight);
   Style::setRtl(i18n::Service::instance().rtl());
   m_renderContext.setTextBaseDirection(i18n::Service::instance().rtl());
   m_wallpaper.initialize(m_wayland, &m_configService, &m_renderContext, &m_sharedTextureCache, &m_themeService);
@@ -1136,16 +1139,27 @@ void Application::initWidgetControllersAndCallbacks() {
   m_iconThemePollSource.setChangeCallback([this] { onIconThemeChanged(); });
 
   std::string lastShellFontFamily = m_configService.config().shell.fontFamily;
+  int lastShellFontWeight = m_configService.config().shell.fontWeight;
   m_configService.addReloadCallback(
-      [this, lastShellFontFamily] mutable {
-        const std::string& newShellFontFamily = m_configService.config().shell.fontFamily;
-        if (newShellFontFamily == lastShellFontFamily) {
+      [this, lastShellFontFamily, lastShellFontWeight] mutable {
+        const auto& shell = m_configService.config().shell;
+        const std::string& newShellFontFamily = shell.fontFamily;
+        if (newShellFontFamily == lastShellFontFamily && shell.fontWeight == lastShellFontWeight) {
           return;
         }
 
         lastShellFontFamily = newShellFontFamily;
+        lastShellFontWeight = shell.fontWeight;
+        // OKARU: la misma fuente y peso en el resto del sistema (solo al cambiarlos, nunca al arrancar).
+        if (shell.syncSystemFont) {
+          (void)process::runAsync(
+              {"bash", paths::assetPath("scripts/font-sync.sh").string(), newShellFontFamily,
+               std::to_string(shell.fontWeight)}
+          );
+        }
         text::invalidateFontWeightCatalogCache();
         m_renderContext.setTextFontFamily(newShellFontFamily);
+        m_renderContext.setTextFontWeight(shell.fontWeight);
         m_bar.reload();
         m_dock.requestLayout();
         m_desktopWidgetsController.requestLayout();

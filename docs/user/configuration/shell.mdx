@@ -32,6 +32,8 @@ card_borders          = true            # draw outlines around section cards ins
 show_close_buttons    = true            # show close buttons on shell surfaces (panels, toasts, popups, dialogs, Settings)
 popup_shadows         = true            # draw drop shadows behind popups and dropdowns
 font_family           = "JetBrainsMono Nerd Font" # Pango family string; Fontconfig handles fallback
+font_weight           = 400       # base text weight; bold text keeps its difference
+sync_system_font      = true      # apply font + weight to GTK, Qt, kitty, VS Code, Zed and ghostty on change
 lang                  = ""              # empty = auto-detect; otherwise BCP-47 or POSIX locale
 time_format           = "{:%H:%M}"      # default time format for shell UI without its own setting
 date_format           = "%A, %x"        # default date format for shell UI without its own setting
@@ -229,6 +231,8 @@ Notes:
 - `avatar_path` controls the avatar OKARU shows in shell UI such as the Control Center Home tab. When AccountsService is reachable, OKARU also updates your user's `IconFile` there so other consumers such as OKARU Greeter can reuse the same avatar. If **accountsservice** is missing or disabled, the shell still uses `avatar_path`, but login greeters that depend on AccountsService will not see that image.
 
 - `font_family` sets the primary Pango family for all shell text (default `JetBrainsMono Nerd Font`). Can be a concrete family like `Inter` or a generic like `sans-serif`.
+- `font_weight` sets the base text weight (100–900, default `400`). Every weight the shell asks for shifts by the same amount, so bold text stays bolder than regular text. Settings only lists the weights the chosen family has.
+- `sync_system_font` (default `true`): when `font_family` or `font_weight` changes, OKARU runs `assets/scripts/font-sync.sh`, which applies the same family and weight to GTK (gsettings), qt5ct/qt6ct, kitty (open windows reload, so starship and other terminal apps follow), VS Code, Zed and ghostty. Terminals and editors get the family's `Mono` variant when it exists. Nothing runs at startup.
 
 - `time_format` and `date_format` are fallbacks for shell-owned displays such as the home tab, calendar tab, and lock screen. Widget-specific clock formats still use their own widget settings. See [Date format tokens](/okaru/configuration/date-format-tokens/).
 

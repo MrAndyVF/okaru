@@ -1814,6 +1814,8 @@ namespace okaru::config::schema {
             },
             [](toml::table& tbl, const ShellConfig& in) { tbl.insert_or_assign("font_family", in.fontFamily); }
         ),
+        field(&ShellConfig::fontWeight, "font_weight"),
+        field(&ShellConfig::syncSystemFont, "sync_system_font"),
         stringIfNonEmptyField(&ShellConfig::lang, "lang"),
         field(&ShellConfig::timeFormat, "time_format"),
         field(&ShellConfig::dateFormat, "date_format"),

@@ -2776,6 +2776,10 @@
           "description": "Font family for the shell interface",
           "label": "Font Family"
         },
+        "font-weight": {
+          "label": "Font Weight",
+          "description": "Base weight of all text; only the weights this font has are listed"
+        },
         "global-shadow-alpha": {
           "description": "Global surface shadow opacity"
         },
@@ -2822,6 +2826,10 @@
         "sync-color-scheme": {
           "description": "Set the system dark/light preference read by browsers and other apps to follow Theme Mode",
           "label": "Sync App Color Scheme"
+        },
+        "sync-system-font": {
+          "label": "Apply Font to the Whole System",
+          "description": "When the font or its weight changes, also apply it to GTK, Qt, kitty (and so starship and other terminal apps), VS Code, Zed and ghostty"
         },
         "theme-mode": {
           "description": "Choose Dark, Light, or Auto based on time of day; also applies to apps through templates",

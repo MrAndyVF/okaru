@@ -337,6 +337,15 @@ void CairoTextRenderer::setFontFamily(std::string family) {
   clearCaches();
 }
 
+void CairoTextRenderer::setBaseWeight(int weight) {
+  const int offset = std::clamp(weight, 100, 1000) - static_cast<int>(FontWeight::Normal);
+  if (m_baseWeightOffset == offset) {
+    return;
+  }
+  m_baseWeightOffset = offset;
+  clearCaches();
+}
+
 void CairoTextRenderer::setBaseDirection(bool rtl) {
   if (m_baseDirRtl == rtl) {
     return;
@@ -372,7 +381,8 @@ void CairoTextRenderer::maybeSyncFontConfig() {
 PangoFontDescription* CairoTextRenderer::newFontDescription(const TextFont& font, float rasterSize) const {
   PangoFontDescription* desc = pango_font_description_new();
   pango_font_description_set_family(desc, font.family.empty() ? m_fontFamily.c_str() : font.family.c_str());
-  pango_font_description_set_weight(desc, static_cast<PangoWeight>(font.weight));
+  const int weight = std::clamp(static_cast<int>(font.weight) + m_baseWeightOffset, 100, 1000);
+  pango_font_description_set_weight(desc, static_cast<PangoWeight>(weight));
   pango_font_description_set_absolute_size(desc, static_cast<double>(rasterSize) * PANGO_SCALE);
   return desc;
 }

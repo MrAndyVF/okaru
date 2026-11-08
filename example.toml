@@ -11,6 +11,8 @@ high_contrast         = false
 [shell]
 corner_radius_scale   = 1.0          # 0 = square, 1 = default, 2 = extra rounded
 font_family           = "JetBrainsMono Nerd Font"
+font_weight           = 400        # base text weight (400 Regular, 500 Medium, 600 SemiBold…); bold text keeps its difference
+sync_system_font      = true       # on font/weight change, also apply it to GTK, Qt, kitty, VS Code, Zed and ghostty
 time_format           = "{:%H:%M}"  # default shell UI time format
 date_format           = "%A, %x"    # default shell UI date format
 offline_mode          = false        # block all outgoing HTTP when true
