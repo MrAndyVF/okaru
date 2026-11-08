@@ -78,6 +78,11 @@ namespace settings {
 
   [[nodiscard]] bool isBarWidgetListPath(const std::vector<std::string>& path);
   [[nodiscard]] bool isFirstBarWidgetListPath(const std::vector<std::string>& path);
+  // Widgets of the bar lane addressed by a bar widget list path; empty for any other path.
+  [[nodiscard]] std::vector<std::string> barWidgetItemsForPath(const Config& cfg, const std::vector<std::string>& path);
+  // True when `name` is a built-in widget type, a named widget, or already referenced by a bar lane.
+  [[nodiscard]] bool widgetReferenceNameExists(const Config& cfg, std::string_view name);
+  [[nodiscard]] bool isValidWidgetInstanceId(std::string_view id);
 
   // Lane selection tokens address a lane position as "<laneKey>#<index>".
   struct LaneSelectionToken {

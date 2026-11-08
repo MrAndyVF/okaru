@@ -7,6 +7,7 @@
 #include "render/render_target.h"
 #include "render/scene/input_area.h"
 #include "render/scene/node.h"
+#include "shell/settings/bar_widget_editor.h"
 #include "shell/settings/widget_settings_registry.h"
 #include "ui/builders.h"
 #include "ui/style.h"
@@ -45,37 +46,6 @@ namespace settings {
           return a.value < b.value;
         }
         return result < 0;
-      });
-    }
-
-    void collectWidgetReferenceNames(const std::vector<std::string>& widgets, std::unordered_set<std::string>& seen) {
-      for (const auto& widget : widgets) {
-        seen.insert(widget);
-      }
-    }
-
-    bool widgetReferenceNameExists(const Config& cfg, std::string_view name) {
-      const std::string key(name);
-      if (isBuiltInWidgetType(name) || cfg.widgets.contains(key)) {
-        return true;
-      }
-
-      std::unordered_set<std::string> seen;
-      for (const auto& bar : cfg.bars) {
-        collectWidgetReferenceNames(bar.startWidgets, seen);
-        collectWidgetReferenceNames(bar.centerWidgets, seen);
-        collectWidgetReferenceNames(bar.endWidgets, seen);
-      }
-      return seen.contains(key);
-    }
-
-    bool isValidWidgetInstanceId(std::string_view id) {
-      if (id.empty()) {
-        return false;
-      }
-      return std::ranges::all_of(id, [&](char c) {
-        const auto uc = static_cast<unsigned char>(c);
-        return std::isalnum(uc) != 0 || c == '_' || c == '-';
       });
     }
 
