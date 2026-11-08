@@ -164,11 +164,13 @@ void OkaruCaptureWidget::doLayout(Renderer& renderer, float containerWidth, floa
     if (along > 0.0F) {
       along += gap;
     }
+    // floor y no round: con una diferencia impar (texto 1 px más alto que un icono) round(0.5) baja el
+    // icono un píxel respecto al texto; floor deja ambos centros a menos de medio píxel.
     if (m_isVertical) {
-      item->setPosition(std::round((cross - item->width()) * 0.5F), along);
+      item->setPosition(std::floor((cross - item->width()) * 0.5F), along);
       along += item->height();
     } else {
-      item->setPosition(along, std::round((cross - item->height()) * 0.5F));
+      item->setPosition(along, std::floor((cross - item->height()) * 0.5F));
       along += item->width();
     }
   }
