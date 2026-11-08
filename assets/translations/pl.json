@@ -1613,23 +1613,10 @@
           "description": "Wybierz które monitory wyświetlają ekran blokady; pozostaw puste by wyświetlać na wszystkich monitorach",
           "label": "Monitory"
         },
-        "tint-intensity": {
-          "description": "Odcień koloru powierzchni nad tłem ekranu blokady",
-          "label": "Intensywność odcienia"
-        },
         "wallpaper": {
           "description": "Niestandardowy obraz tła ekranu blokady; pozostaw puste by użyć tapety pulpitu",
           "label": "Tapeta",
           "placeholder": "Użyj tapety pulpitu"
-        },
-        "widgets": {
-          "description": "Pokaż konfigurowalne widżety na ekranie blokady",
-          "label": "Widżety ekranu blokady"
-        },
-        "widgets-editor": {
-          "button": "Przełącz edytor",
-          "description": "Dodaj, przesuń i zmień rozmiar widżetów na ekranie blokady",
-          "label": "Edytor widżetów ekranu blokady"
         }
       },
       "notifications": {

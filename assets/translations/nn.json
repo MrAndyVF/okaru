@@ -2085,23 +2085,10 @@
           "description": "Vel kva for skjermar viser låseskjermen; haldt dette tomt for å visa på alle skjermar",
           "label": "Skjermar"
         },
-        "tint-intensity": {
-          "description": "Flateleting på låseskjermsbakgrunnen",
-          "label": "Letingsstyrke"
-        },
         "wallpaper": {
           "description": "Sjølvvalt bilete for låseskjermsbakgrunnen; haldt dette tomt for å bruka bakgrunnsbiletet på skrivebordet.",
           "label": "Bakgrunnsbilete",
           "placeholder": "Bruk bakgrunnsbiletet på skrivebordet"
-        },
-        "widgets": {
-          "description": "Vis nøytlar som du kan måta til på låseskjermen",
-          "label": "Låseskjermsnøytlar"
-        },
-        "widgets-editor": {
-          "button": "Slå av / på brigdaren",
-          "description": "Legg til, flytta og brigda storleik på nøytlar på låseskjermen",
-          "label": "Låseskjermsnøytelbrigdar"
         }
       },
       "notifications": {

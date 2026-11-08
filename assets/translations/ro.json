@@ -2397,10 +2397,6 @@
           "description": "Alege ce monitoare afișează ecranul de blocare; lasă gol pentru a-l afișa pe toate monitoarele",
           "label": "Monitoare"
         },
-        "tint-intensity": {
-          "description": "Nuanța culorii suprafeței peste fundalul ecranului de blocare",
-          "label": "Intensitatea nuanței"
-        },
         "transition-duration": {
           "description": "Durata animațiilor de blocare și deblocare în milisecunde",
           "label": "Durata tranziției"
@@ -2413,15 +2409,6 @@
           "description": "Imagine personalizată pentru fundalul ecranului de blocare; lasă gol pentru a folosi fundalul desktopului",
           "label": "Fundal",
           "placeholder": "Folosește fundalul desktopului"
-        },
-        "widgets": {
-          "description": "Arată widgeturi configurabile pe ecranul de blocare",
-          "label": "Widgeturi ecran de blocare"
-        },
-        "widgets-editor": {
-          "button": "Comută editorul",
-          "description": "Adaugă, mută și redimensionează widgeturi pe ecranul de blocare",
-          "label": "Editor de widgeturi pentru ecranul de blocare"
         }
       },
       "notifications": {

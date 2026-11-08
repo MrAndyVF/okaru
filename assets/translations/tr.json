@@ -2098,23 +2098,10 @@
           "description": "Kilit ekranının hangi monitörlerde görüneceğini seçin; tüm monitörlerde görünmesi için boş bırakın",
           "label": "Monitörler"
         },
-        "tint-intensity": {
-          "description": "Kilit ekranı arka planı üzerindeki yüzey renk tonu yoğunluğu",
-          "label": "Renk Tonu Yoğunluğu"
-        },
         "wallpaper": {
           "description": "Kilit ekranı özel arka planı; masaüstü duvar kağıdını kullanmak için boş bırakın",
           "label": "Duvar Kağıdı",
           "placeholder": "Masaüstü duvar kağıdını kullan"
-        },
-        "widgets": {
-          "description": "Kilit ekranında araçları göster",
-          "label": "Kilit Ekranı Araçları"
-        },
-        "widgets-editor": {
-          "button": "Düzenleyiciyi Aç",
-          "description": "Kilit ekranına araçlar ekleyin, taşıyın ve yeniden boyutlandırın",
-          "label": "Kilit Ekranı Araç Düzenleyici"
         }
       },
       "notifications": {

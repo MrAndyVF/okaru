@@ -903,7 +903,10 @@
     "password-placeholder": "Password",
     "ready": "Type your password and press Enter.",
     "unlocked": "Unlocked",
-    "waiting": "Waiting for lock confirmation…"
+    "waiting": "Waiting for lock confirmation…",
+    "okaru": {
+      "password": "Enter password"
+    }
   },
   "notifications": {
     "actions": {
@@ -3353,10 +3356,6 @@
           "description": "Choose which monitors show the lock screen; leave empty to show on all monitors",
           "label": "Monitors"
         },
-        "tint-intensity": {
-          "description": "Surface-color tint over the lock screen background",
-          "label": "Tint Intensity"
-        },
         "transition-duration": {
           "description": "Length of the lock and unlock animations in milliseconds",
           "label": "Transition Duration"
@@ -3369,15 +3368,6 @@
           "description": "Custom image for the lock screen background; leave empty to use the desktop wallpaper",
           "label": "Wallpaper",
           "placeholder": "Use desktop wallpaper"
-        },
-        "widgets": {
-          "description": "Show configurable widgets on the lock screen",
-          "label": "Lockscreen Widgets"
-        },
-        "widgets-editor": {
-          "button": "Toggle Editor",
-          "description": "Add, move, and resize widgets on the lock screen",
-          "label": "Lockscreen Widget Editor"
         }
       },
       "notifications": {

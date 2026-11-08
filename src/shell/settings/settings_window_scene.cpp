@@ -2173,33 +2173,6 @@ void SettingsWindow::refreshSettingsRegistry(const Config& cfg) {
     m_settingsRegistry.insert(it, std::move(btn));
   }
 
-  if (m_openLockscreenWidgetEditor) {
-    auto it = std::ranges::find_if(m_settingsRegistry, [](const settings::SettingEntry& e) {
-      return e.section == settings::SettingsSection::Security
-          && e.group == "lock-screen"
-          && e.path == std::vector<std::string>{"lockscreen_widgets", "enabled"};
-    });
-    if (it != m_settingsRegistry.end()) {
-      ++it;
-    }
-    settings::SettingEntry btn{
-        .section = settings::SettingsSection::Security,
-        .group = "lock-screen",
-        .title = i18n::tr("settings.schema.lockscreen.widgets-editor.label"),
-        .subtitle = i18n::tr("settings.schema.lockscreen.widgets-editor.description"),
-        .path = {},
-        .control =
-            settings::ButtonSetting{
-                .label = i18n::tr("settings.schema.lockscreen.widgets-editor.button"),
-                .action = m_openLockscreenWidgetEditor,
-                .glyph = {}
-            },
-        .searchText = "lockscreen widgets editor edit layout",
-        .visibleWhen = [](const Config& c) { return c.lockscreen.enabled && c.lockscreenWidgets.enabled; },
-    };
-    m_settingsRegistry.insert(it, std::move(btn));
-  }
-
   if (m_config != nullptr) {
     auto it = std::ranges::find_if(m_settingsRegistry, [](const settings::SettingEntry& e) {
       return e.section == settings::SettingsSection::Calendar

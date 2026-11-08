@@ -611,8 +611,8 @@ struct LockscreenConfig {
                                                    LockscreenTransition::Melt};
   float transitionDurationMs = 1500.0F;
   float edgeSmoothness = 0.3F;
-  float blurIntensity = 0.5F;
-  float tintIntensity = 0.3F;
+  float blurIntensity = 0.9F; // OKARU: mucho blur y atenuado, para que se lea la marca (igual que el greeter)
+  float tintIntensity = 0.45F;
   std::string wallpaper;
   std::vector<std::string> monitors;
 

@@ -813,7 +813,10 @@
     "password-placeholder": "Contraseña",
     "ready": "Ingrese su contraseña y presione Enter.",
     "unlocked": "Desbloqueado",
-    "waiting": "Esperando confirmación de bloqueo…"
+    "waiting": "Esperando confirmación de bloqueo…",
+    "okaru": {
+      "password": "Introduce la contraseña"
+    }
   },
   "notifications": {
     "actions": {
@@ -3310,10 +3313,6 @@
           "description": "Elige qué monitores muestran la pantalla de bloqueo; deja vacío para mostrarla en todos los monitores",
           "label": "Monitores"
         },
-        "tint-intensity": {
-          "description": "Tinte de color de superficie sobre el fondo de la pantalla de bloqueo",
-          "label": "Intensidad del tinte"
-        },
         "transition-duration": {
           "description": "Duración de las animaciones de bloqueo y desbloqueo en milisegundos",
           "label": "Duración de la transición"
@@ -3326,15 +3325,6 @@
           "description": "Imagen personalizada para el fondo de la pantalla de bloqueo. Deja vacío para usar el fondo de pantalla del escritorio",
           "label": "Fondo de Pantalla",
           "placeholder": "Usar fondo de pantalla del escritorio"
-        },
-        "widgets": {
-          "description": "Mostrar widgets configurables en la pantalla de bloqueo",
-          "label": "Widgets de la pantalla de bloqueo"
-        },
-        "widgets-editor": {
-          "button": "Alternar editor",
-          "description": "Añadir, mover y redimensionar widgets en la pantalla de bloqueo",
-          "label": "Editor de widgets de la pantalla de bloqueo"
         }
       },
       "notifications": {

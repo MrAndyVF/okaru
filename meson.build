@@ -728,6 +728,7 @@ _okaru_sources = files(
   'src/shell/lockscreen/lock_screen.cpp',
   'src/shell/lockscreen/lockscreen_session_actions.cpp',
   'src/shell/lockscreen/lock_surface.cpp',
+  'src/shell/lockscreen/okaru_lock_view.cpp',
   'src/shell/notification/notification_toast.cpp',
   'src/shell/osd/audio_osd.cpp',
   'src/shell/osd/media_osd.cpp',

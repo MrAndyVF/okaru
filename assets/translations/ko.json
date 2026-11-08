@@ -2142,23 +2142,10 @@
           "description": "잠금 화면을 표시할 모니터 선택. 비워 두면 모든 모니터에 표시",
           "label": "모니터"
         },
-        "tint-intensity": {
-          "description": "잠금 화면 배경 위의 표면 색상 틴트",
-          "label": "틴트 강도"
-        },
         "wallpaper": {
           "description": "잠금 화면 배경에 사용할 사용자 이미지. 비워 두면 데스크톱 배경 화면을 사용합니다",
           "label": "배경 화면",
           "placeholder": "데스크톱 배경 화면 사용"
-        },
-        "widgets": {
-          "description": "잠금 화면에 설정 가능한 위젯 표시",
-          "label": "잠금 화면 위젯"
-        },
-        "widgets-editor": {
-          "button": "편집기 전환",
-          "description": "잠금 화면의 위젯 추가, 이동 및 크기 조정",
-          "label": "잠금 화면 위젯 편집기"
         }
       },
       "notifications": {

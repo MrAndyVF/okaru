@@ -11,6 +11,7 @@
 #include "render/scene/input_dispatcher.h"
 #include "render/scene/node.h"
 #include "shell/lockscreen/lockscreen_login_box.h"
+#include "shell/lockscreen/okaru_lock_view.h"
 #include "wayland/surface.h"
 
 #include <array>
@@ -192,6 +193,10 @@ private:
   Button* m_layoutChip = nullptr;
   Flex* m_sessionRow = nullptr;
   std::vector<Button*> m_sessionButtons;
+
+  // OKARU: diseño propio igual al greeter (okaru_lock_view.h); sustituye a la caja de login y los widgets.
+  void layoutOkaru(Renderer& renderer, float width, float height);
+  lockscreen::OkaruLockView m_okaru;
   SharedTextureCache* m_textureCache = nullptr;
   SharedTextureCache::Lease m_wallpaperLease;
   SharedTextureCache::Lease m_pendingWallpaperLease;
