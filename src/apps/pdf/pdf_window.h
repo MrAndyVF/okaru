@@ -15,6 +15,8 @@
 #include <vector>
 
 class Image;
+class VirtualListAdapter;
+class VirtualListView;
 class Input;
 class Label;
 class Node;
@@ -63,7 +65,7 @@ namespace okaru::pdf {
     void rememberTab(const PdfTab& tab);
     void onRendered(PdfTab* tab, const RenderJob& job, RenderedPage page);
     void updatePageLabel();
-    void updateThumbs(Renderer& renderer);
+    void updateThumbs();
 
     void startSearch();
     void searchStep(int direction);
@@ -124,8 +126,10 @@ namespace okaru::pdf {
     Label* m_pageLabel = nullptr;
     Label* m_matchesLabel = nullptr;
     Label* m_zoomLabel = nullptr;
-    std::vector<Image*> m_thumbImages;
-    std::vector<Node*> m_thumbFrames;
+    VirtualListView* m_sidebarList = nullptr;
+    std::unique_ptr<VirtualListAdapter> m_adapter;
+    std::unique_ptr<VirtualListAdapter> m_retiredAdapter;
+    std::vector<std::uint32_t> m_thumbIds; // textura de cada miniatura ya mostrada
     int m_thumbHighlighted = -1;
   };
 

@@ -3,6 +3,7 @@
 #include "apps/common/okaru_app.h"
 #include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
+#include "apps/pdf/pdf_sidebar.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
 #include "core/input/key_symbols.h"
@@ -64,7 +65,7 @@ namespace okaru::pdf {
         m_app.focus(m_view->inputArea());
       }
     });
-    m_app.setBeforeRender([this](Renderer& renderer) { updateThumbs(renderer); });
+    m_app.setBeforeRender([this](Renderer&) { updateThumbs(); });
     m_app.setOnClose([this] {
       // Las texturas se liberan con el contexto GL todavía activo.
       saveState();
@@ -206,7 +207,7 @@ namespace okaru::pdf {
       }
     }
     m_view = nullptr;
-    m_thumbImages.clear();
+    m_sidebarList = nullptr;
     m_tabs.erase(m_tabs.begin() + static_cast<std::ptrdiff_t>(index));
     if (m_active >= m_tabs.size()) {
       m_active = m_tabs.empty() ? 0 : m_tabs.size() - 1;
@@ -254,32 +255,35 @@ namespace okaru::pdf {
     if (m_zoomLabel != nullptr && m_view != nullptr) {
       m_zoomLabel->setText(std::format("{}%", static_cast<int>(std::round(m_view->effectiveZoom() * 100.0))));
     }
-    // La miniatura de la página actual se marca.
-    if (m_thumbHighlighted != tab->currentPage) {
-      for (std::size_t i = 0; i < m_thumbFrames.size(); ++i) {
-        if (auto* box = dynamic_cast<Box*>(m_thumbFrames[i]); box != nullptr) {
-          box->setFill(
-              static_cast<int>(i) == tab->currentPage ? colorSpecFromRole(ColorRole::Primary, 0.18F) : clearColorSpec()
-          );
-        }
+    // La miniatura de la página actual se marca (la lista vuelve a dibujar esas dos filas).
+    if (m_thumbHighlighted != tab->currentPage
+        && m_sidebarList != nullptr
+        && m_sidebarMode == SidebarMode::Thumbnails) {
+      if (m_thumbHighlighted >= 0) {
+        m_sidebarList->notifyItemChanged(static_cast<std::size_t>(m_thumbHighlighted));
       }
-      m_thumbHighlighted = tab->currentPage;
+      m_sidebarList->notifyItemChanged(static_cast<std::size_t>(tab->currentPage));
     }
+    m_thumbHighlighted = tab->currentPage;
     m_app.invalidate();
   }
 
-  void PdfWindow::updateThumbs(Renderer& renderer) {
+  void PdfWindow::updateThumbs() {
     PdfTab* tab = current();
-    if (tab == nullptr) {
+    if (tab == nullptr || m_sidebarList == nullptr || m_sidebarMode != SidebarMode::Thumbnails) {
       return;
     }
-    for (std::size_t i = 0; i < m_thumbImages.size() && i < tab->thumbs.size(); ++i) {
-      Image* image = m_thumbImages[i];
-      const TextureHandle& handle = tab->thumbs[i].handle;
-      if (handle.valid() && !image->visible()) {
-        image->setExternalTexture(renderer, handle);
-        image->setVisible(true);
+    // Miniaturas que llegaron (o se reemplazaron) desde la última vez.
+    bool changed = false;
+    for (std::size_t i = 0; i < m_thumbIds.size() && i < tab->thumbs.size(); ++i) {
+      if (const std::uint32_t id = tab->thumbs[i].handle.id.value(); id != m_thumbIds[i]) {
+        m_thumbIds[i] = id;
+        m_sidebarList->notifyItemChanged(i);
+        changed = true;
       }
+    }
+    if (changed) {
+      m_app.invalidate();
     }
   }
 
@@ -519,8 +523,7 @@ namespace okaru::pdf {
     m_pageLabel = nullptr;
     m_matchesLabel = nullptr;
     m_zoomLabel = nullptr;
-    m_thumbImages.clear();
-    m_thumbFrames.clear();
+    m_sidebarList = nullptr;
     m_thumbHighlighted = -1;
 
     PdfTab* tab = current();
@@ -757,113 +760,40 @@ namespace okaru::pdf {
           )
       );
     }
-    ScrollView* view = nullptr;
-    auto scroll = ui::scrollView({.out = &view, .state = &m_sidebarScroll, .flexGrow = 1.0F});
-    Flex* content = view->content();
-    content->setAlign(FlexAlign::Stretch);
-    content->setGap(Style::spaceXs * scale);
-
+    // Lista virtual: solo existen las filas visibles. El adaptador anterior sigue vivo hasta la próxima
+    // construcción (la escena vieja se destruye después de armar la nueva).
+    m_retiredAdapter = std::move(m_adapter);
+    const auto goTo = [this](int page) {
+      if (page >= 0 && m_view != nullptr) {
+        m_view->goToPage(page);
+        m_app.invalidate();
+      }
+    };
     if (m_sidebarMode == SidebarMode::Outline && !tab->outline.empty()) {
-      for (const auto& item : tab->outline) {
-        content->addChild(
-            ui::button({
-                .text = item.title,
-                .fontSize = Style::fontSizeCaption * scale,
-                .contentAlign = ButtonContentAlign::Start,
-                .variant = ButtonVariant::Ghost,
-                .tooltip = item.title,
-                .onClick =
-                    [this, page = item.page] {
-                      if (page >= 0 && m_view != nullptr) {
-                        m_view->goToPage(page);
-                        m_app.invalidate();
-                      }
-                    },
-                .configure =
-                    [&, depth = item.depth](Button& button) {
-                      button.setPadding(
-                          2.0F * scale, Style::spaceSm * scale, 2.0F * scale,
-                          (Style::spaceSm + 12.0F * static_cast<float>(std::min(depth, 5))) * scale
-                      );
-                      if (Label* label = button.label(); label != nullptr) {
-                        label->setMaxLines(1);
-                        label->setEllipsize(TextEllipsize::End);
-                        label->setMaxWidth(
-                            (kSidebarWidth - 24.0F - 12.0F * static_cast<float>(std::min(depth, 5))) * scale
-                        );
-                      }
-                    },
-            })
-        );
-      }
-      sidebar->addChild(std::move(scroll));
-      return sidebar;
+      m_adapter = std::make_unique<OutlineAdapter>(*tab, scale, goTo);
+    } else {
+      m_adapter = std::make_unique<ThumbnailAdapter>(*tab, scale, goTo);
     }
-
-    // Miniaturas: un marco por página (resaltado el de la actual), la imagen llega cuando el worker la dibuja.
-    for (std::size_t i = 0; i < tab->sizes.size(); ++i) {
-      PageSize size = tab->sizes[i];
-      if (tab->rotation % 180 != 0) {
-        std::swap(size.width, size.height);
-      }
-      const float thumbWidth = kThumbWidth * scale;
-      const float thumbHeight = std::round(thumbWidth * static_cast<float>(size.height / size.width));
-      auto cell = ui::node({.width = kSidebarWidth * scale - 16.0F * scale, .height = thumbHeight + 30.0F * scale});
-      Box* frame = nullptr;
-      cell->addChild(
-          ui::box({
-              .out = &frame,
-              .fill = clearColorSpec(),
-              .radius = Style::radiusMd * scale,
-              .width = kSidebarWidth * scale - 16.0F * scale,
-              .height = thumbHeight + 30.0F * scale,
-          })
-      );
-      m_thumbFrames.push_back(frame);
-      const float left = std::round((kSidebarWidth * scale - 16.0F * scale - thumbWidth) * 0.5F);
-      auto paper = ui::box({
-          .fill = m_night ? colorSpecFromRole(ColorRole::Shadow) : fixedColorSpec(rgba(1.0F, 1.0F, 1.0F, 1.0F)),
-          .border = colorSpecFromRole(ColorRole::OutlineVariant),
-          .borderWidth = 1.0F,
-          .width = thumbWidth,
-          .height = thumbHeight,
-      });
-      paper->setPosition(left, 6.0F * scale);
-      cell->addChild(std::move(paper));
-      Image* image = nullptr;
-      auto picture = ui::image({.out = &image, .fit = ImageFit::Stretch, .width = thumbWidth, .height = thumbHeight});
-      picture->setPosition(left, 6.0F * scale);
-      picture->setVisible(false); // updateThumbs la muestra con su textura
-      m_thumbImages.push_back(image);
-      cell->addChild(std::move(picture));
-      const std::string label = tab->doc->pageLabel(static_cast<int>(i));
-      auto number = ui::label({
-          .text = label.empty() ? std::to_string(i + 1) : label,
-          .fontSize = Style::fontSizeCaption * scale,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-      });
-      if (Renderer* renderer = m_app.renderer(); renderer != nullptr) {
-        number->layout(*renderer);
-      }
-      number->setPosition(
-          std::round((kSidebarWidth * scale - 16.0F * scale - number->width()) * 0.5F), thumbHeight + 9.0F * scale
-      );
-      cell->addChild(std::move(number));
-      cell->addChild(
-          ui::inputArea({
-              .width = kSidebarWidth * scale - 16.0F * scale,
-              .height = thumbHeight + 30.0F * scale,
-              .onClick = [this, page = static_cast<int>(i)](const InputArea::PointerData&) {
-                if (m_view != nullptr) {
-                  m_view->goToPage(page);
-                  m_app.invalidate();
-                }
-              },
-          })
-      );
-      content->addChild(std::move(cell));
+    auto list = ui::virtualListView({
+        .out = &m_sidebarList,
+        .state = &m_sidebarScroll,
+        .contentScale = scale,
+        .itemGap = m_sidebarMode == SidebarMode::Outline ? 0.0F : Style::spaceXs * scale,
+        .adapter = m_adapter.get(),
+        // Ancho fijo: la lista virtual mide poco y la vista de páginas se desbordaba por la derecha.
+        .width = kSidebarWidth * scale,
+        .flexGrow = 1.0F,
+    });
+    m_thumbIds.assign(tab->thumbs.size(), 0);
+    for (std::size_t i = 0; i < tab->thumbs.size(); ++i) {
+      m_thumbIds[i] = tab->thumbs[i].handle.id.value();
     }
-    sidebar->addChild(std::move(scroll));
+    m_thumbHighlighted = tab->currentPage;
+    // Al abrir, la miniatura de la página actual a la vista.
+    if (m_sidebarMode == SidebarMode::Thumbnails && m_sidebarScroll.offset == 0.0F && tab->currentPage > 0) {
+      m_sidebarList->scrollToIndex(static_cast<std::size_t>(tab->currentPage));
+    }
+    sidebar->addChild(std::move(list));
     return sidebar;
   }
 

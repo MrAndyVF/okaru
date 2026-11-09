@@ -21,6 +21,7 @@ class Box;
 class Image;
 class InputArea;
 class Renderer;
+class Scrollbar;
 
 namespace okaru::pdf {
 
@@ -146,6 +147,8 @@ namespace okaru::pdf {
     int m_lastVisible = 0;
 
     InputArea* m_input = nullptr;
+    Scrollbar* m_vbar = nullptr;
+    Scrollbar* m_hbar = nullptr;
     Node* m_content = nullptr;
     std::vector<Box*> m_paper;
     std::vector<Image*> m_images;

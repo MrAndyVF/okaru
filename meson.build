@@ -1276,6 +1276,7 @@ okaru_pdf_exe = executable('okaru-pdf',
   sources: files(
     'src/apps/pdf/main.cpp',
     'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_sidebar.cpp',
     'src/apps/pdf/pdf_view.cpp',
     'src/apps/pdf/pdf_window.cpp',
     'src/apps/pdf/render_worker.cpp',

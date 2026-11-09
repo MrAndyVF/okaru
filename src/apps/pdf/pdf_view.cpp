@@ -8,6 +8,7 @@
 #include "render/scene/input_area.h"
 #include "ui/controls/box.h"
 #include "ui/controls/image.h"
+#include "ui/controls/scrollbar.h"
 #include "ui/palette.h"
 
 #include <algorithm>
@@ -164,6 +165,23 @@ namespace okaru::pdf {
       }
     });
     m_input = static_cast<InputArea*>(addChild(std::move(input)));
+
+    // Barras de desplazamiento por encima de las páginas; la horizontal solo aparece con mucho zoom (Scrollbar se
+    // oculta sola cuando todo cabe).
+    for (const auto orientation : {ScrollOrientation::Vertical, ScrollOrientation::Horizontal}) {
+      auto bar = std::make_unique<Scrollbar>();
+      bar->setOrientation(orientation);
+      bar->setZIndex(5);
+      bar->setOnScrollChanged([this, orientation](float offset) {
+        if (m_tab == nullptr) {
+          return;
+        }
+        (orientation == ScrollOrientation::Vertical ? m_tab->scrollY : m_tab->scrollX) = offset;
+        markLayoutDirty();
+      });
+      auto* raw = static_cast<Scrollbar*>(addChild(std::move(bar)));
+      (orientation == ScrollOrientation::Vertical ? m_vbar : m_hbar) = raw;
+    }
   }
 
   PdfView::~PdfView() = default;
@@ -727,6 +745,18 @@ namespace okaru::pdf {
         }
       }
     }
+    // Barras: la vertical a la derecha, la horizontal abajo (dejando la esquina libre si están las dos).
+    const bool wide = !m_presentation && m_contentWidth > width() + 0.5F;
+    const bool tall = !m_presentation && m_contentHeight > height() + 0.5F;
+    const float thickness = m_vbar->reservedThickness();
+    m_vbar->setVisible(tall);
+    m_hbar->setVisible(wide);
+    m_vbar->setPosition(width() - thickness, 0.0F);
+    m_vbar->setSize(thickness, height() - (wide ? thickness : 0.0F));
+    m_vbar->update(height() - (wide ? thickness : 0.0F), m_contentHeight - (wide ? thickness : 0.0F), m_tab->scrollY);
+    m_hbar->setPosition(0.0F, height() - thickness);
+    m_hbar->setSize(width() - (tall ? thickness : 0.0F), thickness);
+    m_hbar->update(width() - (tall ? thickness : 0.0F), m_contentWidth - (tall ? thickness : 0.0F), m_tab->scrollX);
     for (std::size_t i = used; i < m_images.size(); ++i) {
       m_images[i]->setVisible(false);
       m_paper[i]->setVisible(false);
