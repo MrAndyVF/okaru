@@ -67,7 +67,7 @@ namespace okaru::editor {
     // Escena.
     [[nodiscard]] std::unique_ptr<Node> build(float width, float height, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildHeader(float scale);
-    [[nodiscard]] std::unique_ptr<Node> buildTabs(float scale);
+    [[nodiscard]] std::unique_ptr<Node> buildTabs(float width, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildBanner(float scale);
     [[nodiscard]] std::unique_ptr<Node> buildFindBar(float scale);
     [[nodiscard]] std::unique_ptr<Node> buildGotoBar(float scale);
