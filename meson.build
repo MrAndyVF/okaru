@@ -450,6 +450,7 @@ _okaru_sources = files(
   'src/apps/calculator/calc_engine.cpp',
   'src/apps/calculator/calc_state.cpp',
   'src/apps/common/okaru_app.cpp',
+  'src/apps/common/portal_file_chooser.cpp',
   'src/app/application.cpp',
   'src/app/application_events.cpp',
   'src/app/application_ipc.cpp',
@@ -1230,15 +1231,42 @@ okaru_calc_exe = executable('okaru-calc',
   install: true,
 )
 
+_viewer_dependencies = [
+  okaru_core_dep,
+  dependency('exiv2'),
+  dependency('gdk-pixbuf-2.0'),
+  dependency('libraw'),
+]
+okaru_view_exe = executable('okaru-view',
+  sources: files(
+    'src/apps/viewer/main.cpp',
+    'src/apps/viewer/viewer_image.cpp',
+    'src/apps/viewer/viewer_window.cpp',
+  ) + _protocol_headers,
+  dependencies: _viewer_dependencies,
+  install: true,
+)
+if build_tests
+  test('okaru_viewer_image', executable('okaru_viewer_image_test',
+    sources: files('tests/okaru_viewer_image_test.cpp', 'src/apps/viewer/viewer_image.cpp'),
+    dependencies: _viewer_dependencies,
+    override_options: ['b_ndebug=false'],
+  ))
+endif
+
 install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
-  exclude_files: ['dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop'],
+  exclude_files: [
+    'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
+    'dev.okaru.Viewer.desktop',
+  ],
 )
 
 install_data(
   'assets/dev.okaru.Okaru.desktop',
   'assets/dev.okaru.Okaru.Annotator.desktop',
   'assets/dev.okaru.Calculator.desktop',
+  'assets/dev.okaru.Viewer.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

@@ -66,6 +66,13 @@ window-rule {
 }
 
 window-rule {
+    match app-id="^dev\\.okaru\\.Viewer$"
+    open-floating true
+    default-column-width { fixed 1000; }
+    default-window-height { fixed 720; }
+}
+
+window-rule {
     match title="^(Picture in picture|Picture-in-Picture)$"
     open-floating true
 }

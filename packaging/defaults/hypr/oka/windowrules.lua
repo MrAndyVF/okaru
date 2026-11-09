@@ -10,6 +10,7 @@ hl.window_rule({ match = { title = "^(Picture in picture|Picture-in-Picture)$" }
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Okaru" }, float = true, size = { 1080, 920 } })
 -- Apps de OKARU
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Calculator$" }, float = true, center = true, size = { 440, 760 } })
+hl.window_rule({ match = { class = "^dev\\.okaru\\.Viewer$" }, float = true, center = true, size = { 1000, 720 } })
 
 -- Selector de archivos del portal y selector de pantalla para compartir
 hl.window_rule({ match = { class = "^xdg-desktop-portal(-gtk)?$" }, float = true, center = true, size = { 900, 600 } })

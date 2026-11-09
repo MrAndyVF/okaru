@@ -8,6 +8,8 @@
 #include "core/log.h"
 #include "core/process/process.h"
 #include "core/ui_phase.h"
+#include "dbus/session_bus.h"
+#include "dbus/session_bus_poll_source.h"
 #include "i18n/i18n.h"
 #include "i18n/i18n_service.h"
 #include "render/scene/input_area.h"
@@ -58,6 +60,8 @@ namespace okaru::apps {
   OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {}
 
   OkaruApp::~OkaruApp() {
+    m_sessionBusSource.reset();
+    m_sessionBus.reset();
     Input::setTextClipboard(nullptr);
     m_input.setSceneRoot(nullptr);
     m_root.reset();
@@ -179,13 +183,41 @@ namespace okaru::apps {
           m_selectPopup.reset();
           m_surface.reset();
         },
-        [&] { return std::vector<PollSource*>{&deferred, &timers, &keyRepeat, &configSource, &fileWatch}; }
+        [&] {
+          std::vector<PollSource*> sources{&deferred, &timers, &keyRepeat, &configSource, &fileWatch};
+          if (m_sessionBusSource != nullptr) {
+            sources.push_back(m_sessionBusSource.get());
+          }
+          return sources;
+        }
     );
     loop.run();
     return 0;
   }
 
   void OkaruApp::quit() { m_stop = true; }
+
+  void OkaruApp::setFullscreen(bool fullscreen) {
+    m_fullscreen = fullscreen;
+    if (m_surface != nullptr) {
+      m_surface->setFullscreen(fullscreen);
+    }
+  }
+
+  SessionBus* OkaruApp::sessionBus() {
+    if (m_sessionBus == nullptr) {
+      try {
+        m_sessionBus = std::make_unique<SessionBus>();
+        m_sessionBusSource = std::make_unique<SessionBusPollSource>(*m_sessionBus);
+      } catch (const std::exception& e) {
+        kLog.warn("no session bus: {}", e.what());
+        return nullptr;
+      }
+    }
+    return m_sessionBus.get();
+  }
+
+  Renderer* OkaruApp::renderer() { return m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr; }
 
   void OkaruApp::requestRebuild() {
     m_rebuild = true;

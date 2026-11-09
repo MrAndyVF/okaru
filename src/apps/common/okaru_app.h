@@ -24,6 +24,8 @@
 #include <string>
 
 class Renderer;
+class SessionBus;
+class SessionBusPollSource;
 
 namespace okaru::apps {
 
@@ -75,7 +77,14 @@ namespace okaru::apps {
     // Arrastrar desde este nodo mueve la ventana (la cabecera).
     void setDragNode(Node* node) { m_dragNode = node; }
 
+    void setFullscreen(bool fullscreen);
+    [[nodiscard]] bool fullscreen() const noexcept { return m_fullscreen; }
+
     [[nodiscard]] ConfigService& config() noexcept { return m_config; }
+    // Bus de sesión bajo demanda (portales); nullptr si no hay bus.
+    [[nodiscard]] SessionBus* sessionBus();
+    // Válido dentro de la construcción de la escena (contexto GL activo).
+    [[nodiscard]] Renderer* renderer();
     [[nodiscard]] WlClipboard& clipboard() noexcept { return m_clipboard; }
     [[nodiscard]] float scale() const;
     [[nodiscard]] InputDispatcher& input() noexcept { return m_input; }
@@ -99,6 +108,8 @@ namespace okaru::apps {
     WlClipboard m_clipboard;
     std::unique_ptr<ToplevelSurface> m_surface;
     std::unique_ptr<SelectDropdownPopup> m_selectPopup; // desplegables de los Select
+    std::unique_ptr<SessionBus> m_sessionBus;
+    std::unique_ptr<SessionBusPollSource> m_sessionBusSource;
     std::unique_ptr<Node> m_root;
     Node* m_dragNode = nullptr;
     BuildFn m_build;
@@ -108,6 +119,7 @@ namespace okaru::apps {
     std::atomic<bool> m_stop{false};
     bool m_rebuild = true;
     bool m_pointerInside = false;
+    bool m_fullscreen = false;
   };
 
 } // namespace okaru::apps

@@ -121,6 +121,54 @@
           "refresh": "Actualizar tasas"
         }
       }
+    },
+    "view": {
+      "title": "Visor de imágenes",
+      "open": "Abrir…",
+      "filter": "Imágenes",
+      "previous": "Imagen anterior",
+      "next": "Imagen siguiente",
+      "zoom-in": "Acercar",
+      "zoom-out": "Alejar",
+      "zoom-fit": "Ajustar a la ventana",
+      "zoom-original": "Tamaño original",
+      "rotate-left": "Girar a la izquierda",
+      "rotate-right": "Girar a la derecha",
+      "copy": "Copiar imagen",
+      "wallpaper": "Usar como fondo de pantalla",
+      "trash": "Mover a la papelera",
+      "folder": "Mostrar en la carpeta",
+      "fullscreen": "Pantalla completa",
+      "close": "Cerrar",
+      "error": "No se pudo abrir esta imagen",
+      "empty": {
+        "title": "Ninguna imagen abierta",
+        "hint": "Abre una imagen, o ábrela desde tu explorador de archivos"
+      },
+      "status": {
+        "copied": "Imagen copiada",
+        "wallpaper": "Fondo de pantalla cambiado",
+        "trashed": "Movida a la papelera",
+        "failed": "No se pudo"
+      },
+      "properties": {
+        "title": "Propiedades",
+        "name": "Nombre",
+        "folder": "Carpeta",
+        "format": "Formato",
+        "dimensions": "Dimensiones",
+        "size": "Tamaño del archivo",
+        "modified": "Modificada",
+        "frames": "Cuadros",
+        "camera": "Cámara",
+        "lens": "Objetivo",
+        "taken": "Tomada",
+        "exposure": "Exposición",
+        "aperture": "Apertura",
+        "iso": "ISO",
+        "focal": "Distancia focal",
+        "location": "Ubicación"
+      }
     }
   },
   "auth": {
