@@ -1,6 +1,6 @@
 # Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
 pkgname=okaru
-pkgver=1.0.5
+pkgver=1.1.0
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)
