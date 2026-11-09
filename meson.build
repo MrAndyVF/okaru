@@ -1270,7 +1270,13 @@ okaru_edit_exe = executable('okaru-edit',
   dependencies: okaru_core_dep,
   install: true,
 )
+_pdf_dependencies = [okaru_core_dep, dependency('poppler-glib')]
 if build_tests
+  test('okaru_pdf', executable('okaru_pdf_test',
+    sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
+    dependencies: _pdf_dependencies,
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_editor', executable('okaru_editor_test',
     sources: files('tests/okaru_editor_test.cpp') + _editor_core_sources,
     dependencies: okaru_core_dep,
