@@ -1269,6 +1269,18 @@ if build_tests
   ))
 endif
 
+# OKARU: apps por defecto del escritorio para instalaciones limpias (fotos → visor). Hyprland y Niri leen
+# $escritorio-mimeapps.list de /usr/share/applications; ~/.config/mimeapps.list del usuario manda sobre él.
+install_data(
+  'packaging/defaults/okaru-mimeapps.list',
+  install_dir: get_option('datadir') / 'applications',
+  rename: 'hyprland-mimeapps.list',
+)
+install_symlink('niri-mimeapps.list',
+  pointing_to: 'hyprland-mimeapps.list',
+  install_dir: get_option('datadir') / 'applications',
+)
+
 install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
@@ -1671,6 +1683,11 @@ if build_tests
   test('install_starship_init',
     bash_program,
     args: ['tests/install_starship_init_test.sh', meson.current_source_dir() / 'install.sh'],
+    workdir: meson.current_source_dir(),
+  )
+  test('okaru_mimeapps',
+    bash_program,
+    args: ['tests/okaru_mimeapps_test.sh'],
     workdir: meson.current_source_dir(),
   )
 endif # build_tests
