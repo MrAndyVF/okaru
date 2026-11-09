@@ -1,33 +1,74 @@
-# OKARU: basado en el starship de Omarchy (omacom/omarchy, MIT), con 郁 como símbolo del prompt.
+# OKARU: prompt de starship con 郁 como símbolo.
 add_newline = true
-command_timeout = 200
-format = "[$directory$git_branch$git_status]($style)$character"
+
+[username]
+style_user = "bold green"
+style_root = "bold red"
+format = "[$user]($style) "
+show_always = true
+
+[hostname]
+ssh_only = false
+format = "on [Okaru](bold purple) "
 
 [character]
-error_symbol = "[✗](bold cyan)"
-success_symbol = "[郁](bold cyan)"
+success_symbol = "[郁](bold green)"
+error_symbol = "[✗](bold red)"
 
 [directory]
-truncation_length = 2
+read_only = " 󰌾"
+truncation_length = 10
 truncation_symbol = "…/"
-repo_root_style = "bold cyan"
+style = "bold italic blue"
+repo_root_style = "bold blue"
 repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 
+[cmd_duration]
+min_time = 4
+style = "bold italic red"
+
 [git_branch]
-format = "[$branch]($style) "
-style = "italic cyan"
+symbol = " "
 
 [git_status]
-format     = '[$all_status]($style)'
-style      = "cyan"
-ahead      = "⇡${count} "
-diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
-behind     = "⇣${count} "
-conflicted = " "
-up_to_date = " "
-untracked  = "? "
-modified   = " "
-stashed    = ""
-staged     = ""
-renamed    = ""
-deleted    = ""
+format = '([\[$all_status$ahead_behind\]]($style) )'
+stashed = "[${count}*](green)"
+modified = "[${count}+](yellow)"
+deleted = "[${count}-](red)"
+conflicted = "[${count}~](red)"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+untracked = "[${count}?](blue)"
+staged = "[${count}+](green)"
+
+[git_state]
+style = "bold red"
+format = "[$state( $progress_current/$progress_total) ]($style)"
+cherry_pick = "cherry"
+
+[docker_context]
+symbol = " "
+format = "via [$symbol$context]($style) "
+style = "bold blue"
+only_with_files = true
+
+[package]
+symbol = "󰏖 "
+
+[java]
+symbol = " "
+
+[nodejs]
+format = "via [󰎙 Node.js $version](bold green) "
+
+[python]
+symbol = "🐍 "
+format = 'via [${symbol}python (${version} )(\($virtualenv\) )]($style)'
+style = "bold yellow"
+python_binary = ["./venv/bin/python", "python", "python3"]
+
+[rust]
+symbol = " "
+
+[golang]
+symbol = " "

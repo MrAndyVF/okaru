@@ -371,7 +371,7 @@ system_font() {
   fi
 }
 
-# fastfetch y starship con el estilo de OKARU (basados en los de Omarchy). Solo se copian si no existen.
+# fastfetch (basado en el de Omarchy) y starship con el estilo de OKARU. Solo se copian si no existen.
 terminal() {
   local config="${XDG_CONFIG_HOME:-$HOME/.config}"
   if [[ ! -e $config/fastfetch/config.jsonc ]]; then
