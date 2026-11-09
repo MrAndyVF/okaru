@@ -100,7 +100,9 @@ namespace okaru::calc {
     [[nodiscard]] Result financial(Financial function, const std::vector<std::string>& args, const Settings& settings);
 
   private:
-    [[nodiscard]] std::string print(const MathStructure& value, const Settings& settings, int base = 0) const;
+    // `autoPrefix` = libqalculate elige el prefijo (2000 m → 2 km); en conversiones se respeta la unidad pedida.
+    [[nodiscard]] std::string
+    print(const MathStructure& value, const Settings& settings, int base = 0, bool autoPrefix = true) const;
     [[nodiscard]] Result calculate(std::string_view expression, const Settings& settings, MathStructure& out);
 
     std::unique_ptr<Calculator> m_calc;

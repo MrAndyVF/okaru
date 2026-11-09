@@ -2,6 +2,7 @@
 #include "apps/calculator/calc_engine.h"
 #include "apps/calculator/calc_state.h"
 
+#include <algorithm>
 #include <clocale>
 #include <cstdlib>
 #include <filesystem>
@@ -78,6 +79,21 @@ int main() {
   const auto length = engine.defaultUnitCategory();
   ok =
       expectText(engine.convert("2", length, "Kilometer", "Meter", settings), "2000 m", "conversión de unidades") && ok;
+  ok = expectText(engine.convert("1", length, "Kilometer", "Centimeter", settings), "100000 cm", "unidad con prefijo")
+      && ok;
+  std::string currencies;
+  for (const auto& category : engine.unitCategories()) {
+    if (engine.isCurrencyCategory(category)) {
+      currencies = category;
+    }
+  }
+  ok = expect(
+           std::ranges::contains(engine.units(currencies), std::string("Colombian Peso"), &UnitInfo::title),
+           "el peso colombiano está entre las divisas"
+       )
+      && ok;
+  const auto pesos = engine.convert("1", currencies, "U.S. Dollar", "Colombian Peso", settings);
+  ok = expect(pesos.ok && pesos.text.starts_with("COP "), "dólares a pesos colombianos") && ok;
   ok = expectText(engine.financial(Financial::Sln, {"1000", "100", "9"}, settings), "100", "sln") && ok;
   ok = expectText(engine.financial(Financial::Gpm, {"100", "0.2"}, settings), "125", "gpm") && ok;
   ok = expect(!engine.financial(Financial::Pmt, {"1000", "", "12"}, settings).ok, "campo vacío") && ok;

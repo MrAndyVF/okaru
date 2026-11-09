@@ -100,9 +100,10 @@ namespace okaru::calc {
   // ~Calculator libera las variables que se le agregaron.
   Engine::~Engine() = default;
 
-  std::string Engine::print(const MathStructure& value, const Settings& settings, int base) const {
+  std::string Engine::print(const MathStructure& value, const Settings& settings, int base, bool autoPrefix) const {
     PrintOptions po = default_print_options;
     po.use_unicode_signs = true;
+    po.use_unit_prefixes = autoPrefix;
     po.interval_display = INTERVAL_DISPLAY_SIGNIFICANT_DIGITS;
     po.base = base != 0 ? base : settings.base;
     po.max_decimals = settings.decimals;
@@ -275,8 +276,10 @@ namespace okaru::calc {
 
   std::vector<UnitInfo> Engine::units(std::string_view category) const {
     std::vector<UnitInfo> out;
+    // libqalculate oculta las divisas menos comunes (el peso colombiano, entre otras): en divisas van todas.
+    const bool currency = isCurrencyCategory(category);
     for (const Unit* unit : m_calc->units) {
-      if (unit->isActive() && !unit->isHidden() && unit->category() == category) {
+      if (unit->isActive() && (currency || !unit->isHidden()) && unit->category() == category) {
         out.push_back({.title = unit->title(true, true)});
       }
     }
@@ -301,9 +304,13 @@ namespace okaru::calc {
       std::string_view value, std::string_view category, std::string_view from, std::string_view to,
       const Settings& settings
   ) {
+    const bool currency = isCurrencyCategory(category);
     const auto find = [&](std::string_view title) -> Unit* {
       for (Unit* unit : m_calc->units) {
-        if (unit->isActive() && !unit->isHidden() && unit->category() == category && unit->title(true, true) == title) {
+        if (unit->isActive()
+            && (currency || !unit->isHidden())
+            && unit->category() == category
+            && unit->title(true, true) == title) {
           return unit;
         }
       }
@@ -323,7 +330,14 @@ namespace okaru::calc {
     }
     const MathStructure converted =
         m_calc->convert(result.input, fromUnit, toUnit, 2000, evaluationOptions(decimal, 10));
-    result.text = std::format("{} {}", print(converted, decimal), toUnit->preferredDisplayName(true, true).name);
+    // libqalculate imprime la unidad: con prefijo (cm, mg…) un nombre armado a mano sale interno ("_c").
+    // Una compuesta con prefijo (cm = c·m) se imprime por sus partes; su nombre de referencia es interno (cm_c).
+    MathStructure withUnit(converted);
+    withUnit.multiply(
+        toUnit->subtype() == SUBTYPE_COMPOSITE_UNIT ? static_cast<CompositeUnit*>(toUnit)->generateMathStructure()
+                                                    : MathStructure(toUnit)
+    );
+    result.text = print(withUnit, decimal, 10, /*autoPrefix=*/false);
     return result;
   }
 
