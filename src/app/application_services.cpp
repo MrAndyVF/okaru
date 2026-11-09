@@ -73,6 +73,7 @@
 #include "system/easyeffects_service.h"
 #include "system/keyboard_backlight_service.h"
 #include "system/system_monitor_service.h"
+#include "theme/apps_palette.h"
 #include "ui/app_icon_colorization.h"
 #include "ui/controls/input.h"
 #include "ui/style.h"
@@ -723,6 +724,9 @@ void Application::initStyleThemeAndWayland() {
     const bool colorsChanged = !lastGeneratedPalette.has_value() || *lastGeneratedPalette != generated;
     lastGeneratedPalette = generated;
     m_settingsWindow.setResolvedPalette(generated, mode);
+    // OKARU: las apps propias (okaru-calc, …) siguen el tema leyendo este archivo.
+    const bool lightMode = m_themeService.isLightMode();
+    okaru::theme::writeAppsPalette({.tokens = lightMode ? generated.light : generated.dark, .light = lightMode});
     m_templateApplyService.apply(generated, mode, /*force=*/false, /*paletteChanged=*/colorsChanged);
     if (previousMode.has_value() && *previousMode != resolvedMode) {
       m_hookManager.fire(

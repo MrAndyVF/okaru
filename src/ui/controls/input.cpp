@@ -908,7 +908,8 @@ void Input::rebuildCursorStops(Renderer& renderer) {
 
 void Input::recomputeContentLeadSlack(Renderer& renderer, float width, bool showClearButton) {
   m_contentLeadSlack = 0.0F;
-  if (m_multiline || (m_textAlign != TextAlign::Center && !Style::rtl() && !valueLaidOutRtl())) {
+  // OKARU: End también alinea a la derecha en LTR (la calculadora); antes solo Center o RTL.
+  if (m_multiline || (m_textAlign == TextAlign::Start && !Style::rtl() && !valueLaidOutRtl())) {
     return;
   }
 

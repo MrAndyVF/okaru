@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Calculator
+Name[es]=Calculadora
+GenericName=Calculator
+GenericName[es]=Calculadora
+Comment=Basic, advanced, financial and programming calculations, and unit conversion
+Comment[es]=Cálculos básicos, avanzados, financieros y de programación, y conversión de unidades
+Keywords=math;arithmetic;units;currency;scientific;programming;finance;
+Keywords[es]=matemáticas;aritmética;unidades;divisas;científica;programación;finanzas;
+Exec=okaru-calc
+Icon=accessories-calculator
+Categories=Utility;Calculator;
+StartupWMClass=dev.okaru.Calculator
+Terminal=false
