@@ -1261,6 +1261,15 @@ _editor_core_sources = files(
   'src/apps/editor/syntax.cpp',
   'src/apps/editor/text_buffer.cpp',
 )
+okaru_edit_exe = executable('okaru-edit',
+  sources: files(
+    'src/apps/editor/editor_view.cpp',
+    'src/apps/editor/editor_window.cpp',
+    'src/apps/editor/main.cpp',
+  ) + _editor_core_sources + _protocol_headers,
+  dependencies: okaru_core_dep,
+  install: true,
+)
 if build_tests
   test('okaru_editor', executable('okaru_editor_test',
     sources: files('tests/okaru_editor_test.cpp') + _editor_core_sources,
@@ -1295,7 +1304,7 @@ install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
-    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop',
+    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop',
   ],
 )
 
@@ -1305,6 +1314,7 @@ install_data(
   'assets/dev.okaru.Calculator.desktop',
   'assets/dev.okaru.Viewer.desktop',
   'assets/dev.okaru.Player.desktop',
+  'assets/dev.okaru.Editor.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

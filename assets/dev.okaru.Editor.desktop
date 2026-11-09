@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Text Editor
+Name[es]=Editor de texto
+GenericName=Text Editor
+GenericName[es]=Editor de texto
+Comment=Edit text, configuration and data files
+Comment[es]=Editar texto, configuración y archivos de datos
+Keywords=text;editor;notepad;plaintext;code;json;toml;xml;html;csv;
+Keywords[es]=texto;editor;bloc de notas;código;json;toml;xml;html;csv;
+Exec=okaru-edit %U
+Icon=accessories-text-editor
+Categories=Utility;TextEditor;
+MimeType=text/plain;text/html;application/xhtml+xml;text/xml;application/xml;application/json;application/x-json;text/x-json;application/jsonc;application/toml;text/x-toml;text/css;text/csv;text/tab-separated-values;text/x-lua;text/x-kdl;application/x-desktop;text/x-log;text/markdown;text/x-ini;application/x-shellscript;text/x-systemd-unit;
+StartupWMClass=dev.okaru.Editor
+Terminal=false

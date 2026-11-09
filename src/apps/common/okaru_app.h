@@ -37,6 +37,9 @@ namespace okaru::apps {
     void setClipboardText(std::string text) override;
   };
 
+  // Modificadores del teclado ahora mismo (KeyMod), para clics con Shift o Ctrl.
+  [[nodiscard]] std::uint32_t keyboardModifiers() noexcept;
+
   struct AppOptions {
     const char* appId = "dev.okaru.App";
     std::string titleKey; // clave i18n del título; se traduce al abrir, con el idioma de la config
@@ -89,6 +92,9 @@ namespace okaru::apps {
     void setDragNode(Node* node) { m_dragNode = node; }
 
     void setFullscreen(bool fullscreen);
+    // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
+    void setCloseRequestCallback(std::function<bool()> callback) { m_closeRequest = std::move(callback); }
+    [[nodiscard]] FileWatcher& fileWatcher() noexcept { return m_fileWatcher; }
     [[nodiscard]] bool fullscreen() const noexcept { return m_fullscreen; }
     // Hay un desplegable de un Select abierto (es otra superficie: el puntero "sale" de la ventana al usarlo).
     [[nodiscard]] bool popupOpen() const { return m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen(); }
@@ -134,6 +140,7 @@ namespace okaru::apps {
     std::function<void(Renderer&)> m_beforeRender;
     std::function<void()> m_onClose;
     std::function<void(bool)> m_pointerPresence;
+    std::function<bool()> m_closeRequest;
     std::atomic<bool> m_stop{false};
     bool m_rebuild = true;
     bool m_pointerInside = false;

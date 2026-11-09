@@ -1,7 +1,7 @@
 # OKARU: apps por defecto del escritorio (Hyprland y Niri). Se instala como hyprland-mimeapps.list y
 # niri-mimeapps.list en /usr/share/applications; lo que elija el usuario en ~/.config/mimeapps.list manda.
-# Las imágenes salen del MimeType de assets/dev.okaru.Viewer.desktop (lo verifica
-# tests/okaru_mimeapps_test.sh).
+# Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes) y dev.okaru.Editor.desktop
+# (texto); lo verifica tests/okaru_mimeapps_test.sh.
 [Default Applications]
 image/png=dev.okaru.Viewer.desktop
 image/apng=dev.okaru.Viewer.desktop
@@ -72,3 +72,25 @@ image/x-sinar-sti=dev.okaru.Viewer.desktop
 image/x-sony-arw=dev.okaru.Viewer.desktop
 image/x-sony-sr2=dev.okaru.Viewer.desktop
 image/x-sony-srf=dev.okaru.Viewer.desktop
+text/plain=dev.okaru.Editor.desktop
+text/html=dev.okaru.Editor.desktop
+application/xhtml+xml=dev.okaru.Editor.desktop
+text/xml=dev.okaru.Editor.desktop
+application/xml=dev.okaru.Editor.desktop
+application/json=dev.okaru.Editor.desktop
+application/x-json=dev.okaru.Editor.desktop
+text/x-json=dev.okaru.Editor.desktop
+application/jsonc=dev.okaru.Editor.desktop
+application/toml=dev.okaru.Editor.desktop
+text/x-toml=dev.okaru.Editor.desktop
+text/css=dev.okaru.Editor.desktop
+text/csv=dev.okaru.Editor.desktop
+text/tab-separated-values=dev.okaru.Editor.desktop
+text/x-lua=dev.okaru.Editor.desktop
+text/x-kdl=dev.okaru.Editor.desktop
+application/x-desktop=dev.okaru.Editor.desktop
+text/x-log=dev.okaru.Editor.desktop
+text/markdown=dev.okaru.Editor.desktop
+text/x-ini=dev.okaru.Editor.desktop
+application/x-shellscript=dev.okaru.Editor.desktop
+text/x-systemd-unit=dev.okaru.Editor.desktop
