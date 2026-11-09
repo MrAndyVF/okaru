@@ -1,10 +1,8 @@
 #include "app/main_loop.h"
 
-#include "app/application.h"
 #include "app/poll_source.h"
 #include "core/deferred_call.h"
 #include "core/log.h"
-#include "shell/bar/bar.h"
 #include "wayland/surface.h"
 #include "wayland/wayland_connection.h"
 
@@ -267,14 +265,16 @@ namespace {
   // EPIPE/ECONNRESET: compositor closed the display (logout). Exit cleanly.
   bool isWaylandDisconnectErrno(int operationErrno) { return operationErrno == EPIPE || operationErrno == ECONNRESET; }
 
-  bool handleWaylandDisconnect(const WaylandConnection& wayland, std::string_view operation, int operationErrno) {
+  bool handleWaylandDisconnect(
+      std::atomic<bool>& stop, const WaylandConnection& wayland, std::string_view operation, int operationErrno
+  ) {
     if (!isWaylandDisconnectErrno(operationErrno)) {
       return false;
     }
     kLog.info(
         "Wayland display closed during {}; shutting down ({})", operation, wayland.describeDisplayError(operationErrno)
     );
-    Application::s_shutdownRequested = true;
+    stop = true;
     return true;
   }
 
@@ -306,8 +306,12 @@ namespace {
   }
 } // namespace
 
-MainLoop::MainLoop(WaylandConnection& wayland, Bar& bar, PollSourcesProvider sourcesProvider)
-    : m_wayland(wayland), m_bar(bar), m_sourcesProvider(std::move(sourcesProvider)) {}
+MainLoop::MainLoop(
+    WaylandConnection& wayland, std::atomic<bool>& stop, std::function<void()> closeSurfaces,
+    PollSourcesProvider sourcesProvider
+)
+    : m_wayland(wayland), m_stop(stop), m_closeSurfaces(std::move(closeSurfaces)),
+      m_sourcesProvider(std::move(sourcesProvider)) {}
 
 void MainLoop::run() {
   if (idleProfileEnabled()) {
@@ -318,7 +322,7 @@ void MainLoop::run() {
     resetIdleProfile(idleProfile(), std::chrono::steady_clock::now());
   }
 
-  while (!Application::s_shutdownRequested) {
+  while (!m_stop) {
     if (idleProfileEnabled()) {
       ++idleProfile().iterations;
     }
@@ -349,7 +353,7 @@ void MainLoop::run() {
       if (dispatchPendingGuarded(m_wayland.display()) < 0) {
         const int dispatchErrno = errno;
         if (handleWaylandDisconnect(
-                m_wayland, "failed to dispatch pending Wayland events before poll", dispatchErrno
+                m_stop, m_wayland, "failed to dispatch pending Wayland events before poll", dispatchErrno
             )) {
           return;
         }
@@ -383,7 +387,7 @@ void MainLoop::run() {
       const int flushErrno = errno;
       if (flushErrno != EAGAIN) {
         wl_display_cancel_read(m_wayland.display());
-        if (handleWaylandDisconnect(m_wayland, "failed to flush Wayland display before poll", flushErrno)) {
+        if (handleWaylandDisconnect(m_stop, m_wayland, "failed to flush Wayland display before poll", flushErrno)) {
           return;
         }
         throwWaylandFailure(m_wayland, "failed to flush Wayland display before poll", flushErrno);
@@ -556,7 +560,7 @@ void MainLoop::run() {
       const int flushErrno = errno;
       if (flushRet < 0 && flushErrno != EAGAIN) {
         wl_display_cancel_read(m_wayland.display());
-        if (handleWaylandDisconnect(m_wayland, "failed to flush Wayland display after POLLOUT", flushErrno)) {
+        if (handleWaylandDisconnect(m_stop, m_wayland, "failed to flush Wayland display after POLLOUT", flushErrno)) {
           return;
         }
         throwWaylandFailure(m_wayland, "failed to flush Wayland display after POLLOUT", flushErrno);
@@ -570,7 +574,7 @@ void MainLoop::run() {
       opStart = std::chrono::steady_clock::now();
       if (wl_display_read_events(m_wayland.display()) < 0) {
         const int readErrno = errno;
-        if (handleWaylandDisconnect(m_wayland, "failed to read Wayland events", readErrno)) {
+        if (handleWaylandDisconnect(m_stop, m_wayland, "failed to read Wayland events", readErrno)) {
           return;
         }
         throwWaylandFailure(m_wayland, "failed to read Wayland events", readErrno);
@@ -589,7 +593,7 @@ void MainLoop::run() {
     opStart = std::chrono::steady_clock::now();
     if (dispatchPendingGuarded(m_wayland.display()) < 0) {
       const int dispatchErrno = errno;
-      if (handleWaylandDisconnect(m_wayland, "failed to dispatch pending Wayland events after poll", dispatchErrno)) {
+      if (handleWaylandDisconnect(m_stop, m_wayland, "failed to dispatch pending Wayland events after poll", dispatchErrno)) {
         return;
       }
       throwWaylandFailure(m_wayland, "failed to dispatch pending Wayland events after poll", dispatchErrno);
@@ -610,7 +614,7 @@ void MainLoop::run() {
     // a trailing partial message makes wl_display_read_events succeed forever and the loop spins on POLLHUP.
     // Everything readable was consumed and dispatched above, so treat the hangup as the disconnect it is.
     if ((pollFds[0].revents & (POLLHUP | POLLERR)) != 0) {
-      handleWaylandDisconnect(m_wayland, "Wayland socket hangup", EPIPE);
+      handleWaylandDisconnect(m_stop, m_wayland, "Wayland socket hangup", EPIPE);
       return;
     }
 
@@ -685,8 +689,10 @@ void MainLoop::run() {
   }
 
   // Close all UI surfaces immediately and flush Wayland to make them disappear
-  kLog.debug("closing bar surfaces for clean shutdown");
-  m_bar.closeAllInstances();
+  kLog.debug("closing surfaces for clean shutdown");
+  if (m_closeSurfaces) {
+    m_closeSurfaces();
+  }
 
   if (dispatchPendingGuarded(m_wayland.display()) < 0) {
     const int dispatchErrno = errno;

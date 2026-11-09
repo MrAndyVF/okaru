@@ -1487,7 +1487,9 @@ void WaylandConnection::bindGlobal(
     if (m_extWorkspaceManagerCallback) {
       m_extWorkspaceManagerCallback(manager);
     } else {
-      ext_workspace_manager_v1_destroy(manager);
+      // Sin consumidor (las apps de OKARU): stop y conservar el proxy. Destruirlo sin más deja sin crear los
+      // grupos/workspaces que el servidor ya envió, y libwayland corta la conexión con el siguiente id nuevo.
+      ext_workspace_manager_v1_stop(manager);
     }
     return;
   }

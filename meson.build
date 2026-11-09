@@ -447,6 +447,9 @@ _protocol_headers += _wlr_ls_h
 
 # ── Main sources ──────────────────────────────────────────────────────────────
 _okaru_sources = files(
+  'src/apps/calculator/calc_engine.cpp',
+  'src/apps/calculator/calc_state.cpp',
+  'src/apps/common/okaru_app.cpp',
   'src/app/application.cpp',
   'src/app/application_events.cpp',
   'src/app/application_ipc.cpp',
@@ -1065,6 +1068,7 @@ _okaru_sources = files(
   'src/theme/m3_schemes.cpp',
   'src/theme/custom_schemes.cpp',
   'src/theme/builtin_palettes.cpp',
+  'src/theme/apps_palette.cpp',
   'src/theme/builtin_templates.cpp',
   'src/theme/community_palettes.cpp',
   'src/theme/community_templates.cpp',
@@ -1216,14 +1220,25 @@ okaru_exe = executable('okaru',
   install: true,
 )
 
+# OKARU: apps propias. Cada una es un binario aparte que enlaza okaru_core (solo los objetos que usa).
+okaru_calc_exe = executable('okaru-calc',
+  sources: files(
+    'src/apps/calculator/calculator_window.cpp',
+    'src/apps/calculator/main.cpp',
+  ) + _protocol_headers,
+  dependencies: okaru_core_dep,
+  install: true,
+)
+
 install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
-  exclude_files: ['dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop'],
+  exclude_files: ['dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop'],
 )
 
 install_data(
   'assets/dev.okaru.Okaru.desktop',
   'assets/dev.okaru.Okaru.Annotator.desktop',
+  'assets/dev.okaru.Calculator.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 
@@ -1274,6 +1289,8 @@ if build_tests
     'okaru_bar_fixed',
     'okaru_recorder',
     'okaru_hypr_workspaces',
+    'okaru_apps_palette',
+    'okaru_calc_engine',
     'okaru_niri_config',
     'okaru_system_info',
     'okaru_settings_search',

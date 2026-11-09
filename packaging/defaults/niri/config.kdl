@@ -57,6 +57,14 @@ window-rule {
     default-window-height { fixed 920; }
 }
 
+// Apps de OKARU
+window-rule {
+    match app-id="^dev\\.okaru\\.Calculator$"
+    open-floating true
+    default-column-width { fixed 440; }
+    default-window-height { fixed 760; }
+}
+
 window-rule {
     match title="^(Picture in picture|Picture-in-Picture)$"
     open-floating true
