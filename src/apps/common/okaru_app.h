@@ -63,6 +63,13 @@ namespace okaru::apps {
     void setKeyHandler(KeyFn handler) { m_keyHandler = std::move(handler); }
     // Llamado tras recargar config o paleta, antes de reconstruir.
     void setReloadCallback(std::function<void()> callback) { m_onReload = std::move(callback); }
+    // En cada cuadro, con el contexto GL activo y antes de pintar (video: mpv dibuja aquí en su framebuffer).
+    void setBeforeRender(std::function<void(Renderer&)> callback) { m_beforeRender = std::move(callback); }
+    // Al cerrar, con el contexto GL todavía activo (liberar recursos de GPU propios).
+    void setOnClose(std::function<void()> callback) { m_onClose = std::move(callback); }
+    // Pide un cuadro aunque la escena no haya cambiado (llegó un cuadro de video).
+    void requestFrame();
+    [[nodiscard]] struct wl_display* wlDisplay() const noexcept;
     // Tras cada construcción, con la escena ya enganchada a la entrada (para dar foco).
     void setAfterBuild(std::function<void()> callback) { m_afterBuild = std::move(callback); }
 
@@ -118,6 +125,8 @@ namespace okaru::apps {
     KeyFn m_keyHandler;
     std::function<void()> m_onReload;
     std::function<void()> m_afterBuild;
+    std::function<void(Renderer&)> m_beforeRender;
+    std::function<void()> m_onClose;
     std::atomic<bool> m_stop{false};
     bool m_rebuild = true;
     bool m_pointerInside = false;

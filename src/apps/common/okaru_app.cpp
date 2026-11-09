@@ -180,6 +180,10 @@ namespace okaru::apps {
     MainLoop loop(
         m_wayland, m_stop,
         [this] {
+          if (m_onClose && m_surface != nullptr) {
+            m_render.makeCurrent(m_surface->renderTarget());
+            m_onClose();
+          }
           m_selectPopup.reset();
           m_surface.reset();
         },
@@ -216,6 +220,15 @@ namespace okaru::apps {
     }
     return m_sessionBus.get();
   }
+
+  void OkaruApp::requestFrame() {
+    if (m_surface != nullptr) {
+      m_surface->requestUpdateOnly();
+      m_surface->requestRedraw();
+    }
+  }
+
+  wl_display* OkaruApp::wlDisplay() const noexcept { return m_wayland.display(); }
 
   float OkaruApp::bufferScale() const { return m_surface != nullptr ? m_surface->effectiveBufferScale() : 1.0F; }
 
@@ -277,11 +290,12 @@ namespace okaru::apps {
       if (m_afterBuild) {
         m_afterBuild();
       }
-      return;
-    }
-    if (needsLayout || m_root->layoutDirty()) {
+    } else if (needsLayout || m_root->layoutDirty()) {
       UiPhaseScope layoutPhase(UiPhase::Layout);
       m_root->layout(renderer);
+    }
+    if (m_beforeRender) {
+      m_beforeRender(renderer);
     }
   }
 

@@ -1247,7 +1247,21 @@ okaru_view_exe = executable('okaru-view',
   dependencies: _viewer_dependencies,
   install: true,
 )
+okaru_play_exe = executable('okaru-play',
+  sources: files(
+    'src/apps/player/main.cpp',
+    'src/apps/player/mpv_player.cpp',
+    'src/apps/player/player_window.cpp',
+  ) + _protocol_headers,
+  dependencies: [okaru_core_dep, dependency('mpv')],
+  install: true,
+)
 if build_tests
+  test('okaru_player', executable('okaru_player_test',
+    sources: files('tests/okaru_player_test.cpp', 'src/apps/player/mpv_player.cpp'),
+    dependencies: [okaru_core_dep, dependency('mpv')],
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_viewer_image', executable('okaru_viewer_image_test',
     sources: files('tests/okaru_viewer_image_test.cpp', 'src/apps/viewer/viewer_image.cpp'),
     dependencies: _viewer_dependencies,
@@ -1259,7 +1273,7 @@ install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
-    'dev.okaru.Viewer.desktop',
+    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop',
   ],
 )
 
@@ -1268,6 +1282,7 @@ install_data(
   'assets/dev.okaru.Okaru.Annotator.desktop',
   'assets/dev.okaru.Calculator.desktop',
   'assets/dev.okaru.Viewer.desktop',
+  'assets/dev.okaru.Player.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

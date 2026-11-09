@@ -73,6 +73,13 @@ window-rule {
 }
 
 window-rule {
+    match app-id="^dev\\.okaru\\.Player$"
+    open-floating true
+    default-column-width { fixed 1100; }
+    default-window-height { fixed 700; }
+}
+
+window-rule {
     match title="^(Picture in picture|Picture-in-Picture)$"
     open-floating true
 }
