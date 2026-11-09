@@ -171,6 +171,16 @@ namespace okaru::player {
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
     m_app.setBeforeRender([this](Renderer& renderer) { beforeRender(renderer); });
+    // Fuera de la ventana los controles se van enseguida; al volver, aparecen.
+    m_app.setPointerPresenceCallback([this](bool inside) {
+      if (inside) {
+        wake();
+      } else {
+        m_overControls = false;
+        m_hideTimer.stop();
+        hideControls();
+      }
+    });
     m_app.setOnClose([this] {
       m_player.freeRender();
       m_frame.destroy();
@@ -273,14 +283,20 @@ namespace okaru::player {
       m_controlsVisible = true;
       m_app.requestRebuild();
     }
+    // Con el puntero quieto se ocultan, salvo si está sobre los controles.
     m_hideTimer.start(kHideControlsAfter, [this] {
-      const auto& state = m_player.state();
-      // Solo se ocultan sobre un video que avanza; en pausa, con audio o con el puntero encima se quedan.
-      if (!state.paused && state.hasVideo() && !m_overControls) {
-        m_controlsVisible = false;
-        m_app.requestRebuild();
+      if (!m_overControls) {
+        hideControls();
       }
     });
+  }
+
+  void PlayerWindow::hideControls() {
+    // Sobre un video. Con audio solo, los controles son toda la interfaz: se quedan.
+    if (m_controlsVisible && m_player.state().hasVideo()) {
+      m_controlsVisible = false;
+      m_app.requestRebuild();
+    }
   }
 
   void PlayerWindow::toggleFullscreen() {
@@ -427,7 +443,7 @@ namespace okaru::player {
       );
     }
 
-    if (!m_files.empty() && (m_controlsVisible || state.paused || !video)) {
+    if (!m_files.empty() && (m_controlsVisible || !video)) {
       auto controls = buildControls(m_canvasWidth, scale);
       controls->setPosition(0.0F, m_canvasHeight - controls->height());
       controls->setZIndex(2);
@@ -683,7 +699,11 @@ namespace okaru::player {
         .width = width,
         .height = panel->height(),
         .onEnter = [this](const InputArea::PointerData&) { m_overControls = true; },
-        .onLeave = [this] { m_overControls = false; },
+        .onLeave =
+            [this] {
+              m_overControls = false;
+              wake();
+            },
     });
     area->addChild(std::move(panel));
     return area;

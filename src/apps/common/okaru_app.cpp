@@ -332,12 +332,18 @@ namespace okaru::apps {
       if (onThis) {
         m_pointerInside = true;
         m_input.pointerEnter(x, y, event.serial);
+        if (m_pointerPresence) {
+          m_pointerPresence(true);
+        }
       }
       break;
     case PointerEvent::Type::Leave:
       if (onThis) {
         m_pointerInside = false;
         m_input.pointerLeave();
+        if (m_pointerPresence) {
+          m_pointerPresence(false);
+        }
       }
       break;
     case PointerEvent::Type::Motion:

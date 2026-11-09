@@ -49,6 +49,7 @@ namespace okaru::player {
     void openDialog();
     // Muestra los controles y reinicia la cuenta para ocultarlos.
     void wake();
+    void hideControls();
     void updateTimeline();
 
     apps::OkaruApp& m_app;

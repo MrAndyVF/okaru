@@ -67,6 +67,10 @@ namespace okaru::apps {
     void setBeforeRender(std::function<void(Renderer&)> callback) { m_beforeRender = std::move(callback); }
     // Al cerrar, con el contexto GL todavía activo (liberar recursos de GPU propios).
     void setOnClose(std::function<void()> callback) { m_onClose = std::move(callback); }
+    // El puntero entra (true) o sale (false) de la ventana.
+    void setPointerPresenceCallback(std::function<void(bool inside)> callback) {
+      m_pointerPresence = std::move(callback);
+    }
     // Pide un cuadro aunque la escena no haya cambiado (llegó un cuadro de video).
     void requestFrame();
     [[nodiscard]] struct wl_display* wlDisplay() const noexcept;
@@ -127,6 +131,7 @@ namespace okaru::apps {
     std::function<void()> m_afterBuild;
     std::function<void(Renderer&)> m_beforeRender;
     std::function<void()> m_onClose;
+    std::function<void(bool)> m_pointerPresence;
     std::atomic<bool> m_stop{false};
     bool m_rebuild = true;
     bool m_pointerInside = false;
