@@ -82,11 +82,13 @@ namespace okaru::viewer {
   ViewerWindow::~ViewerWindow() {
     // Un hilo de decodificación que termine después ya no encuentra a quién entregar.
     ++*m_generation;
+    *m_alive = false;
   }
 
   // ── Archivos y decodificación ───────────────────────────────────────────────────────────────────────
 
   void ViewerWindow::openFiles(const std::vector<fs::path>& files) {
+    m_prefetched.clear();
     m_files.clear();
     m_index = 0;
     std::error_code ec;
@@ -131,30 +133,58 @@ namespace okaru::viewer {
     m_panY = 0.0F;
     m_quarterTurns = 0;
     m_frameTimer.stop();
-    m_svgTimer.stop();
-    decode(0);
+    m_detailTimer.stop();
+    const auto ready = std::ranges::find(m_prefetched, m_files[index], &Prefetched::path);
+    if (ready != m_prefetched.end()) {
+      ++*m_generation; // descarta una decodificación en curso de otra imagen
+      m_decoded = std::make_unique<DecodedImage>(std::move(*ready->image));
+      m_full.reset();
+      m_camera = std::move(ready->camera);
+      m_prefetched.erase(ready);
+      m_error.clear();
+      m_loading = false;
+      m_app.requestRebuild();
+      return;
+    }
+    decode(false);
   }
 
-  void ViewerWindow::decode(int svgSize) {
+  int ViewerWindow::screenFitSize() const {
+    const float side = std::max(m_canvasWidth, m_canvasHeight);
+    // Antes del primer cuadro no se conoce el lienzo: un lado de pantalla grande.
+    return side > 0.0F ? static_cast<int>(std::ceil(side * m_app.bufferScale())) : 2560;
+  }
+
+  void ViewerWindow::decode(bool refresh, int svgSize) {
     if (m_index >= m_files.size()) {
       return;
     }
     const unsigned generation = ++*m_generation;
     const fs::path path = m_files[m_index];
-    const bool refresh = svgSize > 0; // SVG más grande para el zoom: se conserva la vista
+    const int fitSize = refresh ? 0 : screenFitSize(); // con más detalle: el JPEG completo
     m_loading = !refresh;
     if (!refresh) {
       m_app.requestRebuild();
     }
-    std::thread([this, generation, counter = m_generation, path, svgSize, refresh] {
-      auto decoded =
-          std::make_shared<std::expected<DecodedImage, std::string>>(decodeImage(path, kMaxTextureSize, svgSize));
+    std::thread([this, generation, counter = m_generation, path, svgSize, fitSize, refresh] {
+      auto decoded = std::make_shared<std::expected<DecodedImage, std::string>>(
+          decodeImage(path, kMaxTextureSize, svgSize, fitSize)
+      );
+      // Una imagen grande que no se pudo decodificar reducida (PNG, WebP, TIFF…): se muestra una copia del tamaño de
+      // la pantalla y la completa queda guardada para cuando se amplíe.
+      std::shared_ptr<DecodedImage> full;
+      if (*decoded) {
+        if (auto copy = screenCopy(**decoded, fitSize)) {
+          full = std::make_shared<DecodedImage>(std::move(**decoded));
+          **decoded = std::move(*copy);
+        }
+      }
       auto camera =
           std::make_shared<std::vector<MetadataField>>(refresh ? std::vector<MetadataField>{} : cameraMetadata(path));
       if (*counter != generation) {
         return;
       }
-      DeferredCall::callLater([this, generation, counter, decoded, camera, refresh] {
+      DeferredCall::callLater([this, generation, counter, decoded, camera, refresh, full] {
         if (*counter != generation) {
           return;
         }
@@ -167,11 +197,12 @@ namespace okaru::viewer {
         } else {
           m_error.clear();
           m_decoded = std::make_unique<DecodedImage>(std::move(**decoded));
-          if (refresh) {
+          m_full = full != nullptr ? std::make_unique<DecodedImage>(std::move(*full)) : nullptr;
+          if (refresh && m_decoded->vector) {
             // Un SVG rasterizado más grande informa ese tamaño; el zoom se mide contra el original.
             m_decoded->sourceWidth = m_sourceWidth;
             m_decoded->sourceHeight = m_sourceHeight;
-          } else {
+          } else if (!refresh) {
             m_camera = std::move(*camera);
           }
         }
@@ -204,9 +235,56 @@ namespace okaru::viewer {
     m_sourceWidth = m_decoded->sourceWidth;
     m_sourceHeight = m_decoded->sourceHeight;
     m_vector = m_decoded->vector;
+    m_reduced = m_decoded->reduced;
     m_decoded.reset();
     m_frame = 0;
     startAnimation();
+    prefetchNeighbors();
+  }
+
+  void ViewerWindow::prefetchNeighbors() {
+    // Solo se guardan la anterior y la siguiente: una foto grande pesa decenas de MB en memoria.
+    std::erase_if(m_prefetched, [&](const Prefetched& entry) {
+      const auto it = std::ranges::find(m_files, entry.path);
+      const auto at = static_cast<long>(it - m_files.begin());
+      return it == m_files.end() || std::abs(at - static_cast<long>(m_index)) > 1;
+    });
+    const int fitSize = screenFitSize();
+    for (const long offset : {1L, -1L}) {
+      const long at = static_cast<long>(m_index) + offset;
+      if (at < 0 || at >= static_cast<long>(m_files.size())) {
+        continue;
+      }
+      const fs::path path = m_files[static_cast<std::size_t>(at)];
+      if (std::ranges::contains(m_prefetched, path, &Prefetched::path) || std::ranges::contains(m_prefetching, path)) {
+        continue;
+      }
+      m_prefetching.push_back(path);
+      std::thread([this, alive = m_alive, path, fitSize] {
+        auto decoded = decodeImage(path, kMaxTextureSize, 0, fitSize);
+        // De las vecinas solo se guarda lo que se ve; la completa se decodifica si se amplía.
+        if (decoded) {
+          if (auto copy = screenCopy(*decoded, fitSize)) {
+            *decoded = std::move(*copy);
+          }
+        }
+        auto entry = std::make_shared<Prefetched>(Prefetched{
+            .path = path,
+            .image = decoded ? std::make_shared<DecodedImage>(std::move(*decoded)) : nullptr,
+            .camera = cameraMetadata(path),
+        });
+        DeferredCall::callLater([this, alive, entry] {
+          if (!*alive) {
+            return;
+          }
+          std::erase(m_prefetching, entry->path);
+          // Un error no se guarda: al abrirla se decodifica de nuevo y se muestra el mensaje.
+          if (entry->image != nullptr) {
+            m_prefetched.push_back(std::move(*entry));
+          }
+        });
+      }).detach();
+    }
   }
 
   void ViewerWindow::unloadTextures() {
@@ -294,7 +372,7 @@ namespace okaru::viewer {
     m_zoom = zoom;
     m_fitMode = false;
     layoutImage();
-    maybeRerasterizeSvg();
+    maybeLoadMoreDetail();
     m_app.requestRebuild(); // el porcentaje de la cabecera
   }
 
@@ -307,21 +385,35 @@ namespace okaru::viewer {
     m_panX = 0.0F;
     m_panY = 0.0F;
     layoutImage();
-    maybeRerasterizeSvg();
+    maybeLoadMoreDetail();
     m_app.requestRebuild();
   }
 
-  void ViewerWindow::maybeRerasterizeSvg() {
-    if (!m_vector || m_sourceWidth <= 0) {
+  void ViewerWindow::maybeLoadMoreDetail() {
+    if ((!m_vector && !m_reduced) || m_sourceWidth <= 0) {
       return;
     }
-    const float needed = static_cast<float>(std::max(m_sourceWidth, m_sourceHeight)) * currentZoom();
+    const float needed =
+        static_cast<float>(std::max(m_sourceWidth, m_sourceHeight)) * currentZoom() * m_app.bufferScale();
     if (needed <= static_cast<float>(std::max(m_textureWidth, m_textureHeight)) * 1.05F) {
       return;
     }
-    // Se espera a que termine el gesto de zoom; se redondea a 512 para no rasterizar en cada paso.
+    if (m_reduced) {
+      // Reducida para la pantalla: al ampliar se sube la completa ya decodificada, o se decodifica (JPEG, vecina).
+      m_reduced = false;
+      m_detailTimer.start(std::chrono::milliseconds(150), [this] {
+        if (m_full != nullptr) {
+          m_decoded = std::move(m_full);
+          m_app.requestRebuild();
+        } else {
+          decode(true);
+        }
+      });
+      return;
+    }
+    // SVG: se redondea a 512 para no rasterizar en cada paso del zoom.
     const int size = std::min(kMaxTextureSize, (static_cast<int>(needed) / 512 + 1) * 512);
-    m_svgTimer.start(std::chrono::milliseconds(150), [this, size] { decode(size); });
+    m_detailTimer.start(std::chrono::milliseconds(150), [this, size] { decode(true, size); });
   }
 
   // ── Escena ─────────────────────────────────────────────────────────────────────────────────────────
@@ -375,7 +467,7 @@ namespace okaru::viewer {
       root->addChild(std::move(toast));
     }
     layoutImage();
-    maybeRerasterizeSvg(); // un SVG pequeño ajustado a la ventana se pide ya a su tamaño en pantalla
+    maybeLoadMoreDetail(); // un SVG pequeño ajustado a la ventana se pide ya a su tamaño en pantalla
     return root;
   }
 

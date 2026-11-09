@@ -85,6 +85,8 @@ namespace okaru::apps {
     [[nodiscard]] SessionBus* sessionBus();
     // Válido dentro de la construcción de la escena (contexto GL activo).
     [[nodiscard]] Renderer* renderer();
+    // Píxeles físicos por píxel lógico de la ventana (escala fraccional incluida).
+    [[nodiscard]] float bufferScale() const;
     [[nodiscard]] WlClipboard& clipboard() noexcept { return m_clipboard; }
     [[nodiscard]] float scale() const;
     [[nodiscard]] InputDispatcher& input() noexcept { return m_input; }

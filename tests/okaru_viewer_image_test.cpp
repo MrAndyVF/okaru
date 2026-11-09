@@ -43,6 +43,16 @@ int main() {
   std::ofstream(dir / "img2.png", std::ios::binary).write(reinterpret_cast<const char*>(kPng), sizeof(kPng));
   const auto png = decodeImage(dir / "img2.png", 16384);
   expect(png && png->width == 1 && png->frames.size() == 1 && !png->vector, "PNG");
+  // Copia de pantalla: solo para imágenes fijas bastante más grandes que el lienzo.
+  DecodedImage large{.width = 4000, .height = 2000, .sourceWidth = 4000, .sourceHeight = 2000};
+  large.frames.push_back({.rgba = std::vector<std::uint8_t>(4000U * 2000U * 4U, 0x80)});
+  const auto copy = screenCopy(large, 1000);
+  expect(
+      copy && copy->width == 1000 && copy->height == 500 && copy->reduced && copy->sourceWidth == 4000,
+      "copia de pantalla"
+  );
+  expect(!screenCopy(large, 3000).has_value(), "sin copia si la imagen apenas supera el lienzo");
+  expect(!screenCopy(*svg, 10).has_value(), "un SVG no se copia: se rasteriza al tamaño");
   std::ofstream(dir / "roto.jpg") << "no es una imagen";
   expect(!decodeImage(dir / "roto.jpg", 16384), "un archivo dañado da error, no se cae");
   std::ofstream(dir / "notas.txt") << "texto";

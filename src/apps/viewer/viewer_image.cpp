@@ -2,15 +2,19 @@
 
 #include "render/core/image_decoder.h"
 #include "render/core/image_file_loader.h"
+#include "render/core/image_orientation.h"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <exiv2/exiv2.hpp>
 #include <fstream>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib.h>
 #include <libraw/libraw.h>
 #include <stb/stb_image_resize2.h>
+#include <turbojpeg.h>
+#include <webp/decode.h>
 #include <webp/demux.h>
 
 namespace okaru::viewer {
@@ -43,9 +47,18 @@ namespace okaru::viewer {
 
     bool isRaw(const fs::path& path) { return std::ranges::contains(kRawExtensions, extension(path)); }
 
+    // Una sola lectura del tamaño exacto: istreambuf_iterator va byte a byte (cientos de ms en una foto grande).
     std::vector<std::uint8_t> readBytes(const fs::path& path) {
+      std::error_code ec;
+      const auto size = fs::file_size(path, ec);
       std::ifstream in(path, std::ios::binary);
-      return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
+      if (ec || !in) {
+        return {};
+      }
+      std::vector<std::uint8_t> bytes(size);
+      in.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(size));
+      bytes.resize(static_cast<std::size_t>(in.gcount()));
+      return bytes;
     }
 
     DecodedImage still(std::vector<std::uint8_t> rgba, int width, int height) {
@@ -90,6 +103,59 @@ namespace okaru::viewer {
       if (image.frames.empty()) {
         return std::unexpected("libwebp: no frames");
       }
+      return image;
+    }
+
+    // libjpeg-turbo: SIMD y decodificación reducida en la DCT; un JPEG de 24 MP a tamaño de pantalla tarda
+    // unos milisegundos. CMYK y otros casos raros devuelven error y siguen por el camino general.
+    std::expected<DecodedImage, std::string> decodeJpeg(const std::vector<std::uint8_t>& bytes, int fitSize) {
+      tjhandle handle = tj3Init(TJINIT_DECOMPRESS);
+      if (handle == nullptr) {
+        return std::unexpected("turbojpeg");
+      }
+      const auto fail = [&](std::string message) -> std::expected<DecodedImage, std::string> {
+        tj3Destroy(handle);
+        return std::unexpected(std::move(message));
+      };
+      if (tj3DecompressHeader(handle, bytes.data(), bytes.size()) != 0) {
+        return fail(tj3GetErrorStr(handle));
+      }
+      const int colorspace = tj3Get(handle, TJPARAM_COLORSPACE);
+      if (colorspace == TJCS_CMYK || colorspace == TJCS_YCCK) {
+        return fail("CMYK");
+      }
+      const int fullWidth = tj3Get(handle, TJPARAM_JPEGWIDTH);
+      const int fullHeight = tj3Get(handle, TJPARAM_JPEGHEIGHT);
+      tjscalingfactor scale{1, 1};
+      if (fitSize > 0) {
+        int count = 0;
+        const tjscalingfactor* factors = tj3GetScalingFactors(&count);
+        // El factor más pequeño que todavía cubre `fitSize` (solo reducciones: num < denom).
+        for (int i = 0; i < count; ++i) {
+          const auto& f = factors[i];
+          if (f.num < f.denom
+              && std::max(TJSCALED(fullWidth, f), TJSCALED(fullHeight, f)) >= fitSize
+              && f.num * scale.denom < scale.num * f.denom) {
+            scale = f;
+          }
+        }
+      }
+      tj3SetScalingFactor(handle, scale);
+      int width = TJSCALED(fullWidth, scale);
+      int height = TJSCALED(fullHeight, scale);
+      std::vector<std::uint8_t> rgba(static_cast<std::size_t>(width) * height * 4U);
+      if (tj3Decompress8(handle, bytes.data(), bytes.size(), rgba.data(), 0, TJPF_RGBA) != 0
+          && tj3GetErrorCode(handle) != TJERR_WARNING) {
+        return fail(tj3GetErrorStr(handle));
+      }
+      tj3Destroy(handle);
+      const ImageOrientation orientation = exifOrientation(bytes.data(), bytes.size());
+      applyImageOrientation(rgba, width, height, orientation);
+      const bool sideways = static_cast<int>(orientation) >= static_cast<int>(ImageOrientation::Transpose);
+      DecodedImage image = still(std::move(rgba), width, height);
+      image.sourceWidth = sideways ? fullHeight : fullWidth;
+      image.sourceHeight = sideways ? fullWidth : fullHeight;
+      image.reduced = scale.num != scale.denom;
       return image;
     }
 
@@ -205,6 +271,30 @@ namespace okaru::viewer {
     return out;
   }
 
+  std::optional<DecodedImage> screenCopy(const DecodedImage& image, int fitSize) {
+    const int largest = std::max(image.width, image.height);
+    // Con menos de 1,5× no compensa: la textura completa cuesta casi lo mismo.
+    if (fitSize <= 0 || image.vector || image.reduced || image.frames.size() != 1 || largest * 2 < fitSize * 3) {
+      return std::nullopt;
+    }
+    const float scale = static_cast<float>(fitSize) / static_cast<float>(largest);
+    const int width = std::max(1, static_cast<int>(std::lround(static_cast<float>(image.width) * scale)));
+    const int height = std::max(1, static_cast<int>(std::lround(static_cast<float>(image.height) * scale)));
+    DecodedImage copy{
+        .width = width,
+        .height = height,
+        .sourceWidth = image.sourceWidth,
+        .sourceHeight = image.sourceHeight,
+        .reduced = true
+    };
+    copy.frames.push_back({.rgba = std::vector<std::uint8_t>(static_cast<std::size_t>(width) * height * 4U)});
+    stbir_resize_uint8_srgb(
+        image.frames.front().rgba.data(), image.width, image.height, 0, copy.frames.front().rgba.data(), width, height,
+        0, STBIR_RGBA
+    );
+    return copy;
+  }
+
   std::string formatName(const fs::path& path) {
     std::string ext = extension(path);
     if (ext == "jpg" || ext == "jpe" || ext == "jfif") {
@@ -218,7 +308,7 @@ namespace okaru::viewer {
     return ext;
   }
 
-  std::expected<DecodedImage, std::string> decodeImage(const fs::path& path, int maxSize, int svgSize) {
+  std::expected<DecodedImage, std::string> decodeImage(const fs::path& path, int maxSize, int svgSize, int fitSize) {
     const std::string ext = extension(path);
     if (ext == "svg" || ext == "svgz") {
       auto loaded = loadImageFile(path.string(), maxSize > 0 && svgSize > maxSize ? maxSize : svgSize);
@@ -262,8 +352,16 @@ namespace okaru::viewer {
         result = std::move(image);
       }
     } else if (ext == "webp") {
-      if (auto webp = decodeAnimatedWebP(bytes); webp && webp->frames.size() > 1) {
-        result = std::move(webp);
+      // Solo las animadas pasan por el decodificador de animación; si no, se decodificaría dos veces.
+      WebPBitstreamFeatures features;
+      if (WebPGetFeatures(bytes.data(), bytes.size(), &features) == VP8_STATUS_OK && features.has_animation) {
+        if (auto webp = decodeAnimatedWebP(bytes); webp && webp->frames.size() > 1) {
+          result = std::move(webp);
+        }
+      }
+    } else if (ext == "jpg" || ext == "jpeg" || ext == "jpe" || ext == "jfif") {
+      if (auto jpeg = decodeJpeg(bytes, maxSize > 0 && fitSize > maxSize ? maxSize : fitSize)) {
+        result = std::move(jpeg);
       }
     }
     if (!result) {

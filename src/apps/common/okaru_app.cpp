@@ -217,6 +217,8 @@ namespace okaru::apps {
     return m_sessionBus.get();
   }
 
+  float OkaruApp::bufferScale() const { return m_surface != nullptr ? m_surface->effectiveBufferScale() : 1.0F; }
+
   Renderer* OkaruApp::renderer() { return m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr; }
 
   void OkaruApp::requestRebuild() {

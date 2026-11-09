@@ -1236,6 +1236,7 @@ _viewer_dependencies = [
   dependency('exiv2'),
   dependency('gdk-pixbuf-2.0'),
   dependency('libraw'),
+  dependency('libturbojpeg'),
 ]
 okaru_view_exe = executable('okaru-view',
   sources: files(

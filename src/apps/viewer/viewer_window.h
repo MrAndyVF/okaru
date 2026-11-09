@@ -42,7 +42,11 @@ namespace okaru::viewer {
 
     void openFiles(const std::vector<std::filesystem::path>& files);
     void show(std::size_t index);
-    void decode(int svgSize);
+    // `refresh` = misma imagen con más detalle (SVG más grande o JPEG completo): conserva la vista.
+    void decode(bool refresh, int svgSize = 0);
+    void prefetchNeighbors();
+    // Lado en píxeles físicos que ocupa el lienzo: hasta ahí basta decodificar para ver la imagen ajustada.
+    [[nodiscard]] int screenFitSize() const;
     void uploadPending(Renderer& renderer);
     void unloadTextures();
     void startAnimation();
@@ -55,7 +59,7 @@ namespace okaru::viewer {
     void setZoom(float zoom, float anchorX, float anchorY);
     void fit();
     void clampPan();
-    void maybeRerasterizeSvg();
+    void maybeLoadMoreDetail();
 
     void step(int delta);
     void rotate(int quarterTurns);
@@ -74,6 +78,8 @@ namespace okaru::viewer {
     // Resultado de la decodificación, compartido con el hilo que la hace.
     std::shared_ptr<std::atomic<unsigned>> m_generation = std::make_shared<std::atomic<unsigned>>(0);
     std::unique_ptr<DecodedImage> m_decoded; // cuadros aún sin subir a la GPU
+    // La imagen completa cuando en pantalla hay una copia reducida: al ampliar se sube sin decodificar de nuevo.
+    std::unique_ptr<DecodedImage> m_full;
     bool m_loading = false;
     std::string m_error;
 
@@ -81,12 +87,23 @@ namespace okaru::viewer {
     std::vector<std::uint32_t> m_durations;
     std::size_t m_frame = 0;
     Timer m_frameTimer;
-    Timer m_svgTimer;
+    Timer m_detailTimer; // espera a que termine el gesto de zoom antes de pedir más detalle
     int m_textureWidth = 0;
     int m_textureHeight = 0;
     int m_sourceWidth = 0;
     int m_sourceHeight = 0;
     bool m_vector = false;
+    bool m_reduced = false; // la textura tiene menos detalle que el archivo (JPEG reducido para la pantalla)
+
+    // Vecinas decodificadas de antemano: pasar con ←/→ no espera al disco ni al decodificador.
+    struct Prefetched {
+      std::filesystem::path path;
+      std::shared_ptr<DecodedImage> image;
+      std::vector<MetadataField> camera;
+    };
+    std::vector<Prefetched> m_prefetched;
+    std::vector<std::filesystem::path> m_prefetching;
+    std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
     std::vector<MetadataField> m_camera;
 
     bool m_fitMode = true;
