@@ -175,7 +175,7 @@ namespace okaru::player {
     m_app.setPointerPresenceCallback([this](bool inside) {
       if (inside) {
         wake();
-      } else {
+      } else if (!m_app.popupOpen()) {
         m_overControls = false;
         m_hideTimer.stop();
         hideControls();
@@ -292,6 +292,11 @@ namespace okaru::player {
   }
 
   void PlayerWindow::hideControls() {
+    // Con un desplegable abierto (subtítulos, audio, velocidad) el puntero está en él: se espera a que se cierre.
+    if (m_app.popupOpen()) {
+      wake();
+      return;
+    }
     // Sobre un video. Con audio solo, los controles son toda la interfaz: se quedan.
     if (m_controlsVisible && m_player.state().hasVideo()) {
       m_controlsVisible = false;

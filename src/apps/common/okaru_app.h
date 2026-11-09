@@ -90,6 +90,8 @@ namespace okaru::apps {
 
     void setFullscreen(bool fullscreen);
     [[nodiscard]] bool fullscreen() const noexcept { return m_fullscreen; }
+    // Hay un desplegable de un Select abierto (es otra superficie: el puntero "sale" de la ventana al usarlo).
+    [[nodiscard]] bool popupOpen() const { return m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen(); }
 
     [[nodiscard]] ConfigService& config() noexcept { return m_config; }
     // Bus de sesión bajo demanda (portales); nullptr si no hay bus.
