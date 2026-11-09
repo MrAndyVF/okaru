@@ -381,48 +381,51 @@ namespace okaru::player {
     }
 
     // Clic: pausa. Doble clic: pantalla completa. Mover: muestra los controles. Rueda: volumen.
-    canvas->addChild(
-        ui::inputArea({
-            .acceptedButtons = BTN_LEFT,
-            .width = m_canvasWidth,
-            .height = m_canvasHeight,
-            .zIndex = 1,
-            .onMotion =
-                [this](const InputArea::PointerData& data) {
-                  if (data.sceneX != m_pointerX || data.sceneY != m_pointerY) {
-                    m_pointerX = data.sceneX;
-                    m_pointerY = data.sceneY;
-                    wake();
-                  }
-                },
-            .onClick =
-                [this](const InputArea::PointerData& data) {
-                  if (m_files.empty()) {
-                    return;
-                  }
-                  if (data.time - m_lastClickTime < kDoubleClickMs) {
-                    m_lastClickTime = 0;
-                    m_clickTimer.stop();
-                    toggleFullscreen();
-                    return;
-                  }
-                  m_lastClickTime = data.time;
-                  m_clickTimer.start(std::chrono::milliseconds(kDoubleClickMs), [this] {
-                    m_player.togglePause();
-                    wake();
-                  });
-                },
-            .onAxisHandler = [this](const InputArea::PointerData& data) -> bool {
-              if (data.axis != 0) {
-                return false;
-              }
-              const double steps = data.axisValue120 != 0 ? data.axisValue120 / 120.0 : data.axisValue / 10.0;
-              m_player.setVolume(m_player.state().volume - steps * 5.0);
-              wake();
-              return true;
-            },
-        })
-    );
+    // Sin nada cargado no se agrega: taparía el botón «Abrir…» de la portada vacía.
+    if (!m_files.empty()) {
+      canvas->addChild(
+          ui::inputArea({
+              .acceptedButtons = BTN_LEFT,
+              .width = m_canvasWidth,
+              .height = m_canvasHeight,
+              .zIndex = 1,
+              .onMotion =
+                  [this](const InputArea::PointerData& data) {
+                    if (data.sceneX != m_pointerX || data.sceneY != m_pointerY) {
+                      m_pointerX = data.sceneX;
+                      m_pointerY = data.sceneY;
+                      wake();
+                    }
+                  },
+              .onClick =
+                  [this](const InputArea::PointerData& data) {
+                    if (m_files.empty()) {
+                      return;
+                    }
+                    if (data.time - m_lastClickTime < kDoubleClickMs) {
+                      m_lastClickTime = 0;
+                      m_clickTimer.stop();
+                      toggleFullscreen();
+                      return;
+                    }
+                    m_lastClickTime = data.time;
+                    m_clickTimer.start(std::chrono::milliseconds(kDoubleClickMs), [this] {
+                      m_player.togglePause();
+                      wake();
+                    });
+                  },
+              .onAxisHandler = [this](const InputArea::PointerData& data) -> bool {
+                if (data.axis != 0) {
+                  return false;
+                }
+                const double steps = data.axisValue120 != 0 ? data.axisValue120 / 120.0 : data.axisValue / 10.0;
+                m_player.setVolume(m_player.state().volume - steps * 5.0);
+                wake();
+                return true;
+              },
+          })
+      );
+    }
 
     if (!m_files.empty() && (m_controlsVisible || state.paused || !video)) {
       auto controls = buildControls(m_canvasWidth, scale);
