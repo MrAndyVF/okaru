@@ -65,7 +65,7 @@ namespace settings {
     bool niriMode() { return compositors::isNiri() && state().niri.available(); }
 
     std::optional<std::string> applyLive(const std::vector<OutputRule>& rules, const std::string& primary) {
-      return niriMode() ? okaru::niri::writeOutputs(rules, primary)
+      return niriMode() ? okaru::niri::writeOutputs(rules, primary, state().infos)
                         : okaru::hypr::applyLive(state().runtime, rules, primary);
     }
 
@@ -84,6 +84,11 @@ namespace settings {
           s.applied.push_back(okaru::niri::ruleFor(info, fileRules));
         }
         s.pending = s.applied;
+        // El archivo puede nombrar al principal por identidad; la interfaz trabaja con conectores.
+        if (const auto byIdentity = std::ranges::find(s.infos, primary, &OutputInfo::identity);
+            !primary.empty() && byIdentity != s.infos.end()) {
+          primary = byIdentity->name;
+        }
         s.appliedPrimary = primary;
         s.pendingPrimary = primary;
         s.loaded = true;
