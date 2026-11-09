@@ -263,6 +263,12 @@ namespace okaru::niri {
       const std::string make = output.value("make", std::string());
       const std::string model = output.value("model", std::string());
       info.description = std::string(trim(make + " " + model));
+      // Niri acepta "marca modelo serie" en `output`; sin serie no sirve para distinguir dos iguales.
+      if (const auto serial = output.find("serial");
+          !make.empty() && !model.empty() && serial != output.end() && serial->is_string()
+          && !serial->get<std::string>().empty()) {
+        info.identity = std::format("{} {} {}", make, model, serial->get<std::string>());
+      }
       std::vector<std::array<double, 3>> modes;
       if (const auto it = output.find("modes"); it != output.end() && it->is_array()) {
         for (const auto& mode : *it) {
@@ -297,6 +303,13 @@ namespace okaru::niri {
       infos.push_back(std::move(info));
     }
     std::ranges::sort(infos, {}, &OutputInfo::name);
+    // Dos monitores con la misma identidad se guardan por conector.
+    const auto snapshot = infos;
+    for (auto& info : infos) {
+      if (!info.identity.empty() && std::ranges::count(snapshot, info.identity, &OutputInfo::identity) > 1) {
+        info.identity.clear();
+      }
+    }
     return infos;
   }
 
@@ -319,11 +332,15 @@ namespace okaru::niri {
     return infos;
   }
 
-  std::string serializeOutputs(const std::vector<OutputRule>& rules, std::string_view primary) {
+  std::string serializeOutputs(
+      const std::vector<OutputRule>& rules, std::string_view primary, const std::vector<OutputInfo>& infos
+  ) {
     std::string out =
         "// OKARU: lo administra Ajustes → Pantallas. Los cambios a mano se pierden al guardar desde ahí.\n";
     for (const auto& rule : rules) {
-      out += std::format("\noutput {} {{\n", kdlString(rule.output));
+      const auto info = std::ranges::find(infos, rule.output, &OutputInfo::name);
+      const bool byIdentity = info != infos.end() && !info->identity.empty();
+      out += std::format("\noutput {} {{\n", kdlString(byIdentity ? info->identity : rule.output));
       if (rule.disabled) {
         out += "    off\n";
       } else {
@@ -346,7 +363,7 @@ namespace okaru::niri {
           out += "    variable-refresh-rate on-demand=true\n";
         }
       }
-      if (!primary.empty() && rule.output == primary) {
+      if (!primary.empty() && (rule.output == primary || (byIdentity && info->identity == primary))) {
         out += "    focus-at-startup\n";
       }
       out += "}\n";
@@ -401,7 +418,10 @@ namespace okaru::niri {
   }
 
   OutputRule ruleFor(const OutputInfo& info, const std::vector<OutputRule>& fileRules) {
-    const auto file = std::ranges::find(fileRules, info.name, &OutputRule::output);
+    auto file = std::ranges::find(fileRules, info.name, &OutputRule::output);
+    if (file == fileRules.end() && !info.identity.empty()) {
+      file = std::ranges::find(fileRules, info.identity, &OutputRule::output);
+    }
     OutputRule rule{.output = info.name, .scale = 1.0, .vrr = info.vrrActive ? 1 : 0};
     if (info.disabled && file != fileRules.end()) {
       rule = *file; // apagado: el IPC no da modo ni posición; se conserva lo guardado
@@ -424,8 +444,24 @@ namespace okaru::niri {
     return rule;
   }
 
-  std::optional<std::string> writeOutputs(const std::vector<OutputRule>& rules, std::string_view primary) {
-    return writeValidated(outputsPath(), serializeOutputs(rules, primary));
+  std::optional<std::string> writeOutputs(
+      const std::vector<OutputRule>& rules, std::string_view primary, const std::vector<OutputInfo>& infos
+  ) {
+    // Las reglas de monitores desconectados se conservan: al volver a conectarlos recuperan su config.
+    std::vector<OutputRule> all = rules;
+    std::string filePrimary;
+    for (const auto& kept : readOutputs(&filePrimary)) {
+      const bool connected = std::ranges::any_of(infos, [&](const OutputInfo& info) {
+        return info.name == kept.output || (!info.identity.empty() && info.identity == kept.output);
+      });
+      if (!connected && !std::ranges::contains(all, kept.output, &OutputRule::output)) {
+        all.push_back(kept);
+      }
+    }
+    // El principal desconectado sigue siéndolo hasta que se elija otro conectado.
+    const bool primaryConnected = std::ranges::contains(infos, primary, &OutputInfo::name);
+    const std::string_view keepPrimary = primaryConnected || primary.empty() ? primary : std::string_view(filePrimary);
+    return writeValidated(outputsPath(), serializeOutputs(all, keepPrimary, infos));
   }
 
   std::vector<OutputRule> readOutputs(std::string* primary) {
