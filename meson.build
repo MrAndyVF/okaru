@@ -1607,4 +1607,9 @@ if build_tests
     args: ['tests/compositor_template_config_test.sh', meson.current_source_dir() / 'assets/templates'],
     workdir: meson.current_source_dir(),
   )
+  test('install_starship_init',
+    bash_program,
+    args: ['tests/install_starship_init_test.sh', meson.current_source_dir() / 'install.sh'],
+    workdir: meson.current_source_dir(),
+  )
 endif # build_tests

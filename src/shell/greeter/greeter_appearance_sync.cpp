@@ -8,7 +8,6 @@
 #include "dbus/polkit/polkit_session_support.h"
 #include "ipc/ipc_service.h"
 #include "render/core/color.h"
-#include "shell/session/session_action_meta.h"
 #include "ui/palette.h"
 #include "util/file_utils.h"
 #include "util/string_utils.h"
@@ -386,45 +385,6 @@ namespace {
     }
   }
 
-  void appendSessionToSyncToml(toml::table& root, const ShellSessionConfig& session) {
-    toml::table sessionTable;
-    toml::table power;
-    putOptionalString(power, "suspend", session.power.suspend);
-    putOptionalString(power, "reboot", session.power.reboot);
-    putOptionalString(power, "shutdown", session.power.shutdown);
-    if (!power.empty()) {
-      sessionTable.insert("power", std::move(power));
-    }
-
-    toml::array actions;
-    const auto& source = session.actions.empty() ? defaultSessionPanelActions() : session.actions;
-    for (const SessionPanelActionConfig& row : source) {
-      // The greeter has its own firmware-setup button and no consumer for reboot_uefi rows.
-      if (!row.enabled || !session_action::isKnown(row.action) || row.action == "reboot_uefi") {
-        continue;
-      }
-      if (row.action == "command" && (!row.command.has_value() || StringUtils::trim(*row.command).empty())) {
-        continue;
-      }
-
-      toml::table item;
-      item.insert_or_assign("action", row.action);
-      putOptionalString(item, "command", row.command);
-      putOptionalString(item, "label", row.label);
-      putOptionalString(item, "glyph", row.glyph);
-      if (row.variant != SessionActionButtonVariant::Default) {
-        item.insert_or_assign("variant", std::string(enumToKey(kSessionActionButtonVariants, row.variant)));
-      }
-      actions.push_back(std::move(item));
-    }
-    if (!actions.empty()) {
-      sessionTable.insert("actions", std::move(actions));
-    }
-    if (!sessionTable.empty()) {
-      root.insert("session", std::move(sessionTable));
-    }
-  }
-
   [[nodiscard]] std::string formatToml(const toml::table& table) {
     std::ostringstream out;
     out << toml::toml_formatter{
@@ -438,8 +398,7 @@ namespace {
   [[nodiscard]] bool writeStagedSyncToml(
       const std::filesystem::path& staging, const Config& config, std::string_view resolvedMode,
       const std::string& wallpaperPath, const std::string& installedWallpaperName,
-      const std::vector<StagedOutputWallpaper>& outputWallpapers, const std::filesystem::path& installedStateDirectory,
-      const GreeterSyncMode mode
+      const std::vector<StagedOutputWallpaper>& outputWallpapers, const std::filesystem::path& installedStateDirectory
   ) {
     toml::table root;
     toml::table appearance;
@@ -511,10 +470,8 @@ namespace {
       }
     }
 
+    // Sin [session]: el greeter ya no tiene menú de sesión propio y no lee power/actions.
     root.insert("appearance", std::move(appearance));
-    if (mode == GreeterSyncMode::LegacyAuthenticated) {
-      appendSessionToSyncToml(root, config.shell.session);
-    }
 
     const auto syncPath = staging / kStagedSyncTomlFileName;
     std::ofstream out(syncPath);
@@ -1098,8 +1055,7 @@ namespace greeter {
       kLog.info("greeter sync: wallpaper disabled; not syncing wallpaper");
     }
     if (!writeStagedSyncToml(
-            staging, config, resolvedThemeMode, wallpaperPath, installedWallpaperName, outputWallpapers, stateDirectory,
-            mode
+            staging, config, resolvedThemeMode, wallpaperPath, installedWallpaperName, outputWallpapers, stateDirectory
         )) {
       return GreeterSyncLaunch::Failed;
     }
@@ -1123,10 +1079,7 @@ namespace greeter {
         finish(false);
         return;
       }
-      kLog.info(
-          "synced shell {} to greeter",
-          mode == GreeterSyncMode::Constrained ? "appearance" : "appearance and session actions"
-      );
+      kLog.info("synced shell appearance to greeter");
       finish(true);
     };
     if (!launchPrivilegedApplyHelper(greeterSync, helper, staging, stateDirectory, mode, std::move(callbacks))) {

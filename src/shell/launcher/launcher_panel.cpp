@@ -2283,7 +2283,9 @@ void LauncherPanel::syncLauncherAvatar(Renderer& renderer) {
     m_launcherAvatarFallback->setParticipatesInLayout(true);
   }
 
-  const int targetSize = static_cast<int>(std::round(kLauncherAvatarSize * contentScale()));
+  // targetSize limita el lado MAYOR y Cover recorta: el doble cubre fotos de hasta 2:1 sin ampliarlas (como el
+  // centro de control; con el tamaño justo una foto 4:3 quedaba a 44×33 y se estiraba, borrosa).
+  const int targetSize = static_cast<int>(std::round(kLauncherAvatarSize * contentScale() * 2.0F));
   const bool ready = m_asyncTextures != nullptr
       ? m_launcherAvatar->setSourceFileAsync(renderer, *m_asyncTextures, displayPath, targetSize, true)
       : m_launcherAvatar->setSourceFile(renderer, displayPath, targetSize, true);
