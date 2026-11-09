@@ -1256,7 +1256,17 @@ okaru_play_exe = executable('okaru-play',
   dependencies: [okaru_core_dep, dependency('mpv')],
   install: true,
 )
+_editor_core_sources = files(
+  'src/apps/editor/formats.cpp',
+  'src/apps/editor/syntax.cpp',
+  'src/apps/editor/text_buffer.cpp',
+)
 if build_tests
+  test('okaru_editor', executable('okaru_editor_test',
+    sources: files('tests/okaru_editor_test.cpp') + _editor_core_sources,
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_player', executable('okaru_player_test',
     sources: files('tests/okaru_player_test.cpp', 'src/apps/player/mpv_player.cpp'),
     dependencies: [okaru_core_dep, dependency('mpv')],
