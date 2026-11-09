@@ -738,26 +738,39 @@ namespace okaru::editor {
     });
     for (std::size_t i = 0; i < m_docs.size(); ++i) {
       const Document& doc = *m_docs[i];
-      auto tab = ui::row({.align = FlexAlign::Center, .gap = 0.0F, .maxWidth = 240.0F * scale, .flexGrow = 1.0F});
-      tab->addChild(
-          ui::button({
-              .text = title(doc) + (doc.buffer.modified() ? " •" : ""),
-              .fontSize = Style::fontSizeCaption * scale,
-              .variant = i == m_active ? ButtonVariant::TabActive : ButtonVariant::Tab,
-              .tooltip = doc.path.empty() ? std::string() : doc.path.string(),
-              .flexGrow = 1.0F,
-              .onClick = [this, i] { activate(i); },
-          })
+      const bool active = i == m_active;
+      auto tab = ui::button({
+          .text = title(doc) + (doc.buffer.modified() ? " •" : ""),
+          .fontSize = Style::fontSizeCaption * scale,
+          .variant = active ? ButtonVariant::TabActive : ButtonVariant::Tab,
+          .tooltip = doc.path.empty() ? std::string() : doc.path.string(),
+          .maxWidth = 240.0F * scale,
+          .paddingRight = Style::spaceXs * scale,
+          .gap = Style::spaceXs * scale,
+          .flexGrow = 1.0F,
+          .onClick = [this, i] { activate(i); },
+      });
+      // La X va dentro de la pestaña, sin fondo: en el color del texto y más fuerte al pasar el puntero.
+      const ColorSpec idle = colorSpecFromRole(active ? ColorRole::OnPrimary : ColorRole::OnSurfaceVariant, 0.7F);
+      const ColorSpec hover = colorSpecFromRole(active ? ColorRole::OnPrimary : ColorRole::OnSurface);
+      const float side = 20.0F * scale;
+      Glyph* glyph = nullptr;
+      auto close = ui::inputArea({
+          .tooltip = tr("apps.edit.close-tab"),
+          .width = side,
+          .height = side,
+          .onClick = [this, i](const InputArea::PointerData&) { requestClose(i); },
+      });
+      auto icon = ui::glyph(
+          {.out = &glyph, .glyph = "x", .glyphSize = 14.0F * scale, .color = idle, .width = side, .height = side}
       );
-      tab->addChild(
-          ui::button({
-              .glyph = "x",
-              .glyphSize = 12.0F * scale,
-              .variant = ButtonVariant::Ghost,
-              .tooltip = tr("apps.edit.close-tab"),
-              .onClick = [this, i] { requestClose(i); },
-          })
-      );
+      close->setOnEnter([glyph, hover](const InputArea::PointerData&) { glyph->setColor(hover); });
+      close->setOnLeave([glyph, idle] { glyph->setColor(idle); });
+      close->addChild(std::move(icon));
+      // Nombre centrado y X en el borde derecho: un espacio que crece a cada lado (el izquierdo, del ancho de la X).
+      tab->insertChildAt(0, ui::node({.width = side, .flexGrow = 1.0F}));
+      tab->addChild(ui::node({.flexGrow = 1.0F}));
+      tab->addChild(std::move(close));
       tabs->addChild(std::move(tab));
     }
     return tabs;
