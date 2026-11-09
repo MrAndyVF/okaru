@@ -262,29 +262,6 @@ namespace settings {
       return std::string(lane);
     }
 
-    std::vector<std::string> barWidgetItemsForPath(const Config& cfg, const std::vector<std::string>& path) {
-      if (!isBarWidgetListPath(path) || path.size() < 3) {
-        return {};
-      }
-
-      const auto* bar = findBar(cfg, path[1]);
-      if (bar == nullptr) {
-        return {};
-      }
-
-      const auto& lane = path.back();
-      if (lane == "start") {
-        return bar->startWidgets;
-      }
-      if (lane == "center") {
-        return bar->centerWidgets;
-      }
-      if (lane == "end") {
-        return bar->endWidgets;
-      }
-      return {};
-    }
-
     // Compact kind indicator used on lane cards in place of the text badge.
     std::string_view widgetBadgeGlyph(WidgetReferenceKind kind) {
       switch (kind) {
@@ -317,21 +294,6 @@ namespace settings {
       for (const auto& widget : widgets) {
         seen.insert(widget);
       }
-    }
-
-    bool widgetReferenceNameExists(const Config& cfg, std::string_view name) {
-      const std::string key(name);
-      if (isBuiltInWidgetType(name) || cfg.widgets.contains(key)) {
-        return true;
-      }
-
-      std::unordered_set<std::string> seen;
-      for (const auto& bar : cfg.bars) {
-        collectWidgetReferenceNames(bar.startWidgets, seen);
-        collectWidgetReferenceNames(bar.centerWidgets, seen);
-        collectWidgetReferenceNames(bar.endWidgets, seen);
-      }
-      return seen.contains(key);
     }
 
     bool removeWidgetReference(std::vector<std::string>& items, std::string_view widgetName) {
@@ -431,16 +393,6 @@ namespace settings {
         }
       }
       return false;
-    }
-
-    bool isValidWidgetInstanceId(std::string_view id) {
-      if (id.empty()) {
-        return false;
-      }
-      return std::ranges::all_of(id, [&](char c) {
-        const auto uc = static_cast<unsigned char>(c);
-        return std::isalnum(uc) != 0 || c == '_' || c == '-';
-      });
     }
 
     bool canRenameWidgetInstance(const Config& cfg, std::string_view oldName, std::string_view newName) {
@@ -2354,6 +2306,54 @@ namespace settings {
     return key == "start" || key == "center" || key == "end";
   }
 
+  std::vector<std::string> barWidgetItemsForPath(const Config& cfg, const std::vector<std::string>& path) {
+    if (!isBarWidgetListPath(path) || path.size() < 3) {
+      return {};
+    }
+
+    const auto* bar = findBar(cfg, path[1]);
+    if (bar == nullptr) {
+      return {};
+    }
+
+    const auto& lane = path.back();
+    if (lane == "start") {
+      return bar->startWidgets;
+    }
+    if (lane == "center") {
+      return bar->centerWidgets;
+    }
+    if (lane == "end") {
+      return bar->endWidgets;
+    }
+    return {};
+  }
+
+  bool widgetReferenceNameExists(const Config& cfg, std::string_view name) {
+    const std::string key(name);
+    if (isBuiltInWidgetType(name) || cfg.widgets.contains(key)) {
+      return true;
+    }
+
+    std::unordered_set<std::string> seen;
+    for (const auto& bar : cfg.bars) {
+      collectWidgetReferenceNames(bar.startWidgets, seen);
+      collectWidgetReferenceNames(bar.centerWidgets, seen);
+      collectWidgetReferenceNames(bar.endWidgets, seen);
+    }
+    return seen.contains(key);
+  }
+
+  bool isValidWidgetInstanceId(std::string_view id) {
+    if (id.empty()) {
+      return false;
+    }
+    return std::ranges::all_of(id, [&](char c) {
+      const auto uc = static_cast<unsigned char>(c);
+      return std::isalnum(uc) != 0 || c == '_' || c == '-';
+    });
+  }
+
   bool isFirstBarWidgetListPath(const std::vector<std::string>& path) {
     return isBarWidgetListPath(path) && path.back() == "start";
   }
@@ -2803,23 +2803,6 @@ namespace settings {
               FontWeight::Bold
           )
       );
-      if (overridden) {
-        laneHeader->addChild(
-            ui::row(
-                {
-                    .align = FlexAlign::Center,
-                    .paddingV = 0,
-                    .paddingH = Style::spaceXs * ctx.scale,
-                    .fill = colorSpecFromRole(ColorRole::PrimaryContainer),
-                    .radius = Style::scaledRadiusSm(ctx.scale),
-                },
-                makeLabel(
-                    i18n::tr("settings.badges.override"), Style::fontSizeCaption * ctx.scale,
-                    colorSpecFromRole(ColorRole::OnPrimaryContainer), FontWeight::Bold
-                )
-            )
-        );
-      }
       laneHeader->addChild(ui::spacer());
       // Reset reverts the whole lane: its widget list and the capsule groups it holds.
       if (overridden || hasGuiOverride) {

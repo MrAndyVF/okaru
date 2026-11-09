@@ -140,12 +140,6 @@ struct SpinnerStyle {
   float thickness = 2.0F;
 };
 
-struct CountdownRingStyle {
-  Color color{};
-  float thickness = 6.0F;
-  float progress = 1.0F;
-};
-
 enum class ScreenCornerPosition : std::uint8_t {
   TopLeft,
   TopRight,

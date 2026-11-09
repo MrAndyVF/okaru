@@ -56,9 +56,9 @@ namespace settings {
     std::function<void()> closeHostedEditor;
     std::function<void(std::vector<std::string> laneListPath, std::string widgetName)> openWidgetInspector;
     std::function<void(std::vector<std::string> laneListPath, std::string groupId)> openCapsuleGroupInspector;
-    std::function<std::unique_ptr<Button>(const std::vector<std::string>&)> makeResetButton;
+    std::function<std::unique_ptr<Node>(const std::vector<std::string>&)> makeResetButton;
     // Reset-styled button (with the usual confirm step) that runs `action` instead of a plain clear.
-    std::function<std::unique_ptr<Button>(const std::vector<std::string>&, std::function<void()>)>
+    std::function<std::unique_ptr<Node>(const std::vector<std::string>&, std::function<void()>)>
         makeResetActionButton;
     std::function<void(Flex&, const SettingEntry&, std::unique_ptr<Node>)> makeRow;
     std::function<std::unique_ptr<Node>(bool, std::vector<std::string>, std::optional<bool> clearWhenValue)> makeToggle;
@@ -78,6 +78,11 @@ namespace settings {
 
   [[nodiscard]] bool isBarWidgetListPath(const std::vector<std::string>& path);
   [[nodiscard]] bool isFirstBarWidgetListPath(const std::vector<std::string>& path);
+  // Widgets of the bar lane addressed by a bar widget list path; empty for any other path.
+  [[nodiscard]] std::vector<std::string> barWidgetItemsForPath(const Config& cfg, const std::vector<std::string>& path);
+  // True when `name` is a built-in widget type, a named widget, or already referenced by a bar lane.
+  [[nodiscard]] bool widgetReferenceNameExists(const Config& cfg, std::string_view name);
+  [[nodiscard]] bool isValidWidgetInstanceId(std::string_view id);
 
   // Lane selection tokens address a lane position as "<laneKey>#<index>".
   struct LaneSelectionToken {

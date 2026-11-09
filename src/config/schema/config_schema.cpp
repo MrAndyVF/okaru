@@ -143,7 +143,6 @@ namespace okaru::config::schema {
         field(&LockscreenConfig::transitionDurationMs, "transition_duration", kLockscreenTransitionDurationRange),
         field(&LockscreenConfig::edgeSmoothness, "edge_smoothness", kUnitRange),
         field(&LockscreenConfig::blurIntensity, "blur_intensity", kUnitRange),
-        field(&LockscreenConfig::tintIntensity, "tint_intensity", kUnitRange),
         pathStringField(&LockscreenConfig::wallpaper, "wallpaper"),
         field(&LockscreenConfig::monitors, "monitors"),
     };
@@ -437,15 +436,6 @@ namespace okaru::config::schema {
         field(&DesktopWidgetsConfig::enabled, "enabled"),
         field(&DesktopWidgetsConfig::schemaVersion, "schema_version"),
         subTable(&DesktopWidgetsConfig::grid, "grid", desktopWidgetsGridSchema()),
-    };
-    return s;
-  }
-
-  const Schema<LockscreenWidgetsConfig>& lockscreenWidgetsSchema() {
-    static const Schema<LockscreenWidgetsConfig> s = {
-        field(&LockscreenWidgetsConfig::enabled, "enabled"),
-        field(&LockscreenWidgetsConfig::schemaVersion, "schema_version"),
-        subTable(&LockscreenWidgetsConfig::grid, "grid", desktopWidgetsGridSchema()),
     };
     return s;
   }
@@ -1746,7 +1736,6 @@ namespace okaru::config::schema {
                 );
               }
           ),
-          field(&SessionPanelActionConfig::countdownSeconds, "countdown_seconds"),
       };
       return s;
     }
@@ -1799,14 +1788,14 @@ namespace okaru::config::schema {
         field(&ShellConfig::popupShadows, "popup_shadows"),
         field(&ShellConfig::cardBorders, "card_borders"),
         field(&ShellConfig::showCloseButtons, "show_close_buttons"),
-        // font_family is trimmed; empty falls back to sans-serif.
+        // font_family is trimmed; empty falls back to the default (JetBrainsMono Nerd Font).
         custom<ShellConfig>(
             "font_family",
             [](const toml::table& tbl, ShellConfig& out, std::string_view parentPath, Diagnostics& diag) {
               if (auto v = tbl["font_family"].value<std::string>()) {
                 out.fontFamily = StringUtils::trim(*v);
                 if (out.fontFamily.empty()) {
-                  out.fontFamily = "sans-serif";
+                  out.fontFamily = ShellConfig{}.fontFamily;
                 }
               } else {
                 warnWrongType(tbl, "font_family", parentPath, diag, "a string");
@@ -1814,6 +1803,8 @@ namespace okaru::config::schema {
             },
             [](toml::table& tbl, const ShellConfig& in) { tbl.insert_or_assign("font_family", in.fontFamily); }
         ),
+        field(&ShellConfig::fontWeight, "font_weight"),
+        field(&ShellConfig::syncSystemFont, "sync_system_font"),
         stringIfNonEmptyField(&ShellConfig::lang, "lang"),
         field(&ShellConfig::timeFormat, "time_format"),
         field(&ShellConfig::dateFormat, "date_format"),
@@ -2018,10 +2009,6 @@ namespace okaru::config::schema {
       // they are custom root keys rather than SectionSpec rows.
       if (section == "desktop_widgets") {
         collectUnknownKeys(tbl, desktopWidgetsSchema(), section, unknown);
-        return true;
-      }
-      if (section == "lockscreen_widgets") {
-        collectUnknownKeys(tbl, lockscreenWidgetsSchema(), section, unknown);
         return true;
       }
       return false;

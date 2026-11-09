@@ -747,7 +747,7 @@ namespace settings {
       block->addChild(std::move(list));
 
       if (overridden) {
-        block->addChild(factory.makeOverrideResetActions(entry.path));
+        block->addChild(factory.makeResetActions(entry.path));
       }
 
       section.addChild(std::move(block));

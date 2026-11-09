@@ -1065,6 +1065,49 @@ size = "small"
     );
   }
 
+  // OKARU: el bloqueo propio deja sin uso [lockscreen_widgets] y lockscreen.tint_intensity.
+  void checkLockscreenCleanupMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 21
+[lockscreen]
+blur_intensity = 0.8
+tint_intensity = 0.45
+[lockscreen_widgets]
+enabled = true
+[lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+type = "login_box"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 21, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "lockscreen cleanup migration was not applied");
+    expect(sidecar["lockscreen_widgets"].node() == nullptr, "lockscreen_widgets was not removed");
+    expect(
+        sidecar["lockscreen"]["tint_intensity"].node() == nullptr
+            && sidecar["lockscreen"]["blur_intensity"].value<double>() == std::optional<double>{0.8},
+        "lockscreen tint_intensity was not removed or blur_intensity was lost"
+    );
+  }
+
+  // OKARU: la cuenta regresiva por acción del menú de sesión se reemplazó por mantener presionado.
+  void checkSessionHoldMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 22
+[[shell.session.actions]]
+action = "shutdown"
+countdown_seconds = 5.0
+variant = "destructive"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 22, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "session hold migration was not applied");
+    const auto* row = sidecar["shell"]["session"]["actions"][0].as_table();
+    expect(
+        row != nullptr && !row->contains("countdown_seconds")
+            && (*row)["variant"].value<std::string>() == std::optional<std::string>{"destructive"},
+        "countdown_seconds was not removed or the row lost other keys"
+    );
+  }
+
   void checkPaletteRoleNamesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 15
@@ -1274,6 +1317,8 @@ int main() {
   checkRemovedKeysMigration();
   checkIntegratedModulesMigration();
   checkNativePhoneMigration();
+  checkLockscreenCleanupMigration();
+  checkSessionHoldMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

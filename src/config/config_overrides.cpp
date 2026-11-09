@@ -139,13 +139,6 @@ namespace {
         && vectorEqual(a.widgets, b.widgets, desktopWidgetEqual);
   }
 
-  bool lockscreenWidgetsConfigEqual(const LockscreenWidgetsConfig& a, const LockscreenWidgetsConfig& b) {
-    return a.enabled == b.enabled
-        && a.schemaVersion == b.schemaVersion
-        && a.grid == b.grid
-        && vectorEqual(a.widgets, b.widgets, desktopWidgetEqual);
-  }
-
   // Compares two bars ignoring their monitor-override lists (those are resolved + compared separately by
   // barConfigEqual). BarConfig's defaulted operator== covers every field, so new bar fields participate
   // automatically; no list to keep in sync here.
@@ -396,7 +389,6 @@ namespace {
         && widgetMapEqual(a.widgets, b.widgets)
         && desktopWidgetsConfigEqual(a.desktopWidgets, b.desktopWidgets)
         && a.hotCorners == b.hotCorners
-        && lockscreenWidgetsConfigEqual(a.lockscreenWidgets, b.lockscreenWidgets)
         && a.wallpaper == b.wallpaper
         && a.backdrop == b.backdrop
         && a.lockscreen == b.lockscreen
@@ -538,7 +530,6 @@ namespace {
               if (item.lockscreenShortcut.has_value()) {
                 row.insert_or_assign("lockscreen_shortcut", keyChordToString(*item.lockscreenShortcut));
               }
-              row.insert_or_assign("countdown_seconds", item.countdownSeconds);
               array.push_back(std::move(row));
             }
             table.insert_or_assign(key, std::move(array));
@@ -887,7 +878,6 @@ ConfigChangeSet computeConfigChangeSet(const Config& prev, const Config& next) {
       .bars = !vectorEqual(prev.bars, next.bars, barConfigEqual),
       .widgets = !widgetMapEqual(prev.widgets, next.widgets),
       .desktopWidgets = !desktopWidgetsConfigEqual(prev.desktopWidgets, next.desktopWidgets),
-      .lockscreenWidgets = !lockscreenWidgetsConfigEqual(prev.lockscreenWidgets, next.lockscreenWidgets),
       .wallpaper = !(prev.wallpaper == next.wallpaper),
       .backdrop = !(prev.backdrop == next.backdrop),
       .lockscreen = !(prev.lockscreen == next.lockscreen),
@@ -1221,24 +1211,6 @@ bool ConfigService::setDesktopWidgetsState(const DesktopWidgetsConfig& desktopWi
 
   desktopWidgetsTbl->insert_or_assign("schema_version", static_cast<std::int64_t>(desktopWidgets.schemaVersion));
   writeWidgetsPlacementToTable(*desktopWidgetsTbl, desktopWidgets.grid, desktopWidgets.widgets);
-
-  return commitOverrideTable(std::move(next), nullptr);
-}
-
-bool ConfigService::setLockscreenWidgetsState(const LockscreenWidgetsConfig& lockscreenWidgets) {
-  if (m_overridesPath.empty()) {
-    return false;
-  }
-
-  toml::table next = m_overridesTable;
-  auto* sectionTbl = ensureTable(next, "lockscreen_widgets");
-  if (sectionTbl == nullptr) {
-    return false;
-  }
-
-  sectionTbl->insert_or_assign("enabled", lockscreenWidgets.enabled);
-  sectionTbl->insert_or_assign("schema_version", static_cast<std::int64_t>(lockscreenWidgets.schemaVersion));
-  writeWidgetsPlacementToTable(*sectionTbl, lockscreenWidgets.grid, lockscreenWidgets.widgets);
 
   return commitOverrideTable(std::move(next), nullptr);
 }

@@ -12,7 +12,6 @@
 
 class DesktopWidgetsEditor;
 class DesktopWidgetsHost;
-class LockscreenWidgetsController;
 class IpcService;
 class RenderContext;
 class WaylandConnection;
@@ -23,7 +22,6 @@ using DesktopWidgetsSnapshot = DesktopWidgetsConfig;
 
 struct DesktopWidgetsControllerServices {
   DesktopWidgetServices widgets;
-  LockscreenWidgetsController* lockscreenWidgets = nullptr;
 };
 
 class DesktopWidgetsController {
@@ -87,7 +85,6 @@ private:
 
   WaylandConnection* m_wayland = nullptr;
   ConfigService* m_config = nullptr;
-  LockscreenWidgetsController* m_lockscreenWidgets = nullptr;
   RenderContext* m_renderContext = nullptr;
 
   DesktopWidgetsSnapshot m_snapshot;

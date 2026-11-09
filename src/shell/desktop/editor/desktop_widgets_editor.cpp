@@ -19,8 +19,6 @@
 #include "render/scene/wallpaper_node.h"
 #include "shell/desktop/desktop_widget_layout.h"
 #include "shell/desktop/desktop_widget_settings_registry.h"
-#include "shell/desktop/widgets/desktop_login_box_widget.h"
-#include "shell/lockscreen/lockscreen_login_box.h"
 #include "shell/tooltip/tooltip_manager.h"
 #include "shell/wallpaper/wallpaper_geometry.h"
 #include "time/time_format.h"
@@ -170,34 +168,6 @@ namespace {
     return {cx + halfWidth * cosTheta - halfHeight * sinTheta, cy + halfWidth * sinTheta + halfHeight * cosTheta};
   }
 
-  Color lockscreenWallpaperFillColor(const WallpaperConfig& config) {
-    if (!config.fillColor) {
-      return rgba(0.0F, 0.0F, 0.0F, 1.0F);
-    }
-    return resolveColorSpec(*config.fillColor);
-  }
-
-  bool parseColorWallpaperPath(std::string_view path, Color& out) {
-    constexpr std::string_view kPrefix = "color:";
-    if (!path.starts_with(kPrefix)) {
-      return false;
-    }
-    return tryParseHexColor(path.substr(kPrefix.size()), out);
-  }
-
-  bool lockscreenWallpaperDiffersFromDesktop(
-      const DesktopWidgetsEditorProfile& profile, ConfigService* config, std::string_view connectorName
-  ) {
-    if (!profile.showLockscreenLoginPreview || config == nullptr) {
-      return false;
-    }
-    const std::string& custom = config->config().lockscreen.wallpaper;
-    if (custom.empty()) {
-      return false;
-    }
-    return custom != config->getWallpaperPath(std::string(connectorName));
-  }
-
   const WaylandOutput* outputAtGlobalPoint(const WaylandConnection& wayland, double globalX, double globalY) {
     for (const auto& output : wayland.outputs()) {
       if (!output.done || output.output == nullptr || !output.hasUsableGeometry()) {
@@ -236,7 +206,6 @@ void DesktopWidgetsEditor::initialize(const DesktopWidgetServices& services) {
   m_wayland = &services.wayland;
   m_config = services.config;
   m_renderContext = services.renderContext;
-  m_textureCache = services.textureCache;
   m_factory = std::make_unique<DesktopWidgetFactory>(services.runtime);
 }
 
@@ -246,9 +215,6 @@ void DesktopWidgetsEditor::setExitRequestedCallback(std::function<void()> callba
 
 void DesktopWidgetsEditor::open(const DesktopWidgetsEditorSnapshot& snapshot) {
   m_snapshot = snapshot;
-  if (m_profile.showLockscreenLoginPreview && m_wayland != nullptr) {
-    lockscreen_login_box::ensureWidgets(m_snapshot.widgets, m_wayland->outputs());
-  }
   m_open = true;
   clearSelection();
   m_widgetClipboard.clear();
@@ -271,9 +237,6 @@ void DesktopWidgetsEditor::open(const DesktopWidgetsEditorSnapshot& snapshot) {
 DesktopWidgetsEditorSnapshot DesktopWidgetsEditor::close() {
   if (m_drag.mode != DragMode::None) {
     finishDrag();
-  }
-  for (auto& surface : m_surfaces) {
-    releaseWallpaperPreview(*surface);
   }
   m_surfaces.clear();
   m_drag = {};
@@ -310,19 +273,9 @@ bool DesktopWidgetsEditor::isWidgetSelected(const std::string& id) const { retur
 
 void DesktopWidgetsEditor::handleWidgetPress(const std::string& id) {
   const bool ctrlHeld = m_ctrlHeld;
-  const DesktopWidgetState* state = findWidgetState(id);
-  const bool isLoginBox = state != nullptr && lockscreen_login_box::isLoginBoxWidget(*state);
-
   bool selectionChanged = false;
 
-  if (isLoginBox) {
-    if (!isWidgetSelected(id) || m_selectedWidgetIds.size() > 1) {
-      setSingleSelection(id);
-      selectionChanged = true;
-    } else {
-      m_selectedWidgetId = id;
-    }
-  } else if (ctrlHeld) {
+  if (ctrlHeld) {
     if (isWidgetSelected(id)) {
       m_selectedWidgetIds.erase(id);
       if (m_selectedWidgetId == id) {
@@ -558,12 +511,7 @@ std::string DesktopWidgetsEditor::effectiveOutputName(const DesktopWidgetState& 
     return state.outputName;
   }
   if (const WaylandOutput* output = desktop_widgets::resolveStateOutput(*m_wayland, state); output != nullptr) {
-    std::string outputName = desktop_widgets::outputKey(*output);
-    if (lockscreen_login_box::isLoginBoxWidget(state)
-        && lockscreen_login_box::findForOutput(m_snapshot.widgets, m_wayland->outputs(), outputName) != &state) {
-      return {};
-    }
-    return outputName;
+    return desktop_widgets::outputKey(*output);
   }
   return {};
 }
@@ -628,10 +576,6 @@ void DesktopWidgetsEditor::prepareFrame(OverlaySurface& surface, bool needsUpdat
     surface.sceneRoot->layout(renderer);
   }
 
-  if (surface.wallpaperPreviewActive) {
-    updateWallpaperPreview(surface);
-  }
-
   const bool needsFrameTick = std::ranges::any_of(surface.views, [](const auto& entry) {
     return entry.second.widget != nullptr && entry.second.widget->needsFrameTick();
   });
@@ -665,26 +609,6 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
     root->setPopupContext(surface.selectPopup.get());
   }
   root->setFrameSize(static_cast<float>(surface.surface->width()), static_cast<float>(surface.surface->height()));
-
-  releaseWallpaperPreview(surface);
-  surface.wallpaperPreview = nullptr;
-  surface.wallpaperPreviewActive = false;
-  surface.wallpaperPreviewPath.clear();
-
-  if (lockscreenWallpaperDiffersFromDesktop(m_profile, m_config, surface.outputName)) {
-    surface.wallpaperPreviewActive = true;
-    surface.wallpaperPreviewPath = m_config->config().lockscreen.wallpaper;
-
-    auto wallpaper = std::make_unique<WallpaperNode>();
-    surface.wallpaperPreview = wallpaper.get();
-    wallpaper->setZIndex(-1);
-    const auto& wpConfig = m_config->config().wallpaper;
-    wallpaper->setFillMode(wpConfig.fillMode);
-    wallpaper->setFillColor(lockscreenWallpaperFillColor(wpConfig));
-    wallpaper->setPosition(0.0F, 0.0F);
-    wallpaper->setFrameSize(root->width(), root->height());
-    root->addChild(std::move(wallpaper));
-  }
 
   auto dim = ui::box({
       .fill = colorSpecFromRole(ColorRole::SurfaceContainer, 0.14F),
@@ -794,12 +718,6 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
       continue;
     }
 
-    if (lockscreen_login_box::isLoginBoxWidget(widgetState)) {
-      if (auto* loginWidget = dynamic_cast<DesktopLoginBoxWidget*>(widget.get())) {
-        loginWidget->setScreenMetrics(root->width(), root->height(), widgetState.cy);
-      }
-    }
-
     widget->create();
     if (widgetState.type == "audio_visualizer"
         || widgetState.type == "fancy_audio_visualizer"
@@ -855,7 +773,7 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
       view.transformNode->setScale(flipScaleX, flipScaleY);
     }
     view.transformNode->setOpacity(widgetState.enabled ? 1.0F : kDisabledWidgetOpacity);
-    view.transformNode->setZIndex(lockscreen_login_box::isLoginBoxWidget(widgetState) ? 3 : 4);
+    view.transformNode->setZIndex(4);
     if (isWidgetSelected(widgetState.id) && widgetState.id != m_selectedWidgetId) {
       view.transformNode->setZIndex(100);
     }
@@ -890,9 +808,7 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
     }
     const auto secondaryIt = surface.views.find(selectedId);
     const DesktopWidgetState* secondaryState = findWidgetState(selectedId);
-    if (secondaryIt == surface.views.end()
-        || secondaryState == nullptr
-        || lockscreen_login_box::isLoginBoxWidget(*secondaryState)) {
+    if (secondaryIt == surface.views.end() || secondaryState == nullptr) {
       continue;
     }
 
@@ -926,8 +842,6 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
   }
 
   const auto selectedIt = surface.views.find(m_selectedWidgetId);
-  const DesktopWidgetState* selectedState = findWidgetState(m_selectedWidgetId);
-  const bool selectedIsLoginBox = selectedState != nullptr && lockscreen_login_box::isLoginBoxWidget(*selectedState);
   if (selectedIt != surface.views.end()) {
     selectedIt->second.bodyArea->setZIndex(101);
 
@@ -935,44 +849,42 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
     selectionFrameTransform->setZIndex(100);
     surface.selectionFrameTransform = selectionFrameTransform.get();
 
-    if (!selectedIsLoginBox) {
-      auto ringShadow = ui::box({
-          .fill = clearColorSpec(),
-          .radius = Style::scaledRadiusMd() + kRotatePadding + kShadowExpand,
-          .configure = [](Box& box) { box.setBorder(kShadowColor, 1.0F + kShadowExpand * 2.0F); },
-      });
-      surface.rotationRingShadow = ringShadow.get();
-      surface.selectionFrameTransform->addChild(std::move(ringShadow));
+    auto ringShadow = ui::box({
+        .fill = clearColorSpec(),
+        .radius = Style::scaledRadiusMd() + kRotatePadding + kShadowExpand,
+        .configure = [](Box& box) { box.setBorder(kShadowColor, 1.0F + kShadowExpand * 2.0F); },
+    });
+    surface.rotationRingShadow = ringShadow.get();
+    surface.selectionFrameTransform->addChild(std::move(ringShadow));
 
-      auto ring = ui::box({
-          .fill = clearColorSpec(),
-          .radius = Style::scaledRadiusMd() + kRotatePadding,
-          .configure = [](Box& box) { box.setBorder(colorSpecFromRole(ColorRole::Primary), 1.0F); },
-      });
-      ring->setZIndex(1);
-      surface.rotationRing = ring.get();
-      surface.selectionFrameTransform->addChild(std::move(ring));
+    auto ring = ui::box({
+        .fill = clearColorSpec(),
+        .radius = Style::scaledRadiusMd() + kRotatePadding,
+        .configure = [](Box& box) { box.setBorder(colorSpecFromRole(ColorRole::Primary), 1.0F); },
+    });
+    ring->setZIndex(1);
+    surface.rotationRing = ring.get();
+    surface.selectionFrameTransform->addChild(std::move(ring));
 
-      auto rotateArea = ui::inputArea({});
-      rotateArea->setZIndex(1);
-      rotateArea->setOnPress([this, id = m_selectedWidgetId](const InputArea::PointerData& data) {
-        if (data.button != BTN_LEFT) {
-          return;
-        }
-        if (data.pressed) {
-          startDrag(DragMode::Rotate, id, false);
-        } else if (m_drag.mode == DragMode::Rotate && m_drag.widgetId == id) {
-          finishDrag();
-        }
-      });
-      rotateArea->setOnMotion([this, id = m_selectedWidgetId](const InputArea::PointerData& /*data*/) {
-        if (m_drag.mode == DragMode::Rotate && m_drag.widgetId == id) {
-          updateDrag();
-        }
-      });
-      surface.rotateArea = rotateArea.get();
-      surface.selectionFrameTransform->addChild(std::move(rotateArea));
-    }
+    auto rotateArea = ui::inputArea({});
+    rotateArea->setZIndex(1);
+    rotateArea->setOnPress([this, id = m_selectedWidgetId](const InputArea::PointerData& data) {
+      if (data.button != BTN_LEFT) {
+        return;
+      }
+      if (data.pressed) {
+        startDrag(DragMode::Rotate, id, false);
+      } else if (m_drag.mode == DragMode::Rotate && m_drag.widgetId == id) {
+        finishDrag();
+      }
+    });
+    rotateArea->setOnMotion([this, id = m_selectedWidgetId](const InputArea::PointerData& /*data*/) {
+      if (m_drag.mode == DragMode::Rotate && m_drag.widgetId == id) {
+        updateDrag();
+      }
+    });
+    surface.rotateArea = rotateArea.get();
+    surface.selectionFrameTransform->addChild(std::move(rotateArea));
 
     root->addChild(std::move(selectionFrameTransform));
 
@@ -1069,20 +981,13 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
   const auto selectedWidgetIt = std::ranges::find(m_snapshot.widgets, m_selectedWidgetId, &DesktopWidgetState::id);
   const bool hasSelectedWidget = selectedWidgetIt != m_snapshot.widgets.end();
   const bool selectedWidgetEnabled = hasSelectedWidget ? selectedWidgetIt->enabled : false;
-  const bool canSendSelectedToBack =
-      hasSelectedWidget && !selectedIsLoginBox && selectedWidgetIt != m_snapshot.widgets.begin();
-  const bool canBringSelectedToFront =
-      hasSelectedWidget && !selectedIsLoginBox && std::next(selectedWidgetIt) != m_snapshot.widgets.end();
+  const bool canSendSelectedToBack = hasSelectedWidget && selectedWidgetIt != m_snapshot.widgets.begin();
+  const bool canBringSelectedToFront = hasSelectedWidget && std::next(selectedWidgetIt) != m_snapshot.widgets.end();
 
   const bool selectedFlipX = hasSelectedWidget && selectedWidgetIt->flipX;
   const bool selectedFlipY = hasSelectedWidget && selectedWidgetIt->flipY;
 
-  const bool canCloneSelected = hasSelectedWidget
-      && !selectedIsLoginBox
-      && std::ranges::any_of(m_selectedWidgetIds, [this](const std::string& id) {
-                                  const DesktopWidgetState* state = findWidgetState(id);
-                                  return state != nullptr && !lockscreen_login_box::isLoginBoxWidget(*state);
-                                });
+  const bool canCloneSelected = hasSelectedWidget;
 
   const auto typeOptions = desktop_settings::desktopWidgetTypeOptions();
   std::vector<std::string> typeLabels;
@@ -1190,7 +1095,7 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
                   }),
                   ui::button({
                       .glyph = "flip-vertical",
-                      .enabled = hasSelectedWidget && !selectedIsLoginBox,
+                      .enabled = hasSelectedWidget,
                       .selected = selectedFlipX,
                       .variant = ButtonVariant::Default,
                       .tooltip = i18n::tr("desktop-widgets.editor.actions.flip-horizontal"),
@@ -1198,43 +1103,28 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
                   }),
                   ui::button({
                       .glyph = "flip-horizontal",
-                      .enabled = hasSelectedWidget && !selectedIsLoginBox,
+                      .enabled = hasSelectedWidget,
                       .selected = selectedFlipY,
                       .variant = ButtonVariant::Default,
                       .tooltip = i18n::tr("desktop-widgets.editor.actions.flip-vertical"),
                       .onClick = [this] { deferEditorMutation([this] { flipSelectedWidgetVertical(); }); },
                   }),
-                  ui::button(
-                      {
-                          .glyph = "settings",
-                          .enabled = hasSelectedWidget,
-                          .selected = m_inspectorOpen,
-                          .variant = ButtonVariant::Default,
-                          .tooltip = i18n::tr("desktop-widgets.editor.actions.settings"),
-                          .onClick =
-                              [this] {
-                                deferEditorMutation([this] {
-                                  m_inspectorOpen = !m_inspectorOpen;
-                                  requestLayout();
-                                });
-                              },
-                      }
-                  ),
+                  ui::button({
+                      .glyph = "settings",
+                      .enabled = hasSelectedWidget,
+                      .selected = m_inspectorOpen,
+                      .variant = ButtonVariant::Default,
+                      .tooltip = i18n::tr("desktop-widgets.editor.actions.settings"),
+                      .onClick =
+                          [this] {
+                            deferEditorMutation([this] {
+                              m_inspectorOpen = !m_inspectorOpen;
+                              requestLayout();
+                            });
+                          },
+                  }),
                   [&] -> std::unique_ptr<Node> {
-                    bool canToggleVisibility = hasSelectedWidget;
-                    if (hasSelectedWidget
-                        && lockscreen_login_box::isLoginBoxWidget(*selectedWidgetIt)
-                        && selectedWidgetIt->enabled) {
-                      int enabledCount = 0;
-                      for (const auto& w : m_snapshot.widgets) {
-                        if (lockscreen_login_box::isLoginBoxWidget(w) && w.enabled && !effectiveOutputName(w).empty()) {
-                          enabledCount++;
-                        }
-                      }
-                      if (enabledCount <= 1) {
-                        canToggleVisibility = false;
-                      }
-                    }
+                    const bool canToggleVisibility = hasSelectedWidget;
                     return ui::button({
                         .glyph = selectedWidgetEnabled ? "eye" : "eye-off",
                         .enabled = canToggleVisibility,
@@ -1248,7 +1138,7 @@ void DesktopWidgetsEditor::rebuildScene(OverlaySurface& surface) {
                   ui::button(
                       {
                           .glyph = "trash",
-                          .enabled = hasSelectedWidget && !selectedIsLoginBox,
+                          .enabled = hasSelectedWidget,
                           .variant = ButtonVariant::Destructive,
                           .tooltip = i18n::tr("desktop-widgets.editor.actions.trash"),
                           .onClick = [this] { deferEditorMutation([this] { removeSelectedWidget(); }); },
@@ -1368,13 +1258,12 @@ void DesktopWidgetsEditor::updateSelectionVisuals(OverlaySurface& surface) {
       || surface.selectionBorder == nullptr) {
     return;
   }
-  const bool selectedIsLoginBox = lockscreen_login_box::isLoginBoxWidget(*state);
   for (std::size_t i = 0; i < kScaleCornerCount; ++i) {
     if (surface.scaleHandles[i] == nullptr || surface.scaleAreas[i] == nullptr) {
       return;
     }
   }
-  if (!selectedIsLoginBox && (surface.rotationRing == nullptr || surface.rotateArea == nullptr)) {
+  if (surface.rotationRing == nullptr || surface.rotateArea == nullptr) {
     return;
   }
 
@@ -1391,19 +1280,17 @@ void DesktopWidgetsEditor::updateSelectionVisuals(OverlaySurface& surface) {
   surface.selectionBorderTransform->setPosition(left, top);
   surface.selectionBorderTransform->setRotation(state->rotationRad);
 
-  if (!selectedIsLoginBox) {
-    const float ringPadExp = kRotatePadding + kShadowExpand;
-    if (surface.rotationRingShadow != nullptr) {
-      surface.rotationRingShadow->setPosition(-ringPadExp, -ringPadExp);
-      surface.rotationRingShadow->setFrameSize(width + ringPadExp * 2.0F, height + ringPadExp * 2.0F);
-    }
-
-    surface.rotationRing->setPosition(-kRotatePadding, -kRotatePadding);
-    surface.rotationRing->setFrameSize(width + kRotatePadding * 2.0F, height + kRotatePadding * 2.0F);
-
-    surface.rotateArea->setPosition(-kRotatePadding, -kRotatePadding);
-    surface.rotateArea->setFrameSize(width + kRotatePadding * 2.0F, height + kRotatePadding * 2.0F);
+  const float ringPadExp = kRotatePadding + kShadowExpand;
+  if (surface.rotationRingShadow != nullptr) {
+    surface.rotationRingShadow->setPosition(-ringPadExp, -ringPadExp);
+    surface.rotationRingShadow->setFrameSize(width + ringPadExp * 2.0F, height + ringPadExp * 2.0F);
   }
+
+  surface.rotationRing->setPosition(-kRotatePadding, -kRotatePadding);
+  surface.rotationRing->setFrameSize(width + kRotatePadding * 2.0F, height + kRotatePadding * 2.0F);
+
+  surface.rotateArea->setPosition(-kRotatePadding, -kRotatePadding);
+  surface.rotateArea->setFrameSize(width + kRotatePadding * 2.0F, height + kRotatePadding * 2.0F);
 
   if (surface.selectionBorderShadow != nullptr) {
     surface.selectionBorderShadow->setPosition(-kShadowExpand, -kShadowExpand);
@@ -1439,24 +1326,15 @@ void DesktopWidgetsEditor::applyViewState(
     return;
   }
 
-  const bool loginBox = lockscreen_login_box::isLoginBoxWidget(state);
   OverlaySurface* surface = nullptr;
   Renderer* renderer = nullptr;
-  if (refreshContent || loginBox) {
+  if (refreshContent) {
     surface = findSurfaceForWidget(state.id);
     if (surface == nullptr || surface->surface == nullptr) {
       return;
     }
     m_renderContext->makeCurrent(surface->surface->renderTarget());
     renderer = &surface->surface->renderTarget().renderer();
-  }
-
-  if (loginBox) {
-    if (auto* loginWidget = dynamic_cast<DesktopLoginBoxWidget*>(view.widget.get())) {
-      loginWidget->setScreenMetrics(
-          static_cast<float>(surface->surface->width()), static_cast<float>(surface->surface->height()), state.cy
-      );
-    }
   }
 
   if (refreshContent) {
@@ -1466,9 +1344,6 @@ void DesktopWidgetsEditor::applyViewState(
     view.widget->layout(*renderer);
     view.intrinsicWidth = std::max(1.0F, view.widget->intrinsicWidth());
     view.intrinsicHeight = std::max(1.0F, view.widget->intrinsicHeight());
-  } else if (loginBox) {
-    // Unlock-hint ghost flips above/below when the panel nears the top edge.
-    view.widget->layout(*renderer);
   }
 
   view.transformNode->setFrameSize(view.intrinsicWidth, view.intrinsicHeight);
@@ -1620,12 +1495,7 @@ void DesktopWidgetsEditor::removeSelectedWidget() {
   if (m_selectedWidgetIds.empty()) {
     return;
   }
-  std::erase_if(m_snapshot.widgets, [this](const auto& widget) {
-    if (!m_selectedWidgetIds.contains(widget.id)) {
-      return false;
-    }
-    return !lockscreen_login_box::isLoginBoxWidget(widget);
-  });
+  std::erase_if(m_snapshot.widgets, [this](const auto& widget) { return m_selectedWidgetIds.contains(widget.id); });
   clearSelection();
   requestLayout();
 }
@@ -1639,18 +1509,6 @@ void DesktopWidgetsEditor::toggleSelectedWidgetEnabled() {
     return;
   }
 
-  if (lockscreen_login_box::isLoginBoxWidget(*state) && state->enabled) {
-    int enabledCount = 0;
-    for (const auto& w : m_snapshot.widgets) {
-      if (lockscreen_login_box::isLoginBoxWidget(w) && w.enabled && !effectiveOutputName(w).empty()) {
-        enabledCount++;
-      }
-    }
-    if (enabledCount <= 1) {
-      return;
-    }
-  }
-
   state->enabled = !state->enabled;
   requestLayout();
 }
@@ -1659,11 +1517,6 @@ void DesktopWidgetsEditor::sendSelectedWidgetToBack() {
   if (m_selectedWidgetId.empty()) {
     return;
   }
-  const DesktopWidgetState* state = findWidgetState(m_selectedWidgetId);
-  if (state != nullptr && lockscreen_login_box::isLoginBoxWidget(*state)) {
-    return;
-  }
-
   auto it = std::ranges::find(m_snapshot.widgets, m_selectedWidgetId, &DesktopWidgetState::id);
   if (it == m_snapshot.widgets.end() || it == m_snapshot.widgets.begin()) {
     return;
@@ -1677,11 +1530,6 @@ void DesktopWidgetsEditor::bringSelectedWidgetToFront() {
   if (m_selectedWidgetId.empty()) {
     return;
   }
-  const DesktopWidgetState* state = findWidgetState(m_selectedWidgetId);
-  if (state != nullptr && lockscreen_login_box::isLoginBoxWidget(*state)) {
-    return;
-  }
-
   auto it = std::ranges::find(m_snapshot.widgets, m_selectedWidgetId, &DesktopWidgetState::id);
   if (it == m_snapshot.widgets.end() || std::next(it) == m_snapshot.widgets.end()) {
     return;
@@ -1697,7 +1545,7 @@ void DesktopWidgetsEditor::flipSelectedWidgetHorizontal() {
   }
   for (const std::string& id : m_selectedWidgetIds) {
     DesktopWidgetState* state = findWidgetState(id);
-    if (state == nullptr || lockscreen_login_box::isLoginBoxWidget(*state)) {
+    if (state == nullptr) {
       continue;
     }
     state->flipX = !state->flipX;
@@ -1712,7 +1560,7 @@ void DesktopWidgetsEditor::flipSelectedWidgetVertical() {
   }
   for (const std::string& id : m_selectedWidgetIds) {
     DesktopWidgetState* state = findWidgetState(id);
-    if (state == nullptr || lockscreen_login_box::isLoginBoxWidget(*state)) {
+    if (state == nullptr) {
       continue;
     }
     state->flipY = !state->flipY;
@@ -1731,7 +1579,7 @@ float DesktopWidgetsEditor::duplicateOffset() const {
 std::vector<DesktopWidgetState> DesktopWidgetsEditor::selectedWidgetTemplates() const {
   std::vector<DesktopWidgetState> templates;
   for (const auto& widget : m_snapshot.widgets) {
-    if (!m_selectedWidgetIds.contains(widget.id) || lockscreen_login_box::isLoginBoxWidget(widget)) {
+    if (!m_selectedWidgetIds.contains(widget.id)) {
       continue;
     }
     templates.push_back(widget);
@@ -1750,10 +1598,6 @@ std::vector<std::string> DesktopWidgetsEditor::insertWidgetCopies(
   std::vector<std::string> insertedIds;
   insertedIds.reserve(templates.size());
   for (const DesktopWidgetState& templateState : templates) {
-    if (lockscreen_login_box::isLoginBoxWidget(templateState)) {
-      continue;
-    }
-
     DesktopWidgetState copy = templateState;
     copy.id = nextWidgetId();
     if (!targetOutputName.empty() && effectiveOutputName(copy) != targetOutputName) {
@@ -1915,7 +1759,7 @@ void DesktopWidgetsEditor::populateGroupInitialStates(const std::string& anchorW
       continue;
     }
     const DesktopWidgetState* otherState = findWidgetState(selectedId);
-    if (otherState == nullptr || lockscreen_login_box::isLoginBoxWidget(*otherState)) {
+    if (otherState == nullptr) {
       continue;
     }
     if (effectiveOutputName(*otherState) != anchorOutput) {
@@ -1995,7 +1839,7 @@ void DesktopWidgetsEditor::finishLassoSelection() {
 
   for (const auto& [id, view] : surface->views) {
     const DesktopWidgetState* state = findWidgetState(id);
-    if (state == nullptr || lockscreen_login_box::isLoginBoxWidget(*state)) {
+    if (state == nullptr) {
       continue;
     }
     if (effectiveOutputName(*state) != m_drag.surfaceOutputName) {
@@ -2021,9 +1865,6 @@ void DesktopWidgetsEditor::startDrag(
 ) {
   DesktopWidgetState* state = findWidgetState(widgetId);
   if (state == nullptr) {
-    return;
-  }
-  if (lockscreen_login_box::isLoginBoxWidget(*state) && mode != DragMode::Move && mode != DragMode::Scale) {
     return;
   }
 
@@ -2291,23 +2132,6 @@ void DesktopWidgetsEditor::updateDrag() {
     if (shouldSnap()) {
       boxW = std::max(cell, std::round(boxW / cell) * cell);
       boxH = std::max(cell, std::round(boxH / cell) * cell);
-    }
-
-    if (lockscreen_login_box::isLoginBoxWidget(*state)) {
-      float screenWidth = 1920.0F;
-      if (OverlaySurface* surface = findSurfaceForWidget(m_drag.widgetId);
-          surface != nullptr && surface->surface != nullptr) {
-        screenWidth = static_cast<float>(surface->surface->width());
-      }
-      const lockscreen_login_box::LoginBoxStyle style = lockscreen_login_box::resolveStyle(state->settings);
-      lockscreen_login_box::clampPanelSize(
-          screenWidth, boxW, boxH, style.layout, style.showSessionButtons,
-          lockscreen_login_box::styleShowsInfoExtras(style)
-      );
-      // Login box height follows chrome; scale is width-oriented.
-      boxH = lockscreen_login_box::defaultPanelHeight(
-          style.layout, style.showSessionButtons, lockscreen_login_box::styleShowsInfoExtras(style)
-      );
     }
 
     if (!m_altHeld) {
@@ -2654,94 +2478,6 @@ void DesktopWidgetsEditor::onSecondTick() {
       surface->surface->requestUpdateOnly();
     }
   }
-}
-
-void DesktopWidgetsEditor::releaseWallpaperPreview(OverlaySurface& surface) {
-  surface.wallpaperPreviewLease.reset();
-  surface.wallpaperPreviewPendingLease.reset();
-  surface.wallpaperPreviewLoadedPath.clear();
-  surface.wallpaperPreviewPendingPath.clear();
-  surface.wallpaperPreviewFailedPath.clear();
-}
-
-void DesktopWidgetsEditor::updateWallpaperPreview(OverlaySurface& surface) {
-  if (!surface.wallpaperPreviewActive
-      || surface.wallpaperPreview == nullptr
-      || m_config == nullptr
-      || m_renderContext == nullptr
-      || surface.surface == nullptr) {
-    return;
-  }
-
-  const auto width = static_cast<float>(surface.surface->width());
-  const auto height = static_cast<float>(surface.surface->height());
-  surface.wallpaperPreview->setPosition(0.0F, 0.0F);
-  surface.wallpaperPreview->setSize(width, height);
-
-  const std::string& path = surface.wallpaperPreviewPath;
-  if (path.empty()) {
-    return;
-  }
-
-  Color color = rgba(0.0F, 0.0F, 0.0F, 1.0F);
-  if (parseColorWallpaperPath(path, color)) {
-    releaseWallpaperPreview(surface);
-    surface.wallpaperPreview->setSources(
-        WallpaperSourceKind::Color, {}, color, WallpaperSourceKind::Image, {}, rgba(0.0F, 0.0F, 0.0F, 1.0F), 0.0F, 0.0F,
-        0.0F, 0.0F
-    );
-    surface.wallpaperPreview->setTransition(WallpaperTransition::Fade, 0.0F, TransitionParams{});
-    return;
-  }
-
-  TextureCoverage coverage;
-  if (m_wayland != nullptr) {
-    if (const WaylandOutput* output = desktop_widgets::findOutputByKey(*m_wayland, surface.outputName);
-        output != nullptr) {
-      coverage = wallpaperTextureCoverage(m_wayland->outputs(), output->name, surface.wallpaperPreview->fillMode());
-    }
-  }
-  surface.wallpaperPreviewLease.setCoverage(coverage);
-  surface.wallpaperPreviewPendingLease.setCoverage(coverage);
-
-  if (m_textureCache != nullptr
-      && path != surface.wallpaperPreviewLoadedPath
-      && path != surface.wallpaperPreviewPendingPath
-      && path != surface.wallpaperPreviewFailedPath) {
-    OverlaySurface* surfacePtr = &surface;
-    surface.wallpaperPreviewPendingLease = m_textureCache->acquire(
-        SharedTextureRequest{.path = path, .coverage = coverage}, &m_renderContext->backend(), [surfacePtr] {
-          if (surfacePtr->surface != nullptr) {
-            surfacePtr->surface->requestUpdate();
-          }
-        }
-    );
-    surface.wallpaperPreviewPendingPath = path;
-  }
-
-  if (!surface.wallpaperPreviewPendingLease.empty()) {
-    if (surface.wallpaperPreviewPendingLease.texture().id != 0) {
-      surface.wallpaperPreviewLease = std::move(surface.wallpaperPreviewPendingLease);
-      surface.wallpaperPreviewLoadedPath = std::move(surface.wallpaperPreviewPendingPath);
-      surface.wallpaperPreviewPendingPath.clear();
-    } else if (surface.wallpaperPreviewPendingLease.failed()) {
-      Logger(m_profile.logSection.data())
-          .warn("{} widgets editor: failed to load wallpaper preview {}", m_profile.logSection, path);
-      surface.wallpaperPreviewPendingLease.reset();
-      surface.wallpaperPreviewFailedPath = std::move(surface.wallpaperPreviewPendingPath);
-      surface.wallpaperPreviewPendingPath.clear();
-    }
-  }
-
-  const TextureHandle texture = surface.wallpaperPreviewLease.texture();
-  if (texture.id == 0) {
-    return;
-  }
-
-  surface.wallpaperPreview->setTextures(
-      texture.id, {}, static_cast<float>(texture.width), static_cast<float>(texture.height), 0.0F, 0.0F
-  );
-  surface.wallpaperPreview->setTransition(WallpaperTransition::Fade, 0.0F, TransitionParams{});
 }
 
 void DesktopWidgetsEditor::requestLayout() {

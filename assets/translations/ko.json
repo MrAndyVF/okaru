@@ -501,7 +501,6 @@
         "bands": "밴드",
         "bar-width": "바 너비",
         "bloom-intensity": "블룸",
-        "center-password-text": "비밀번호 텍스트 가운데 정렬",
         "center-text": "텍스트 가운데 정렬",
         "centered": "가운데 정렬",
         "change-image": "변경...",
@@ -535,8 +534,6 @@
         "hover-foreground": "마우스 오버 전경",
         "image-path": "이미지",
         "inner-diameter": "내부 지름",
-        "input-opacity": "입력 불투명도",
-        "input-radius": "입력 반지름",
         "interface": "인터페이스",
         "label": "레이블",
         "label-min-width": "레이블 최소 너비",
@@ -556,19 +553,12 @@
         "secondary-color": "보조 색상",
         "sensitivity": "감도",
         "shadow": "그림자",
-        "show-caps-lock": "Caps Lock 경고",
         "show-device": "장치 표시",
         "show-events": "이벤트 보기",
         "show-forecast": "예보 표시",
-        "show-keyboard-layout": "키보드 레이아웃",
         "show-label": "레이블 표시",
-        "show-login-button": "로그인 버튼",
-        "show-media": "미디어",
         "show-password-hint": "비밀번호 힌트",
-        "show-session-buttons": "세션 버튼",
-        "show-unlock-hint": "잠금 해제 힌트",
         "show-vpn-label": "VPN 레이블 표시",
-        "show-weather": "날씨",
         "show-week-numbers": "주차 표시",
         "show-when-idle": "유휴 시 표시",
         "stat": "통계",
@@ -609,7 +599,6 @@
         "grid": "그리드"
       },
       "title": "데스크톱 위젯",
-      "title-lockscreen": "잠금 화면 위젯",
       "types": {
         "audio-visualizer": "오디오 비주얼라이저",
         "button": "버튼",
@@ -617,7 +606,6 @@
         "clock": "시계",
         "fancy-audio-visualizer": "고급 오디오 비주얼라이저",
         "label": "레이블",
-        "login-box": "로그인 박스",
         "media-player": "미디어 플레이어",
         "sticker": "스티커",
         "system-monitor": "시스템 모니터",
@@ -743,8 +731,6 @@
     "authentication-failed": "인증 실패",
     "caps-lock-on": "Caps Lock 켜짐",
     "password-cleared": "비밀번호 지워짐",
-    "password-placeholder": "비밀번호",
-    "ready": "비밀번호를 입력한 후 Enter를 누르세요.",
     "unlocked": "잠금 해제됨",
     "waiting": "잠금 확인 대기 중..."
   },
@@ -801,9 +787,6 @@
       "keybind-invalid-title": "단축키 사용 불가",
       "launcher-usage-reset": "런처",
       "launcher-usage-reset-success": "사용 데이터가 지워졌습니다.",
-      "lockscreen-widgets-editor": "잠금 화면 위젯 편집기",
-      "lockscreen-widgets-editor-blocked-locked": "잠금 화면 위젯을 편집하려면 세션을 잠금 해제하세요.",
-      "lockscreen-widgets-editor-enabled": "잠금 화면 위젯 편집기가 켜져 있습니다. 열린 창이 편집기를 가리지 않도록 빈 작업 공간으로 전환합니다.",
       "mpris-disabled": "MPRIS 비활성화됨",
       "polkit-agent": "Polkit 에이전트",
       "polkit-no-session": "Polkit 에이전트에는 logind, elogind 또는 XDG_SESSION_ID가 필요합니다. seatd 전용 설정에서는 그래픽 프롬프트를 등록할 수 없습니다. Greeter 동기화에는 터미널 pkexec를 사용하거나, 세션 내 인증을 위해 elogind를 설치하세요.",
@@ -914,16 +897,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "초기화 확인",
-      "reset": "초기화"
-    },
     "badges": {
       "advanced": "고급",
       "community": "커뮤니티",
       "deprecated": "더 이상 사용되지 않음",
-      "official": "공식",
-      "override": "재정의"
+      "official": "공식"
     },
     "calendar-accounts": {
       "add-title": "캘린더 계정 추가",
@@ -3078,8 +3056,6 @@
       "command-label": "쉘 명령어",
       "command-placeholder": "선택적 bash 명령어. 기본 제공 동작을 사용하려면 비워 두세요",
       "command-required-placeholder": "실행할 쉘 명령어",
-      "countdown-seconds-description": "실행 전 대기할 초 수. 다시 활성화하면 즉시 확인합니다. 0이면 즉시 실행됩니다.",
-      "countdown-seconds-label": "카운트다운 (초)",
       "glyph-label": "글리프",
       "glyph-picker-title": "작업 글리프",
       "kind-section-label": "동작",
@@ -3233,7 +3209,6 @@
         "auto": "자동",
         "before": "이전",
         "both": "둘 다",
-        "compact": "간결",
         "count": "개수",
         "cpu-freq": "CPU 주파수",
         "cpu-temp": "CPU 온도",
@@ -3746,10 +3721,6 @@
         "show-temperature": {
           "description": "현재 온도 텍스트 표시",
           "label": "온도 표시"
-        },
-        "show-unlock-hint": {
-          "description": "잠금 해제 힌트 및 인증 프롬프트용 상태 카드를 로그인 창 위에 표시합니다. 이 옵션을 꺼도 오류 및 Caps Lock 경고는 계속 표시됩니다.",
-          "label": "잠금 해제 힌트"
         },
         "show-value": {
           "description": "시각화 옆에 현재 값 표시",

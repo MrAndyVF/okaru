@@ -535,6 +535,24 @@ namespace settings {
           tr("settings.schema.appearance.font-family.description"), {"shell", "font_family"},
           std::move(fontFamilyControl), "typeface"
       ));
+      // OKARU: peso base de la letra, con los pesos que tiene la familia elegida.
+      std::vector<SelectOption> fontWeightOptions;
+      for (const auto& option :
+           buildLabelFontWeightSelectOptions(cfg.shell.fontFamily, FontWeightSelectKind::BarDefault, cfg.shell.fontWeight)) {
+        fontWeightOptions.push_back(SelectOption{option.value, tr(option.labelKey)});
+      }
+      SelectSetting fontWeightSelect{std::move(fontWeightOptions), std::to_string(cfg.shell.fontWeight)};
+      fontWeightSelect.valueType = SelectValueType::Integer;
+      entries.push_back(makeEntry(
+          SettingsSection::Appearance, "interface", tr("settings.schema.appearance.font-weight.label"),
+          tr("settings.schema.appearance.font-weight.description"), {"shell", "font_weight"},
+          std::move(fontWeightSelect), "font text weight bold semibold medium regular light"
+      ));
+      entries.push_back(makeEntry(
+          SettingsSection::Appearance, "interface", tr("settings.schema.appearance.sync-system-font.label"),
+          tr("settings.schema.appearance.sync-system-font.description"), {"shell", "sync_system_font"},
+          ToggleSetting{cfg.shell.syncSystemFont}, "font gtk qt kitty terminal vscode zed ghostty starship system"
+      ));
     }
     entries.push_back(makeEntry(
         SettingsSection::Appearance, "interface", tr("settings.schema.appearance.language.label"),

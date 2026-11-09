@@ -222,8 +222,6 @@ namespace {
         }
       } else if (const auto desktopId = componentOwnerId(entry.ownerPath, "desktop_widgets.widget.")) {
         restorePlacementWidget(candidate.desktopWidgets.widgets, active.desktopWidgets.widgets, *desktopId);
-      } else if (const auto lockscreenId = componentOwnerId(entry.ownerPath, "lockscreen_widgets.widget.")) {
-        restorePlacementWidget(candidate.lockscreenWidgets.widgets, active.lockscreenWidgets.widgets, *lockscreenId);
       }
     }
   }
@@ -641,7 +639,6 @@ void ConfigService::fireReloadCallbacks() {
     add(m_lastChange.widgets, "widgets");
     add(m_lastChange.desktopWidgets, "desktopWidgets");
     add(m_lastChange.hotCorners, "hotCorners");
-    add(m_lastChange.lockscreenWidgets, "lockscreenWidgets");
     add(m_lastChange.wallpaper, "wallpaper");
     add(m_lastChange.backdrop, "backdrop");
     add(m_lastChange.lockscreen, "lockscreen");
@@ -1862,20 +1859,6 @@ void ConfigService::parseConfigTable(
       desktopWidgets.schemaVersion = static_cast<std::int32_t>(*schemaVersion);
     }
     parseWidgetsPlacementSection(*desktopWidgetsTbl, desktopWidgets.grid, desktopWidgets.widgets, "desktop_widgets");
-  }
-
-  // Parse [lockscreen_widgets]
-  if (const auto* lockscreenWidgetsTbl = tbl["lockscreen_widgets"].as_table()) {
-    auto& lockscreenWidgets = config.lockscreenWidgets;
-    if (auto v = (*lockscreenWidgetsTbl)["enabled"].value<bool>()) {
-      lockscreenWidgets.enabled = *v;
-    }
-    if (auto schemaVersion = (*lockscreenWidgetsTbl)["schema_version"].value<int64_t>()) {
-      lockscreenWidgets.schemaVersion = static_cast<std::int32_t>(*schemaVersion);
-    }
-    parseWidgetsPlacementSection(
-        *lockscreenWidgetsTbl, lockscreenWidgets.grid, lockscreenWidgets.widgets, "lockscreen_widgets"
-    );
   }
 
   // Parse [plugin_settings."author/plugin"] — open-ended per-plugin setting maps,

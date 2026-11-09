@@ -460,8 +460,6 @@
         "horizontal": "Horizontaal",
         "image-path": "Afbeelding",
         "inner-diameter": "Binnendiameter",
-        "input-opacity": "Transparantie van invoer",
-        "input-radius": "Radius van invoer",
         "interface": "Interface",
         "label": "Label",
         "layout": "Indeling",
@@ -475,12 +473,8 @@
         "secondary-color": "Secundaire kleur",
         "sensitivity": "Gevoeligheid",
         "shadow": "Schaduw",
-        "show-keyboard-layout": "Toetsenbordindeling",
         "show-label": "Label tonen",
-        "show-login-button": "Inlog knop",
-        "show-media": "Media",
         "show-password-hint": "Wachtwoordhint",
-        "show-weather": "Weer",
         "show-week-numbers": "Toon weeknummers",
         "show-when-idle": "Tonen bij inactiviteit",
         "stat": "Statistiek",
@@ -638,8 +632,6 @@
     "authenticating": "Authenticeren...",
     "authentication-failed": "Authenticatie mislukt",
     "password-cleared": "Wachtwoord gewist",
-    "password-placeholder": "Wachtwoord",
-    "ready": "Typ je wachtwoord en druk op Enter.",
     "unlocked": "Ontgrendeld",
     "waiting": "Wachten op vergrendelingsbevestiging..."
   },
@@ -678,9 +670,6 @@
       "keybind-invalid-super": "De Super-/Windows-toets kan niet worden gebruikt in shell-sneltoetsen.",
       "keybind-invalid-title": "Sneltoets niet toegestaan",
       "launcher-usage-reset": "Launcher",
-      "lockscreen-widgets-editor": "Widget-editor voor vergrendelscherm",
-      "lockscreen-widgets-editor-blocked-locked": "Ontgrendel de sessie voordat je de widgets van het vergrendelscherm bewerkt.",
-      "lockscreen-widgets-editor-enabled": "Widget-editor voor vergrendelscherm staat aan. Rangschik de widgets op de voorvertoning-overlay en vergrendel vervolgens de sessie om de indeling te controleren.",
       "mpris-disabled": "MPRIS uitgeschakeld",
       "polkit-agent": "Polkit Agent",
       "screen-time-reset": "Schermtijd",
@@ -758,13 +747,9 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Herstellen"
-    },
     "badges": {
       "advanced": "Geavanceerd",
-      "official": "Officieel",
-      "override": "Overschrijven"
+      "official": "Officieel"
     },
     "calendar-accounts": {
       "add-title": "Agenda-account toevoegen",

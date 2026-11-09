@@ -375,9 +375,6 @@
         "network-speed-unit-megabytes": "MB/ç",
         "opacity": "Zelalî",
         "shadow": "Sî",
-        "show-login-button": "Bişkokên têketinê",
-        "show-media": "Mediya",
-        "show-weather": "Rewşa bayê",
         "stat": "Amar",
         "stat-cpu-temp": "Germahiya YKN",
         "stat-cpu-usage": "Bikaranîna YKN",
@@ -506,9 +503,6 @@
       "auto": "Xweber"
     }
   },
-  "lockscreen": {
-    "password-placeholder": "Borînpeyv"
-  },
   "notifications": {
     "actions": {
       "fallback": "Çalakî",
@@ -613,9 +607,6 @@
     }
   },
   "settings": {
-    "actions": {
-      "reset": "Ji nû ve saz bike"
-    },
     "badges": {
       "advanced": "Pêşketî",
       "community": "Civak",

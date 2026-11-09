@@ -552,7 +552,6 @@
         "bands": "Grupos",
         "bar-width": "Ancho de la barra",
         "bloom-intensity": "Bloom",
-        "center-password-text": "Centrar el texto de la contraseña",
         "center-text": "Centrar texto",
         "centered": "Centrado",
         "change-image": "Cambiar…",
@@ -586,8 +585,6 @@
         "hover-foreground": "Color del primer plano al pasar el cursor",
         "image-path": "Imagen",
         "inner-diameter": "Diametro interior",
-        "input-opacity": "Opacidad de entrada",
-        "input-radius": "Radio de entrada",
         "interface": "Interfaz",
         "label": "Etiqueta",
         "label-min-width": "Ancho mínimo de etiqueta",
@@ -608,19 +605,12 @@
         "secondary-color": "Color Secundario",
         "sensitivity": "Sensibilidad",
         "shadow": "Sombra",
-        "show-caps-lock": "Advertencia de Bloq Mayús",
         "show-device": "Mostrar dispositivo",
         "show-events": "Mostrar eventos",
         "show-forecast": "Mostrar previsión",
-        "show-keyboard-layout": "Distribución de teclado",
         "show-label": "Mostrar Etiqueta",
-        "show-login-button": "Botón de login",
-        "show-media": "Media",
         "show-password-hint": "Sugerencia de contraseña",
-        "show-session-buttons": "Botones de sesión",
-        "show-unlock-hint": "Sugerencia desbloqueo",
         "show-vpn-label": "Mostrar etiqueta VPN",
-        "show-weather": "Tiempo",
         "show-week-numbers": "Mostrar números de semana",
         "show-when-idle": "Mostrar cuando este inactivo",
         "stat": "Estadistica",
@@ -661,7 +651,6 @@
         "grid": "Rejilla"
       },
       "title": "Widgets de Escritorio",
-      "title-lockscreen": "Widgets de la pantalla de bloqueo",
       "types": {
         "audio-visualizer": "Visualizador de Audio",
         "button": "Botón",
@@ -669,7 +658,6 @@
         "clock": "Reloj",
         "fancy-audio-visualizer": "Visualizador de audio Fancy",
         "label": "Etiqueta",
-        "login-box": "Cuadro de inicio de sesión",
         "media-player": "Reproductor Multimedia",
         "sticker": "Pegatina",
         "system-monitor": "Monitor de sistema",
@@ -810,8 +798,6 @@
     "authentication-failed": "Autenticación fallida",
     "caps-lock-on": "Bloq Mayús está activado",
     "password-cleared": "Contraseña eliminada",
-    "password-placeholder": "Contraseña",
-    "ready": "Ingrese su contraseña y presione Enter.",
     "unlocked": "Desbloqueado",
     "waiting": "Esperando confirmación de bloqueo…",
     "okaru": {
@@ -878,9 +864,6 @@
       "keybind-invalid-title": "Atajo de teclado no permitido",
       "launcher-usage-reset": "Lanzador",
       "launcher-usage-reset-success": "Datos de uso eliminados.",
-      "lockscreen-widgets-editor": "Editor de widgets de la pantalla de bloqueo",
-      "lockscreen-widgets-editor-blocked-locked": "Desbloquea la sesión antes de editar los widgets de la pantalla de bloqueo.",
-      "lockscreen-widgets-editor-enabled": "El editor de widgets de la pantalla de bloqueo está activado. Cambie a un espacio de trabajo vacío para que las ventanas abiertas no cubran el editor.",
       "mpris-disabled": "MPRIS desactivado",
       "polkit-agent": "Agente Polkit",
       "polkit-no-session": "El agente Polkit necesita logind, elogind o XDG_SESSION_ID. En configuraciones solo con seatd no puede registrarse para avisos gráficos. Usa pkexec en terminal para la sincronización de la pantalla de inicio, o instala elogind para la autenticación en sesión.",
@@ -900,9 +883,11 @@
       "audio-system": "Sistema",
       "directory": "Carpeta",
       "directory-hint": "Pulsa Enter para guardar la carpeta.",
+      "finish": "Terminar grabación",
       "format": "Formato",
       "fps": "FPS",
       "missing": "gpu-screen-recorder no está instalado.",
+      "pause": "Pausar grabación",
       "quality": "Calidad",
       "quality-high": "Alta",
       "quality-medium": "Media",
@@ -917,6 +902,7 @@
       "replay-stop": "Detener replay",
       "resolution": "Resolución",
       "resolution-original": "Original",
+      "resume": "Reanudar grabación",
       "saved": "Grabación guardada",
       "screen": "Pantalla",
       "slurp-missing": "Hace falta slurp para elegir una región.",
@@ -927,6 +913,7 @@
       "tab-capture": "Captura",
       "tab-record": "Grabación",
       "tooltip": "Captura",
+      "tooltip-paused": "En pausa · {time}",
       "tooltip-recording": "Grabando · {time}",
       "tooltip-replay": "Replay activo",
       "window": "Ventana"
@@ -1186,20 +1173,16 @@
     "errors": {
       "lock-body": "El protocolo de bloqueo de sesión no está disponible.",
       "lock-title": "Bloqueo no disponible"
-    }
+    },
+    "hold-to-confirm": "Mantén presionado para confirmar"
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirma Reset",
-      "reset": "Resetear"
-    },
     "badges": {
       "advanced": "Avanzado",
       "community": "Comunidad",
       "deprecated": "Obsoleto",
       "official": "Oficial",
-      "okaru": "OKARU",
-      "override": "Sobrescrito"
+      "okaru": "OKARU"
     },
     "calendar-accounts": {
       "add-title": "Agregar Cuenta de Calendario",
@@ -2762,6 +2745,10 @@
           "description": "Familia tipográfica para la interfaz del shell",
           "label": "Familia tipográfica"
         },
+        "font-weight": {
+          "label": "Grosor de la letra",
+          "description": "Peso base de todo el texto; solo aparecen los pesos que tiene esta fuente"
+        },
         "global-shadow-alpha": {
           "description": "Opacidad de la sombra global de superficie"
         },
@@ -2795,6 +2782,10 @@
         "shell-theme-mode": {
           "description": "Fija el modo claro u oscuro de OKARU; la opción «Seguir» lo mantiene sincronizado con el modo del tema",
           "label": "Modo de tema del shell"
+        },
+        "sync-system-font": {
+          "label": "Aplicar la fuente a todo el sistema",
+          "description": "Al cambiar la fuente o su grosor, aplicarla también en GTK, Qt, kitty (y con ella starship y demás apps de terminal), VS Code, Zed y ghostty"
         },
         "theme-mode": {
           "description": "Elige Oscuro, Claro o Automático según la hora del día; también se aplica a las aplicaciones mediante plantillas",
@@ -4418,8 +4409,6 @@
       "command-label": "Comando del shell",
       "command-placeholder": "Comando bash opcional, deja vacío para el comportamiento integrado",
       "command-required-placeholder": "Comando del shell a ejecutar",
-      "countdown-seconds-description": "Espera esta cantidad de segundos antes de ejecutar. Actívalo de nuevo para confirmar de inmediato. 0 se ejecuta al instante.",
-      "countdown-seconds-label": "Cuenta atrás (segundos)",
       "glyph-label": "Glifo",
       "glyph-picker-title": "Glifo de acción",
       "kind-section-label": "Comportamiento",
@@ -4964,7 +4953,6 @@
         "auto": "Auto",
         "before": "Antes",
         "both": "Ambos",
-        "compact": "Compacto",
         "count": "Cantidad",
         "cpu-freq": "Frec. de CPU",
         "cpu-temp": "Temperatura de la CPU",
@@ -5567,10 +5555,6 @@
         "show-tooltip": {
           "description": "Mostrar la información emergente de este widget al pasar el cursor sobre él",
           "label": "Mostrar información sobre herramientas"
-        },
-        "show-unlock-hint": {
-          "description": "Mostra la tarjeta de estado encima del cuadro de inicio de sesión para obtener sugerencias de desbloqueo y avisos de autenticación; los errores y las advertencias de Bloq Mayús siguen apareciendo cuando esta opción está desactivada",
-          "label": "Pista de desbloqueo"
         },
         "show-value": {
           "description": "Mostrar el valor actual junto a la visualización",

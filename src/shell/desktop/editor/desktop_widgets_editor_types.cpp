@@ -6,16 +6,5 @@ DesktopWidgetsEditorProfile DesktopWidgetsEditorProfile::desktop() {
       .layerNamespace = "okaru-desktop-widgets-editor",
       .widgetIdPrefix = "desktop-widget-",
       .titleKey = "desktop-widgets.editor.title",
-      .showLockscreenLoginPreview = false,
-  };
-}
-
-DesktopWidgetsEditorProfile DesktopWidgetsEditorProfile::lockscreen() {
-  return DesktopWidgetsEditorProfile{
-      .logSection = "lockscreen",
-      .layerNamespace = "okaru-lockscreen-widgets-editor",
-      .widgetIdPrefix = "lockscreen-widget-",
-      .titleKey = "desktop-widgets.editor.title-lockscreen",
-      .showLockscreenLoginPreview = true,
   };
 }

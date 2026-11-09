@@ -36,6 +36,10 @@ category = "system"
 name = "Helix"
 category = "editor"
 
+[catalog.hyprtoolkit]
+name = "Hyprtoolkit"
+category = "system"
+
 [catalog.kcolorscheme]
 name = "KColorScheme"
 category = "system"
@@ -140,6 +144,11 @@ input_path_dynamic = "bash '{{ config_dir }}/hyprland/apply.sh' input"
 output_path_dynamic = "bash '{{ config_dir }}/hyprland/apply.sh' output"
 post_hook = "bash '{{ config_dir }}/hyprland/apply.sh' apply"
 undo_hook = "bash '{{ config_dir }}/hyprland/undo.sh'"
+
+[templates.hyprtoolkit]
+input_path = "./hyprtoolkit/hyprtoolkit.conf"
+output_path = "$XDG_CONFIG_HOME/hypr/hyprtoolkit.conf"
+undo_hook = "bash '{{ config_dir }}/hyprtoolkit/undo.sh'"
 
 [templates.qt]
 input_path = "./qt/qtct.conf"

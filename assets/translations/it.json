@@ -546,7 +546,6 @@
         "bands": "Bande",
         "bar-width": "Larghezza barra",
         "bloom-intensity": "Bagliore",
-        "center-password-text": "Centra testo password",
         "center-text": "Testo centrato",
         "centered": "Centrato",
         "change-image": "Cambia...",
@@ -580,8 +579,6 @@
         "hover-foreground": "Primo piano al passaggio mouse",
         "image-path": "Immagine",
         "inner-diameter": "Diametro interno",
-        "input-opacity": "Opacità input",
-        "input-radius": "Raggio input",
         "interface": "Interfaccia",
         "label": "Etichetta",
         "label-min-width": "Larghezza minima etichetta",
@@ -602,22 +599,14 @@
         "secondary-color": "Colore secondario",
         "sensitivity": "Sensibilità",
         "shadow": "Ombra",
-        "show-caps-lock": "Avviso Caps Lock",
         "show-device": "Mostra dispositivo",
         "show-events": "Mostra eventi",
         "show-forecast": "Più giorni",
-        "show-keyboard-layout": "Layout tastiera",
         "show-label": "Mostra etichette",
-        "show-login-button": "Pulsante di login",
-        "show-media": "Media",
         "show-password-hint": "Suggerimento password",
-        "show-password-reveal": "Mostra password",
         "show-seconds": "Lancetta Secondi",
-        "show-session-buttons": "Pulsanti di sessione",
-        "show-unlock-hint": "Sblocca avvisi",
         "show-vpn-label": "Mostra etichetta VPN",
         "show-wave": "Mostra onda",
-        "show-weather": "Meteo",
         "show-week-numbers": "Mostra i numeri delle settimane",
         "show-when-idle": "Mostra quando inattivo",
         "stat": "Statistica",
@@ -658,7 +647,6 @@
         "grid": "Griglia"
       },
       "title": "Widget desktop",
-      "title-lockscreen": "Widget della schermata di blocco",
       "types": {
         "audio-visualizer": "Visualizzatore audio",
         "button": "Pulsante",
@@ -666,7 +654,6 @@
         "clock": "Orologio",
         "fancy-audio-visualizer": "Visualizzatore audio avanzato",
         "label": "Etichetta",
-        "login-box": "Casella di Login",
         "media-player": "Lettore multimediale",
         "sticker": "Sticker",
         "system-monitor": "Monitor di sistema",
@@ -835,8 +822,6 @@
     "authentication-failed": "Autenticazione non riuscita",
     "caps-lock-on": "Caps Lock attivo",
     "password-cleared": "Password cancellata",
-    "password-placeholder": "Password",
-    "ready": "Digita la password e premi Invio.",
     "unlocked": "Sbloccato",
     "waiting": "In attesa della conferma blocco..."
   },
@@ -900,9 +885,6 @@
       "keybind-invalid-title": "Scorciatoia non consentita",
       "launcher-usage-reset": "Launcher",
       "launcher-usage-reset-success": "Dati di utilizzo cancellati.",
-      "lockscreen-widgets-editor": "Editor widget blocco schermo",
-      "lockscreen-widgets-editor-blocked-locked": "Sblocca la sessione prima di modificare i widget del blocco schermo.",
-      "lockscreen-widgets-editor-enabled": "L'editor dei widget della schermata di blocco è attivo. Passa a un'area di lavoro vuota in modo che le finestre aperte non coprano l'editor.",
       "mpris-disabled": "MPRIS disabilitato",
       "network": "Rete",
       "network-connect-failed-auth": "La password è stata rifiutata o non è stata fornita.",
@@ -1023,16 +1005,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Conferma reset",
-      "reset": "Ripristina"
-    },
     "badges": {
       "advanced": "Avanzato",
       "community": "Community",
       "deprecated": "Deprecato",
-      "official": "Ufficiale",
-      "override": "Override"
+      "official": "Ufficiale"
     },
     "calendar-accounts": {
       "add-title": "Aggiungi account calendario",
@@ -3534,8 +3511,6 @@
       "command-label": "Comando shell",
       "command-placeholder": "Comando bash opzionale, lascia vuoto per comportamento di default",
       "command-required-placeholder": "Comando shell da eseguire",
-      "countdown-seconds-description": "Attendi questi secondi prima di eseguire. Seleziona di nuovo per confermare immediatamente. 0 esegue subito.",
-      "countdown-seconds-label": "Conto alla rovescia (secondi)",
       "glyph-label": "Glifo",
       "glyph-picker-title": "Glifo azione",
       "kind-section-label": "Comportamento",
@@ -4090,7 +4065,6 @@
         "auto": "Auto",
         "before": "Prima",
         "both": "Entrambi",
-        "compact": "Compatto",
         "count": "Conteggio",
         "cpu-freq": "Freq CPU",
         "cpu-temp": "Temperatura CPU",
@@ -4657,10 +4631,6 @@
         "show-tooltip": {
           "description": "Mostra il tooltip di questo widget al passaggio del mouse.",
           "label": "Mostra suggerimento"
-        },
-        "show-unlock-hint": {
-          "description": "Mostra la scheda di stato sopra la casella di accesso per avvisi di sblocco e prompt di autenticazione; errori e avviso di capslock attivo verranno comunque visualizzati quando questo è disattivato",
-          "label": "Sblocca avvisi"
         },
         "show-value": {
           "description": "Mostra il valore corrente accanto alla visualizzazione",

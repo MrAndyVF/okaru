@@ -31,7 +31,9 @@ popup_borders         = true            # draw outlines around popups and dropdo
 card_borders          = true            # draw outlines around section cards inside panels and settings
 show_close_buttons    = true            # show close buttons on shell surfaces (panels, toasts, popups, dialogs, Settings)
 popup_shadows         = true            # draw drop shadows behind popups and dropdowns
-font_family           = "sans-serif"    # Pango family string; Fontconfig handles fallback
+font_family           = "JetBrainsMono Nerd Font" # Pango family string; Fontconfig handles fallback
+font_weight           = 400       # base text weight; bold text keeps its difference
+sync_system_font      = true      # apply font + weight to GTK, Qt, kitty, VS Code, Zed and ghostty on change
 lang                  = ""              # empty = auto-detect; otherwise BCP-47 or POSIX locale
 time_format           = "{:%H:%M}"      # default time format for shell UI without its own setting
 date_format           = "%A, %x"        # default date format for shell UI without its own setting
@@ -228,7 +230,9 @@ Notes:
 
 - `avatar_path` controls the avatar OKARU shows in shell UI such as the Control Center Home tab. When AccountsService is reachable, OKARU also updates your user's `IconFile` there so other consumers such as OKARU Greeter can reuse the same avatar. If **accountsservice** is missing or disabled, the shell still uses `avatar_path`, but login greeters that depend on AccountsService will not see that image.
 
-- `font_family` sets the primary Pango family for all shell text. Can be a concrete family like `Inter` or a generic like `sans-serif`.
+- `font_family` sets the primary Pango family for all shell text (default `JetBrainsMono Nerd Font`). Can be a concrete family like `Inter` or a generic like `sans-serif`.
+- `font_weight` sets the base text weight (100–900, default `400`). Every weight the shell asks for shifts by the same amount, so bold text stays bolder than regular text. Settings only lists the weights the chosen family has.
+- `sync_system_font` (default `true`): when `font_family` or `font_weight` changes, OKARU runs `assets/scripts/font-sync.sh`, which applies the same family and weight to GTK (gsettings), qt5ct/qt6ct, kitty (open windows reload, so starship and other terminal apps follow), VS Code, Zed and ghostty. Terminals and editors get the family's `Mono` variant when it exists. Nothing runs at startup.
 
 - `time_format` and `date_format` are fallbacks for shell-owned displays such as the home tab, calendar tab, and lock screen. Widget-specific clock formats still use their own widget settings. See [Date format tokens](/okaru/configuration/date-format-tokens/).
 
@@ -562,7 +566,6 @@ transition            = ["fade", "wipe", "disc", "stripes", "zoom", "honeycomb",
 transition_duration   = 1500      # lock/unlock animation length in milliseconds
 edge_smoothness       = 0.3       # transition edge feathering (0.0 = sharp, 1.0 = soft)
 blur_intensity        = 0.5       # background blur (0.0 = none, 1.0 = maximum)
-tint_intensity        = 0.3       # surface-color tint over the background (0.0 = none, 1.0 = opaque)
 wallpaper             = ""        # optional image path; empty uses the desktop wallpaper per output
 monitors              = []        # connectors that show the lock screen; empty = all outputs, others stay black
 ```
@@ -579,7 +582,6 @@ monitors              = []        # connectors that show the lock screen; empty 
 | `transition_duration`  | float  | `1500`      | Lock/unlock animation duration in milliseconds (`100`–`30000`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `edge_smoothness`      | float  | `0.3`       | Feathering around transition boundaries (`0.0`–`1.0`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `blur_intensity`       | float  | `0.5`       | Blur strength for the active lock screen background (`0.0`–`1.0`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `tint_intensity`       | float  | `0.3`       | Surface-color tint over the active lock screen background (`0.0`–`1.0`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `wallpaper`            | string | `""`        | Optional image path for the lock screen. When empty, each output uses its desktop wallpaper, or the `[wallpaper].fill_color` background (opaque black when unset) while `[wallpaper].enabled = false`. Ignored when desktop capture is active.                                                                                                                                                                                                                                                                                                             |
 | `monitors`             | array  | `[]`        | Connector names that show the lock screen. Empty shows it on all outputs; listed-only mode leaves other outputs black.                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
@@ -661,7 +663,7 @@ When an override is set, OKARU runs that command for the built-in suspend/reboot
 
 The opt-in `reboot_uefi` action always runs `systemctl reboot --firmware-setup` and has no `[shell.session.power]` override. It requires systemd and a UEFI boot; otherwise OKARU logs an error and skips the `rebooting` hook. It is not synced to the greeter, which has its own firmware-setup button.
 
-Configure under **`[shell.session]`** in TOML, or use **Settings → Power → Session panel**: entries, reorder, and **Show** are listed inline; use the **settings** (cog) control on a row for behavior, label, command, icon, shortcut, countdown, and style. **Add action** appends a custom-command entry by default. The default five actions are assigned keyboard shortcuts **1**–**5**; pressing the key while the panel is open triggers the action (or starts its countdown when configured). **Grid Layout** and its **Columns** stepper control how the buttons are arranged; with grid off, the panel fits the actions on one row (wrapping to a second row past five). Arrow keys follow the resulting rows and columns.
+Configure under **`[shell.session]`** in TOML, or use **Settings → Power → Session panel**: entries, reorder, and **Show** are listed inline; use the **settings** (cog) control on a row for behavior, label, command, icon, shortcut, and style. **Add action** appends a custom-command entry by default. The default five actions are assigned keyboard shortcuts **1**–**5**; every action is confirmed by holding its button, its key, or **Enter** for 300 ms (the button fills while held; releasing early shows a hint). **Grid Layout** and its **Columns** stepper control how the buttons are arranged; with grid off, the panel fits the actions on one row (wrapping to a second row past five). Arrow keys follow the resulting rows and columns.
 
 Panel-level settings under `[shell.session]`:
 
@@ -682,7 +684,6 @@ Each entry in the `[[shell.session.actions]]` array takes:
 | `glyph`               | string | *unset*     | Optional bar-style icon id (otherwise defaults per action). Under **Session panel** in Settings → Power, open a row’s settings (cog) editor and use the icon preview to pick a glyph.                                                                                                                                                                                          |
 | `shortcut`            | string | `"1"`–`"5"` | Optional keyboard shortcut that triggers the action while the session panel is open. Any XKB key name (e.g. `1`, `F1`, `Escape`) or modifier combo (`Ctrl+1`). Clear to disable.                                                                                                                                                                                               |
 | `lockscreen_shortcut` | string | *unset*     | Optional keyboard shortcut that triggers the action from the lock screen. Only actions shown as lock-screen buttons respond. Keys that type text (letters, digits, symbols, alone or with **Shift**) are rejected because the password field owns them; use a non-printable key (`Escape`, `F1`) or a `Ctrl`/`Alt` combo. See [Lock screen shortcuts](#lock-screen-shortcuts). |
-| `countdown_seconds`   | number | `0`         | When greater than zero, the first activation starts a per-entry countdown (shown on the button badge). Activate the same entry again to run immediately, or wait for the timer. **Escape** or moving to another entry cancels. `0` runs immediately.                                                                                                                           |
 | `variant`             | string | `"default"` | Button style: `default`, `primary`, `secondary`, `destructive` (warning), or `outline`.                                                                                                                                                                                                                                                                                        |
 
 Omitting `[[shell.session.actions]]` entirely keeps the default five actions. To define your own list, declare one or more tables. An explicit empty array hides all session buttons:
@@ -711,7 +712,6 @@ command = "systemctl suspend"
 [[shell.session.actions]]
 action = "shutdown"
 variant = "destructive"
-countdown_seconds = 5
 ```
 
 #### Lock screen shortcuts

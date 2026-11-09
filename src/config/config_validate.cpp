@@ -16,7 +16,6 @@
 #include "shell/bar/widget_action.h"
 #include "shell/bar/widget_gesture.h"
 #include "shell/desktop/desktop_widget_settings_registry.h"
-#include "shell/lockscreen/lockscreen_login_box.h"
 #include "shell/settings/widget_settings_registry.h"
 #include "system/day_night_schedule.h"
 #include "time/time_format.h"
@@ -677,88 +676,6 @@ namespace okaru::config {
       }
     }
 
-    void validateLockscreenWidgets(
-        const toml::table& root, schema::Diagnostics& diag, scripting::PluginRegistry& pluginRegistry
-    ) {
-      const auto* section = root["lockscreen_widgets"].as_table();
-      if (section == nullptr) {
-        return;
-      }
-      validateWidgetSectionTypes(*section, "lockscreen_widgets", diag);
-      static const std::unordered_set<std::string> kTopLevel = {
-          "enabled", "schema_version", "grid", "widget", "widget_order"
-      };
-      for (const auto& [key, node] : *section) {
-        (void)node;
-        if (!kTopLevel.contains(std::string(key.str()))) {
-          diag.warn("lockscreen_widgets." + std::string(key.str()), "unknown setting");
-        }
-      }
-      if (const auto* grid = (*section)["grid"].as_table()) {
-        static const std::unordered_set<std::string> kGrid = {
-            "visible",
-            "cell_size",
-            "major_interval",
-        };
-        for (const auto& [key, node] : *grid) {
-          (void)node;
-          if (!kGrid.contains(std::string(key.str()))) {
-            diag.warn("lockscreen_widgets.grid." + std::string(key.str()), "unknown setting");
-          }
-        }
-      }
-      const auto* widgets = (*section)["widget"].as_table();
-      if (widgets == nullptr) {
-        return;
-      }
-      static const std::unordered_set<std::string> kWidgetKeys = {
-          "id",        "type",       "output",   "cx",     "cy",     "placement_width", "placement_height",
-          "box_width", "box_height", "rotation", "flip_x", "flip_y", "enabled",         "settings",
-      };
-      for (const auto& [id, node] : *widgets) {
-        const auto* tbl = node.as_table();
-        if (tbl == nullptr) {
-          continue;
-        }
-        const std::string idStr(id.str());
-        const std::string base = "lockscreen_widgets.widget." + idStr;
-        for (const auto& [key, value] : *tbl) {
-          (void)value;
-          if (!kWidgetKeys.contains(std::string(key.str()))) {
-            diag.warn(base + "." + std::string(key.str()), "unknown setting");
-          }
-        }
-        const std::string type = (*tbl)["type"].value<std::string>().value_or("");
-        const bool isBuiltIn =
-            std::ranges::any_of(desktop_settings::desktopWidgetTypeSpecs(), [type](const auto& spec) {
-              return spec.type == type;
-            });
-        const auto pluginEntry = pluginRegistry.resolve(type);
-        const bool isPluginWidget =
-            pluginEntry.has_value() && pluginEntry->entry->kind == scripting::PluginEntryKind::DesktopWidget;
-        if (type != lockscreen_login_box::kWidgetType && !isBuiltIn && !isPluginWidget) {
-          diag.warn(base, "unrecognized lockscreen widget type \"" + type + "\"");
-          continue;
-        }
-        const auto* settingsTbl = (*tbl)["settings"].as_table();
-        if (settingsTbl == nullptr) {
-          continue;
-        }
-        validateSettingsMap(
-            *settingsTbl, desktop_settings::desktopWidgetSettingSchema(type, &pluginRegistry), base + ".settings",
-            /*flagUnknown=*/true, diag, {}, base
-        );
-        if (type == "clock") {
-          if (const auto timezone = (*settingsTbl)["timezone"].value<std::string>();
-              timezone.has_value() && !isValidTimezone(*timezone)) {
-            diag.componentError(
-                base + ".settings.timezone", base, "unknown timezone \"" + *timezone + "\"", "clock.timezone.unknown"
-            );
-          }
-        }
-      }
-    }
-
     void validateBars(const toml::table& root, schema::Diagnostics& diag) {
       const auto* bars = root["bar"].as_table();
       if (bars == nullptr) {
@@ -849,7 +766,6 @@ namespace okaru::config {
       validateBarWidgets(merged, diag, pluginRegistry);
       validatePluginSettings(merged, diag, pluginRegistry);
       validateDesktopWidgets(merged, diag, pluginRegistry);
-      validateLockscreenWidgets(merged, diag, pluginRegistry);
       validateIncludeShape(merged, diag);
 
       // Unknown top-level keys.

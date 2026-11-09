@@ -11,7 +11,6 @@
 #include "render/gl_shared_context.h"
 #include "render/render_target.h"
 #include "render/scene/audio_spectrum_node.h"
-#include "render/scene/countdown_ring_node.h"
 #include "render/scene/effect_node.h"
 #include "render/scene/fancy_audio_visualizer_node.h"
 #include "render/scene/glyph_node.h"
@@ -145,6 +144,16 @@ bool RenderContext::makeCurrentNoSurface() {
 
 bool RenderContext::makeCurrent(RenderTarget& target) {
   return m_backend != nullptr && !m_graphicsResetPending && m_backend->makeCurrent(target);
+}
+
+void RenderContext::setTextFontWeight(int weight) {
+  if (m_textFontWeight == weight) {
+    return;
+  }
+  makeCurrentNoSurface();
+  m_textFontWeight = weight;
+  m_textRenderer.setBaseWeight(weight);
+  ++m_textMetricsGeneration;
 }
 
 void RenderContext::setTextFontFamily(std::string family) {
@@ -441,13 +450,6 @@ void RenderContext::renderNode(
     auto style = spinner->style();
     style.color.a *= effectiveOpacity;
     m_backend->drawSpinner(sw, sh, node->width(), node->height(), style, worldTransform);
-    break;
-  }
-  case NodeType::CountdownRing: {
-    const auto* ring = static_cast<const CountdownRingNode*>(node);
-    auto style = ring->style();
-    style.color.a *= effectiveOpacity;
-    m_backend->drawCountdownRing(sw, sh, node->width(), node->height(), style, worldTransform);
     break;
   }
   case NodeType::ScreenCorner: {

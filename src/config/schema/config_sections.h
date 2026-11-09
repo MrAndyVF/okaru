@@ -47,7 +47,7 @@ namespace okaru::config::schema {
   [[nodiscard]] const SectionSpec* findSection(std::string_view name);
 
   // Root keys whose shape is not a plain section schema: named tables (bar, widget),
-  // placement structures (desktop_widgets, lockscreen_widgets), the open per-plugin
+  // placement structure (desktop_widgets), the open per-plugin
   // map (plugin_settings), and config meta keys. Their read/write/validate stay
   // hand-written in the owning file; the names live here so the known-root-key set
   // still has exactly one source.

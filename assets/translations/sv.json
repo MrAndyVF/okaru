@@ -442,7 +442,6 @@
         "bands": "Band",
         "bar-width": "Bar-bredd",
         "bloom-intensity": "Glöd",
-        "center-password-text": "Centrera lösenordstext",
         "center-text": "Centrera text",
         "centered": "Centrerad",
         "change-image": "Byt...",
@@ -492,17 +491,11 @@
         "secondary-color": "Sekundärfärg",
         "sensitivity": "Känslighet",
         "shadow": "Skugga",
-        "show-caps-lock": "Skiftlåsvarning",
         "show-device": "Visa enhet",
         "show-forecast": "Visa Prognos",
-        "show-keyboard-layout": "Tangentbordslayout",
         "show-label": "Visa Etikett",
-        "show-login-button": "Loginknapp",
-        "show-media": "Media",
         "show-password-hint": "Lösenordsledtråd",
-        "show-session-buttons": "Sessionknappar",
         "show-vpn-label": "Visa VPN-etikett",
-        "show-weather": "Väder",
         "show-when-idle": "Visa när inaktiv",
         "stat-cpu-temp": "CPU-temperatur",
         "stat-cpu-usage": "CPU-användning",
@@ -543,7 +536,6 @@
         "clock": "Klocka",
         "fancy-audio-visualizer": "Fancy ljudvisualiserare",
         "label": "Etikett",
-        "login-box": "Loginruta",
         "media-player": "Mediaspelare",
         "sticker": "Klistermärke",
         "system-monitor": "Systemövervakare",
@@ -652,8 +644,6 @@
     "authentication-failed": "Autentisering misslyckades",
     "caps-lock-on": "Caps Lock är på",
     "password-cleared": "Lösenord rensat",
-    "password-placeholder": "Lösenord",
-    "ready": "Mata in ditt lösenord och tryck Retur.",
     "unlocked": "Upplåst",
     "waiting": "Väntar på låsbekräftelse..."
   },
@@ -773,15 +763,10 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Bekräfta återställning",
-      "reset": "Återställ"
-    },
     "badges": {
       "advanced": "Avancerat",
       "community": "Community",
-      "official": "Officiell",
-      "override": "Överskrivet"
+      "official": "Officiell"
     },
     "calendar-accounts": {
       "add-title": "Lägg till kalenderkonto",

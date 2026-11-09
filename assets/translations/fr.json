@@ -541,7 +541,6 @@
         "bands": "Bandes",
         "bar-width": "Épaisseur de la barre",
         "bloom-intensity": "Halo lumineux",
-        "center-password-text": "Centrer le texte du mot de passe",
         "center-text": "Centrer le texte",
         "centered": "Centré",
         "change-image": "Changer...",
@@ -575,8 +574,6 @@
         "hover-foreground": "Premier plan au survol",
         "image-path": "Image",
         "inner-diameter": "Diamètre intérieur",
-        "input-opacity": "Opacité du champ de saisie",
-        "input-radius": "Arrondi du champ de saisie",
         "interface": "Interface",
         "label": "Label",
         "label-min-width": "Largeur minimale du label",
@@ -597,21 +594,13 @@
         "secondary-color": "Couleur secondaire",
         "sensitivity": "Sensibilité",
         "shadow": "Ombre",
-        "show-caps-lock": "Avertissement de verrouillage des majuscules",
         "show-device": "Afficher le périphérique",
         "show-events": "Afficher les événements",
         "show-forecast": "Afficher la prévision",
-        "show-keyboard-layout": "Disposition du clavier",
         "show-label": "Afficher l’étiquette",
-        "show-login-button": "Bouton de connexion",
-        "show-media": "Média",
         "show-password-hint": "Indice de mot de passe",
-        "show-password-reveal": "Afficher le mot de passe",
         "show-seconds": "Afficher les secondes",
-        "show-session-buttons": "Boutons de session",
-        "show-unlock-hint": "Indice de déverrouillage",
         "show-vpn-label": "Afficher le libellé VPN",
-        "show-weather": "Météo",
         "show-week-numbers": "Afficher les numéros de semaine",
         "show-when-idle": "Afficher si inactif",
         "stat": "Stat",
@@ -651,7 +640,6 @@
         "grid": "Grille"
       },
       "title": "Widgets du bureau",
-      "title-lockscreen": "Widgets de l’écran de verrouillage ",
       "types": {
         "audio-visualizer": "Visualiseur audio",
         "button": "Bouton",
@@ -659,7 +647,6 @@
         "clock": "Horloge",
         "fancy-audio-visualizer": "Visualiseur audio stylisé",
         "label": "Label",
-        "login-box": "Panneau de connexion",
         "media-player": "Lecteur multimédia",
         "sticker": "Sticker",
         "system-monitor": "Moniteur système",
@@ -796,8 +783,6 @@
     "authentication-failed": "Échec de l’authentification",
     "caps-lock-on": "Verr. Maj. est activé",
     "password-cleared": "Mot de passe effacé",
-    "password-placeholder": "Mot de passe",
-    "ready": "Saisissez votre mot de passe et appuyez sur Entrée.",
     "unlocked": "Déverrouillé",
     "waiting": "En attente de confirmation de verrouillage…"
   },
@@ -847,9 +832,6 @@
       "keybind-invalid-title": "Raccourci non autorisé",
       "launcher-usage-reset": "Lanceur",
       "launcher-usage-reset-success": "Données d’utilisation effacées.",
-      "lockscreen-widgets-editor": "Éditeur de widgets de l’écran de verrouillage",
-      "lockscreen-widgets-editor-blocked-locked": "Déverrouillez la session avant de modifier les widgets de l’écran de verrouillage.",
-      "lockscreen-widgets-editor-enabled": "L’éditeur de widgets de l’écran de verrouillage est activé. Basculez sur un espace de travail vide pour ne pas superposer des fenêtres sur l'éditeur.",
       "mpris-disabled": "MPRIS désactivé",
       "polkit-agent": "Polkit Agent",
       "polkit-no-session": "Le polkit agent nécessite logind, elogind ou XDG_SESSION_ID. Sur les configurations utilisant uniquement seatd, il ne peut pas s'enregistrer pour les demandes d'authentification graphiques. Utilise pkexec depuis un terminal pour synchroniser le greeter, ou installe elogind pour l'authentification dans la session.",
@@ -960,16 +942,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Confirmer la réinitialisation",
-      "reset": "Réinitialiser"
-    },
     "badges": {
       "advanced": "Avancé",
       "community": "Communauté",
       "deprecated": "Obsolète",
-      "official": "Officiel",
-      "override": "Remplacer"
+      "official": "Officiel"
     },
     "calendar-accounts": {
       "add-title": "Ajouter un compte au calendrier",
@@ -2999,8 +2976,6 @@
       "command-label": "Commande shell",
       "command-placeholder": "Commande bash optionnelle, laisser vide pour utiliser le comportement par défaut",
       "command-required-placeholder": "Commande shell à exécuter",
-      "countdown-seconds-description": "Attendre ce nombre de secondes avant l'exécution. Active à nouveau pour confirmer immédiatement. 0 exécute tout de suite.",
-      "countdown-seconds-label": "Compte à rebours (secondes)",
       "glyph-label": "Glyphe",
       "glyph-picker-title": "Glyphe de l’action",
       "kind-section-label": "Comportement",

@@ -468,7 +468,6 @@
         "bands": "Bantlar",
         "bar-width": "Bar Genişliği",
         "bloom-intensity": "Parlama",
-        "center-password-text": "Şifre Metnini Ortala",
         "center-text": "Metni Ortala",
         "centered": "Ortalanmış",
         "change-image": "Değiştir…",
@@ -502,8 +501,6 @@
         "hover-foreground": "Vurgu Metin Rengi",
         "image-path": "Görsel",
         "inner-diameter": "İç Çap",
-        "input-opacity": "Giriş Opaklığı",
-        "input-radius": "Giriş Yarıçapı",
         "interface": "Arayüz",
         "label": "Etiket",
         "label-min-width": "Minimum Etiket Eni",
@@ -524,19 +521,12 @@
         "secondary-color": "İkincil Renk",
         "sensitivity": "Hassasiyet",
         "shadow": "Gölge",
-        "show-caps-lock": "Caps Lock Uyarısı",
         "show-device": "Cihazı Göster",
         "show-events": "Etkinlikleri Göster",
         "show-forecast": "Hava Tahminini Göster",
-        "show-keyboard-layout": "Klavye Düzeni",
         "show-label": "Etiketi Göster",
-        "show-login-button": "Oturum Aç Butonu",
-        "show-media": "Medya",
         "show-password-hint": "Şifre İpucu",
-        "show-session-buttons": "Oturum Butonları",
-        "show-unlock-hint": "Kilit Açama İpucu",
         "show-vpn-label": "VPN Etiketini Göster",
-        "show-weather": "Hava Durumu",
         "show-week-numbers": "Hafta Numaralarını Göster",
         "show-when-idle": "Boştayken Göster",
         "stat": "İstatistik",
@@ -584,7 +574,6 @@
         "clock": "Saat",
         "fancy-audio-visualizer": "Havalı Ses Görselleştiricisi",
         "label": "Etiket",
-        "login-box": "Oturum Açma Kutusu",
         "media-player": "Ortam Oynatıcısı",
         "sticker": "Stiker",
         "system-monitor": "Sistem İzleyicisi",
@@ -710,8 +699,6 @@
     "authentication-failed": "Kimlik doğrulama başarısız",
     "caps-lock-on": "Caps Lock açık",
     "password-cleared": "Şifre temizlendi",
-    "password-placeholder": "Şifre",
-    "ready": "Şifrenizi girip Enter'a basın",
     "unlocked": "Kilit Açıldı",
     "waiting": "Kilitleme onayı bekleniyor…"
   },
@@ -763,9 +750,6 @@
       "keybind-invalid-title": "Tuş atamasına izin verilmiyor",
       "launcher-usage-reset": "Başlat",
       "launcher-usage-reset-success": "Kullanım verisi temizlendi.",
-      "lockscreen-widgets-editor": "Kilit ekranı bileşen düzenleyicisi",
-      "lockscreen-widgets-editor-blocked-locked": "Kilit ekranı bileşenlerini düzenlemeden önce oturumu açın.",
-      "lockscreen-widgets-editor-enabled": "Kilit ekranı bileşen düzenleyicisi açık. Açık pencerelerin düzenleyici ekranını kaplamaması için boş bir masaüstüne geçin.",
       "mpris-disabled": "MPRIS devre dışı",
       "polkit-agent": "Polkit Aracısı",
       "polkit-no-session": "Polkit aracısı logind, elogind veya XDG_SESSION_ID gerektirir. Yalnızca seatd içeren sistemlerde grafiksel istemler için kaydedilemez. Karşılama ekranı senkronizasyonu için terminalden pkexec kullanın veya oturum içi kimlik doğrulama için elogind yükleyin.",
@@ -876,16 +860,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Sıfırlamayı Onayla",
-      "reset": "Sıfırla"
-    },
     "badges": {
       "advanced": "Gelişmiş",
       "community": "Topluluk",
       "deprecated": "Kullanımdan Kaldırıldı",
-      "official": "Resmi",
-      "override": "Geçersiz Kılma"
+      "official": "Resmi"
     },
     "calendar-accounts": {
       "add-title": "Takvim Hesabı Ekle",
@@ -3027,8 +3006,6 @@
       "command-label": "Kabuk komutu",
       "command-placeholder": "İsteğe bağlı bash komutu, yerleşik davranış için boş bırakın",
       "command-required-placeholder": "Çalıştırılacak kabuk komutu",
-      "countdown-seconds-description": "Çalıştırmadan önce bu kadar saniye bekle. Anında onaylamak için tekrar etkinleştir. 0 hemen çalıştırır.",
-      "countdown-seconds-label": "Geri Sayım (saniye)",
       "glyph-label": "Sembol",
       "glyph-picker-title": "Eylem sembolü",
       "kind-section-label": "Davranış",
@@ -3135,7 +3112,6 @@
         "auto": "Otomatik",
         "before": "Önce",
         "both": "Her İkisi",
-        "compact": "Sıkı",
         "count": "Sayı",
         "cpu-freq": "CPU Frekansı",
         "cpu-temp": "CPU Sıcaklığı",
@@ -3646,10 +3622,6 @@
         "show-temperature": {
           "description": "Mevcut sıcaklık metnini göster",
           "label": "Sıcaklığı Göster"
-        },
-        "show-unlock-hint": {
-          "description": "Kilit açma ipuçları ve kimlik doğrulama istemleri için giriş kutusunun üzerinde durum kartını göster; bu kapalıyken bile hatalar ve Caps Lock uyarıları görünmeye devam eder",
-          "label": "Kilit Açma İpucu"
         },
         "show-value": {
           "description": "Görselleştirmenin yanında mevcut değeri göster",

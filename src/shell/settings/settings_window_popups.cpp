@@ -258,37 +258,6 @@ namespace {
     }
   }
 
-  bool isBarWidgetListPath(const std::vector<std::string>& path) {
-    if (path.size() < 3 || path.front() != "bar") {
-      return false;
-    }
-    const auto& key = path.back();
-    return key == "start" || key == "center" || key == "end";
-  }
-
-  std::vector<std::string> barWidgetItemsForPath(const Config& cfg, const std::vector<std::string>& path) {
-    if (!isBarWidgetListPath(path) || path.size() < 3) {
-      return {};
-    }
-
-    const auto* bar = settings::findBar(cfg, path[1]);
-    if (bar == nullptr) {
-      return {};
-    }
-
-    const auto& lane = path.back();
-    if (lane == "start") {
-      return bar->startWidgets;
-    }
-    if (lane == "center") {
-      return bar->centerWidgets;
-    }
-    if (lane == "end") {
-      return bar->endWidgets;
-    }
-    return {};
-  }
-
 } // namespace
 
 void SettingsWindow::openActionsMenu() {
@@ -422,7 +391,7 @@ void SettingsWindow::openBarWidgetAddPopup(const std::vector<std::string>& laneP
       }
 
       const Config& activeConfig = m_config->config();
-      auto laneItems = barWidgetItemsForPath(activeConfig, selectedLanePath);
+      auto laneItems = settings::barWidgetItemsForPath(activeConfig, selectedLanePath);
 
       m_pendingDeleteWidgetName.clear();
       m_pendingDeleteWidgetSettingPath.clear();

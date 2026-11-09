@@ -251,7 +251,6 @@ struct SessionPanelActionConfig {
   // Lock-screen trigger. Never a text-producing key: the password field owns those.
   std::optional<KeyChord> lockscreenShortcut = std::nullopt;
   /// When > 0, the action arms a countdown (seconds) before running; activate again to confirm immediately.
-  double countdownSeconds = 0.0;
 
   bool operator==(const SessionPanelActionConfig&) const = default;
 };
@@ -612,7 +611,6 @@ struct LockscreenConfig {
   float transitionDurationMs = 1500.0F;
   float edgeSmoothness = 0.3F;
   float blurIntensity = 0.9F; // OKARU: mucho blur y atenuado, para que se lea la marca (igual que el greeter)
-  float tintIntensity = 0.45F;
   std::string wallpaper;
   std::vector<std::string> monitors;
 
@@ -815,15 +813,6 @@ struct DesktopWidgetsConfig {
   std::vector<DesktopWidgetState> widgets;
 
   bool operator==(const DesktopWidgetsConfig&) const = default;
-};
-
-struct LockscreenWidgetsConfig {
-  bool enabled = false;
-  std::int32_t schemaVersion = 2;
-  DesktopWidgetsGridState grid;
-  std::vector<DesktopWidgetState> widgets;
-
-  bool operator==(const LockscreenWidgetsConfig&) const = default;
 };
 
 struct OsdKindsConfig {
@@ -1350,7 +1339,11 @@ struct ShellConfig {
   bool popupShadows = true;
   bool cardBorders = true;
   bool showCloseButtons = true;
-  std::string fontFamily = "sans-serif";
+  std::string fontFamily = "JetBrainsMono Nerd Font"; // OKARU: fuente de la shell y del sistema
+  // OKARU: peso base del texto (400 = Regular); el texto en negrita conserva su diferencia.
+  int fontWeight = 400;
+  // OKARU: al cambiar familia o peso, aplicarlos también a GTK, Qt, kitty, VS Code, Zed y ghostty.
+  bool syncSystemFont = true;
   std::string lang; // empty = auto-detect from $LC_ALL/$LC_MESSAGES/$LANG
   std::string timeFormat = "{:%H:%M}";
   std::string dateFormat = "%A, %x";
@@ -1997,7 +1990,6 @@ struct Config {
   WallpaperConfig wallpaper;
   BackdropConfig backdrop;
   LockscreenConfig lockscreen;
-  LockscreenWidgetsConfig lockscreenWidgets;
   DockConfig dock;
   DesktopWidgetsConfig desktopWidgets;
   HotCornersConfig hotCorners;
@@ -2030,7 +2022,6 @@ struct ConfigChangeSet {
   bool bars = true;
   bool widgets = true;
   bool desktopWidgets = true;
-  bool lockscreenWidgets = true;
   bool wallpaper = true;
   bool backdrop = true;
   bool lockscreen = true;
@@ -2061,7 +2052,6 @@ struct ConfigChangeSet {
     return bars
         || widgets
         || desktopWidgets
-        || lockscreenWidgets
         || wallpaper
         || backdrop
         || lockscreen

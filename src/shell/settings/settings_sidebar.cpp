@@ -22,7 +22,9 @@ namespace settings {
 
   namespace {
 
-    constexpr float kSidebarWidth = 200.0F;
+    constexpr float kSidebarWidth = 200.0F;    // mínimo; crece si los textos no caben
+    constexpr float kSidebarMaxWidth = 300.0F;
+    constexpr float kSidebarScrollbarReserve = 8.0F;
     constexpr float kSidebarPadding = 6.0F;
     constexpr float kSidebarGap = 2.0F;
     constexpr float kPrimaryNavGlyphSize = 18.0F;
@@ -86,6 +88,31 @@ namespace settings {
     const bool searchActive = ctx.globalSearchActive;
     const bool showActiveTab = !searchActive;
 
+    // Ancho: el del módulo cuyo título o frase sea más largo, medido con la fuente y el grosor activos.
+    float sidebarWidth = kSidebarWidth * scale;
+    if (ctx.renderer != nullptr) {
+      for (const auto& group : groupSettingsModules(ctx.sections)) {
+        const auto& module = *group.module;
+        const float titleW = ctx.renderer
+                                 ->measureText(
+                                     i18n::tr(settingsModuleLabelKey(module)), Style::fontSizeCaption * scale,
+                                     TextFont{.weight = FontWeight::Bold}
+                                 )
+                                 .width;
+        const float hintW =
+            ctx.renderer->measureText(i18n::tr(settingsModuleHintKey(module)), Style::fontSizeCaption * 0.9F * scale)
+                .width;
+        const float buttonW = 2.0F * kPrimaryNavPaddingH * scale
+            + kPrimaryNavGlyphSize * scale
+            + kPrimaryNavGap * scale
+            + std::max(titleW, hintW);
+        sidebarWidth = std::max(
+            sidebarWidth, std::ceil(buttonW + 2.0F * kSidebarPadding * scale + kSidebarScrollbarReserve * scale)
+        );
+      }
+      sidebarWidth = std::min(sidebarWidth, kSidebarMaxWidth * scale);
+    }
+
     auto sidebarScroll = ui::scrollView({
         .state = &ctx.sidebarScrollState,
         .contentScale = scale,
@@ -94,9 +121,9 @@ namespace settings {
         .viewportPaddingV = 0.0F,
         .fill = ctx.config.shell.settingsWindowTranslucent ? clearColorSpec() : colorSpecFromRole(ColorRole::Surface),
         .radius = Style::scaledRadiusXl(scale),
-        .minWidth = kSidebarWidth * scale,
+        .minWidth = sidebarWidth,
         .fillHeight = true,
-        .width = kSidebarWidth * scale,
+        .width = sidebarWidth,
         .height = 0.0F,
         .configure = [](ScrollView& scrollView) { scrollView.clearBorder(); },
     });

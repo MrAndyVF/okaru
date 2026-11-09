@@ -148,7 +148,8 @@ namespace okaru::capture {
     if (m_state == RecorderState::Idle) {
       return std::chrono::seconds(0);
     }
-    return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - m_startedAt);
+    const auto now = m_paused ? m_pausedAt : std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::seconds>(now - m_startedAt - m_pausedTotal);
   }
 
   void Recorder::withTarget(const RecorderOptions& options, std::function<void(std::string, std::string)> run) {
@@ -215,6 +216,8 @@ namespace okaru::capture {
       return;
     }
     m_startedAt = std::chrono::steady_clock::now();
+    m_pausedTotal = {};
+    m_paused = false;
     setState(state);
   }
 
@@ -252,6 +255,23 @@ namespace okaru::capture {
     (void)process::runAsync({"pkill", "-INT", "-f", "^([^ ]*/)?gpu-screen-recorder( |$)"});
   }
 
+  void Recorder::togglePause() {
+    if (m_state != RecorderState::Recording) {
+      return;
+    }
+    if (!process::runAsync({"pkill", "-USR2", "-f", "^([^ ]*/)?gpu-screen-recorder( |$)"})) {
+      return;
+    }
+    const auto now = std::chrono::steady_clock::now();
+    if (m_paused) {
+      m_pausedTotal += now - m_pausedAt;
+    } else {
+      m_pausedAt = now;
+    }
+    m_paused = !m_paused;
+    setState(m_state);
+  }
+
   void Recorder::saveReplay() {
     if (m_state == RecorderState::Replay) {
       (void)process::runAsync({"pkill", "-USR1", "-f", "^([^ ]*/)?gpu-screen-recorder .*-r "});
@@ -271,6 +291,9 @@ namespace okaru::capture {
 
   void Recorder::setState(RecorderState state) {
     m_state = state;
+    if (state == RecorderState::Idle) {
+      m_paused = false;
+    }
     const auto listeners = m_listeners; // un listener puede quitarse a sí mismo
     for (const auto& [id, listener] : listeners) {
       listener();

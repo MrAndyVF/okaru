@@ -546,7 +546,6 @@
         "bands": "Dải tần",
         "bar-width": "Chiều rộng thanh",
         "bloom-intensity": "Bloom",
-        "center-password-text": "Căn giữa kí tự mật khẩu",
         "center-text": "Canh giữa chữ",
         "centered": "Canh giữa",
         "change-image": "Thay đổi…",
@@ -580,8 +579,6 @@
         "hover-foreground": "Màu chữ khi di chuột lên",
         "image-path": "Ảnh",
         "inner-diameter": "Đường kính trong",
-        "input-opacity": "Độ mờ đầu vào",
-        "input-radius": "Bo góc đầu vào",
         "interface": "Giao diện",
         "label": "Chữ",
         "label-min-width": "Độ rộng tối thiểu của chữ",
@@ -602,21 +599,13 @@
         "secondary-color": "Màu phụ",
         "sensitivity": "Độ nhạy",
         "shadow": "Bóng",
-        "show-caps-lock": "Cảnh báo phím Caps Lock",
         "show-device": "Hiển thị thiết bị",
         "show-events": "Hiển thị sự kiện",
         "show-forecast": "Hiển thị dự báo",
-        "show-keyboard-layout": "Bố cục bàn phím",
         "show-label": "Hiển thị nhãn",
-        "show-login-button": "Nút đăng nhập",
-        "show-media": "Trình phát",
         "show-password-hint": "Gợi ý mật khẩu",
-        "show-password-reveal": "Tiết lộ mật khẩu",
         "show-seconds": "Kim giây",
-        "show-session-buttons": "Những nút phiên",
-        "show-unlock-hint": "Gợi ý mở khóa",
         "show-vpn-label": "Hiển thị nhãn VPN",
-        "show-weather": "Thời tiết",
         "show-week-numbers": "Hiển thị số tuần",
         "show-when-idle": "Hiển thị khi không hoạt động",
         "stat": "Trạng thái",
@@ -657,7 +646,6 @@
         "grid": "Lưới"
       },
       "title": "Tiện ích màn hình nền",
-      "title-lockscreen": "Widget màn hình khóa",
       "types": {
         "audio-visualizer": "Trực quan hóa âm thanh",
         "button": "Nút",
@@ -665,7 +653,6 @@
         "clock": "Đồng hồ",
         "fancy-audio-visualizer": "Trình hiển thị âm thanh đẹp mắt",
         "label": "Nhãn",
-        "login-box": "Ô đăng nhập",
         "media-player": "Trình phát đa phương tiện",
         "sticker": "Hình dán",
         "system-monitor": "Theo dõi hệ thống",
@@ -834,8 +821,6 @@
     "authentication-failed": "Xác thực thất bại",
     "caps-lock-on": "Caps Lock đang bật",
     "password-cleared": "Đã xóa mật khẩu",
-    "password-placeholder": "Mật khẩu",
-    "ready": "Nhập mật khẩu của bạn và nhấn Enter.",
     "unlocked": "Đã mở khóa",
     "waiting": "Đang chờ xác nhận khóa..."
   },
@@ -899,9 +884,6 @@
       "keybind-invalid-title": "Phím tắt không được phép",
       "launcher-usage-reset": "Trình khởi chạy",
       "launcher-usage-reset-success": "Đã xóa toàn bộ dữ liệu sử dụng.",
-      "lockscreen-widgets-editor": "Trình chỉnh sửa tiện ích màn hình khóa",
-      "lockscreen-widgets-editor-blocked-locked": "Mở khóa phiên trước khi chỉnh sửa các widget màn hình khóa.",
-      "lockscreen-widgets-editor-enabled": "Trình chỉnh sửa Widget màn hình khóa đang bật. Sắp xếp các Widget trên Overlay xem trước, sau đó khóa phiên để kiểm tra bố cục.",
       "mpris-disabled": "MPRIS đã tắt",
       "network": "Mạng",
       "network-connect-failed-auth": "Mật khẩu bị từ chối hoặc không được cung cấp.",
@@ -1022,16 +1004,11 @@
     }
   },
   "settings": {
-    "actions": {
-      "confirm-reset": "Xác nhận đặt lại",
-      "reset": "Đặt lại"
-    },
     "badges": {
       "advanced": "Nâng cao",
       "community": "Cộng đồng",
       "deprecated": "Lỗi thời",
-      "official": "Chính thức",
-      "override": "Ghi đè"
+      "official": "Chính thức"
     },
     "calendar-accounts": {
       "add-title": "Thêm tài khoản Lịch",
@@ -3074,7 +3051,6 @@
       "command-label": "Lệnh shell",
       "command-placeholder": "Lệnh bash tùy chọn, để trống nếu muốn dùng hành vi tích hợp sẵn",
       "command-required-placeholder": "Lệnh shell để chạy",
-      "countdown-seconds-label": "Đếm ngược (giây)",
       "glyph-label": "Biểu tượng",
       "glyph-picker-title": "Biểu tượng hành động",
       "kind-section-label": "Hành vi",
@@ -3152,7 +3128,6 @@
         "auto": "Chế độ Tự động",
         "before": "Trước",
         "both": "Cả hai",
-        "compact": "Gọn",
         "count": "Số lượng",
         "cpu-freq": "Tần số CPU",
         "cpu-temp": "Nhiệt độ CPU",
