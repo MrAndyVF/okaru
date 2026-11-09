@@ -10,6 +10,85 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.1.0] - 2026-11-09
+
+### English
+
+#### Features
+- OKARU now has its own apps. Each one is a separate program with OKARU's look: it follows your color theme
+  (light/dark and palette, live), your font and your scale, and uses your Validate/Cancel keys.
+  - **Calculator** (`okaru-calc`), modeled on GNOME Calculator: basic, advanced, financial (GNOME's ten
+    functions), programming (binary/octal/decimal/hex, word size, AND/OR/XOR/NOT, shifts, bit panel) and
+    conversion modes (every libqalculate unit and currency, including less common ones such as the Colombian
+    peso, with exchange rates updated on demand). Live result preview, history, `ans`, variables
+    (`name = value`) and preferences (angle unit, number format, decimal places, trailing zeroes, thousands
+    separators).
+  - **Image Viewer** (`okaru-view`): browses the folder of the image you open, zooms under the pointer with
+    the wheel, keys or double click, drag to pan, rotate, fullscreen, properties with camera data, copy, set as
+    wallpaper, move to trash and show in folder. Opens PNG, JPEG, GIF and WebP (animated too), JXL, HEIF/AVIF,
+    BMP, ICO, QOI, TGA, PNM, TIFF, XPM, ICNS, sharp SVG at any zoom and camera RAW. Large photos load at screen
+    size first and the next and previous images are decoded ahead, so browsing is instant.
+  - **Media Player** (`okaru-play`), on mpv: every format ffmpeg plays, GPU decoding, audio and subtitle
+    tracks, speed, volume, the folder as a playlist that moves on by itself, fullscreen, cover and tags for
+    music, and it resumes where you left off. The controls hide when the pointer is still or outside the
+    window.
+- Niri: display settings follow the monitor (make, model and serial) instead of the port it is plugged into,
+  and a disconnected monitor keeps its settings.
+- Terminal: an OKARU starship prompt of its own (user, path, git status with counters, command duration,
+  per-language icons, 郁 as the symbol).
+
+#### Fixes
+- fastfetch showed some icons as blanks (PC, CPU, GPU, RAM, system, kernel, WM, terminal, font and Update);
+  the kanji is centered again.
+- Text fields that ask for right alignment now get it (the value next to the sliders in the desktop widgets
+  editor).
+
+#### Changes
+- New package dependencies: `mpv`, `exiv2`, `gdk-pixbuf2`, `libraw`, `libjpeg-turbo` and `wl-clipboard`.
+- The shell writes the active palette to `~/.local/state/okaru/palette.json`, which the apps follow.
+- The default Hyprland and Niri configuration opens the apps floating and centered. If you already have
+  OKARU's configuration, add the rules for `dev.okaru.Calculator`, `dev.okaru.Viewer` and `dev.okaru.Player`
+  from `/usr/share/okaru/defaults`.
+
+### Español
+
+#### Novedades
+- OKARU ahora tiene apps propias. Cada una es un programa aparte con el aspecto de OKARU: sigue tu tema de
+  color (claro/oscuro y paleta, en vivo), tu fuente y tu escala, y usa tus teclas de validar y cancelar.
+  - **Calculadora** (`okaru-calc`), inspirada en la de GNOME: modos básico, avanzado, financiero (las diez
+    funciones de GNOME), programación (binario/octal/decimal/hexadecimal, tamaño de palabra,
+    AND/OR/XOR/NOT, desplazamientos, panel de bits) y conversión (todas las unidades y divisas de
+    libqalculate, también las menos comunes como el peso colombiano, con tasas de cambio que se actualizan al
+    pedirlas). Vista previa del resultado mientras escribes, historial, `ans`, variables (`nombre = valor`) y
+    preferencias (unidad de ángulo, formato de números, decimales, ceros finales, separador de miles).
+  - **Visor de imágenes** (`okaru-view`): recorre la carpeta de la imagen que abres, acerca bajo el puntero
+    con la rueda, el teclado o doble clic, se mueve arrastrando, gira, pantalla completa, propiedades con los
+    datos de la cámara, copiar, usar como fondo de pantalla, mover a la papelera y mostrar en la carpeta. Abre
+    PNG, JPEG, GIF y WebP (también animados), JXL, HEIF/AVIF, BMP, ICO, QOI, TGA, PNM, TIFF, XPM, ICNS, SVG
+    nítido a cualquier zoom y RAW de cámara. Las fotos grandes cargan primero al tamaño de la pantalla y la
+    siguiente y la anterior se decodifican de antemano, así que pasar de una a otra es inmediato.
+  - **Reproductor multimedia** (`okaru-play`), sobre mpv: todos los formatos que reproduce ffmpeg,
+    decodificación por GPU, pistas de audio y subtítulos, velocidad, volumen, la carpeta como lista que avanza
+    sola, pantalla completa, portada y datos de la música, y retoma donde lo dejaste. Los controles se ocultan
+    con el puntero quieto o fuera de la ventana.
+- Niri: los ajustes de pantalla siguen al monitor (marca, modelo y serie) en vez del puerto donde está
+  conectado, y un monitor desconectado conserva sus ajustes.
+- Terminal: un prompt de starship propio de OKARU (usuario, ruta, estado de git con contadores, duración de
+  los comandos, iconos por lenguaje, 郁 como símbolo).
+
+#### Correcciones
+- fastfetch mostraba algunos iconos en blanco (PC, CPU, GPU, RAM, sistema, kernel, WM, terminal, fuente y
+  Update); el kanji vuelve a quedar centrado.
+- Los campos de texto que piden alineación a la derecha ahora la tienen (el valor junto a los deslizadores en
+  el editor de widgets del escritorio).
+
+#### Cambios
+- Dependencias nuevas del paquete: `mpv`, `exiv2`, `gdk-pixbuf2`, `libraw`, `libjpeg-turbo` y `wl-clipboard`.
+- La shell escribe la paleta activa en `~/.local/state/okaru/palette.json`, que siguen las apps.
+- La configuración de fábrica de Hyprland y Niri abre las apps flotantes y centradas. Si ya tienes la
+  configuración de OKARU, agrega las reglas de `dev.okaru.Calculator`, `dev.okaru.Viewer` y `dev.okaru.Player`
+  desde `/usr/share/okaru/defaults`.
+
 ## [1.0.5] - 2026-11-09
 
 ### English

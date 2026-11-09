@@ -21,6 +21,7 @@ namespace okaru::hypr {
   struct OutputInfo {
     std::string name;
     std::string description;
+    std::string identity; // Niri: "marca modelo serie" si es única entre las conectadas; si no, vacío
     int width = 0;
     int height = 0;
     double refresh = 0.0;

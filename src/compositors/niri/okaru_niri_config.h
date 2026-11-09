@@ -50,12 +50,19 @@ namespace okaru::niri {
   // Pantallas.
   [[nodiscard]] std::vector<OutputInfo> parseOutputsJson(const nlohmann::json& json);
   [[nodiscard]] std::vector<OutputInfo> queryOutputs(const compositors::niri::NiriRuntime& runtime);
-  [[nodiscard]] std::string serializeOutputs(const std::vector<OutputRule>& rules, std::string_view primary);
+  // Cada monitor se escribe con su `identity` de `infos` si la tiene (sobrevive a cambiar de puerto); si no, con
+  // su conector.
+  [[nodiscard]] std::string serializeOutputs(
+      const std::vector<OutputRule>& rules, std::string_view primary, const std::vector<OutputInfo>& infos = {}
+  );
   // Lee lo que escribe serializeOutputs; `primary` recibe el monitor con focus-at-startup.
   [[nodiscard]] std::vector<OutputRule> parseOutputs(std::string_view kdl, std::string* primary = nullptr);
-  // El estado en vivo manda; la VRR sale del archivo, porque en vivo no se distingue "bajo demanda".
+  // El estado en vivo manda; la VRR sale del archivo, porque en vivo no se distingue "bajo demanda". La regla
+  // del archivo se busca por conector o por identidad, y la devuelta siempre usa el conector.
   [[nodiscard]] OutputRule ruleFor(const OutputInfo& info, const std::vector<OutputRule>& fileRules);
-  [[nodiscard]] std::optional<std::string> writeOutputs(const std::vector<OutputRule>& rules, std::string_view primary);
+  // `rules` y `primary` usan conectores; conserva del archivo las reglas de monitores desconectados.
+  [[nodiscard]] std::optional<std::string>
+  writeOutputs(const std::vector<OutputRule>& rules, std::string_view primary, const std::vector<OutputInfo>& infos);
   [[nodiscard]] std::vector<OutputRule> readOutputs(std::string* primary = nullptr);
 
   // Workspaces con nombre, en el orden en que Niri los crea.

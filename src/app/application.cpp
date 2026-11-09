@@ -245,7 +245,7 @@ void Application::run(const std::function<void()>& startupReadyCallback) {
 
   m_polkitInitTimer.start(std::chrono::milliseconds(1000), [this] { syncPolkitAgent(); });
 
-  m_mainLoop = std::make_unique<MainLoop>(m_wayland, m_bar, [this] { return currentPollSources(); });
+  m_mainLoop = std::make_unique<MainLoop>(m_wayland, s_shutdownRequested, [this] { m_bar.closeAllInstances(); }, [this] { return currentPollSources(); });
   if (startupReadyCallback) {
     startupReadyCallback();
   }

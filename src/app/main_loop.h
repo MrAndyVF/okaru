@@ -1,11 +1,11 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <unordered_map>
 #include <vector>
 
-class Bar;
 class PollSource;
 class WaylandConnection;
 
@@ -13,13 +13,19 @@ class MainLoop {
 public:
   using PollSourcesProvider = std::function<std::vector<PollSource*>()>;
 
-  MainLoop(WaylandConnection& wayland, Bar& bar, PollSourcesProvider sourcesProvider);
+  // `closeSurfaces` cierra las superficies antes del último flush al salir (la barra en la shell).
+  // `stop` termina el bucle; también se activa si el compositor cierra la conexión.
+  MainLoop(
+      WaylandConnection& wayland, std::atomic<bool>& stop, std::function<void()> closeSurfaces,
+      PollSourcesProvider sourcesProvider
+  );
 
   void run();
 
 private:
   WaylandConnection& m_wayland;
-  Bar& m_bar;
+  std::atomic<bool>& m_stop;
+  std::function<void()> m_closeSurfaces;
   PollSourcesProvider m_sourcesProvider;
 
   // Absolute deadline by which each source must next be dispatched, armed from

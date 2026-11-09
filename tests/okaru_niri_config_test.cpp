@@ -71,6 +71,33 @@ int main() {
        )
       && ok;
 
+  // Identidad: "marca modelo serie" solo con serie y si no se repite; el archivo la usa, la interfaz el conector.
+  ok = expect(infos[0].identity == "LG 27GL850 1" && infos[1].identity.empty(), "identidad solo con serie") && ok;
+  auto twins = parseOutputsJson(nlohmann::json::parse(R"({
+    "DP-1": {"make": "LG", "model": "X", "serial": "7", "logical": null},
+    "DP-2": {"make": "LG", "model": "X", "serial": "7", "logical": null}})"));
+  ok = expect(twins[0].identity.empty() && twins[1].identity.empty(), "identidad repetida se descarta") && ok;
+  const std::vector<OutputRule> lgOnly{{.output = "DP-1", .scale = 1.0, .vrr = 2}};
+  const auto byIdentity = serializeOutputs(lgOnly, "DP-1", infos);
+  ok = expect(
+           byIdentity.find("output \"LG 27GL850 1\"") != std::string::npos
+               && byIdentity.find("focus-at-startup") != std::string::npos,
+           "se escribe por identidad, con su focus-at-startup"
+       )
+      && ok;
+  std::string identityPrimary;
+  const auto fromIdentity = parseOutputs(byIdentity, &identityPrimary);
+  OutputInfo moved = infos[0];
+  moved.name = "HDMI-A-1"; // mismo monitor en otro puerto
+  moved.disabled = false;
+  moved.width = 2560;
+  const auto movedRule = okaru::niri::ruleFor(moved, fromIdentity);
+  ok = expect(
+           identityPrimary == "LG 27GL850 1" && movedRule.output == "HDMI-A-1" && movedRule.vrr == 2,
+           "otro puerto recupera la regla y la interfaz ve el conector"
+       )
+      && ok;
+
   // Workspaces.
   const std::vector<NamedWorkspace> workspaces{{.name = "web", .output = "DP-1"}, {.name = "chat \"1\""}};
   const auto wsKdl = serializeWorkspaces(workspaces);

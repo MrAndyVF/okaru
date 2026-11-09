@@ -105,6 +105,17 @@ void ToplevelSurface::beginMove(std::uint32_t serial) {
   }
 }
 
+void ToplevelSurface::setFullscreen(bool fullscreen) {
+  if (m_toplevel == nullptr) {
+    return;
+  }
+  if (fullscreen) {
+    xdg_toplevel_set_fullscreen(m_toplevel, nullptr);
+  } else {
+    xdg_toplevel_unset_fullscreen(m_toplevel);
+  }
+}
+
 void ToplevelSurface::handleXdgSurfaceConfigure(void* data, xdg_surface* surface, std::uint32_t serial) {
   auto* self = static_cast<ToplevelSurface*>(data);
   xdg_surface_ack_configure(surface, serial);
