@@ -10,6 +10,46 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.0.5] - 2026-11-09
+
+### English
+
+#### Features
+- fastfetch and starship in OKARU's style, based on Omarchy's: fastfetch shows the 郁 kanji next to the
+  Hardware, Software and Age / Uptime / Update boxes, and the starship prompt uses 郁. The installer adds both
+  packages and copies their configuration only if you don't have one.
+- The installer adds `starship init` at the end of your login shell's file (fish, zsh or bash), after the
+  CachyOS config it sources, so it is not overridden; on zsh it unloads CachyOS's powerlevel10k.
+- The installer speaks English and Spanish: it follows the system language, and `OKARU_LANG=en` or
+  `OKARU_LANG=es` forces one (`curl -fsSL …/install.sh | OKARU_LANG=en bash`).
+
+#### Fixes
+- The launcher's profile picture was blurry with photos that are not square; it now loads at double size,
+  like the control center.
+
+#### Changes
+- The shell no longer writes `[session.power]` and `[[session.actions]]` to the greeter's `sync.toml`; the
+  greeter has not used them since 1.0.4.
+
+### Español
+
+#### Novedades
+- fastfetch y starship con el estilo de OKARU, basados en los de Omarchy: fastfetch muestra el kanji 郁 junto a
+  las cajas Hardware, Software y Age / Uptime / Update, y el prompt de starship usa 郁. El instalador agrega
+  los dos paquetes y copia su configuración solo si no tienes una.
+- El instalador agrega `starship init` al final del archivo de tu shell de inicio de sesión (fish, zsh o bash),
+  después del source de la config de CachyOS, para que no lo pise; en zsh descarga el powerlevel10k de CachyOS.
+- El instalador habla inglés y español: sigue el idioma del sistema, y `OKARU_LANG=en` u `OKARU_LANG=es` fuerza
+  uno (`curl -fsSL …/install.sh | OKARU_LANG=en bash`).
+
+#### Correcciones
+- La foto de perfil del lanzador se veía borrosa con fotos que no son cuadradas; ahora se carga al doble de
+  tamaño, como en el centro de control.
+
+#### Cambios
+- La shell ya no escribe `[session.power]` ni `[[session.actions]]` en el `sync.toml` del greeter, que no los
+  usa desde la 1.0.4.
+
 ## [1.0.4] - 2026-11-08
 
 ### English
