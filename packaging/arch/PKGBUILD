@@ -53,7 +53,7 @@ package() {
   # Hyprland y de Niri, que install.sh copia a ~/.config/hypr o ~/.config/niri según el compositor elegido.
   install -Dm644 okaru/packaging/systemd/okaru.service -t "$pkgdir/usr/lib/systemd/user"
   install -d "$pkgdir/usr/share/okaru/defaults"
-  cp -r okaru/packaging/defaults/{hypr,niri,fontconfig} "$pkgdir/usr/share/okaru/defaults/"
+  cp -r okaru/packaging/defaults/{hypr,niri,fontconfig,fastfetch,starship.toml} "$pkgdir/usr/share/okaru/defaults/"
   local bin="$pkgdir/usr/bin/okaru"
   install -d "$pkgdir"/usr/share/{bash-completion/completions,fish/vendor_completions.d,zsh/site-functions}
   "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"
