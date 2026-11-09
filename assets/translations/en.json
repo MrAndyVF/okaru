@@ -216,6 +216,93 @@
         "csv": "CSV"
       }
     },
+    "pdf": {
+      "title": "Document Viewer",
+      "open": "Open…",
+      "filter": "PDF documents",
+      "close": "Close",
+      "close-tab": "Close document",
+      "cancel": "Cancel",
+      "recent": "Recent documents",
+      "empty": {
+        "title": "No documents open"
+      },
+      "error": {
+        "open": "Could not open {file}: the file is damaged or is not a PDF"
+      },
+      "page": "Page {page} of {total}",
+      "page-label": "Page {label} ({page} of {total})",
+      "sidebar": "Sidebar (F9)",
+      "thumbnails": "Thumbnails",
+      "outline": "Outline",
+      "zoom": {
+        "in": "Zoom in (Ctrl++)",
+        "out": "Zoom out (Ctrl+-)",
+        "fit-page": "Fit page",
+        "fit-width": "Fit width"
+      },
+      "rotate": "Rotate (Ctrl+→)",
+      "dual": "Two pages",
+      "night": "Night mode",
+      "presentation": "Presentation (F5)",
+      "copied": "Text copied",
+      "link-blocked": "This link was not opened: {uri}",
+      "find": {
+        "title": "Search (Ctrl+F)",
+        "placeholder": "Search in the document",
+        "previous": "Previous result",
+        "next": "Next result",
+        "case": "Match case",
+        "word": "Whole words only",
+        "none": "No results",
+        "searching": "Searching…",
+        "count": "{index} of {total}"
+      },
+      "goto": {
+        "title": "Go to page",
+        "placeholder": "1–{count} or page label"
+      },
+      "password": {
+        "title": "Password required",
+        "body": "{file} is protected with a password.",
+        "wrong": "Wrong password. Try again.",
+        "placeholder": "Password",
+        "unlock": "Unlock"
+      },
+      "properties": {
+        "title": "Properties",
+        "tooltip": "Properties (Alt+Enter)",
+        "file": "File",
+        "doc-title": "Title",
+        "author": "Author",
+        "subject": "Subject",
+        "keywords": "Keywords",
+        "creator": "Created with",
+        "producer": "Producer",
+        "created": "Created",
+        "modified": "Modified",
+        "pages": "Pages",
+        "paper": "Paper size",
+        "version": "Format",
+        "size": "File size"
+      },
+      "print": {
+        "title": "Print",
+        "tooltip": "Print (Ctrl+P)",
+        "printer": "Printer",
+        "copies": "Copies",
+        "pages": "Pages",
+        "all": "All (e.g. 1-3, 5)",
+        "sides": "Sides",
+        "one-sided": "One-sided",
+        "long-edge": "Two-sided, long edge",
+        "short-edge": "Two-sided, short edge",
+        "button": "Print",
+        "sent": "{file} was sent to the printer",
+        "failed": "Could not print: check the printer in CUPS",
+        "no-printers": "No printers are set up. Add one in your system's printer settings (CUPS)."
+      }
+    },
     "play": {
       "title": "Media Player",
       "open": "Open…",

@@ -16,4 +16,5 @@ check() { # $1 = .desktop, $2 = filtro de tipos (regex)
 }
 check dev.okaru.Viewer.desktop '^image/'
 check dev.okaru.Editor.desktop '.'
+check dev.okaru.Pdf.desktop '.'
 grep -q '^\[Default Applications\]$' "$list" || { echo "okaru_mimeapps_test: falta [Default Applications]" >&2; exit 1; }

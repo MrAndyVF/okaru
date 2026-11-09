@@ -1,7 +1,7 @@
 # OKARU: apps por defecto del escritorio (Hyprland y Niri). Se instala como hyprland-mimeapps.list y
 # niri-mimeapps.list en /usr/share/applications; lo que elija el usuario en ~/.config/mimeapps.list manda.
-# Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes) y dev.okaru.Editor.desktop
-# (texto); lo verifica tests/okaru_mimeapps_test.sh.
+# Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes), dev.okaru.Editor.desktop (texto)
+# y dev.okaru.Pdf.desktop (PDF); lo verifica tests/okaru_mimeapps_test.sh.
 [Default Applications]
 image/png=dev.okaru.Viewer.desktop
 image/apng=dev.okaru.Viewer.desktop
@@ -94,3 +94,5 @@ text/markdown=dev.okaru.Editor.desktop
 text/x-ini=dev.okaru.Editor.desktop
 application/x-shellscript=dev.okaru.Editor.desktop
 text/x-systemd-unit=dev.okaru.Editor.desktop
+application/pdf=dev.okaru.Pdf.desktop
+application/x-pdf=dev.okaru.Pdf.desktop

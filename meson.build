@@ -451,6 +451,7 @@ _okaru_sources = files(
   'src/apps/calculator/calc_state.cpp',
   'src/apps/common/okaru_app.cpp',
   'src/apps/common/portal_file_chooser.cpp',
+  'src/apps/common/tab_strip.cpp',
   'src/app/application.cpp',
   'src/app/application_events.cpp',
   'src/app/application_ipc.cpp',
@@ -1271,6 +1272,17 @@ okaru_edit_exe = executable('okaru-edit',
   install: true,
 )
 _pdf_dependencies = [okaru_core_dep, dependency('poppler-glib')]
+okaru_pdf_exe = executable('okaru-pdf',
+  sources: files(
+    'src/apps/pdf/main.cpp',
+    'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_view.cpp',
+    'src/apps/pdf/pdf_window.cpp',
+    'src/apps/pdf/render_worker.cpp',
+  ) + _protocol_headers,
+  dependencies: _pdf_dependencies,
+  install: true,
+)
 if build_tests
   test('okaru_pdf', executable('okaru_pdf_test',
     sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
@@ -1310,7 +1322,7 @@ install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
-    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop',
+    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
   ],
 )
 
@@ -1321,6 +1333,7 @@ install_data(
   'assets/dev.okaru.Viewer.desktop',
   'assets/dev.okaru.Player.desktop',
   'assets/dev.okaru.Editor.desktop',
+  'assets/dev.okaru.Pdf.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

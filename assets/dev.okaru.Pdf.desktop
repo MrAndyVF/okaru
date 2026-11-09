@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=Document Viewer
+Name[es]=Visor de documentos
+GenericName=PDF Viewer
+GenericName[es]=Visor de PDF
+Comment=Read, search and print PDF documents
+Comment[es]=Leer, buscar e imprimir documentos PDF
+Keywords=pdf;document;reader;viewer;print;
+Keywords[es]=pdf;documento;lector;visor;imprimir;
+Exec=okaru-pdf %U
+Icon=application-pdf
+Categories=Office;Viewer;
+MimeType=application/pdf;application/x-pdf;
+StartupWMClass=dev.okaru.Pdf
+Terminal=false
