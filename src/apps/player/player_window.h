@@ -4,6 +4,7 @@
 // barra de tiempo, volumen, velocidad, pistas de audio y subtítulos, lista de la carpeta, pantalla completa y portada
 // con datos para el audio. mpv dibuja cada cuadro en un framebuffer de OKARU que la escena muestra como imagen.
 
+#include "apps/player/mpris_server.h"
 #include "apps/player/mpv_player.h"
 #include "core/timer_manager.h"
 #include "render/backend/gles_framebuffer.h"
@@ -81,6 +82,7 @@ namespace okaru::player {
     Slider* m_timeline = nullptr;
     Label* m_positionLabel = nullptr;
     Label* m_remainingLabel = nullptr;
+    std::unique_ptr<MprisServer> m_mpris; // último: se va antes que m_player
   };
 
 } // namespace okaru::player
