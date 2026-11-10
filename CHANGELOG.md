@@ -10,6 +10,69 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.2.0] - 2026-11-10
+
+### English
+
+#### Features
+- The installer now leaves OKARU exactly as it is meant to look, on Hyprland and on Niri (without plugins or
+  anything personal):
+  - Bar: workspaces and media on the left; clock and weather in the center; tray, cat, phone, microphone,
+    capture and control center on the right. This is also the default bar in the shell.
+  - Light theme taken from the wallpaper (Material tonal spot) with the GTK, Qt, kitty, btop, cava and
+    community templates (Steam, Heroic, Discord, Zen, LibreOffice, Neovim, Zed, starship, fastfetch…).
+  - Control center cards, floating panels, notifications, OSD, dock and idle settings.
+  - kitty configuration (padding, blur, cursor trail, powerline tabs, JetBrainsMono Bold).
+  - Hyprland: niri-like scrolling layout, spring animations and slightly translucent windows.
+  - Window rules for Steam (popups, main window, friends list, dialogs, toasts, games in fullscreen),
+    Heroic, Faugus, Prism Launcher, the native Epic Games Launcher, Nautilus, LocalSend, file pickers and
+    system utilities.
+- The installer asks for the language (and, in Spanish, the country) and sets it as the system language.
+- The installer adds the Chaotic-AUR repository and installs Firefox, LocalSend and what the Capture widget
+  needs (gpu-screen-recorder, slurp).
+- If you already have a configuration, the installer keeps it or replaces all of it (compositor, OKARU,
+  Settings changes, kitty, fastfetch, starship) with a dated backup.
+- Apps: open a file by dropping it from the file manager onto the calculator, viewer, player, editor or
+  document viewer.
+- Media player: MPRIS support, so the bar, `playerctl` and the media keys control it.
+
+#### Changes
+- Settings: the search field sits above the side menu, aligned with it; «Reset Page» moved to the header.
+- Settings on Niri no longer shows the pages that only edit Hyprland (windows, input, environment,
+  Hyprland plugins and diagnostics, Hyprland startup commands).
+- New descriptions for the Settings modules.
+- Without the phone component, the installer leaves the phone widget out of the bar.
+
+### Español
+
+#### Novedades
+- El instalador deja OKARU tal como debe verse, en Hyprland y en Niri (sin plugins ni nada personal):
+  - Barra: workspaces y multimedia a la izquierda; reloj y clima al centro; bandeja, gato, teléfono,
+    micrófono, captura y centro de control a la derecha. También es la barra de fábrica de la shell.
+  - Tema claro sacado del fondo (Material tonal spot) con las plantillas de GTK, Qt, kitty, btop, cava y de
+    la comunidad (Steam, Heroic, Discord, Zen, LibreOffice, Neovim, Zed, starship, fastfetch…).
+  - Tarjetas del centro de control, paneles flotantes, notificaciones, OSD, dock e inactividad.
+  - Configuración de kitty (márgenes, desenfoque, estela del cursor, pestañas powerline, JetBrainsMono Bold).
+  - Hyprland: layout scrolling tipo niri, animaciones con resortes y ventanas un poco translúcidas.
+  - Reglas de ventana para Steam (popups, ventana principal, amigos, diálogos, avisos, juegos a pantalla
+    completa), Heroic, Faugus, Prism Launcher, Epic Games Launcher nativo, Nautilus, LocalSend, selectores
+    de archivos y utilidades del sistema.
+- El instalador pregunta el idioma (y, en español, el país) y lo deja como idioma del sistema.
+- El instalador agrega el repositorio Chaotic-AUR e instala Firefox, LocalSend y lo que necesita el widget
+  Captura (gpu-screen-recorder, slurp).
+- Si ya tienes configuración, el instalador la conserva o la reemplaza toda (compositor, OKARU, cambios de
+  Ajustes, kitty, fastfetch, starship) con una copia fechada.
+- Apps: abre un archivo soltándolo desde el explorador sobre la calculadora, el visor, el reproductor, el
+  editor o el visor de documentos.
+- Reproductor: soporte MPRIS, así la barra, `playerctl` y las teclas multimedia lo controlan.
+
+#### Cambios
+- Ajustes: la búsqueda va encima del menú lateral, alineada con él; «Restablecer página» pasó al encabezado.
+- En Niri, Ajustes ya no muestra las páginas que solo editan Hyprland (ventanas, entrada, entorno, plugins y
+  diagnóstico de Hyprland, comandos de inicio de Hyprland).
+- Descripciones nuevas de los módulos de Ajustes.
+- Sin el componente de teléfono, el instalador deja fuera de la barra el widget del teléfono.
+
 ## [1.1.1] - 2026-11-09
 
 ### English
