@@ -53,6 +53,11 @@ namespace okaru::pdf {
     loadState();
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
+    m_app.setDropCallback([this](std::vector<std::string> paths) {
+      for (const auto& path : paths) {
+        openFile(path);
+      }
+    });
     m_app.setAfterBuild([this] {
       if (m_overlay == Overlay::Password && m_passwordInput != nullptr) {
         m_app.focus(m_passwordInput->inputArea());

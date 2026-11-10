@@ -75,6 +75,11 @@ namespace okaru::editor {
     loadState();
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
+    m_app.setDropCallback([this](std::vector<std::string> paths) {
+      for (const auto& path : paths) {
+        (void)openFile(path);
+      }
+    });
     m_app.setCloseRequestCallback([this] {
       requestQuit();
       return false; // requestQuit sale solo cuando no queda nada por guardar

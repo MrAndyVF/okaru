@@ -4,6 +4,7 @@
 #include "apps/common/portal_file_chooser.h"
 #include "core/input/key_modifiers.h"
 #include "core/input/key_symbols.h"
+#include "core/log.h"
 #include "i18n/i18n.h"
 #include "render/core/renderer.h"
 #include "ui/builders.h"
@@ -28,6 +29,7 @@ namespace okaru::player {
 
     constexpr auto kHideControlsAfter = std::chrono::milliseconds(2500);
     constexpr std::uint32_t kDoubleClickMs = 300;
+    constexpr Logger kLog("play");
     constexpr std::array<double, 7> kSpeeds{0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0};
 
     // mpv cambia estado de GL que el renderer de OKARU da por fijo (alineación y largo de fila al subir píxeles,
@@ -170,6 +172,7 @@ namespace okaru::player {
     m_player.setOnFrame([this] { m_app.requestFrame(); });
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
+    m_app.setDropCallback([this](std::vector<std::string> paths) { openFiles({paths.begin(), paths.end()}); });
     m_app.setBeforeRender([this](Renderer& renderer) { beforeRender(renderer); });
     // Fuera de la ventana los controles se van enseguida; al volver, aparecen.
     m_app.setPointerPresenceCallback([this](bool inside) {
@@ -185,6 +188,29 @@ namespace okaru::player {
       m_player.freeRender();
       m_frame.destroy();
     });
+    if (auto* bus = m_app.sessionBus(); bus != nullptr) {
+      try {
+        m_mpris = std::make_unique<MprisServer>(
+            *bus, m_player,
+            MprisServer::Hooks{
+                .index = [this] { return m_index; },
+                .currentPath = [this] { return m_files.empty() ? std::string() : m_files[m_index].string(); },
+                .canStep =
+                    [this](int delta) {
+                      const auto next = static_cast<long>(m_index) + delta;
+                      return next >= 0 && next < static_cast<long>(m_files.size());
+                    },
+                .step = [this](int delta) { step(delta); },
+                .open = [this](
+                            const std::string& uri
+                        ) { openFiles({uri.starts_with("file://") ? apps::pathFromFileUri(uri) : uri}); },
+                .quit = [this] { m_app.quit(); },
+            }
+        );
+      } catch (const std::exception& e) {
+        kLog.warn("MPRIS unavailable: {}", e.what());
+      }
+    }
     openFiles(files);
   }
 
@@ -248,6 +274,9 @@ namespace okaru::player {
   }
 
   void PlayerWindow::onPlayerChange(bool structural) {
+    if (m_mpris != nullptr) {
+      m_mpris->update();
+    }
     const auto& state = m_player.state();
     // Al terminar un archivo sigue el próximo de la lista.
     if (state.ended && state.loaded && m_index + 1 < m_files.size()) {

@@ -449,6 +449,7 @@ _protocol_headers += _wlr_ls_h
 _okaru_sources = files(
   'src/apps/calculator/calc_engine.cpp',
   'src/apps/calculator/calc_state.cpp',
+  'src/apps/common/file_drop.cpp',
   'src/apps/common/okaru_app.cpp',
   'src/apps/common/portal_file_chooser.cpp',
   'src/apps/common/tab_strip.cpp',
@@ -1251,6 +1252,7 @@ okaru_view_exe = executable('okaru-view',
 okaru_play_exe = executable('okaru-play',
   sources: files(
     'src/apps/player/main.cpp',
+    'src/apps/player/mpris_server.cpp',
     'src/apps/player/mpv_player.cpp',
     'src/apps/player/player_window.cpp',
   ) + _protocol_headers,
@@ -1288,6 +1290,11 @@ if build_tests
   test('okaru_pdf', executable('okaru_pdf_test',
     sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
     dependencies: _pdf_dependencies,
+    override_options: ['b_ndebug=false'],
+  ))
+  test('okaru_file_drop', executable('okaru_file_drop_test',
+    sources: files('tests/okaru_file_drop_test.cpp'),
+    dependencies: okaru_core_dep,
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_editor', executable('okaru_editor_test',

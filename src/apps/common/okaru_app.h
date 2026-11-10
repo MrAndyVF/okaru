@@ -4,6 +4,7 @@
 // enlaza okaru_core: abre una ventana normal (xdg_toplevel) con el UI, la fuente y la paleta de la shell, y la
 // mantiene al día si cambia el tema (palette.json) o la config (fuente, idioma, escala).
 
+#include "apps/common/file_drop.h"
 #include "config/config_service.h"
 #include "core/files/file_watcher.h"
 #include "core/text_clipboard.h"
@@ -90,6 +91,8 @@ namespace okaru::apps {
     void focus(InputArea* area);
     // Arrastrar desde este nodo mueve la ventana (la cabecera).
     void setDragNode(Node* node) { m_dragNode = node; }
+    // Archivos soltados sobre la ventana (rutas locales o URL).
+    void setDropCallback(FileDrop::DropFn callback) { m_drop.setOnDrop(std::move(callback)); }
 
     void setFullscreen(bool fullscreen);
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
@@ -121,6 +124,7 @@ namespace okaru::apps {
     AppOptions m_options;
     ConfigService m_config;
     WaylandConnection m_wayland;
+    FileDrop m_drop; // después de m_wayland: se destruye antes de cerrar la conexión
     GlSharedContext m_glShared;
     RenderContext m_render;
     AnimationManager m_animations;

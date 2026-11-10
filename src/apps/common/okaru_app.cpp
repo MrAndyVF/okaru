@@ -104,6 +104,7 @@ namespace okaru::apps {
       kLog.error("cannot connect to the Wayland display");
       return 1;
     }
+    m_drop.attach(m_wayland.display(), m_wayland.seat());
     m_glShared.initialize(m_wayland.display(), m_config.config().shell.sharedGlContext);
     m_render.initialize(m_glShared);
     applyConfig();
