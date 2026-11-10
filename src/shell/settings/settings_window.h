@@ -60,8 +60,7 @@ struct PointerEvent;
 struct wl_output;
 struct wl_surface;
 
-namespace scripting {
-}
+namespace scripting {}
 
 namespace okaru::theme {
   struct GeneratedPalette;
@@ -163,6 +162,7 @@ private:
   void refreshSettingsRegistry(const Config& cfg);
   void syncSelectedBarState(const Config& cfg, const std::vector<std::string>& availableBars);
   [[nodiscard]] std::unique_ptr<Flex> buildHeaderRow(float scale);
+  [[nodiscard]] std::unique_ptr<Flex> buildSearchField(float scale, float sidebarWidth);
   [[nodiscard]] std::unique_ptr<Flex>
   buildFilterRow(float scale, const std::string& resetPageScope, std::vector<std::vector<std::string>> resetPagePaths);
   [[nodiscard]] std::unique_ptr<Flex> buildStatusRow(float scale);
@@ -173,9 +173,7 @@ private:
   [[nodiscard]] std::vector<settings::SelectOption> batteryDeviceOptions() const;
   // Bindable IPC commands, for the bar widget gesture action picker.
   [[nodiscard]] std::vector<settings::GestureActionOption> gestureActionCatalog() const;
-  [[nodiscard]] settings::SettingsContentContext makeContentContext(
-      const Config& cfg, const BarConfig* selectedBar
-  );
+  [[nodiscard]] settings::SettingsContentContext makeContentContext(const Config& cfg, const BarConfig* selectedBar);
   [[nodiscard]] std::vector<std::vector<std::string>> currentPageResetPaths() const;
   [[nodiscard]] bool
   tryPatchSettingsRegistryValue(const std::vector<std::string>& path, const ConfigOverrideValue& value);

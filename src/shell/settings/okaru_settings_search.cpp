@@ -1,6 +1,7 @@
 #include "shell/settings/okaru_settings_search.h"
 
 #include "i18n/i18n.h"
+#include "shell/settings/okaru_settings_categories.h"
 
 #include <algorithm>
 #include <cctype>
@@ -85,7 +86,7 @@ namespace settings {
   std::vector<OkaruSearchItem> okaruSearch(std::string_view query) {
     std::vector<OkaruSearchItem> out;
     for (auto& item : okaruSearchIndex()) {
-      if (okaruSearchMatches(item, query)) {
+      if (!sectionHiddenForCompositor(item.section) && okaruSearchMatches(item, query)) {
         out.push_back(std::move(item));
       }
     }

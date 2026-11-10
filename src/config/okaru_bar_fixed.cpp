@@ -1,6 +1,5 @@
 #include "config/okaru_bar_fixed.h"
 
-#include "compositors/compositor_detect.h"
 #include "config/config_types.h"
 
 #include <algorithm>
@@ -137,12 +136,3 @@ namespace okaru::bar {
   }
 
 } // namespace okaru::bar
-
-std::vector<std::string> defaultBarEndWidgets() {
-  std::vector<std::string> widgets{"media",  "tray",       "notifications", "clipboard",      "network", "bluetooth",
-                                   "volume", "brightness", "battery",       "control-center", "session"};
-  if (compositors::isHyprland()) {
-    widgets.insert(widgets.begin() + 2, "hypr_layout"); // tras tray, como en la barra del autor
-  }
-  return widgets;
-}

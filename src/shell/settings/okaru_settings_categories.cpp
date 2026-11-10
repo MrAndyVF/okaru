@@ -1,5 +1,7 @@
 #include "shell/settings/okaru_settings_categories.h"
 
+#include "compositors/compositor_detect.h"
+#include "i18n/i18n.h"
 #include "shell/settings/settings_registry.h"
 
 #include <algorithm>
@@ -20,10 +22,7 @@ namespace settings {
           {"dock", "layout-bottombar", 2, {S::Dock}},
           {"desktop", "layout-dashboard", 2, {S::Desktop}},
           {"osd", "message", 2, {S::Osd, S::Notifications}},
-          {"shell",
-           "app-window",
-           3,
-           {S::Shell, S::Launcher, S::Screenshot, S::Calendar, S::Panels}},
+          {"shell", "app-window", 3, {S::Shell, S::Launcher, S::Screenshot, S::Calendar, S::Panels}},
           {"windows",
            "layout-columns",
            3,
@@ -47,9 +46,7 @@ namespace settings {
 
   } // namespace
 
-  bool SettingsModuleGroup::contains(SettingsSection section) const {
-    return std::ranges::contains(sections, section);
-  }
+  bool SettingsModuleGroup::contains(SettingsSection section) const { return std::ranges::contains(sections, section); }
 
   std::span<const SettingsModuleDef> settingsModules() { return modules(); }
 
@@ -58,7 +55,37 @@ namespace settings {
   }
 
   std::string settingsModuleHintKey(const SettingsModuleDef& module) {
-    return "settings.navigation.modules." + std::string(module.key) + "-hint";
+    std::string key = "settings.navigation.modules." + std::string(module.key) + "-hint";
+    if (compositors::isNiri() && !i18n::Service::instance().lookup(key + "-niri").empty()) {
+      key += "-niri";
+    }
+    return key;
+  }
+
+  bool sectionHiddenForCompositor(SettingsSection section) {
+    if (!compositors::isNiri()) {
+      return false;
+    }
+    switch (section) {
+    case S::WindowLayout:
+    case S::WindowDecoration:
+    case S::WindowAnimations:
+    case S::WindowRules:
+    case S::InputDevices:
+    case S::InputBinds:
+    case S::HyprPlugins:
+    case S::HyprDiagnostics:
+    case S::SystemEnvironment:
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  bool sectionHiddenForCompositor(std::string_view sectionId) {
+    const auto descriptors = settingsSectionDescriptors();
+    const auto it = std::ranges::find(descriptors, sectionId, &SettingsSectionDescriptor::id);
+    return it != descriptors.end() && sectionHiddenForCompositor(it->section);
   }
 
   std::vector<SettingsModuleGroup> groupSettingsModules(std::span<const SettingsSection> sections) {

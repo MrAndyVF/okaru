@@ -1732,6 +1732,12 @@ if build_tests
     args: ['tests/install_starship_init_test.sh', meson.current_source_dir() / 'install.sh'],
     workdir: meson.current_source_dir(),
   )
+  test('install_place',
+    bash_program,
+    args: ['tests/install_place_test.sh', meson.current_source_dir() / 'install.sh',
+      meson.current_source_dir() / 'packaging/defaults/okaru/config.toml'],
+    workdir: meson.current_source_dir(),
+  )
   test('okaru_mimeapps',
     bash_program,
     args: ['tests/okaru_mimeapps_test.sh'],
