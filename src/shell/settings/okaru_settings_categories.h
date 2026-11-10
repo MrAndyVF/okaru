@@ -33,7 +33,12 @@ namespace settings {
 
   [[nodiscard]] std::span<const SettingsModuleDef> settingsModules();
   [[nodiscard]] std::string settingsModuleLabelKey(const SettingsModuleDef& module);
+  // En Niri, la frase <key>-hint-niri si el módulo la tiene (sin lo de Hyprland).
   [[nodiscard]] std::string settingsModuleHintKey(const SettingsModuleDef& module);
+
+  // Secciones que solo editan la configuración de Hyprland: no se muestran (ni se buscan) en Niri.
+  [[nodiscard]] bool sectionHiddenForCompositor(SettingsSection section);
+  [[nodiscard]] bool sectionHiddenForCompositor(std::string_view sectionId);
 
   // Reparte `sections` (las visibles) por módulo. `Bar` se incluye siempre. Una sección sin módulo (p. ej.
   // una nueva de upstream) va a Avanzado para que nunca desaparezca. Sin módulos vacíos.

@@ -23,16 +23,16 @@
 #include "shell/settings/okaru_settings_binds.h"
 #include "shell/settings/okaru_settings_categories.h"
 #include "shell/settings/okaru_settings_diagnostics.h"
-#include "shell/settings/okaru_settings_home.h"
-#include "shell/settings/okaru_settings_sound.h"
-#include "shell/settings/okaru_settings_search.h"
-#include "shell/settings/okaru_settings_dock_screens.h"
-#include "shell/settings/okaru_settings_hyprpm.h"
-#include "shell/settings/okaru_settings_workspaces.h"
-#include "shell/settings/okaru_settings_startup.h"
 #include "shell/settings/okaru_settings_displays.h"
+#include "shell/settings/okaru_settings_dock_screens.h"
+#include "shell/settings/okaru_settings_home.h"
+#include "shell/settings/okaru_settings_hyprpm.h"
 #include "shell/settings/okaru_settings_rules.h"
+#include "shell/settings/okaru_settings_search.h"
+#include "shell/settings/okaru_settings_sound.h"
+#include "shell/settings/okaru_settings_startup.h"
 #include "shell/settings/okaru_settings_windows.h"
+#include "shell/settings/okaru_settings_workspaces.h"
 #include "shell/settings/settings_content.h"
 #include "shell/settings/settings_content_common.h"
 #include "shell/settings/settings_content_plugins.h"
@@ -134,7 +134,7 @@ namespace {
   std::vector<settings::SettingsSection> sectionKeys(const std::vector<settings::SettingEntry>& entries) {
     std::vector<settings::SettingsSection> sections;
     for (const auto& descriptor : settings::settingsSectionDescriptors()) {
-      if (!descriptor.sidebar) {
+      if (!descriptor.sidebar || settings::sectionHiddenForCompositor(descriptor.section)) {
         continue;
       }
       const bool present = descriptor.alwaysShow
@@ -869,9 +869,7 @@ std::vector<settings::GestureActionOption> SettingsWindow::gestureActionCatalog(
   return options;
 }
 
-settings::SettingsContentContext SettingsWindow::makeContentContext(
-    const Config& cfg, const BarConfig* selectedBar
-) {
+settings::SettingsContentContext SettingsWindow::makeContentContext(const Config& cfg, const BarConfig* selectedBar) {
   const auto requestRebuild = [this] { requestContentRebuild(/*refreshRegistry=*/true, /*refreshFilterRow=*/true); };
   const auto requestContent = [this] { requestContentRebuild(); };
   const auto setOverride = [this](std::vector<std::string> path, ConfigOverrideValue value) {
@@ -1060,18 +1058,19 @@ void SettingsWindow::rebuildSettingsContent() {
             selectedIndex = i;
           }
         }
-        m_moduleTabsRow->addChild(ui::segmented({
-            .options = std::move(options),
-            .selectedIndex = selectedIndex,
-            .scale = scale,
-            .onChange =
-                [this, shown](std::size_t index) {
+        m_moduleTabsRow->addChild(
+            ui::segmented({
+                .options = std::move(options),
+                .selectedIndex = selectedIndex,
+                .scale = scale,
+                .onChange = [this, shown](std::size_t index) {
                   if (index < shown.size()) {
                     m_selectedSection = std::string(settings::settingsSectionId(shown[index]));
                     requestSceneRebuild();
                   }
                 },
-        }));
+            })
+        );
       }
     }
   }
@@ -1089,8 +1088,8 @@ void SettingsWindow::rebuildSettingsContent() {
   }
 
   // OKARU: la búsqueda también cubre las páginas propias de OKARU, que no están en el registro.
-  const auto okaruResults = m_searchQuery.empty() ? std::vector<settings::OkaruSearchItem>{}
-                                                  : settings::okaruSearch(m_searchQuery);
+  const auto okaruResults =
+      m_searchQuery.empty() ? std::vector<settings::OkaruSearchItem>{} : settings::okaruSearch(m_searchQuery);
   auto okaruContentContext = makeContentContext(cfg, selectedBar);
   okaruContentContext.okaruExtraResults = okaruResults.size();
   const std::size_t visibleEntries =
@@ -1110,18 +1109,20 @@ void SettingsWindow::rebuildSettingsContent() {
           while (!m_pageTitleRow->children().empty()) {
             m_pageTitleRow->removeChild(m_pageTitleRow->children().back().get());
           }
-          m_pageTitleRow->addChild(ui::row(
-              {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
-              ui::glyph({
-                  .glyph = std::string(group->module->glyph),
-                  .glyphSize = Style::fontSizeHeader * scale,
-                  .color = colorSpecFromRole(ColorRole::Primary),
-              }),
-              settings::makeLabel(
-                  i18n::tr(settings::settingsModuleLabelKey(*group->module)), Style::fontSizeHeader * scale,
-                  colorSpecFromRole(ColorRole::Primary), FontWeight::Bold
+          m_pageTitleRow->addChild(
+              ui::row(
+                  {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+                  ui::glyph({
+                      .glyph = std::string(group->module->glyph),
+                      .glyphSize = Style::fontSizeHeader * scale,
+                      .color = colorSpecFromRole(ColorRole::Primary),
+                  }),
+                  settings::makeLabel(
+                      i18n::tr(settings::settingsModuleLabelKey(*group->module)), Style::fontSizeHeader * scale,
+                      colorSpecFromRole(ColorRole::Primary), FontWeight::Bold
+                  )
               )
-          ));
+          );
         }
       }
     }
@@ -1151,25 +1152,25 @@ void SettingsWindow::rebuildSettingsContent() {
             }
           }
         }
-        body->addChild(ui::button({
-            .text = item.label + "   ·   " + where,
-            .glyph = "arrow-right",
-            .fontSize = Style::fontSizeBody * scale,
-            .glyphSize = Style::fontSizeCaption * scale,
-            .contentAlign = ButtonContentAlign::Start,
-            .variant = ButtonVariant::Ghost,
-            .onClick =
-                [this, section = item.section] {
+        body->addChild(
+            ui::button({
+                .text = item.label + "   ·   " + where,
+                .glyph = "arrow-right",
+                .fontSize = Style::fontSizeBody * scale,
+                .glyphSize = Style::fontSizeCaption * scale,
+                .contentAlign = ButtonContentAlign::Start,
+                .variant = ButtonVariant::Ghost,
+                .onClick = [this, section = item.section] {
                   m_searchQuery.clear();
                   m_selectedSection = section;
                   requestSceneRebuild();
                 },
-        }));
+            })
+        );
       }
     }
     return; // en una búsqueda solo se muestran resultados
   }
-
 
   logSettingsProfile("rebuildContent sections", phaseProfileWatch);
   phaseProfileWatch.reset();
@@ -1496,32 +1497,44 @@ std::unique_ptr<Flex> SettingsWindow::buildHeaderRow(float scale) {
   return row;
 }
 
-std::unique_ptr<Flex> SettingsWindow::buildFilterRow(
-    float scale, const std::string& resetPageScope, std::vector<std::vector<std::string>> resetPagePaths
-) {
-  const auto requestRebuild = [this] { requestSceneRebuild(); };
-  const auto clearOverrides = [this](std::vector<std::vector<std::string>> paths) {
-    clearSettingOverrides(std::move(paths));
-  };
-
-  auto filters = ui::row({
+// OKARU: búsqueda encima del menú lateral, alineada con sus botones (mismo margen, ancho, relleno y radio).
+std::unique_ptr<Flex> SettingsWindow::buildSearchField(float scale, float sidebarWidth) {
+  constexpr float kSidebarPadding = 6.0F; // el de settings_sidebar.cpp
+  auto outer = ui::row({
       .align = FlexAlign::Center,
       .justify = FlexJustify::Start,
-      .gap = Style::spaceMd * scale,
+      .paddingH = kSidebarPadding * scale,
+      .width = sidebarWidth,
   });
-
+  auto field = ui::row({
+      .align = FlexAlign::Center,
+      .gap = Style::spaceSm * scale,
+      .paddingH = 10.0F * scale,
+      .fill = colorSpecFromRole(ColorRole::SurfaceContainerHighest, 0.6F),
+      .radius = Style::scaledRadiusMd(scale),
+      .width = sidebarWidth - 2.0F * kSidebarPadding * scale,
+      .height = Style::controlHeight * scale,
+  });
+  field->addChild(
+      ui::glyph({
+          .glyph = "search",
+          .glyphSize = 16.0F * scale,
+          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+      })
+  );
   Input* searchInputPtr = nullptr;
-  filters->addChild(
+  field->addChild(
       ui::input({
           .out = &searchInputPtr,
           .value = m_searchQuery,
           .placeholder = i18n::tr("settings.window.search-placeholder"),
           .fontSize = Style::fontSizeBody * scale,
           .controlHeight = Style::controlHeight * scale,
-          .horizontalPadding = Style::spaceSm * scale,
+          .horizontalPadding = 0.0F,
           .clearButtonEnabled = true,
-          .width = 320.0F * scale,
+          .frameVisible = false,
           .height = Style::controlHeight * scale,
+          .flexGrow = 1.0F,
           .onChange = [this](const std::string& value) {
             const bool wasSearchActive = !m_searchQuery.empty();
             m_searchQuery = value;
@@ -1548,7 +1561,23 @@ std::unique_ptr<Flex> SettingsWindow::buildFilterRow(
   if (searchInputPtr != nullptr && searchInputPtr->inputArea() != nullptr) {
     searchInputPtr->inputArea()->setTabFocusKey("settings.search");
   }
-  filters->addChild(ui::spacer());
+  outer->addChild(std::move(field));
+  return outer;
+}
+
+std::unique_ptr<Flex> SettingsWindow::buildFilterRow(
+    float scale, const std::string& resetPageScope, std::vector<std::vector<std::string>> resetPagePaths
+) {
+  const auto requestRebuild = [this] { requestSceneRebuild(); };
+  const auto clearOverrides = [this](std::vector<std::vector<std::string>> paths) {
+    clearSettingOverrides(std::move(paths));
+  };
+
+  auto filters = ui::row({
+      .align = FlexAlign::Center,
+      .justify = FlexJustify::Start,
+      .gap = Style::spaceMd * scale,
+  });
 
   static const bool translatorMode = SysUtils::isEnvFlagOn("OKARU_TRANSLATOR");
   if (translatorMode) {
@@ -1599,6 +1628,8 @@ std::unique_ptr<Flex> SettingsWindow::buildFilterRow(
     );
   }
 
+  // Sin botones la fila no ocupa sitio en el encabezado.
+  filters->setParticipatesInLayout(!filters->children().empty());
   return filters;
 }
 
@@ -1669,7 +1700,12 @@ std::unique_ptr<Flex> SettingsWindow::buildBody(
   );
   m_sidebarScrollView = dynamic_cast<ScrollView*>(sidebar.get());
 
-  body->addChild(std::move(sidebar));
+  const float sidebarWidth = sidebar->width();
+  auto sideColumn = ui::column({.align = FlexAlign::Stretch, .gap = Style::spaceSm * scale, .width = sidebarWidth});
+  sideColumn->addChild(buildSearchField(scale, sidebarWidth));
+  sidebar->setFlexGrow(1.0F);
+  sideColumn->addChild(std::move(sidebar));
+  body->addChild(std::move(sideColumn));
   body->addChild(ui::separator());
 
   auto contentColumn = ui::column({.align = FlexAlign::Stretch, .gap = Style::spaceSm * scale, .flexGrow = 1.0F});
@@ -2312,11 +2348,12 @@ bool SettingsWindow::tryPatchSettingsRegistryResetValues(const std::vector<std::
 }
 
 void SettingsWindow::rebuildFilterRow(float scale) {
-  if (m_mainContainer == nullptr || m_filterRow == nullptr) {
+  auto* parent = m_filterRow != nullptr ? m_filterRow->parent() : nullptr;
+  if (parent == nullptr) {
     return;
   }
 
-  const auto& children = m_mainContainer->children();
+  const auto& children = parent->children();
   auto it =
       std::ranges::find_if(children, [this](const std::unique_ptr<Node>& child) { return child.get() == m_filterRow; });
   if (it == children.end()) {
@@ -2324,11 +2361,9 @@ void SettingsWindow::rebuildFilterRow(float scale) {
   }
 
   const auto index = static_cast<std::size_t>(std::distance(children.begin(), it));
-  (void)m_mainContainer->removeChild(m_filterRow);
+  (void)parent->removeChild(m_filterRow);
   const std::string resetPageScope = pageScopeKey(m_selectedSection, m_selectedBarName);
-  m_filterRow = m_mainContainer->insertChildAt(
-      index, centeredRow(buildFilterRow(scale, resetPageScope, currentPageResetPaths()))
-  );
+  m_filterRow = parent->insertChildAt(index, buildFilterRow(scale, resetPageScope, currentPageResetPaths()));
 }
 
 void SettingsWindow::buildScene(std::uint32_t width, std::uint32_t height) {
@@ -2435,8 +2470,10 @@ void SettingsWindow::buildScene(std::uint32_t width, std::uint32_t height) {
       .height = h,
   });
 
-  m_headerRow = main->addChild(centeredRow(buildHeaderRow(scale)));
-  m_filterRow = main->addChild(centeredRow(buildFilterRow(scale, resetPageScope, std::move(resetPagePaths))));
+  // OKARU: «Restablecer página» y el modo traductor van en el encabezado, tras el título: sin fila propia.
+  auto header = buildHeaderRow(scale);
+  m_filterRow = header->insertChildAt(1, buildFilterRow(scale, resetPageScope, std::move(resetPagePaths)));
+  m_headerRow = main->addChild(centeredRow(std::move(header)));
   if (auto status = buildStatusRow(scale)) {
     main->addChild(centeredRow(std::move(status)));
   }

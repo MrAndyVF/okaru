@@ -1,5 +1,6 @@
 #include "shell/settings/okaru_settings_startup.h"
 
+#include "compositors/compositor_detect.h"
 #include "i18n/i18n.h"
 #include "shell/settings/okaru_settings_windows.h"
 #include "shell/settings/settings_content_common.h"
@@ -312,7 +313,9 @@ namespace settings {
 
     if (ctx.page != "system-environment") {
       addAppsCard(content, scale);
-      addHyprlandStartCard(content, scale);
+      if (!compositors::isNiri()) {
+        addHyprlandStartCard(content, scale);
+      }
       return;
     }
     addEnvCard(content, scale);

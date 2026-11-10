@@ -20,9 +20,9 @@ layout {
     gaps 8
     center-focused-column "never"
     preset-column-widths {
-        proportion 0.33333
         proportion 0.5
         proportion 0.66667
+        proportion 1.0
     }
     default-column-width { proportion 0.5; }
     focus-ring {
@@ -82,15 +82,49 @@ window-rule {
 window-rule {
     match app-id="^dev\\.okaru\\.Editor$"
     open-floating true
-    default-column-width { fixed 1000; }
+    default-column-width { fixed 1100; }
     default-window-height { fixed 760; }
 }
 
 window-rule {
     match app-id="^dev\\.okaru\\.Pdf$"
     open-floating true
+    default-column-width { fixed 760; }
+    default-window-height { fixed 960; }
+}
+
+// Ventanas un poco translúcidas, como en Hyprland; el lector PDF opaco.
+window-rule {
+    opacity 0.95
+}
+
+window-rule {
+    match app-id="^dev\\.okaru\\.Pdf$"
+    opacity 1.0
+}
+
+// Nautilus y LocalSend
+window-rule {
+    match app-id="^org\\.gnome\\.Nautilus$"
+    open-floating true
+    default-column-width { fixed 1300; }
+    default-window-height { fixed 800; }
+}
+
+window-rule {
+    match app-id="^org\\.localsend\\.localsend_app$"
+    open-floating true
+    default-column-width { fixed 600; }
+    default-window-height { fixed 800; }
+}
+
+// Selector de archivos del portal y selectores que la app abre por su cuenta (p. ej. Epic Games Launcher)
+window-rule {
+    match app-id="^xdg-desktop-portal(-gtk|-gnome)?$"
+    match title="^(Open File|Open Files|Open Folder|Select File|Select Folder|Save File|Save As|Abrir archivo|Abrir carpeta|Seleccionar archivo|Seleccionar carpeta|Guardar como)$"
+    open-floating true
     default-column-width { fixed 900; }
-    default-window-height { fixed 1000; }
+    default-window-height { fixed 600; }
 }
 
 window-rule {
@@ -98,9 +132,49 @@ window-rule {
     open-floating true
 }
 
+// Steam: los popups flotan (como mucho 1000×850), la ventana principal va en columna a todo lo ancho
 window-rule {
-    match app-id="^(pavucontrol|blueman-manager|nm-connection-editor|org\\.gnome\\.Calculator|org\\.gnome\\.FileRoller|com\\.github\\.wwmm\\.easyeffects|org\\.kde\\.kdeconnect\\.app|nwg-look|qt[56]ct)$"
+    match app-id="^steam$"
+    exclude title="^Steam$"
     open-floating true
+    max-width 1000
+    max-height 850
+}
+
+window-rule {
+    match app-id="^steam$" title="^Steam$"
+    default-column-width { proportion 1.0; }
+}
+
+window-rule {
+    match app-id="^steam$" title="^Friends List"
+    default-column-width { fixed 400; }
+    default-window-height { fixed 700; }
+}
+
+window-rule {
+    match app-id="^steam$" title="^notificationtoasts"
+    open-focused false
+}
+
+// Juegos de Steam en pantalla completa
+window-rule {
+    match app-id="^steam_app_"
+    open-fullscreen true
+}
+
+// Launchers de juegos a todo lo ancho (Heroic, Faugus, Prism y Epic Games Launcher nativo)
+window-rule {
+    match app-id="^(heroic|io\\.github\\.Faugus\\.faugus-launcher|org\\.prismlauncher\\.PrismLauncher|EpicGamesLauncher)$"
+    default-column-width { proportion 1.0; }
+}
+
+// Utilidades del sistema flotantes
+window-rule {
+    match app-id="^(pavucontrol|blueman-manager|nm-connection-editor|org\\.gnome\\.FileRoller|org\\.gnome\\.DiskUtility|com\\.github\\.wwmm\\.easyeffects|org\\.kde\\.kdeconnect\\.app|nwg-look|qt[56]ct|goverlay|org\\.cachyos\\.(KernelManager|scx-manager|hello|cachyos-pi)|nvidia-settings|btrfs-assistant|io\\.missioncenter\\.MissionCenter)$"
+    open-floating true
+    default-column-width { fixed 1100; }
+    default-window-height { fixed 720; }
 }
 
 // Fondo difuminado de OKARU en la vista general.

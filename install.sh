@@ -13,7 +13,14 @@ readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packagin
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS_ROOT="/usr/share/okaru/defaults"
-readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts ttf-jetbrains-mono-nerd fastfetch starship)
+readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts ttf-jetbrains-mono-nerd fastfetch starship
+  firefox localsend gpu-screen-recorder slurp) # localsend viene de Chaotic-AUR; los dos últimos, para el widget Captura
+# Chaotic-AUR (https://aur.chaotic.cx): llave y paquetes de su llavero y lista de espejos.
+readonly CHAOTIC_KEY="3056513887B78AEB"
+readonly CHAOTIC_CDN="https://cdn-mirror.chaotic.cx/chaotic-aur"
+# Variantes de español que ofrece el instalador (locale:país).
+readonly ES_LOCALES=("es_ES:España" "es_MX:México" "es_CO:Colombia" "es_AR:Argentina" "es_CL:Chile" "es_PE:Perú"
+  "es_VE:Venezuela" "es_EC:Ecuador" "es_US:Estados Unidos")
 # Lo básico de cada compositor: sesión, portal de capturas/compartir pantalla y, en Niri, apps X11.
 readonly HYPR_PACKAGES=(hyprland uwsm xdg-desktop-portal-hyprland)
 readonly NIRI_PACKAGES=(niri xdg-desktop-portal-gnome xwayland-satellite)
@@ -22,10 +29,10 @@ readonly PHONE_PACKAGES=(kdeconnect sshfs)
 readonly GUM_VERSION="2.0.2"
 readonly GUM_SHA256="d842e06d93dbed90af48cb8dd10698db6f22e331fc40346bb37bbc753109edc2"
 
-# Idioma: español si el locale lo es, inglés si no. OKARU_LANG=es|en lo fuerza
-# (curl -fsSL …/install.sh | OKARU_LANG=en bash).
+# Idioma de los mensajes previos a la pantalla de idioma: español si el locale lo es, inglés si no.
 LANG_TAG=${OKARU_LANG:-${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}}
 [[ $LANG_TAG == es* ]] && ES=true || ES=false
+SYSTEM_LOCALE=""
 # t "español" "english" — imprime el texto del idioma activo.
 t() { if $ES; then printf '%s' "$1"; else printf '%s' "$2"; fi; }
 
@@ -38,7 +45,8 @@ readonly OPT_GREETER="OKARU Greeter ($(t "pantalla de inicio de sesión" "login 
 readonly OPT_PHONE="$(t "Teléfono con KDE Connect" "Phone with KDE Connect")"
 readonly OPT_EXTRA="$(t "Dependencias opcionales (grabación, VPN, actualizaciones…)" "Optional dependencies (recording, VPN, updates…)")"
 
-LOG="${XDG_CACHE_HOME:-$HOME/.cache}/okaru/install-$(date +%Y%m%d-%H%M%S).log"
+STAMP=$(date +%Y%m%d-%H%M%S)
+LOG="${XDG_CACHE_HOME:-$HOME/.cache}/okaru/install-$STAMP.log"
 TMP="" GUM="" KEEPALIVE=""
 WANT_GREETER=false WANT_PHONE=false WANT_OPTIONAL=false SWITCH_DM="" CONFIG_ACTION=keep
 COMPOSITOR=hyprland
@@ -158,6 +166,29 @@ run_step() {
 
 # --- Pantallas ------------------------------------------------------------------------------------------
 
+# Idioma del instalador y del sistema; en español, también el país (formato de fechas, números y moneda).
+choose_language() {
+  banner
+  title "Idioma / Language"
+  local picked
+  picked=$("$GUM" choose --cursor.foreground "$C_PRIMARY" --selected.foreground "$C_PRIMARY" "Español" "English") || exit 0
+  if [[ $picked == English ]]; then
+    ES=false
+    SYSTEM_LOCALE="en_US.UTF-8"
+    return 0
+  fi
+  ES=true
+  title "País"
+  note "Define el idioma y el formato de fechas, números y moneda del sistema."
+  local entry countries=()
+  for entry in "${ES_LOCALES[@]}"; do countries+=("${entry#*:}"); done
+  picked=$("$GUM" choose --cursor.foreground "$C_PRIMARY" --selected.foreground "$C_PRIMARY" "${countries[@]}") || exit 0
+  for entry in "${ES_LOCALES[@]}"; do
+    [[ ${entry#*:} == "$picked" ]] && SYSTEM_LOCALE="${entry%%:*}.UTF-8"
+  done
+  return 0
+}
+
 welcome() {
   banner
   local distro
@@ -169,15 +200,19 @@ welcome() {
     "$GUM" style --foreground "$C_TEXT" \
       "  • OKARU Shell: barra, panel de control, lanzador, notificaciones y ajustes" \
       "  • Hyprland (con uwsm) o Niri, kitty como terminal y Nautilus como gestor de archivos" \
-      "  • Reglas de ventana y atajos estándar de OKARU, sin configuración personal" \
-      "  • fastfetch y starship con el estilo de OKARU" \
+      "  • Firefox, LocalSend y el repositorio Chaotic-AUR" \
+      "  • Tema, barra, reglas de ventana (Steam, Heroic, Faugus…) y atajos de OKARU" \
+      "  • kitty, fastfetch y starship con el estilo de OKARU" \
+      "  • El idioma que elegiste para todo el sistema ($SYSTEM_LOCALE)" \
       "  • Paquetes firmados desde el repositorio [okaru]: se actualizan con pacman -Syu"
   else
     "$GUM" style --foreground "$C_TEXT" \
       "  • OKARU Shell: bar, control center, launcher, notifications and settings" \
       "  • Hyprland (with uwsm) or Niri, kitty as terminal and Nautilus as file manager" \
-      "  • OKARU's standard window rules and shortcuts, nothing personal" \
-      "  • fastfetch and starship in OKARU's style" \
+      "  • Firefox, LocalSend and the Chaotic-AUR repository" \
+      "  • OKARU's theme, bar, window rules (Steam, Heroic, Faugus…) and shortcuts" \
+      "  • kitty, fastfetch and starship in OKARU's style" \
+      "  • The language you picked for the whole system ($SYSTEM_LOCALE)" \
       "  • Signed packages from the [okaru] repository: updated with pacman -Syu"
   fi
   printf '\n'
@@ -246,7 +281,31 @@ add_repo() {
   else
     printf '\n[okaru]\nServer = %s\n' "$REPO_URL" | sudo tee -a /etc/pacman.conf
   fi
+  chaotic_aur
   sudo pacman -Sy
+}
+
+# Chaotic-AUR, con los pasos de su página: llave, llavero, lista de espejos y la entrada en pacman.conf.
+chaotic_aur() {
+  if grep -q '^\[chaotic-aur\]' /etc/pacman.conf; then
+    t "[chaotic-aur] ya estaba en /etc/pacman.conf" "[chaotic-aur] was already in /etc/pacman.conf"; echo
+    return 0
+  fi
+  sudo pacman-key --recv-key "$CHAOTIC_KEY" --keyserver keyserver.ubuntu.com
+  sudo pacman-key --lsign-key "$CHAOTIC_KEY"
+  sudo pacman -U --noconfirm "$CHAOTIC_CDN/chaotic-keyring.pkg.tar.zst" "$CHAOTIC_CDN/chaotic-mirrorlist.pkg.tar.zst"
+  printf '\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist\n' | sudo tee -a /etc/pacman.conf
+}
+
+# Idioma del sistema: genera el locale elegido (y en_US, que muchas apps esperan) y lo deja por defecto.
+system_locale() {
+  local loc
+  for loc in "$SYSTEM_LOCALE" en_US.UTF-8; do
+    grep -q "^${loc} UTF-8" /etc/locale.gen || sudo sed -i "s/^#[[:space:]]*${loc} UTF-8/${loc} UTF-8/" /etc/locale.gen
+    grep -q "^${loc} UTF-8" /etc/locale.gen || echo "${loc} UTF-8" | sudo tee -a /etc/locale.gen
+  done
+  sudo locale-gen
+  sudo localectl set-locale "LANG=$SYSTEM_LOCALE"
 }
 
 optional_packages() {
@@ -300,12 +359,14 @@ review() {
     fi
   fi
 
-  local target
-  target=$(config_target)
   CONFIG_ACTION=copy
-  if [[ -e $target ]]; then
-    title "$(t "Configuración de" "Configuration of") $(compositor_name)"
-    note "$(t "Ya tienes ${target/#$HOME/\~}. Reemplazarla deja las reglas y atajos de OKARU; se guarda una copia con fecha." "You already have ${target/#$HOME/\~}. Replacing it leaves OKARU's rules and shortcuts; a dated backup is kept.")"
+  local existing=() path
+  while read -r path; do [[ -e $path ]] && existing+=("${path/#$HOME/\~}"); done < <(config_paths)
+  if ((${#existing[@]})); then
+    title "$(t "Tu configuración" "Your configuration")"
+    note "$(t "Ya tienes:" "You already have:")"
+    printf '    %s\n' "${existing[@]}"
+    note "$(t "Reemplazarla deja la experiencia de OKARU (tema, barra, reglas, atajos, terminal); se guarda una copia con fecha." "Replacing it leaves OKARU's experience (theme, bar, rules, shortcuts, terminal); a dated backup is kept.")"
     local choice replace
     replace=$(t "Reemplazar por la de OKARU" "Replace with OKARU's")
     choice=$("$GUM" choose --cursor.foreground "$C_PRIMARY" "$(t "Conservar la mía" "Keep mine")" "$replace") || exit 0
@@ -325,19 +386,41 @@ install_packages() {
   fi
 }
 
-compositor_config() {
-  local target defaults
-  target=$(config_target)
-  defaults=$(defaults_dir)
-  [[ -d $defaults ]] || { t "no se encontró la configuración de fábrica en $defaults." "factory configuration not found in $defaults."; echo; return 1; }
-  if [[ $CONFIG_ACTION == replace ]]; then
-    local backup
-    backup="${target}.bak-$(date +%Y%m%d-%H%M%S)"
-    mv "$target" "$backup"
-    t "copia de seguridad en $backup" "backup in $backup"; echo
+# Destinos de la configuración de fábrica; los que ya existen se conservan o se reemplazan según CONFIG_ACTION.
+config_paths() {
+  local config="${XDG_CONFIG_HOME:-$HOME/.config}"
+  printf '%s\n' "$(config_target)" "$config/okaru/config.toml" "${XDG_STATE_HOME:-$HOME/.local/state}/okaru/settings.toml" \
+    "$config/kitty/kitty.conf" "$config/fastfetch" "$config/starship.toml"
+}
+
+# Aparta un archivo o carpeta existente con una copia fechada.
+backup() {
+  mv "$1" "$1.bak-$STAMP"
+  t "copia de seguridad en $1.bak-$STAMP" "backup in $1.bak-$STAMP"; echo
+}
+
+# place <origen> <destino> — copia la configuración de fábrica si el destino no existe o si se pidió reemplazar.
+place() {
+  if [[ -e $2 ]]; then
+    [[ $CONFIG_ACTION == replace ]] || return 0
+    backup "$2"
   fi
-  mkdir -p "$(dirname "$target")"
-  cp -rv "$defaults" "$target"
+  mkdir -p "$(dirname "$2")"
+  cp -rv "$1" "$2"
+}
+
+# Compositor y shell: reglas, atajos, barra, tema y paneles de OKARU.
+factory_config() {
+  [[ -d $(defaults_dir) ]] || { t "no se encontró la configuración de fábrica en $(defaults_dir)." "factory configuration not found in $(defaults_dir)."; echo; return 1; }
+  place "$(defaults_dir)" "$(config_target)"
+  local okaru="${XDG_CONFIG_HOME:-$HOME/.config}/okaru/config.toml"
+  place "$DEFAULTS_ROOT/okaru/config.toml" "$okaru"
+  # Los cambios hechos desde Ajustes ganan sobre config.toml: al reemplazar, también se apartan.
+  local settings="${XDG_STATE_HOME:-$HOME/.local/state}/okaru/settings.toml"
+  [[ $CONFIG_ACTION == replace && -e $settings ]] && backup "$settings"
+  # Sin KDE Connect, el widget del teléfono solo mostraría que falta (solo toca la línea de fábrica, no una propia).
+  $WANT_PHONE || sed -i 's/^end = \[ "tray", "cat", "phone", /end = [ "tray", "cat", /' "$okaru"
+  return 0
 }
 
 default_apps() {
@@ -352,11 +435,10 @@ default_apps() {
   systemctl --user enable okaru.service
 }
 
-# JetBrainsMono Nerd Font en todo el sistema: fontconfig (interfaz, serif y monoespaciada), GTK y kitty.
-# No pisa nada propio: el archivo de fontconfig solo se copia si no existe y kitty solo si no fija font_family.
+# JetBrainsMono Nerd Font en todo el sistema: fontconfig (interfaz, serif y monoespaciada) y GTK.
+# No pisa nada propio: el archivo de fontconfig solo se copia si no existe.
 system_font() {
-  local config="${XDG_CONFIG_HOME:-$HOME/.config}"
-  local fc="$config/fontconfig/conf.d/50-okaru-font.conf"
+  local fc="${XDG_CONFIG_HOME:-$HOME/.config}/fontconfig/conf.d/50-okaru-font.conf"
   if [[ ! -e $fc ]]; then
     mkdir -p "$(dirname "$fc")"
     cp -v "$DEFAULTS_ROOT/fontconfig/50-okaru-font.conf" "$fc"
@@ -364,21 +446,17 @@ system_font() {
   fc-cache -f >/dev/null 2>&1 || true
   gsettings set org.gnome.desktop.interface font-name 'JetBrainsMono Nerd Font 11' || true
   gsettings set org.gnome.desktop.interface monospace-font-name 'JetBrainsMono Nerd Font Mono 11' || true
-  local kitty="$config/kitty/kitty.conf"
-  if ! grep -qs '^[[:space:]]*font_family' "$kitty"; then
-    mkdir -p "$(dirname "$kitty")"
-    printf '\n# OKARU\nfont_family JetBrainsMono Nerd Font Mono\n' >>"$kitty"
-  fi
 }
 
-# fastfetch (basado en el de Omarchy) y starship con el estilo de OKARU. Solo se copian si no existen.
+# kitty, fastfetch (basado en el de Omarchy) y starship con el estilo de OKARU.
 terminal() {
   local config="${XDG_CONFIG_HOME:-$HOME/.config}"
-  if [[ ! -e $config/fastfetch/config.jsonc ]]; then
-    mkdir -p "$config/fastfetch"
-    cp -v "$DEFAULTS_ROOT"/fastfetch/* "$config/fastfetch/"
-  fi
-  [[ -e $config/starship.toml ]] || cp -v "$DEFAULTS_ROOT/starship.toml" "$config/starship.toml"
+  place "$DEFAULTS_ROOT/kitty/kitty.conf" "$config/kitty/kitty.conf"
+  # kitty propio que se conserva: al menos la fuente de OKARU.
+  grep -qs '^[[:space:]]*font_family' "$config/kitty/kitty.conf" \
+    || printf '\n# OKARU\nfont_family JetBrainsMono Nerd Font Mono\n' >>"$config/kitty/kitty.conf"
+  place "$DEFAULTS_ROOT/fastfetch" "$config/fastfetch"
+  place "$DEFAULTS_ROOT/starship.toml" "$config/starship.toml"
   starship_init "$(getent passwd "$USER" | cut -d: -f7)" "$config" "${ZDOTDIR:-$HOME}" "$HOME"
 }
 
@@ -435,7 +513,8 @@ finish() {
   $WANT_GREETER && [[ $SWITCH_DM != keep ]] && login=$(t "Reinicia el equipo para entrar con OKARU Greeter." "Reboot to log in with OKARU Greeter.")
   "$GUM" style --border rounded --border-foreground "$C_PRIMARY" --padding "1 3" \
     "$("$GUM" style --bold --foreground "$C_PRIMARY" "郁  OKARU Linux Shell $(t instalada installed)")" "" \
-    "$login" "" \
+    "$login" \
+    "$(t "El idioma del sistema ($SYSTEM_LOCALE) se aplica al volver a entrar." "The system language ($SYSTEM_LOCALE) applies on your next login.")" "" \
     "$(t "Super + Espacio   lanzador" "Super + Space     launcher")" \
     "Super + Enter     terminal (kitty)" \
     "$(t "Super + E         archivos (Nautilus)" "Super + E         files (Nautilus)")" \
@@ -449,23 +528,22 @@ main() {
   bootstrap_gum
   # Con curl | bash la entrada estándar es el propio script: todo lo interactivo lee de la terminal.
   exec </dev/tty
+  choose_language
   welcome
   choose_compositor
   choose_components
   authenticate
   title "$(t Instalación Installation)"
-  run_step "$(t "Repositorio [okaru] y su llave de firma" "[okaru] repository and its signing key")" add_repo
+  run_step "$(t "Repositorios [okaru] y Chaotic-AUR" "[okaru] and Chaotic-AUR repositories")" add_repo
   review
   title "$(t Instalación Installation)"
   run_step "$(t Paquetes Packages)" install_packages
-  if [[ $CONFIG_ACTION == keep ]]; then
-    ok "$(t "Configuración de $(compositor_name): se conserva la tuya (la de fábrica queda en $(defaults_dir))" "$(compositor_name) configuration: yours is kept (the factory one stays in $(defaults_dir))")"
-  else
-    run_step "$(t "Configuración de fábrica de $(compositor_name)" "$(compositor_name) factory configuration")" compositor_config
-  fi
+  run_step "$(t "Idioma del sistema" "System language") ($SYSTEM_LOCALE)" system_locale
+  run_step "$(t "Configuración de OKARU y de $(compositor_name)" "OKARU and $(compositor_name) configuration")" factory_config
+  [[ $CONFIG_ACTION == keep ]] && ok "$(t "Se conserva tu configuración; la de fábrica queda en $DEFAULTS_ROOT" "Your configuration is kept; the factory one stays in $DEFAULTS_ROOT")"
   run_step "$(t "Apps por defecto y servicio de la shell" "Default apps and shell service")" default_apps
   run_step "$(t "Fuente del sistema (JetBrainsMono Nerd Font)" "System font (JetBrainsMono Nerd Font)")" system_font
-  run_step "$(t "Terminal: fastfetch y starship" "Terminal: fastfetch and starship")" terminal
+  run_step "$(t "Terminal: kitty, fastfetch y starship" "Terminal: kitty, fastfetch and starship")" terminal
   if $WANT_GREETER; then run_step "$(t "OKARU Greeter con greetd" "OKARU Greeter with greetd")" greeter; fi
   finish
 }

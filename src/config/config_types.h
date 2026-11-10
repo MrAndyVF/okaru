@@ -138,9 +138,6 @@ struct BarDeadZoneConfig {
   bool operator==(const BarDeadZoneConfig&) const = default;
 };
 
-// OKARU: widgets del final de la barra de fábrica; en una sesión de Hyprland incluye hypr_layout.
-[[nodiscard]] std::vector<std::string> defaultBarEndWidgets();
-
 struct BarConfig {
   // Gesture -> action bindings applied to every widget on this bar, overriding widget-type
   // defaults and overridden in turn by `[widget.<name>.actions]`. See widget_action.h.
@@ -185,9 +182,10 @@ struct BarConfig {
   int fontWeight = 500;           // primary label weight for bar widgets
   // Typeface for this bar's widgets; unset inherits shell.font_family. Per-widget `font_family` overrides.
   std::optional<std::string> fontFamily;
-  std::vector<std::string> startWidgets = {"launcher", "wallpaper", "workspaces"};
-  std::vector<std::string> centerWidgets = {"clock"};
-  std::vector<std::string> endWidgets = defaultBarEndWidgets();
+  // Barra de fábrica de OKARU, igual en Hyprland y Niri.
+  std::vector<std::string> startWidgets = {"workspaces", "media"};
+  std::vector<std::string> centerWidgets = {"clock", "weather"};
+  std::vector<std::string> endWidgets = {"tray", "cat", "phone", "input_volume", "capture", "control-center"};
   // When true, widgets on this bar use a capsule unless `[widget.*] capsule = false`.
   bool widgetCapsuleDefault = false;
   ColorSpec widgetCapsuleFill = colorSpecFromRole(ColorRole::SurfaceContainer);
@@ -1356,7 +1354,8 @@ struct ShellConfig {
   bool setupWizardEnabled = true;
   bool niriOverviewTypeToLaunchEnabled = false;
   bool niriOverviewCloseOnLaunchEnabled = false;
-  bool polkitAgent = true; // OKARU: sin agente, pkexec (sincronizar el greeter, etc.) no tiene dónde pedir la contraseña
+  bool polkitAgent =
+      true; // OKARU: sin agente, pkexec (sincronizar el greeter, etc.) no tiene dónde pedir la contraseña
   bool layoutPerWorkspace = true; // OKARU: el cambio de layout (Super+Alt+Space) vale solo para el workspace activo
   PasswordMaskStyle passwordMaskStyle = PasswordMaskStyle::CircleFilled;
   /// Readline-style editing shortcuts in every text input (Ctrl+A moves to the start instead of selecting all).
@@ -1489,52 +1488,34 @@ struct SystemConfig {
     float memoryPollSeconds = 2.0F;
     float networkPollSeconds = 3.0F;
     float diskPollSeconds = 10.0F;
-    double cpuUsageActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuUsage).activityDefault;
-    double cpuUsageCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuUsage).criticalDefault;
-    double cpuTempActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuTemp).activityDefault;
-    double cpuTempCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuTemp).criticalDefault;
-    double cpuFreqActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuFreq).activityDefault;
-    double cpuFreqCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuFreq).criticalDefault;
-    double gpuTempActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuTemp).activityDefault;
-    double gpuTempCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuTemp).criticalDefault;
-    double gpuUsageActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuUsage).activityDefault;
-    double gpuUsageCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuUsage).criticalDefault;
-    double gpuVramActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuVram).activityDefault;
-    double gpuVramCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuVram).criticalDefault;
+    double cpuUsageActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuUsage).activityDefault;
+    double cpuUsageCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuUsage).criticalDefault;
+    double cpuTempActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuTemp).activityDefault;
+    double cpuTempCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuTemp).criticalDefault;
+    double cpuFreqActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuFreq).activityDefault;
+    double cpuFreqCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::CpuFreq).criticalDefault;
+    double gpuTempActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuTemp).activityDefault;
+    double gpuTempCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuTemp).criticalDefault;
+    double gpuUsageActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuUsage).activityDefault;
+    double gpuUsageCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuUsage).criticalDefault;
+    double gpuVramActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuVram).activityDefault;
+    double gpuVramCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::GpuVram).criticalDefault;
     double ramPctActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::RamPct).activityDefault;
     double ramPctCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::RamPct).criticalDefault;
-    double swapPctActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::SwapPct).activityDefault;
-    double swapPctCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::SwapPct).criticalDefault;
+    double swapPctActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::SwapPct).activityDefault;
+    double swapPctCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::SwapPct).criticalDefault;
     double diskUsedPctActivityThreshold =
         okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsedPct).activityDefault;
     double diskUsedPctCriticalThreshold =
         okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsedPct).criticalDefault;
-    double diskUsedActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsed).activityDefault;
-    double diskUsedCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsed).criticalDefault;
+    double diskUsedActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsed).activityDefault;
+    double diskUsedCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskUsed).criticalDefault;
     double diskFreePctActivityThreshold =
         okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFreePct).activityDefault;
     double diskFreePctCriticalThreshold =
         okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFreePct).criticalDefault;
-    double diskFreeActivityThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFree).activityDefault;
-    double diskFreeCriticalThreshold =
-        okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFree).criticalDefault;
+    double diskFreeActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFree).activityDefault;
+    double diskFreeCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::DiskFree).criticalDefault;
     double netRxActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::NetRx).activityDefault;
     double netRxCriticalThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::NetRx).criticalDefault;
     double netTxActivityThreshold = okaru::sysmon::thresholdProfile(okaru::sysmon::Stat::NetTx).activityDefault;
