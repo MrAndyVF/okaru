@@ -80,6 +80,20 @@ window-rule {
 }
 
 window-rule {
+    match app-id="^dev\\.okaru\\.Editor$"
+    open-floating true
+    default-column-width { fixed 1000; }
+    default-window-height { fixed 760; }
+}
+
+window-rule {
+    match app-id="^dev\\.okaru\\.Pdf$"
+    open-floating true
+    default-column-width { fixed 900; }
+    default-window-height { fixed 1000; }
+}
+
+window-rule {
     match title="^(Picture in picture|Picture-in-Picture)$"
     open-floating true
 }

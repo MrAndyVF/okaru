@@ -27,13 +27,16 @@ namespace okaru::viewer {
     constexpr int kMaxFrames = 2000;
     constexpr std::size_t kMaxAnimationBytes = std::size_t{1536} << 20U;
 
-    constexpr std::array<std::string_view, 28> kRasterExtensions{
-        "png", "jpg", "jpeg", "jpe", "jfif", "gif", "webp", "avif", "heic", "heif", "jxl", "bmp",  "dib", "ico",
-        "cur", "tga", "qoi",  "pbm", "pgm",  "ppm", "pnm",  "pam",  "svg",  "svgz", "tif", "tiff", "xpm", "icns",
+    // Las que decodifica OKARU más las que abre gdk-pixbuf (TIFF, XPM, EXR, JPEG 2000, PSD, DDS…).
+    constexpr std::string_view kRasterExtensions[]{
+        "png", "apng", "jpg",  "jpeg", "jpe", "jfif", "gif", "webp", "avif", "heic", "heif", "jxl", "bmp",  "dib",
+        "ico", "cur",  "tga",  "qoi",  "pbm", "pgm",  "ppm", "pnm",  "pam",  "svg",  "svgz", "tif", "tiff", "xpm",
+        "xbm", "icns", "wbmp", "exr",  "jp2", "j2k",  "jpx", "psd",  "dds",  "pcx",  "sgi",  "rgb", "ras",
     };
-    constexpr std::array<std::string_view, 26> kRawExtensions{
-        "cr2", "cr3", "crw", "nef", "nrw", "arw", "srf", "sr2", "dng", "raf", "orf", "rw2", "pef",
-        "srw", "x3f", "erf", "kdc", "dcr", "mrw", "3fr", "mef", "mos", "raw", "rwl", "iiq", "gpr",
+    // Todos los RAW de cámara de shared-mime-info (image/x-dcraw y derivados).
+    constexpr std::string_view kRawExtensions[]{
+        "cr2", "cr3", "crw", "nef", "nrw", "arw", "srf", "sr2", "dng", "raf", "orf", "rw2", "pef", "srw", "x3f", "erf",
+        "kdc", "dcr", "k25", "mrw", "mdc", "3fr", "fff", "mef", "mos", "raw", "rw",  "rwl", "iiq", "sti", "gpr",
     };
 
     std::string extension(const fs::path& path) {

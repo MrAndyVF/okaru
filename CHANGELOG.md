@@ -10,6 +10,78 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.1.1] - 2026-11-09
+
+### English
+
+#### Features
+- Two new OKARU apps, with the same look as the others (your color theme, font and scale, live):
+  - **Text Editor** (`okaru-edit`), modeled on GNOME Text Editor: tabs, find and replace, go to line, undo
+    and redo, smart indentation, comment lines (Ctrl+/), move and duplicate lines, word wrap, line numbers,
+    unsaved-changes warning, recent files, and the open files come back next time. Syntax highlighting for
+    HTML, XML, JSON, JSONC, TOML, CSS, conf/ini, Lua, KDL and CSV, with colors taken from your palette. JSON,
+    JSONC, TOML and XML are checked as you type and the line with the error is marked; JSON, JSONC and XML
+    can be formatted (Ctrl+Shift+F), and CSV can be shown as a table. Saving is atomic and keeps the file's
+    permissions and symlinks; Latin-1 files are converted to UTF-8; files changed outside the editor reload.
+  - **Document Viewer** (`okaru-pdf`), modeled on Papers and built on poppler: tabs, a sidebar with page
+    thumbnails or the document outline, continuous scrolling in one or two columns, zoom (fit width, fit page,
+    steps, Ctrl+wheel under the pointer), rotate, night mode, search the whole document with every result
+    highlighted, go to a page by number or by its printed label, select and copy text, links, password-
+    protected PDFs, properties, printing through CUPS (printer, copies, page range, two-sided) and a
+    presentation mode (F5). It remembers the page and zoom of every file. Even very large documents open
+    and scroll smoothly.
+- Photos open with the Image Viewer, also on a fresh install: it now handles 69 image types (adding EXR,
+  JPEG 2000, PSD, DDS, PCX, SGI, Sun raster, WBMP, XBM, APNG and every camera RAW format), and OKARU ships
+  default apps for Hyprland and Niri: images to the viewer, text files to the editor and PDF to the document
+  viewer. Whatever you choose in `~/.config/mimeapps.list` still wins.
+- Niri and Hyprland default configuration: the editor and the document viewer open floating and centered.
+
+#### Fixes
+- Text drawn with markup colors (for example highlighted code) kept its colors instead of being tinted with a
+  single one.
+
+#### Changes
+- New package dependency: `poppler-glib`. Optional: `cups` to print from the document viewer.
+- Tabs are a shared component of the apps (editor and document viewer).
+- If you already have OKARU's configuration, add the rules for `dev.okaru.Editor` and `dev.okaru.Pdf` from
+  `/usr/share/okaru/defaults`.
+
+### Español
+
+#### Novedades
+- Dos apps nuevas de OKARU, con el mismo aspecto que las demás (tu tema de color, fuente y escala, en vivo):
+  - **Editor de texto** (`okaru-edit`), inspirado en GNOME Text Editor: pestañas, buscar y reemplazar, ir a
+    una línea, deshacer y rehacer, sangría automática, comentar líneas (Ctrl+/), mover y duplicar líneas,
+    ajuste de línea, números de línea, aviso de cambios sin guardar, archivos recientes, y los archivos
+    abiertos vuelven la próxima vez. Resaltado de HTML, XML, JSON, JSONC, TOML, CSS, conf/ini, Lua, KDL y
+    CSV, con colores sacados de tu paleta. JSON, JSONC, TOML y XML se validan mientras escribes y se marca la
+    línea del error; JSON, JSONC y XML se pueden formatear (Ctrl+Shift+F), y un CSV se puede ver como tabla.
+    Guarda de forma atómica respetando los permisos y los enlaces del archivo; los archivos en Latin-1 pasan
+    a UTF-8; si el archivo cambia desde fuera, se recarga.
+  - **Visor de documentos** (`okaru-pdf`), inspirado en Papers y hecho sobre poppler: pestañas, barra
+    lateral con miniaturas de las páginas o el índice del documento, desplazamiento continuo en una o dos
+    columnas, zoom (ajustar al ancho o a la página, pasos, Ctrl+rueda bajo el puntero), girar, modo nocturno,
+    buscar en todo el documento con cada resultado resaltado, ir a una página por número o por su número
+    impreso, seleccionar y copiar texto, enlaces, PDF con contraseña, propiedades, imprimir con CUPS
+    (impresora, copias, rango de páginas, doble cara) y modo presentación (F5). Recuerda la página y el zoom
+    de cada archivo. Hasta los documentos muy grandes abren y se desplazan con fluidez.
+- Las fotos se abren con el visor de imágenes, también en una instalación nueva: ahora maneja 69 tipos de
+  imagen (se suman EXR, JPEG 2000, PSD, DDS, PCX, SGI, Sun raster, WBMP, XBM, APNG y todos los RAW de cámara),
+  y OKARU trae apps por defecto para Hyprland y Niri: imágenes al visor, texto al editor y PDF al visor de
+  documentos. Lo que elijas en `~/.config/mimeapps.list` sigue mandando.
+- Configuración de fábrica de Hyprland y Niri: el editor y el visor de documentos abren flotantes y
+  centrados.
+
+#### Correcciones
+- El texto dibujado con colores en el markup (por ejemplo, código resaltado) conserva sus colores en vez de
+  teñirse de uno solo.
+
+#### Cambios
+- Dependencia nueva del paquete: `poppler-glib`. Opcional: `cups` para imprimir desde el visor de documentos.
+- Las pestañas son un componente compartido de las apps (editor y visor de documentos).
+- Si ya tienes la configuración de OKARU, agrega las reglas de `dev.okaru.Editor` y `dev.okaru.Pdf` desde
+  `/usr/share/okaru/defaults`.
+
 ## [1.1.0] - 2026-11-09
 
 ### English

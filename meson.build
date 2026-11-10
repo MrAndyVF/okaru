@@ -451,6 +451,7 @@ _okaru_sources = files(
   'src/apps/calculator/calc_state.cpp',
   'src/apps/common/okaru_app.cpp',
   'src/apps/common/portal_file_chooser.cpp',
+  'src/apps/common/tab_strip.cpp',
   'src/app/application.cpp',
   'src/app/application_events.cpp',
   'src/app/application_ipc.cpp',
@@ -1256,7 +1257,44 @@ okaru_play_exe = executable('okaru-play',
   dependencies: [okaru_core_dep, dependency('mpv')],
   install: true,
 )
+_editor_core_sources = files(
+  'src/apps/editor/formats.cpp',
+  'src/apps/editor/syntax.cpp',
+  'src/apps/editor/text_buffer.cpp',
+)
+okaru_edit_exe = executable('okaru-edit',
+  sources: files(
+    'src/apps/editor/editor_view.cpp',
+    'src/apps/editor/editor_window.cpp',
+    'src/apps/editor/main.cpp',
+  ) + _editor_core_sources + _protocol_headers,
+  dependencies: okaru_core_dep,
+  install: true,
+)
+_pdf_dependencies = [okaru_core_dep, dependency('poppler-glib')]
+okaru_pdf_exe = executable('okaru-pdf',
+  sources: files(
+    'src/apps/pdf/main.cpp',
+    'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_sidebar.cpp',
+    'src/apps/pdf/pdf_view.cpp',
+    'src/apps/pdf/pdf_window.cpp',
+    'src/apps/pdf/render_worker.cpp',
+  ) + _protocol_headers,
+  dependencies: _pdf_dependencies,
+  install: true,
+)
 if build_tests
+  test('okaru_pdf', executable('okaru_pdf_test',
+    sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
+    dependencies: _pdf_dependencies,
+    override_options: ['b_ndebug=false'],
+  ))
+  test('okaru_editor', executable('okaru_editor_test',
+    sources: files('tests/okaru_editor_test.cpp') + _editor_core_sources,
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_player', executable('okaru_player_test',
     sources: files('tests/okaru_player_test.cpp', 'src/apps/player/mpv_player.cpp'),
     dependencies: [okaru_core_dep, dependency('mpv')],
@@ -1269,11 +1307,23 @@ if build_tests
   ))
 endif
 
+# OKARU: apps por defecto del escritorio para instalaciones limpias (fotos → visor). Hyprland y Niri leen
+# $escritorio-mimeapps.list de /usr/share/applications; ~/.config/mimeapps.list del usuario manda sobre él.
+install_data(
+  'packaging/defaults/okaru-mimeapps.list',
+  install_dir: get_option('datadir') / 'applications',
+  rename: 'hyprland-mimeapps.list',
+)
+install_symlink('niri-mimeapps.list',
+  pointing_to: 'hyprland-mimeapps.list',
+  install_dir: get_option('datadir') / 'applications',
+)
+
 install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
-    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop',
+    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
   ],
 )
 
@@ -1283,6 +1333,8 @@ install_data(
   'assets/dev.okaru.Calculator.desktop',
   'assets/dev.okaru.Viewer.desktop',
   'assets/dev.okaru.Player.desktop',
+  'assets/dev.okaru.Editor.desktop',
+  'assets/dev.okaru.Pdf.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 
@@ -1671,6 +1723,11 @@ if build_tests
   test('install_starship_init',
     bash_program,
     args: ['tests/install_starship_init_test.sh', meson.current_source_dir() / 'install.sh'],
+    workdir: meson.current_source_dir(),
+  )
+  test('okaru_mimeapps',
+    bash_program,
+    args: ['tests/okaru_mimeapps_test.sh'],
     workdir: meson.current_source_dir(),
   )
 endif # build_tests

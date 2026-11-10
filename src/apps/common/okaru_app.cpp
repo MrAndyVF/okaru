@@ -31,6 +31,7 @@ namespace okaru::apps {
     constexpr Logger kLog("app");
 
     std::atomic<bool>* g_stop = nullptr;
+    std::uint32_t g_modifiers = 0;
 
     void onSignal(int /*signal*/) {
       if (g_stop != nullptr) {
@@ -39,6 +40,8 @@ namespace okaru::apps {
     }
 
   } // namespace
+
+  std::uint32_t keyboardModifiers() noexcept { return g_modifiers; }
 
   std::optional<std::string> WlClipboard::clipboardText() {
     process::RunOptions options;
@@ -144,12 +147,17 @@ namespace okaru::apps {
 
     m_wayland.setPointerEventCallback([this](const PointerEvent& event) { onPointer(event); });
     m_wayland.setKeyboardEventCallback([this](const KeyboardEvent& event) { onKey(event); });
+    m_wayland.setKeyboardModifiersCallback([](std::uint32_t modifiers) { g_modifiers = modifiers; });
 
     const float s = scale();
     m_surface = std::make_unique<ToplevelSurface>(m_wayland);
     m_surface->setRenderContext(&m_render);
     m_surface->setAnimationManager(&m_animations);
-    m_surface->setClosedCallback([this] { quit(); });
+    m_surface->setClosedCallback([this] {
+      if (!m_closeRequest || m_closeRequest()) {
+        quit();
+      }
+    });
     m_surface->setConfigureCallback([this](std::uint32_t, std::uint32_t) { m_surface->requestLayout(); });
     m_surface->setPrepareFrameCallback([this](bool needsUpdate, bool needsLayout) {
       prepareFrame(needsUpdate, needsLayout);

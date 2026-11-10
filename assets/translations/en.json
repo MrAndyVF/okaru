@@ -122,6 +122,187 @@
         }
       }
     },
+    "edit": {
+      "title": "Text Editor",
+      "untitled": "Untitled {number}",
+      "new": "New document",
+      "open": "Open…",
+      "filter": "Text files",
+      "save": "Save",
+      "save-as": "Save as…",
+      "saved": "Saved {file}",
+      "close": "Close",
+      "close-tab": "Close document",
+      "recent": "Recent files",
+      "empty": {
+        "title": "No documents open"
+      },
+      "error": {
+        "open": "Could not open {file}",
+        "save": "Could not save {file}: check the folder permissions, or use Save as"
+      },
+      "disk": {
+        "changed": "This file changed on disk while you had unsaved changes.",
+        "reload": "Reload",
+        "keep": "Keep mine"
+      },
+      "find": {
+        "title": "Find and replace",
+        "placeholder": "Find",
+        "replace-placeholder": "Replace with",
+        "previous": "Previous match",
+        "next": "Next match",
+        "case": "Match case",
+        "word": "Whole words only",
+        "replace": "Replace",
+        "replace-one": "Replace",
+        "replace-all": "Replace all",
+        "replaced": "Replaced {count}",
+        "none": "No matches",
+        "count": "{index} of {total}"
+      },
+      "goto": {
+        "title": "Go to line",
+        "placeholder": "1–{count} (line:column)"
+      },
+      "format": {
+        "title": "Format",
+        "tooltip": "Indent the whole document (Ctrl+Shift+F)",
+        "done": "Document formatted",
+        "comments": "This JSON has comments: formatting it would remove them",
+        "invalid": "Can't format: there is an error on line {line}"
+      },
+      "status": {
+        "position": "Ln {line}, Col {column}",
+        "valid": "Valid {format}",
+        "invalid": "Error on line {line}"
+      },
+      "indent": {
+        "spaces": "Spaces: {count}",
+        "tabs": "Tabs"
+      },
+      "csv": {
+        "table": "Table",
+        "text": "Text",
+        "limit": "Showing {shown} of {total} rows"
+      },
+      "unsaved": {
+        "title": "Save changes to {file}?",
+        "body": "If you don't save, your changes will be lost.",
+        "cancel": "Cancel",
+        "discard": "Don't save"
+      },
+      "preferences": {
+        "title": "Preferences",
+        "font-size": "Font size",
+        "wrap": "Wrap long lines",
+        "line-numbers": "Show line numbers",
+        "highlight-line": "Highlight the current line",
+        "indent": "Indentation for new documents",
+        "restore": "Reopen the files from the last session",
+        "shortcuts": "Shortcuts: Ctrl+N new · Ctrl+O open · Ctrl+S save · Ctrl+Shift+S save as · Ctrl+W close · Ctrl+F find · Ctrl+H replace · F3 / Shift+F3 next / previous · Ctrl+L go to line · Ctrl+Shift+F format · Ctrl+/ comment · Ctrl+D delete line · Ctrl+Shift+D duplicate · Alt+↑/↓ move lines · Tab / Shift+Tab indent · Ctrl+Tab next document · Ctrl++ / Ctrl+- / Ctrl+0 zoom"
+      },
+      "language": {
+        "text": "Plain text",
+        "html": "HTML",
+        "xml": "XML",
+        "json": "JSON",
+        "jsonc": "JSON with comments",
+        "toml": "TOML",
+        "css": "CSS",
+        "conf": "Configuration",
+        "lua": "Lua",
+        "kdl": "KDL",
+        "csv": "CSV"
+      }
+    },
+    "pdf": {
+      "title": "Document Viewer",
+      "open": "Open…",
+      "filter": "PDF documents",
+      "close": "Close",
+      "close-tab": "Close document",
+      "cancel": "Cancel",
+      "recent": "Recent documents",
+      "empty": {
+        "title": "No documents open"
+      },
+      "error": {
+        "open": "Could not open {file}: the file is damaged or is not a PDF"
+      },
+      "page": "Page {page} of {total}",
+      "page-label": "Page {label} ({page} of {total})",
+      "sidebar": "Sidebar (F9)",
+      "thumbnails": "Thumbnails",
+      "outline": "Outline",
+      "zoom": {
+        "in": "Zoom in (Ctrl++)",
+        "out": "Zoom out (Ctrl+-)",
+        "fit-page": "Fit page",
+        "fit-width": "Fit width"
+      },
+      "rotate": "Rotate (Ctrl+→)",
+      "dual": "Two pages",
+      "night": "Night mode",
+      "presentation": "Presentation (F5)",
+      "copied": "Text copied",
+      "link-blocked": "This link was not opened: {uri}",
+      "find": {
+        "title": "Search (Ctrl+F)",
+        "placeholder": "Search in the document",
+        "previous": "Previous result",
+        "next": "Next result",
+        "case": "Match case",
+        "word": "Whole words only",
+        "none": "No results",
+        "searching": "Searching…",
+        "count": "{index} of {total}"
+      },
+      "goto": {
+        "title": "Go to page",
+        "placeholder": "1–{count} or page label"
+      },
+      "password": {
+        "title": "Password required",
+        "body": "{file} is protected with a password.",
+        "wrong": "Wrong password. Try again.",
+        "placeholder": "Password",
+        "unlock": "Unlock"
+      },
+      "properties": {
+        "title": "Properties",
+        "tooltip": "Properties (Alt+Enter)",
+        "file": "File",
+        "doc-title": "Title",
+        "author": "Author",
+        "subject": "Subject",
+        "keywords": "Keywords",
+        "creator": "Created with",
+        "producer": "Producer",
+        "created": "Created",
+        "modified": "Modified",
+        "pages": "Pages",
+        "paper": "Paper size",
+        "version": "Format",
+        "size": "File size"
+      },
+      "print": {
+        "title": "Print",
+        "tooltip": "Print (Ctrl+P)",
+        "printer": "Printer",
+        "copies": "Copies",
+        "pages": "Pages",
+        "all": "All (e.g. 1-3, 5)",
+        "sides": "Sides",
+        "one-sided": "One-sided",
+        "long-edge": "Two-sided, long edge",
+        "short-edge": "Two-sided, short edge",
+        "button": "Print",
+        "sent": "{file} was sent to the printer",
+        "failed": "Could not print: check the printer in CUPS",
+        "no-printers": "No printers are set up. Add one in your system's printer settings (CUPS)."
+      }
+    },
     "play": {
       "title": "Media Player",
       "open": "Open…",

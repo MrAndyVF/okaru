@@ -998,7 +998,11 @@ CairoTextRenderer::CacheEntry* CairoTextRenderer::lookupOrRasterize(
 
   PangoLayout* layout =
       buildLayout(contentScale, text, fontSize, font, maxWidth * contentScale, maxLines, align, ellipsize, useMarkup);
-  const bool tinted = !containsColorGlyph(layout);
+  // OKARU: un markup con colores propios (<span foreground=…>, p. ej. el resaltado del editor) tampoco se puede
+  // teñir: la máscara A8 perdería sus colores.
+  const bool markupColors = useMarkup
+      && (text.find("foreground=") != std::string_view::npos || text.find("color=") != std::string_view::npos);
+  const bool tinted = !markupColors && !containsColorGlyph(layout);
   if (tinted) {
     key.colorRgba = 0U;
   }

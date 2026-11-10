@@ -122,6 +122,187 @@
         }
       }
     },
+    "edit": {
+      "title": "Editor de texto",
+      "untitled": "Sin título {number}",
+      "new": "Documento nuevo",
+      "open": "Abrir…",
+      "filter": "Archivos de texto",
+      "save": "Guardar",
+      "save-as": "Guardar como…",
+      "saved": "Se guardó {file}",
+      "close": "Cerrar",
+      "close-tab": "Cerrar documento",
+      "recent": "Archivos recientes",
+      "empty": {
+        "title": "No hay documentos abiertos"
+      },
+      "error": {
+        "open": "No se pudo abrir {file}",
+        "save": "No se pudo guardar {file}: revisa los permisos de la carpeta o usa Guardar como"
+      },
+      "disk": {
+        "changed": "Este archivo cambió en el disco mientras tenías cambios sin guardar.",
+        "reload": "Recargar",
+        "keep": "Conservar los míos"
+      },
+      "find": {
+        "title": "Buscar y reemplazar",
+        "placeholder": "Buscar",
+        "replace-placeholder": "Reemplazar por",
+        "previous": "Coincidencia anterior",
+        "next": "Coincidencia siguiente",
+        "case": "Distinguir mayúsculas",
+        "word": "Solo palabras completas",
+        "replace": "Reemplazar",
+        "replace-one": "Reemplazar",
+        "replace-all": "Reemplazar todo",
+        "replaced": "Se reemplazaron {count}",
+        "none": "Sin coincidencias",
+        "count": "{index} de {total}"
+      },
+      "goto": {
+        "title": "Ir a la línea",
+        "placeholder": "1–{count} (línea:columna)"
+      },
+      "format": {
+        "title": "Dar formato",
+        "tooltip": "Sangrar todo el documento (Ctrl+Shift+F)",
+        "done": "Documento formateado",
+        "comments": "Este JSON tiene comentarios: darle formato los borraría",
+        "invalid": "No se puede dar formato: hay un error en la línea {line}"
+      },
+      "status": {
+        "position": "Lín {line}, Col {column}",
+        "valid": "{format} válido",
+        "invalid": "Error en la línea {line}"
+      },
+      "indent": {
+        "spaces": "Espacios: {count}",
+        "tabs": "Tabuladores"
+      },
+      "csv": {
+        "table": "Tabla",
+        "text": "Texto",
+        "limit": "Se muestran {shown} de {total} filas"
+      },
+      "unsaved": {
+        "title": "¿Guardar los cambios de {file}?",
+        "body": "Si no guardas, los cambios se perderán.",
+        "cancel": "Cancelar",
+        "discard": "No guardar"
+      },
+      "preferences": {
+        "title": "Preferencias",
+        "font-size": "Tamaño de letra",
+        "wrap": "Ajustar las líneas largas",
+        "line-numbers": "Mostrar números de línea",
+        "highlight-line": "Resaltar la línea actual",
+        "indent": "Sangría de los documentos nuevos",
+        "restore": "Reabrir los archivos de la última sesión",
+        "shortcuts": "Atajos: Ctrl+N nuevo · Ctrl+O abrir · Ctrl+S guardar · Ctrl+Shift+S guardar como · Ctrl+W cerrar · Ctrl+F buscar · Ctrl+H reemplazar · F3 / Shift+F3 siguiente / anterior · Ctrl+L ir a línea · Ctrl+Shift+F dar formato · Ctrl+/ comentar · Ctrl+D borrar línea · Ctrl+Shift+D duplicar · Alt+↑/↓ mover líneas · Tab / Shift+Tab sangría · Ctrl+Tab documento siguiente · Ctrl++ / Ctrl+- / Ctrl+0 tamaño"
+      },
+      "language": {
+        "text": "Texto plano",
+        "html": "HTML",
+        "xml": "XML",
+        "json": "JSON",
+        "jsonc": "JSON con comentarios",
+        "toml": "TOML",
+        "css": "CSS",
+        "conf": "Configuración",
+        "lua": "Lua",
+        "kdl": "KDL",
+        "csv": "CSV"
+      }
+    },
+    "pdf": {
+      "title": "Visor de documentos",
+      "open": "Abrir…",
+      "filter": "Documentos PDF",
+      "close": "Cerrar",
+      "close-tab": "Cerrar documento",
+      "cancel": "Cancelar",
+      "recent": "Documentos recientes",
+      "empty": {
+        "title": "No hay documentos abiertos"
+      },
+      "error": {
+        "open": "No se pudo abrir {file}: el archivo está dañado o no es un PDF"
+      },
+      "page": "Página {page} de {total}",
+      "page-label": "Página {label} ({page} de {total})",
+      "sidebar": "Barra lateral (F9)",
+      "thumbnails": "Miniaturas",
+      "outline": "Índice",
+      "zoom": {
+        "in": "Acercar (Ctrl++)",
+        "out": "Alejar (Ctrl+-)",
+        "fit-page": "Ajustar a la página",
+        "fit-width": "Ajustar al ancho"
+      },
+      "rotate": "Girar (Ctrl+→)",
+      "dual": "Dos páginas",
+      "night": "Modo nocturno",
+      "presentation": "Presentación (F5)",
+      "copied": "Texto copiado",
+      "link-blocked": "No se abrió este enlace: {uri}",
+      "find": {
+        "title": "Buscar (Ctrl+F)",
+        "placeholder": "Buscar en el documento",
+        "previous": "Resultado anterior",
+        "next": "Resultado siguiente",
+        "case": "Distinguir mayúsculas",
+        "word": "Solo palabras completas",
+        "none": "Sin resultados",
+        "searching": "Buscando…",
+        "count": "{index} de {total}"
+      },
+      "goto": {
+        "title": "Ir a la página",
+        "placeholder": "1–{count} o el número impreso"
+      },
+      "password": {
+        "title": "Se necesita contraseña",
+        "body": "{file} está protegido con contraseña.",
+        "wrong": "Contraseña incorrecta. Inténtalo de nuevo.",
+        "placeholder": "Contraseña",
+        "unlock": "Desbloquear"
+      },
+      "properties": {
+        "title": "Propiedades",
+        "tooltip": "Propiedades (Alt+Enter)",
+        "file": "Archivo",
+        "doc-title": "Título",
+        "author": "Autor",
+        "subject": "Asunto",
+        "keywords": "Palabras clave",
+        "creator": "Creado con",
+        "producer": "Productor",
+        "created": "Creado",
+        "modified": "Modificado",
+        "pages": "Páginas",
+        "paper": "Tamaño del papel",
+        "version": "Formato",
+        "size": "Tamaño del archivo"
+      },
+      "print": {
+        "title": "Imprimir",
+        "tooltip": "Imprimir (Ctrl+P)",
+        "printer": "Impresora",
+        "copies": "Copias",
+        "pages": "Páginas",
+        "all": "Todas (p. ej. 1-3, 5)",
+        "sides": "Caras",
+        "one-sided": "Una cara",
+        "long-edge": "Doble cara, borde largo",
+        "short-edge": "Doble cara, borde corto",
+        "button": "Imprimir",
+        "sent": "Se envió {file} a la impresora",
+        "failed": "No se pudo imprimir: revisa la impresora en CUPS",
+        "no-printers": "No hay impresoras configuradas. Agrega una en la configuración de impresoras del sistema (CUPS)."
+      }
+    },
     "play": {
       "title": "Reproductor multimedia",
       "open": "Abrir…",

@@ -1,6 +1,6 @@
 # Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
 pkgname=okaru
-pkgver=1.1.0
+pkgver=1.1.1
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)
@@ -8,7 +8,7 @@ url='https://github.com/MrAndyVF/okaru'
 license=(MIT)
 depends=(bash cairo curl exiv2 fontconfig freetype2 gdk-pixbuf2 git glib2 glibc harfbuzz hicolor-icon-theme jemalloc libgcc
          libglvnd libical libjpeg-turbo libjxl libraw libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
-         libxkbcommon libxml2 md4c mpv noto-fonts pam polkit pango sdbus-cpp tomlplusplus wl-clipboard
+         libxkbcommon libxml2 md4c mpv noto-fonts pam polkit pango poppler-glib sdbus-cpp tomlplusplus wl-clipboard
          ttf-bigblueterminal-nerd ttf-jetbrains-mono-nerd wayland)  # BigBlueTermPlus: texto pixelado del bloqueo; JetBrainsMono: fuente de la shell
 # Sin paquete -debug: nadie lo instala y solo infla el repositorio.
 options=('!debug')
@@ -32,7 +32,8 @@ optdepends=('ddcutil: brillo de monitores externos'
             'python-wand: convertir cursores de Windows (cursor)'
             'imagemagick: convertir cursores de Windows (cursor)'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
-            'zenity: diálogos de archivos (cursor, icons, vpn-manager)')
+            'zenity: diálogos de archivos (cursor, icons, vpn-manager)'
+            'cups: imprimir desde el visor de documentos (okaru-pdf)')
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
 sha256sums=(SKIP)
 
