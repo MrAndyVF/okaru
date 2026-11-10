@@ -76,6 +76,7 @@ namespace okaru::viewer {
   ViewerWindow::ViewerWindow(apps::OkaruApp& app, const std::vector<fs::path>& files) : m_app(app) {
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
+    m_app.setDropCallback([this](std::vector<std::string> paths) { openFiles({paths.begin(), paths.end()}); });
     openFiles(files);
   }
 
