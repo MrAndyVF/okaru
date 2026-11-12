@@ -1,5 +1,5 @@
 --!nonstrict
--- arch-updater update panel. Pure renderer over the shared state: the engine
+-- okaru-updater update panel. Pure renderer over the shared state: the engine
 -- (service.luau) publishes "arch_state" and performs the "arch_request"
 -- actions this panel emits, so closing the panel never interrupts a check or
 -- a run in progress.
@@ -107,6 +107,8 @@ local function openPackage(sourceKey, name)
         openUrl("https://aur.archlinux.org/packages/" .. okaru.string.urlEncode(name))
     elseif sourceKey == "flatpak" then
         openUrl("https://flathub.org/apps/" .. okaru.string.urlEncode(name))
+    elseif sourceKey == "snap" then
+        openUrl("https://snapcraft.io/" .. okaru.string.urlEncode(name))
     end
 end
 
@@ -187,13 +189,13 @@ local function sourceLabel(key, entry)
     return tr("source." .. key)
 end
 
-local SOURCE_GLYPHS = { pacman = "package", aur = "cloud", flatpak = "app-window" }
+local SOURCE_GLYPHS = { pacman = "package", aur = "cloud", flatpak = "app-window", snap = "box" }
 
 local function sourceGlyph(key)
     return SOURCE_GLYPHS[key] or "package"
 end
 
--- pacman, then the AUR helper, then Flatpak. Only sources with pending
+-- pacman, then the AUR helper, Flatpak and Snap. Only sources with pending
 -- packages, biggest first.
 local function orderedSources()
     if snapshot == nil then
@@ -203,6 +205,7 @@ local function orderedSources()
         { key = "pacman", entry = snapshot.pacman },
         { key = "aur", entry = snapshot.aur },
         { key = "flatpak", entry = snapshot.flatpak },
+        { key = "snap", entry = snapshot.snap },
     }
     local pending = {}
     for _, candidate in ipairs(candidates) do
@@ -216,7 +219,7 @@ local function orderedSources()
     return pending
 end
 
--- Sources that are installed, enabled and have nothing pending. Flatpak is
+-- Sources that are installed, enabled and have nothing pending. Flatpak/Snap are
 -- skipped entirely when it is not on the system, so the panel doesn't brag
 -- about a tool that isn't there.
 local function cleanSources()
@@ -227,6 +230,9 @@ local function cleanSources()
     local candidates = { { key = "pacman", entry = snapshot.pacman } }
     if snapshot.flatpakEnabled == true then
         table.insert(candidates, { key = "flatpak", entry = snapshot.flatpak })
+    end
+    if snapshot.snapEnabled == true then
+        table.insert(candidates, { key = "snap", entry = snapshot.snap })
     end
     if snapshot.aur ~= nil and (snapshot.aur.n or 0) == 0 and okaru.getConfig("aur_helper") ~= "off" then
         table.insert(candidates, { key = "aur", entry = snapshot.aur })
@@ -411,7 +417,7 @@ local function ignoredRow(index, item)
             text = tr("ignored_tag_settings"), variant = "ghost", controlSize = "sm",
             tooltip = tr("ignored_tip_settings"),
             onClick = function()
-                okaru.runAsync("okaru msg settings-open-plugin okaru/arch-updater >/dev/null 2>&1")
+                okaru.runAsync("okaru msg settings-open-plugin okaru/updater >/dev/null 2>&1")
             end,
         }))
     end
@@ -735,8 +741,8 @@ local function rollbackRow(run, index, item, probePkgs)
     local info = probePkgs ~= nil and probePkgs[item.name] or nil
     local children = {}
 
-    if item.source == "flatpak" then
-        table.insert(children, ui.glyph({ name = "app-window", size = 12, color = "on_surface_variant" }))
+    if item.source == "flatpak" or item.source == "snap" then
+        table.insert(children, ui.glyph({ name = SOURCE_GLYPHS[item.source], size = 12, color = "on_surface_variant" }))
     elseif info ~= nil and info.cache ~= true then
         table.insert(children, ui.button({
             key = key .. "-miss",
@@ -792,7 +798,7 @@ local function runViewRows()
     }
     local rollable = 0
     for _, item in ipairs(run.packages or {}) do
-        if item.source ~= "flatpak" then
+        if item.source ~= "flatpak" and item.source ~= "snap" then
             rollable += 1
         end
     end

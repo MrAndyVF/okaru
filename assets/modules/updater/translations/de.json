@@ -98,6 +98,7 @@
   "err_no_xdg_open": "xdg-open nicht gefunden, Paketseite kann nicht geöffnet werden",
   "err_polkit_install": "Polkit regeln können nicht installiert werden, Details im Systemlog prüfen",
   "err_run_failed": "Update fehlgeschlagen (exit {code}), versuche es erneut im Terminal oder prüfe die Log-Datei",
+  "err_snap_failed": "Snap-Prüfung fehlgeschlagen, Details im Systemprotokoll",
   "err_spawn": "checkupdates konnte nicht gestartet werden",
   "err_terminal_closed": "Das Terminal-Fenster wurde geschlossen, bevor das Update fertig war. Versuche es erneut im Terminal oder prüfe die Log-Datei",
   "history_rollback_tag": "Rollback",
@@ -178,7 +179,7 @@
       "label": "Datei vor dem Anwenden sichern"
     },
     "config_backup_dir": {
-      "description": "Leer: ein Ordner „config-backups“ im Datenverzeichnis des Plugins. Ein absoluter Pfad: dorthin sichern. „alongside“: eine <Datei>.arch-updater.bak neben jeder Datei behalten (root gehörend).",
+      "description": "Leer: ein Ordner „config-backups“ im Datenverzeichnis des Plugins. Ein absoluter Pfad: dorthin sichern. „alongside“: eine <Datei>.okaru-updater.bak neben jeder Datei behalten (root gehörend).",
       "label": "Speicherort der Sicherung"
     },
     "config_backup_keep": {
@@ -265,6 +266,10 @@
       "description": "Schätzt die gesamte Downloadgröße der ausstehenden Pacman-Pakete mit 'pacman -Si'. AUR- und Flatpak-Größen sind nicht enthalten.",
       "label": "Downloadgröße anzeigen"
     },
+    "snap_enabled": {
+      "description": "Auch 'snap refresh' prüfen (und bei Aktualisieren ausführen). Wird automatisch ignoriert, wenn snap nicht installiert ist.",
+      "label": "Snap einbeziehen"
+    },
     "terminal": {
       "description": "Terminal-Befehl für den Update-Lauf, z. B. kitty oder ghostty. Leer (Standard) verwendet Okarus eigene Terminal-Erkennung ($TERMINAL, dann die gängigen Emulatoren).",
       "label": "Terminal"
@@ -288,7 +293,8 @@
     "aur": "AUR",
     "aur_named": "AUR ({helper})",
     "flatpak": "Flatpak",
-    "pacman": "Pacman"
+    "pacman": "Pacman",
+    "snap": "Snap"
   },
   "status_checking": "Prüfe auf Updates…",
   "status_checking_step": "Prüfe {step}…",
@@ -315,7 +321,7 @@
   "tip_run_terminal": "Öffnet ein Terminal-Fenster, in dem du die Updates selbst bestätigen kannst",
   "tip_update": "Update in einem Terminal-Fenster ausführen",
   "tip_update_terminal": "in einem terminal-Fenster ausführen, in dem prompts und die PKGBUILD ausgabe angezeigt werden",
-  "title": "Arch Updater",
+  "title": "OKARU Updater",
   "tooltip_checked": "Geprüft",
   "tooltip_config_key": "Konfig-Dateien",
   "tooltip_config_value": {

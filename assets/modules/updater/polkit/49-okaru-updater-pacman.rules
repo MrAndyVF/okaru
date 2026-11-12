@@ -7,17 +7,18 @@
  * that takes longer than 5 minutes between transactions may still prompt
  * again.
  *
- * Scope: only pkexec launching /usr/bin/pacman, only for an active local
+ * Scope: only pkexec launching /usr/bin/pacman or /usr/bin/snap, only for an active local
  * session of a wheel member.
  *
  * Install (root required):
- *   sudo install -Dm644 polkit/49-arch-updater-pacman.rules /etc/polkit-1/rules.d/49-arch-updater-pacman.rules
+ *   sudo install -Dm644 polkit/49-okaru-updater-pacman.rules /etc/polkit-1/rules.d/49-okaru-updater-pacman.rules
  * Remove:
- *   sudo rm /etc/polkit-1/rules.d/49-arch-updater-pacman.rules
+ *   sudo rm /etc/polkit-1/rules.d/49-okaru-updater-pacman.rules
  */
 polkit.addRule(function(action, subject) {
     if (action.id == "org.freedesktop.policykit.exec" &&
-        action.lookup("program") == "/usr/bin/pacman" &&
+        (action.lookup("program") == "/usr/bin/pacman" ||
+         action.lookup("program") == "/usr/bin/snap") &&
         subject.active && subject.local &&
         subject.isInGroup("wheel")) {
         return polkit.Result.AUTH_ADMIN_KEEP;

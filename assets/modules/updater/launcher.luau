@@ -1,5 +1,5 @@
 --!nonstrict
--- arch-updater launcher provider, under the `/arch` prefix.
+-- okaru-updater launcher provider, under the `/arch` prefix.
 --
 -- Empty query shows the three quick actions. Any other text is fuzzy-matched
 -- against the pending packages from the last check, read straight from the
@@ -29,7 +29,7 @@ local function openUrl(url)
     end
 end
 
-local SOURCE_GLYPH = { pacman = "package", aur = "box", flatpak = "app-window" }
+local SOURCE_GLYPH = { pacman = "package", aur = "box", flatpak = "app-window", snap = "box" }
 
 local function packageUrl(sourceKey, name)
     if sourceKey == "pacman" then
@@ -55,7 +55,7 @@ local function packageResults(query)
     end
 
     local results = {}
-    local sourceList = { { key = "pacman", entry = state.pacman }, { key = "aur", entry = state.aur }, { key = "flatpak", entry = state.flatpak } }
+    local sourceList = { { key = "pacman", entry = state.pacman }, { key = "aur", entry = state.aur }, { key = "flatpak", entry = state.flatpak }, { key = "snap", entry = state.snap } }
     for _, source in ipairs(sourceList) do
         local items = type(source.entry) == "table" and source.entry.items or nil
         if type(items) == "table" then

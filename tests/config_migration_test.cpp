@@ -1108,6 +1108,28 @@ variant = "destructive"
     );
   }
 
+  void checkUpdaterRenameMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 23
+[plugins]
+enabled = ["okaru/arch-updater", "okaru/cursor"]
+[plugin_settings."okaru/arch-updater"]
+flatpak_enabled = false
+[widget.updates]
+type = "okaru/arch-updater:widget"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 23, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "updater rename migration was not applied");
+    expect(
+        sidecar["plugins"]["enabled"][0].value<std::string>() == std::optional<std::string>{"okaru/updater"}
+            && sidecar["plugin_settings"]["okaru/updater"]["flatpak_enabled"].value<bool>() == std::optional<bool>{false}
+            && sidecar["widget"]["updates"]["type"].value<std::string>()
+                   == std::optional<std::string>{"okaru/updater:widget"},
+        "okaru/arch-updater ids were not renamed to okaru/updater"
+    );
+  }
+
   void checkPaletteRoleNamesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 15
@@ -1319,6 +1341,7 @@ int main() {
   checkNativePhoneMigration();
   checkLockscreenCleanupMigration();
   checkSessionHoldMigration();
+  checkUpdaterRenameMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

@@ -1,12 +1,12 @@
 --!nonstrict
--- arch-updater singleton engine. Checks pacman, the AUR helper and Flatpak,
+-- okaru-updater singleton engine. Checks pacman, the AUR helper, Flatpak and Snap,
 -- publishes the result as shared state, and runs the update in the
 -- BACKGROUND: one click, pkexec (polkit) asks for the password, the run is
 -- fully non-interactive (--noconfirm and friends) and its log streams into
 -- the panel.
 --
 --   state    "arch_state"   = { nonce, phase, step, total, pacman, aur,
---                                flatpak, downloadSizeMiB, rebootRecommended,
+--                                flatpak, snap, downloadSizeMiB, rebootRecommended,
 --                                newsUnread, newsLatestTitle, err, checkedAt,
 --                                ignoredCount, ignoredPending, ignoredDynamic,
 --                                ignoredConfig, history, activity, lastUpdateAt,
@@ -43,10 +43,12 @@ local MAX_RUN_PACKAGES = 100 -- per-run package list cap (storage and state)
 local NEWS_URL = "https://archlinux.org/feeds/news/"
 local NEWS_PAGE = "https://archlinux.org/news/"
 local LOG_FILE = "update.log"
-local POLKIT_RULE_NAME = "49-arch-updater-pacman.rules"
-local POLKIT_RULE_PATH = "/etc/polkit-1/rules.d/49-arch-updater-pacman.rules"
+local POLKIT_RULE_NAME = "49-okaru-updater-pacman.rules"
+local POLKIT_RULE_PATH = "/etc/polkit-1/rules.d/49-okaru-updater-pacman.rules"
 
-local CHECK_TIMEOUT_MS = 45000 -- pacman/AUR/flatpak checks: each may sync a mirror
+local CHECK_TIMEOUT_MS = 45000 -- pacman/AUR/flatpak/snap checks: each may sync a mirror
+-- Flatpak and Snap updates go through their own tools, not the pacman cache: no rollback, no size.
+local NOT_PACMAN = { flatpak = true, snap = true }
 local SIZE_TIMEOUT_MS = 20000 -- pacman -Si: local db, no mirror sync
 local FAST_TIMEOUT_MS = 5000 -- log tail / reboot check: local filesystem only
 local NEWS_RECHECK_HOURS = 6
@@ -65,7 +67,7 @@ local CONFIG_APPLY_TIMEOUT_MS = 120000
 local phase = "idle" -- idle|checking|clean|ready|running|error|missing
 local step = "" -- source label being checked (phase == "checking")
 local total = 0
-local sources = { pacman = { n = 0, items = {} }, aur = { n = 0, items = {}, helper = "" }, flatpak = { n = 0, items = {} } }
+local sources = { pacman = { n = 0, items = {} }, aur = { n = 0, items = {}, helper = "" }, flatpak = { n = 0, items = {} }, snap = { n = 0, items = {} } }
 local downloadSizeMiB = nil
 local rebootRecommended = false
 local newsUnread = 0
@@ -137,10 +139,24 @@ end
 local function logPath()
     local dir, err = okaru.pluginDataDir()
     if dir == nil then
-        okaru.log("arch-updater: cannot resolve plugin data dir: " .. tostring(err))
+        okaru.log("okaru-updater: cannot resolve plugin data dir: " .. tostring(err))
         return nil
     end
     return dir .. "/" .. LOG_FILE
+end
+
+-- 3.0.0: okaru/arch-updater became okaru/updater. Its data (run history for
+-- rollback, ignore list, news state, log) moves over once, while the new
+-- directory is still empty; rename() replaces an empty directory.
+do
+    local dir = okaru.pluginDataDir()
+    local old = dir ~= nil and dir:gsub("/okaru/updater$", "/okaru/arch-updater") or nil
+    if old ~= nil and old ~= dir and okaru.fileExists(old) and #(okaru.listDir(dir) or {}) == 0 then
+        local ok, err = okaru.renameFile(old, dir)
+        if not ok then
+            okaru.log("okaru-updater: could not move " .. old .. ": " .. tostring(err))
+        end
+    end
 end
 
 -- Package names reach the command line (--ignore, pacman -Si), so only
@@ -157,7 +173,7 @@ end
 local function ignorePath()
     local dir, err = okaru.pluginDataDir()
     if dir == nil then
-        okaru.log("arch-updater: cannot resolve plugin data dir: " .. tostring(err))
+        okaru.log("okaru-updater: cannot resolve plugin data dir: " .. tostring(err))
         return nil
     end
     return dir .. "/" .. IGNORE_FILE
@@ -205,7 +221,7 @@ local function configIgnoreList()
         if validName(name) then
             table.insert(names, name)
         elseif name ~= "" then
-            okaru.log("arch-updater: ignoring invalid package name '" .. name .. "'")
+            okaru.log("okaru-updater: ignoring invalid package name '" .. name .. "'")
         end
     end
     return names
@@ -343,7 +359,7 @@ end
 -- back through the pacman cache.
 local function collectPendingPackages()
     local packages = {}
-    for _, source in ipairs({ { key = "pacman", entry = sources.pacman }, { key = "aur", entry = sources.aur }, { key = "flatpak", entry = sources.flatpak } }) do
+    for _, source in ipairs({ { key = "pacman", entry = sources.pacman }, { key = "aur", entry = sources.aur }, { key = "flatpak", entry = sources.flatpak }, { key = "snap", entry = sources.snap } }) do
         for _, item in ipairs(source.entry.items or {}) do
             if #packages < MAX_RUN_PACKAGES then
                 table.insert(packages, { name = item.name, from = item.from, to = item.to, source = source.key })
@@ -547,6 +563,7 @@ local function publish()
         pacman = sources.pacman,
         aur = sources.aur,
         flatpak = sources.flatpak,
+        snap = sources.snap,
         downloadSizeMiB = downloadSizeMiB,
         rebootRecommended = rebootRecommended,
         newsUnread = newsUnread,
@@ -565,6 +582,7 @@ local function publish()
         runMode = runMode,
         probe = probeResult,
         flatpakEnabled = cfg("flatpak_enabled") == true and okaru.commandExists("flatpak"),
+        snapEnabled = cfg("snap_enabled") == true and okaru.commandExists("snap"),
         logTail = logTail,
         logPath = logPath(),
         runExit = runExit,
@@ -583,6 +601,7 @@ end
 -- ── Checking pipeline: pacman → AUR → Flatpak → size → reboot → done ────────
 
 local checkFlatpak
+local checkSnap
 local checkSize
 local checkReboot
 local finishCheck
@@ -660,7 +679,7 @@ end
 checkFlatpak = function(ignored)
     if cfg("flatpak_enabled") ~= true or not okaru.commandExists("flatpak") then
         sources.flatpak = { n = 0, items = {} }
-        checkSize()
+        checkSnap(ignored)
         return
     end
     step = tr("source.flatpak")
@@ -688,20 +707,61 @@ tag=="R" { from=v[app]; to=$2
     local started = okaru.runAsync(cmd, function(result)
         if result.timedOut then
             sources.flatpak = { n = 0, items = {} }
-            checkSize()
+            checkSnap(ignored)
             return
         end
         if result.exitCode ~= 0 then
-            okaru.log("arch-updater: flatpak check failed (exit " .. tostring(result.exitCode) .. ")")
+            okaru.log("okaru-updater: flatpak check failed (exit " .. tostring(result.exitCode) .. ")")
             failCheck(tr("err_flatpak_failed"))
             return
         end
         local n, items = parseTabLines(result.stdout, ignored)
         sources.flatpak = { n = n, items = items }
-        checkSize()
+        checkSnap(ignored)
     end, CHECK_TIMEOUT_MS)
     if not started then
         sources.flatpak = { n = 0, items = {} }
+        checkSnap(ignored)
+    end
+end
+
+checkSnap = function(ignored)
+    if cfg("snap_enabled") ~= true or not okaru.commandExists("snap") then
+        sources.snap = { n = 0, items = {} }
+        checkSize()
+        return
+    end
+    step = tr("source.snap")
+    publish()
+    -- `snap refresh --list` only has the new version; the installed one comes
+    -- from `snap list`, joined by name. Both print a header line. With
+    -- nothing pending, refresh --list writes only to stderr and exits 0.
+    local cmd = [[
+listOut=$(LC_ALL=C snap list 2>/dev/null); listCode=$?
+updOut=$(LC_ALL=C snap refresh --list 2>/dev/null); updCode=$?
+if [ "$listCode" -ne 0 ] || [ "$updCode" -ne 0 ]; then
+  exit 1
+fi
+{ printf '%s\n' "$listOut" | sed '1d; s/^/L /'
+  printf '%s\n' "$updOut" | sed '1d; s/^/R /'
+} | awk '$1=="L" { v[$2]=$3 } $1=="R" && $2!="" { print $2"\t"v[$2]"\t"$3 }']]
+    local started = okaru.runAsync(cmd, function(result)
+        if result.timedOut then
+            sources.snap = { n = 0, items = {} }
+            checkSize()
+            return
+        end
+        if result.exitCode ~= 0 then
+            okaru.log("okaru-updater: snap check failed (exit " .. tostring(result.exitCode) .. ")")
+            failCheck(tr("err_snap_failed"))
+            return
+        end
+        local n, items = parseTabLines(result.stdout, ignored)
+        sources.snap = { n = n, items = items }
+        checkSize()
+    end, CHECK_TIMEOUT_MS)
+    if not started then
+        sources.snap = { n = 0, items = {} }
         checkSize()
     end
 end
@@ -737,7 +797,7 @@ local function checkAur(ignored)
         -- failure. A real failure prints something to stderr; "no updates"
         -- doesn't.
         if result.exitCode ~= 0 and trim(result.stderr or "") ~= "" then
-            okaru.log("arch-updater: " .. helper .. " -Qua failed: " .. trim(result.stderr))
+            okaru.log("okaru-updater: " .. helper .. " -Qua failed: " .. trim(result.stderr))
             failCheck(tr("err_aur_failed"))
             return
         end
@@ -764,7 +824,7 @@ startCheck = function()
 
     phase = "checking"
     errMsg = nil
-    sources = { pacman = { n = 0, items = {} }, aur = { n = 0, items = {}, helper = "" }, flatpak = { n = 0, items = {} } }
+    sources = { pacman = { n = 0, items = {} }, aur = { n = 0, items = {}, helper = "" }, flatpak = { n = 0, items = {} }, snap = { n = 0, items = {} } }
     downloadSizeMiB = nil
     ignoredPending = {}
     step = tr("source.pacman")
@@ -784,7 +844,7 @@ startCheck = function()
             return
         end
         if result.exitCode ~= 0 then
-            okaru.log("arch-updater: checkupdates failed (exit " .. tostring(result.exitCode) .. ")")
+            okaru.log("okaru-updater: checkupdates failed (exit " .. tostring(result.exitCode) .. ")")
             failCheck(tr("err_check_failed"))
             return
         end
@@ -799,7 +859,7 @@ startCheck = function()
 end
 
 finishCheck = function()
-    total = sources.pacman.n + sources.aur.n + sources.flatpak.n
+    total = sources.pacman.n + sources.aur.n + sources.flatpak.n + sources.snap.n
     step = ""
     phase = total > 0 and "ready" or "clean"
     checkedAt = okaru.formatTime("%H:%M")
@@ -817,7 +877,7 @@ end
 local function newsStatePath()
     local dir, err = okaru.pluginDataDir()
     if dir == nil then
-        okaru.log("arch-updater: cannot resolve plugin data dir: " .. tostring(err))
+        okaru.log("okaru-updater: cannot resolve plugin data dir: " .. tostring(err))
         return nil
     end
     return dir .. "/" .. NEWS_FILE
@@ -922,7 +982,7 @@ checkNews = function()
         end
     end)
     if not ok then
-        okaru.log("arch-updater: could not start the Arch news request")
+        okaru.log("okaru-updater: could not start the Arch news request")
     end
 end
 
@@ -943,15 +1003,16 @@ end
 -- run (db sync + each install batch = several password dialogs); with it
 -- one password covers the whole run. Embedded because the plugin's own
 -- directory is not exposed to Lua; keep in sync with polkit/*.rules.
-local POLKIT_RULE = [=[/* Installed by the arch-updater OKARU plugin (one password per update
+local POLKIT_RULE = [=[/* Installed by the okaru-updater OKARU plugin (one password per update
  * run instead of one per pacman transaction). Authentication is kept for
  * ~5 minutes, like sudo's timestamp. Scope: only pkexec launching
- * /usr/bin/pacman, only for an active local session of a wheel member.
- * Remove: sudo rm /etc/polkit-1/rules.d/49-arch-updater-pacman.rules
+ * /usr/bin/pacman or /usr/bin/snap, only for an active local session of a wheel member.
+ * Remove: sudo rm /etc/polkit-1/rules.d/49-okaru-updater-pacman.rules
  */
 polkit.addRule(function(action, subject) {
     if (action.id == "org.freedesktop.policykit.exec" &&
-        action.lookup("program") == "/usr/bin/pacman" &&
+        (action.lookup("program") == "/usr/bin/pacman" ||
+         action.lookup("program") == "/usr/bin/snap") &&
         subject.active && subject.local &&
         subject.isInGroup("wheel")) {
         return polkit.Result.AUTH_ADMIN_KEEP;
@@ -1029,102 +1090,51 @@ local function installPolkitRule()
     end
 end
 
--- ── Updating (background) ────────────────────────────────────────────────────
+-- ── Updating ─────────────────────────────────────────────────────────────────
 
--- Shared by both modes. With an ignore list, filters ignored refs out of the
--- pending Flatpak list before updating, so an app hidden from the panel's
--- count can't still slip in through a bare `flatpak update`. `flags` carries
--- the mode's own switches (non-interactive for the background run).
-local function flatpakUpdateCommand(flags)
+-- Both modes run okaru-update (shipped with OKARU in /usr/bin): it chains
+-- pacman or the AUR helper, Flatpak and Snap, keeps going when one step fails
+-- (#1035) and exits with the last failing step's status. The plugin only
+-- turns its settings into flags. The update_cmd override still wins.
+local function okaruUpdateCommand(background)
+    local override = trim(cfg("update_cmd"))
+    if override ~= "" then
+        return override
+    end
+    local args = { "okaru-update" }
+    if background then
+        -- pkexec raises the polkit dialog; --noconfirm answers the rest.
+        table.insert(args, "--noconfirm")
+    end
+    local helper = resolveAurHelper()
+    if helper ~= nil and helper ~= "custom" and okaru.commandExists(helper) then
+        table.insert(args, "--aur-helper " .. helper)
+    else
+        table.insert(args, "--no-aur")
+    end
+    if cfg("flatpak_enabled") ~= true then
+        table.insert(args, "--no-flatpak")
+    end
+    if cfg("snap_enabled") ~= true then
+        table.insert(args, "--no-snap")
+    end
     local ignored = ignoreList()
-    if #ignored == 0 then
-        return "flatpak update" .. flags
+    if #ignored > 0 then
+        table.insert(args, "--ignore " .. shellQuote(table.concat(ignored, ",")))
     end
-    local skipList = shellQuote(table.concat(ignored, "\n"))
-    return "{ flatpak_refs=$(flatpak remote-ls --updates --columns=application 2>/dev/null | awk -v ignore="
-        .. skipList
-        .. [=[ 'BEGIN { n = split(ignore, arr, "\n"); for (i = 1; i <= n; i++) skip[arr[i]] = 1 } !($0 in skip)'); ]=]
-        .. [[if [ -n "$flatpak_refs" ]; then flatpak update]] .. flags .. [[ $flatpak_refs; fi; }]]
+    return table.concat(args, " ")
 end
 
--- Joins the run's steps (system upgrade, then Flatpak) so each one runs even
--- if an earlier one failed: one AUR package that won't build, or a declined
--- "Proceed with installation?", must not also hold back every Flatpak update
--- (#1035). The chain still exits with the last failing step's status, so the
--- run is reported as failed and offers the usual retry.
-local function chainSteps(parts)
-    if #parts == 1 then
-        return parts[1]
-    end
-    local out = { "au_rc=0" }
-    for _, part in ipairs(parts) do
-        table.insert(out, "{ " .. part .. " ; } || au_rc=$?")
-    end
-    table.insert(out, "(exit \"$au_rc\")")
-    return table.concat(out, "; ")
-end
-
--- The core upgrade command, fully non-interactive. pkexec raises the polkit
--- password dialog; --noconfirm answers every remaining question with its
--- default. AUR helpers run as the user and escalate through pkexec themselves
--- (--sudo pkexec), so no terminal and no sudo tty are ever needed.
+-- Background run: fully non-interactive. Terminal run (update_mode
+-- "terminal", the default, and the retry after a failed background run):
+-- prompts and the PKGBUILD review work as usual; its output is tee'd into the
+-- same log so the engine still sees the "::EXIT" marker.
 local function buildBackgroundCommand()
-    local override = trim(cfg("update_cmd"))
-    if override ~= "" then
-        return override
-    end
-
-    local ignored = ignoreList()
-    local ignoreFlag = #ignored > 0 and (" --ignore " .. table.concat(ignored, ",")) or ""
-    local quietFlags = " --noconfirm --noprogressbar --color never"
-
-    local helper = resolveAurHelper()
-    local parts = {}
-    if helper ~= nil and helper ~= "custom" and okaru.commandExists(helper) then
-        local autoAnswers = helper == "paru" and " --skipreview"
-            or " --answerdiff None --answerclean None --answeredit None"
-        table.insert(parts, helper .. " -Syu --sudo pkexec" .. autoAnswers .. quietFlags .. ignoreFlag)
-    else
-        table.insert(parts, "pkexec pacman -Syu" .. quietFlags .. ignoreFlag)
-    end
-
-    if cfg("flatpak_enabled") == true and okaru.commandExists("flatpak") then
-        table.insert(parts, flatpakUpdateCommand(" -y --noninteractive"))
-    end
-
-    return chainSteps(parts)
+    return okaruUpdateCommand(true)
 end
 
--- Interactive variant, used when update_mode is "terminal" (the default) and
--- as the retry after a failed background run: no --noconfirm, prompts and
--- the PKGBUILD review work as usual. Output is tee'd into the same log so the
--- engine still sees the "::EXIT" marker and re-checks when the run ends.
--- The update_cmd override wins here too, same as in background mode.
 local function buildTerminalCommand()
-    local override = trim(cfg("update_cmd"))
-    if override ~= "" then
-        return override
-    end
-
-    local ignored = ignoreList()
-    local ignoreFlag = #ignored > 0 and (" --ignore " .. table.concat(ignored, ",")) or ""
-
-    local helper = resolveAurHelper()
-    local parts = {}
-    if helper ~= nil and helper ~= "custom" and okaru.commandExists(helper) then
-        table.insert(parts, helper .. " -Syu" .. ignoreFlag)
-    else
-        table.insert(parts, "sudo pacman -Syu" .. ignoreFlag)
-    end
-    if cfg("flatpak_enabled") == true and okaru.commandExists("flatpak") then
-        -- flatpak's own Y/n prompt gates on isatty(stdout); since this whole
-        -- command is piped into `tee` for the log, flatpak sees a non-tty
-        -- stdout and auto-declines with "n" no matter what's typed
-        -- (flatpak/flatpak#4409). There's no real interactivity to preserve
-        -- here, so just make it non-interactive like the background mode.
-        table.insert(parts, flatpakUpdateCommand(" -y --noninteractive"))
-    end
-    return chainSteps(parts)
+    return okaruUpdateCommand(false)
 end
 
 -- pacman/paru draw their live download/install progress bar only when their
@@ -1152,11 +1162,11 @@ end
 -- Every terminal the plugin opens gets this app id (class) and a fixed,
 -- untranslated title per job, so compositor window rules can target them
 -- (#1034) instead of matching the generic "sh" every launch used to inherit.
-local TERMINAL_APP_ID = "arch-updater"
+local TERMINAL_APP_ID = "okaru-updater"
 local TERMINAL_TITLES = {
-    update = "Arch Updater - Update",
-    log = "Arch Updater - Log",
-    config = "Arch Updater - Config",
+    update = "OKARU Updater - Update",
+    log = "OKARU Updater - Log",
+    config = "OKARU Updater - Config",
 }
 
 -- Per-emulator flags: app id/title switches and what goes before the command
@@ -1410,7 +1420,7 @@ local function verifyAndRecordRun(kind, packages)
     end
     local names = {}
     for _, item in ipairs(packages) do
-        if item.source ~= "flatpak" and validName(tostring(item.name or "")) then
+        if not NOT_PACMAN[item.source] and validName(tostring(item.name or "")) then
             table.insert(names, shellQuote(item.name))
         end
     end
@@ -1435,7 +1445,7 @@ local function verifyAndRecordRun(kind, packages)
         end
         local applied = {}
         for _, item in ipairs(packages) do
-            if item.source == "flatpak" then
+            if NOT_PACMAN[item.source] then
                 table.insert(applied, item)
             elseif installed[item.name] ~= nil and installed[item.name] ~= item.from then
                 table.insert(applied, item)
@@ -1607,7 +1617,7 @@ local function pollRunLog()
         end
     end, FAST_TIMEOUT_MS)
     if not started then
-        okaru.log("arch-updater: could not poll the update log")
+        okaru.log("okaru-updater: could not poll the update log")
     end
 end
 
@@ -1654,7 +1664,7 @@ local function resumeRunIfActive()
     end, FAST_TIMEOUT_MS)
     if not started then
         resumeProbed = true
-        okaru.log("arch-updater: could not inspect the update log")
+        okaru.log("okaru-updater: could not inspect the update log")
     end
 end
 
@@ -1752,7 +1762,7 @@ local function startRollback(payload)
     local name = trim(tostring(payload.pkg or ""))
     local target = nil
     for _, item in ipairs(run.packages) do
-        if item.name == name and item.source ~= "flatpak" then
+        if item.name == name and not NOT_PACMAN[item.source] then
             target = item
             break
         end
@@ -1762,7 +1772,7 @@ local function startRollback(payload)
     end
     local runMates = {}
     for _, item in ipairs(run.packages) do
-        if item.source ~= "flatpak" and item.name ~= name and validName(item.name) and versionOk(tostring(item.from or "")) then
+        if not NOT_PACMAN[item.source] and item.name ~= name and validName(item.name) and versionOk(tostring(item.from or "")) then
             runMates[item.name] = item
         end
     end
@@ -1808,7 +1818,7 @@ local function startRollbackRun(payload)
     local specs = {}
     local items = {}
     for _, item in ipairs(run.packages) do
-        if item.source ~= "flatpak" and validName(item.name) and versionOk(tostring(item.from or "")) then
+        if not NOT_PACMAN[item.source] and validName(item.name) and versionOk(tostring(item.from or "")) then
             table.insert(specs, { name = item.name, version = item.from })
             table.insert(items, reversedItem(item))
         end
@@ -1826,7 +1836,7 @@ local function probeRun(payload)
     end
     local specs = {}
     for _, item in ipairs(run.packages) do
-        if item.source ~= "flatpak" and validName(item.name) and versionOk(tostring(item.from or "")) then
+        if not NOT_PACMAN[item.source] and validName(item.name) and versionOk(tostring(item.from or "")) then
             table.insert(specs, { name = item.name, version = item.from })
         end
     end
@@ -1896,7 +1906,7 @@ local function configSearchPaths()
             if p:match("^/[%w._/-]*$") ~= nil and not p:find("%.%.", 1, true) then
                 table.insert(paths, p ~= "/" and p:gsub("/+$", "") or p)
             elseif p ~= "" then
-                okaru.log("arch-updater: ignoring invalid config search path '" .. p .. "'")
+                okaru.log("okaru-updater: ignoring invalid config search path '" .. p .. "'")
             end
         end
     end
@@ -1988,7 +1998,7 @@ local function configBaseHint(pkg)
     loadRuns()
     for i = #runsHistory, 1, -1 do
         for _, item in ipairs(runsHistory[i].packages or {}) do
-            if item.name == pkg and item.source ~= "flatpak" and versionOk(tostring(item.from or "")) then
+            if item.name == pkg and not NOT_PACMAN[item.source] and versionOk(tostring(item.from or "")) then
                 return item.from
             end
         end
@@ -2354,7 +2364,7 @@ local function configApply(payload)
     local pac = shellQuote(entry.pacpath)
     local alongside = trim(cfg("config_backup_dir")) == "alongside" and cfg("config_backup") ~= false
     local backupCmd = alongside
-            and ("{ cp -a -- " .. live .. " " .. shellQuote(entry.path .. ".arch-updater.bak") .. " || true; } ; ")
+            and ("{ cp -a -- " .. live .. " " .. shellQuote(entry.path .. ".okaru-updater.bak") .. " || true; } ; ")
         or ""
 
     local userSnippet = ""
@@ -2540,7 +2550,7 @@ local function addIgnore(payload)
         return
     end
     addIgnoreName(name)
-    for _, entry in ipairs({ sources.pacman, sources.aur, sources.flatpak }) do
+    for _, entry in ipairs({ sources.pacman, sources.aur, sources.flatpak, sources.snap }) do
         for index, item in ipairs(entry.items or {}) do
             if item.name == name then
                 table.remove(entry.items, index)
@@ -2550,7 +2560,7 @@ local function addIgnore(payload)
             end
         end
     end
-    total = sources.pacman.n + sources.aur.n + sources.flatpak.n
+    total = sources.pacman.n + sources.aur.n + sources.flatpak.n + sources.snap.n
     if phase == "ready" and total == 0 then
         phase = "clean"
     end
@@ -2618,6 +2628,7 @@ local function handle(action, payload)
         sources.pacman = { n = 0, items = {} }
         sources.aur = { n = 0, items = {}, helper = sources.aur.helper }
         sources.flatpak = { n = 0, items = {} }
+        sources.snap = { n = 0, items = {} }
         total = 0
         downloadSizeMiB = nil
         runExit = nil
@@ -2654,14 +2665,14 @@ okaru.state.watch(REQUEST_KEY, function(value)
 end)
 
 -- Scriptable control:
---   okaru msg plugin okaru/arch-updater:service all check
---   okaru msg plugin okaru/arch-updater:service all update
---   okaru msg plugin okaru/arch-updater:service all update_background
---   okaru msg plugin okaru/arch-updater:service all update_terminal
---   okaru msg plugin okaru/arch-updater:service all dismiss
---   okaru msg plugin okaru/arch-updater:service all ignore:NAME
---   okaru msg plugin okaru/arch-updater:service all unignore:NAME
---   okaru msg plugin okaru/arch-updater:service all config_scan
+--   okaru msg plugin okaru/updater:service all check
+--   okaru msg plugin okaru/updater:service all update
+--   okaru msg plugin okaru/updater:service all update_background
+--   okaru msg plugin okaru/updater:service all update_terminal
+--   okaru msg plugin okaru/updater:service all dismiss
+--   okaru msg plugin okaru/updater:service all ignore:NAME
+--   okaru msg plugin okaru/updater:service all unignore:NAME
+--   okaru msg plugin okaru/updater:service all config_scan
 function onIpc(event, payload)
     local action, arg = tostring(event):match("^(%w+):(.+)$")
     if action ~= nil then

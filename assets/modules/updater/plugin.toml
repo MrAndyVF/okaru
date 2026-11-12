@@ -1,12 +1,12 @@
-id = "okaru/arch-updater"
-name = "Arch Updater"
-version = "2.1.1"
+id = "okaru/updater"
+name = "OKARU Updater"
+version = "3.0.0"
 plugin_api = 43
 author = "yuuto"
 license = "MIT"
 icon = "package"
-description = "Check pacman, AUR and Flatpak updates, upgrade in a terminal or background, with rollback and .pacnew review."
-dependencies = ["pacman-contrib", "awk", "bsdtar", "cat", "cmp", "cp", "date", "diff", "diff3", "find", "flatpak", "grep", "head", "install", "kill", "less", "ls", "mkdir", "pacman", "paru", "pkexec", "rm", "script", "sed", "sh", "stat", "sudo", "tail", "tee", "test", "uname", "wc", "xdg-open", "yay"]
+description = "Check pacman, AUR, Flatpak and Snap updates, upgrade with okaru-update in a terminal or background, with rollback and .pacnew review."
+dependencies = ["pacman-contrib", "awk", "bsdtar", "cat", "cmp", "cp", "date", "diff", "diff3", "find", "flatpak", "okaru-update", "snap", "grep", "head", "install", "kill", "less", "ls", "mkdir", "pacman", "paru", "pkexec", "rm", "script", "sed", "sh", "stat", "sudo", "tail", "tee", "test", "uname", "wc", "xdg-open", "yay"]
 tags = ["arch", "bar", "panel", "launcher", "system", "utility"]
 
 # ── General ──────────────────────────────────────────────────────────────────
@@ -38,6 +38,13 @@ key = "flatpak_enabled"
 type = "bool"
 label_key = "settings.flatpak_enabled.label"
 description_key = "settings.flatpak_enabled.description"
+default = true
+
+[[setting]]
+key = "snap_enabled"
+type = "bool"
+label_key = "settings.snap_enabled.label"
+description_key = "settings.snap_enabled.description"
 default = true
 
 [[setting]]

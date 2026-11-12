@@ -1,5 +1,5 @@
 --!nonstrict
--- arch-updater bar widget: pending-update badge and panel toggle.
+-- okaru-updater bar widget: pending-update badge and panel toggle.
 --
 -- Pure renderer over the "arch_state" the engine (service.luau) publishes.
 -- Every bar showing the widget agrees on the count without running any
@@ -13,7 +13,7 @@
 -- No middle-click handler: the host already binds it to the widget's own
 -- settings, so a callback here would be dead code.
 
-local PANEL_ID = "okaru/arch-updater:panel"
+local PANEL_ID = "okaru/updater:panel"
 local REQUEST_KEY = "arch_request"
 local STATE_KEY = "arch_state"
 
@@ -42,7 +42,7 @@ local function configPending()
         and (tonumber(snapshot.configCount) or 0) > 0
 end
 
--- "Pacman 12 · AUR (yay) 3 · Flatpak 1": non-zero sources only.
+-- "Pacman 12 · AUR (yay) 3 · Flatpak 1 · Snap 2": non-zero sources only.
 local function breakdown()
     if snapshot == nil then
         return ""
@@ -60,6 +60,10 @@ local function breakdown()
     local flatpak = snapshot.flatpak
     if type(flatpak) == "table" and (flatpak.n or 0) > 0 then
         table.insert(parts, tr("source.flatpak") .. " " .. flatpak.n)
+    end
+    local snap = snapshot.snap
+    if type(snap) == "table" and (snap.n or 0) > 0 then
+        table.insert(parts, tr("source.snap") .. " " .. snap.n)
     end
     return table.concat(parts, " · ")
 end

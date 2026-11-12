@@ -101,6 +101,7 @@
   "err_no_xdg_open": "xdg-open not found, cannot open the package page",
   "err_polkit_install": "Could not install the polkit rule, see the system log for details",
   "err_run_failed": "Update failed (exit {code}), check the log or retry in a terminal",
+  "err_snap_failed": "Snap check failed, see the system log for details",
   "err_spawn": "Could not run checkupdates",
   "err_terminal_closed": "The terminal window closed before the update finished, check the log or retry in a terminal",
   "history_rollback_tag": "rollback",
@@ -112,7 +113,7 @@
   "ignored_tip_system": "Ignored by IgnorePkg in /etc/pacman.conf, edit that file (as root) to lift it",
   "ignored_title": "Ignored",
   "launcher": {
-    "check_subtitle": "Check pacman, AUR and Flatpak for updates",
+    "check_subtitle": "Check pacman, AUR, Flatpak and Snap for updates",
     "news_subtitle": "Open the Arch Linux news page",
     "update_subtitle": "Install the pending updates (terminal or background, per the update mode setting)"
   },
@@ -195,7 +196,7 @@
       "label": "Back up the file before applying"
     },
     "config_backup_dir": {
-      "description": "Empty: a 'config-backups' folder in the plugin's data directory. An absolute path: back up there. 'alongside': keep a <file>.arch-updater.bak next to each file (owned by root).",
+      "description": "Empty: a 'config-backups' folder in the plugin's data directory. An absolute path: back up there. 'alongside': keep a <file>.okaru-updater.bak next to each file (owned by root).",
       "label": "Backup location"
     },
     "config_backup_keep": {
@@ -255,7 +256,7 @@
       "label": "Hide the polkit rule suggestion"
     },
     "ignore_packages": {
-      "description": "Package names to leave out of the count and pass as --ignore to the update itself, in addition to pacman.conf's own IgnorePkg.",
+      "description": "Package names, Flatpak app ids or snaps to leave out of the count and skip on update, in addition to pacman.conf's own IgnorePkg.",
       "label": "Ignore packages"
     },
     "log_lines": {
@@ -283,15 +284,19 @@
       "label": "Show the update count"
     },
     "show_download_size": {
-      "description": "Estimate the total download size for the pending pacman packages with 'pacman -Si'. AUR and Flatpak sizes are not included.",
+      "description": "Estimate the total download size for the pending pacman packages with 'pacman -Si'. AUR, Flatpak and Snap sizes are not included.",
       "label": "Show download size"
+    },
+    "snap_enabled": {
+      "description": "Also check (and, on Update, run) 'snap refresh'. Ignored automatically when snap is not installed.",
+      "label": "Include Snap"
     },
     "terminal": {
       "description": "Terminal command for terminal-mode updates and the 'Retry in terminal' fallback, e.g. kitty or ghostty. Empty (default) uses OKARU's terminal detection ($TERMINAL, then the common emulators).",
       "label": "Terminal"
     },
     "update_cmd": {
-      "description": "Full override for the update command, in both terminal and background mode. Empty (default) builds it from the AUR helper, ignore list and Flatpak settings above.",
+      "description": "Full override for the update command, in both terminal and background mode. Empty (default) runs okaru-update with the AUR helper, ignore list, Flatpak and Snap settings above.",
       "label": "Custom update command"
     },
     "update_mode": {
@@ -309,7 +314,8 @@
     "aur": "AUR",
     "aur_named": "AUR ({helper})",
     "flatpak": "Flatpak",
-    "pacman": "Pacman"
+    "pacman": "Pacman",
+    "snap": "Snap"
   },
   "status_checking": "Checking for updates…",
   "status_checking_step": "Checking {step}…",
@@ -338,7 +344,7 @@
   "tip_unignore": "Stop ignoring this package",
   "tip_update": "Update in the background: polkit asks for your password, everything else is automatic",
   "tip_update_terminal": "Update in a terminal window: prompts and the PKGBUILD review work as usual",
-  "title": "Arch Updater",
+  "title": "OKARU Updater",
   "tooltip_checked": "Checked",
   "tooltip_config_key": "Config files",
   "tooltip_config_value": {

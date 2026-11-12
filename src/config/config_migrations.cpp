@@ -39,6 +39,7 @@ namespace okaru::config {
     constexpr int kOkaruNativePhoneMigrationVersion = 21;        // OKARU
     constexpr int kOkaruLockscreenCleanupMigrationVersion = 22;  // OKARU
     constexpr int kOkaruSessionHoldMigrationVersion = 23;        // OKARU
+    constexpr int kOkaruUpdaterRenameMigrationVersion = 24;      // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -887,8 +888,10 @@ namespace okaru::config {
     }
 
     // OKARU: plugins de la tienda que pasaron a ser módulos integrados (ids okaru/<nombre>).
-    constexpr std::array<std::pair<std::string_view, std::string_view>, 6> kIntegratedModuleIds{{
-        {"yuuto/arch-updater", "okaru/arch-updater"},
+    // okaru/arch-updater pasó a okaru/updater (3.0.0, con Snap y okaru-update).
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 7> kIntegratedModuleIds{{
+        {"yuuto/arch-updater", "okaru/updater"},
+        {"okaru/arch-updater", "okaru/updater"},
         {"jrohland/claudecode", "okaru/claudecode"},
         {"vn1k/cursor", "okaru/cursor"},
         {"vn1k/icons", "okaru/icons"},
@@ -1035,6 +1038,9 @@ namespace okaru::config {
         }
       }
     }
+
+    // OKARU: el módulo arch-updater pasó a llamarse updater; los ids viejos ya están en kIntegratedModuleIds.
+    void migrateUpdaterRenameSidecar(toml::table& root, schema::Diagnostics& /*diag*/) { renameModuleIdsInNode(root); }
 
     // OKARU: la paleta integrada "Noctalia" pasó a llamarse "OKARU" ([theme].builtin y favoritos).
     void renameBuiltinPaletteIn(toml::node& node) {
@@ -1214,6 +1220,11 @@ namespace okaru::config {
             .toVersion = kOkaruSessionHoldMigrationVersion,
             .summary = "session: actions are confirmed by holding; drop countdown_seconds",
             .apply = migrateSessionHoldSidecar,
+        },
+        {
+            .toVersion = kOkaruUpdaterRenameMigrationVersion,
+            .summary = "plugins: okaru/arch-updater is now okaru/updater",
+            .apply = migrateUpdaterRenameSidecar,
         },
     };
     return migrations;

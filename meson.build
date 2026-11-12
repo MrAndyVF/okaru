@@ -1360,6 +1360,12 @@ install_data('data/libexec/shim/sudo',
   install_mode: 'rwxr-xr-x',
 )
 
+# OKARU: actualizador de pacman/AUR, Flatpak y Snap (lo usa el módulo updater y sirve suelto en la terminal).
+install_data('data/bin/okaru-update',
+  install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x',
+)
+
 if build_tests
   wayland_server_dep = dependency('wayland-server')
 
@@ -1736,6 +1742,11 @@ if build_tests
     bash_program,
     args: ['tests/install_place_test.sh', meson.current_source_dir() / 'install.sh',
       meson.current_source_dir() / 'packaging/defaults/okaru/config.toml'],
+    workdir: meson.current_source_dir(),
+  )
+  test('okaru_update',
+    bash_program,
+    args: ['tests/okaru_update_test.sh', meson.current_source_dir() / 'data/bin/okaru-update'],
     workdir: meson.current_source_dir(),
   )
   test('okaru_mimeapps',

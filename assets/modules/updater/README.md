@@ -1,6 +1,6 @@
-# Arch Updater
+# OKARU Updater
 
-Check pacman, AUR and Flatpak for updates from the bar, with an estimated
+Check pacman, AUR, Flatpak and Snap for updates from the bar, with an estimated
 download size and an Arch news heads-up before you upgrade. **Update** runs
 the upgrade in one of two modes (the **Update mode** setting): a terminal
 window with the usual interactive upgrade — prompts and the PKGBUILD review
@@ -13,7 +13,7 @@ run is logged and recorded in an update history with per-package rollback.
 
 | Field | Value |
 | --- | --- |
-| ID | `okaru/arch-updater` (integrado en OKARU; original `yuuto/arch-updater`) |
+| ID | `okaru/updater` (integrado en OKARU; original `yuuto/arch-updater`) |
 | Entries | Bar widget: `widget`; panel: `panel`; service: `service`; launcher: `launcher` |
 | Launcher Prefix | `/arch` |
 
@@ -39,6 +39,8 @@ run is logged and recorded in an update history with per-package rollback.
 - `yay` or `paru` on `PATH`, optional, for the AUR check and update.
   Auto-detected by default, see the **AUR helper** setting.
 - `flatpak`, optional, for the Flatpak check and update.
+- `snap` (`snapd`), optional, for the Snap check and update.
+- `okaru-update`, shipped with OKARU in `/usr/bin`: both update modes run it.
 - `xdg-open`, optional, to open a package page or the Arch news page.
 - `less`, plus `sudo` and a terminal emulator, for the terminal update mode
   (the default), the **Retry in terminal** fallback and the **Open full
@@ -59,10 +61,10 @@ widget's own settings. You can also open the panel directly or bind it in
 your compositor:
 
 ```sh
-okaru msg panel-toggle okaru/arch-updater:panel
+okaru msg panel-toggle okaru/updater:panel
 ```
 
-The panel groups pending packages by source (Pacman, AUR, Flatpak). Click a
+The panel groups pending packages by source (Pacman, AUR, Flatpak, Snap). Click a
 source row to expand it into its packages. Each package row has an ignore
 button (see **Ignored packages**), a copy button (name and versions) and an
 open button (its page on archlinux.org, the AUR, or Flathub). The history
@@ -90,27 +92,31 @@ after updating** setting.
   stops cleanly with a non-zero exit before touching the system; a failed
   run keeps its log on screen and offers **Retry in terminal**.
 
-In both modes the Flatpak step runs even when the pacman/AUR step failed
-(say, one AUR package that won't build, or a declined prompt); the run is
-still reported as failed, with the exit status of the last failing step.
+Both modes run `okaru-update` (pacman or the AUR helper, then Flatpak, then
+Snap), with flags built from the settings: `--noconfirm` in the background,
+`--aur-helper`/`--no-aur`, `--no-flatpak`, `--no-snap` and `--ignore`. Each
+step runs even when an earlier one failed (say, one AUR package that won't
+build, or a declined prompt); the run is still reported as failed, with the
+exit status of the last failing step. `okaru-update` also works on its own
+in a terminal; `okaru-update --check` lists what is pending per channel.
 
 When a run ends you get a notification and an automatic re-check.
 
 ### Window rules for the terminal
 
-Every terminal the plugin opens gets the app id (class) `arch-updater` and
+Every terminal the plugin opens gets the app id (class) `okaru-updater` and
 a fixed title per job, so compositor window rules can target it:
-`Arch Updater - Update`, `Arch Updater - Log` and `Arch Updater - Config`
+`OKARU Updater - Update`, `OKARU Updater - Log` and `OKARU Updater - Config`
 (the `.pacnew` merge/diff tools). The app id is set through the emulator's
 own flag for kitty, foot, alacritty, wezterm and xterm (Ghostty only accepts
-reverse-DNS ids, so there it's `dev.okaru.arch-updater`). That works for
+reverse-DNS ids, so there it's `dev.okaru.okaru-updater`). That works for
 the **Terminal** setting, or for `$TERMINAL` when the setting is empty. Other
 emulators keep their own app id; the title is still set on launch for
 konsole and through an escape sequence for every emulator. Example for niri:
 
 ```kdl
 window-rule {
-    match app-id="arch-updater" title="^Arch Updater - Update$"
+    match app-id="okaru-updater" title="^OKARU Updater - Update$"
     open-floating true
 }
 ```
@@ -223,8 +229,8 @@ section at the bottom of the package list:
   are managed only in that file. The plugin never edits `pacman.conf`.
 
 Ignored packages are excluded from the pending count and passed as
-`--ignore` to the update run in both modes (Flatpak refs are filtered out
-of `flatpak update` the same way).
+`--ignore` to the update run in both modes (Flatpak refs and snaps are
+filtered out of `flatpak update` / `snap refresh` the same way).
 
 ### One polkit password per run
 
@@ -244,14 +250,14 @@ the same wording appears in the install button's tooltip, and it can be
 removed at any time:
 
 ```sh
-sudo rm /etc/polkit-1/rules.d/49-arch-updater-pacman.rules
+sudo rm /etc/polkit-1/rules.d/49-okaru-updater-pacman.rules
 ```
 
-The rule text ships in `polkit/49-arch-updater-pacman.rules` and can also
+The rule text ships in `polkit/49-okaru-updater-pacman.rules` and can also
 be installed by hand:
 
 ```sh
-sudo install -Dm644 polkit/49-arch-updater-pacman.rules /etc/polkit-1/rules.d/49-arch-updater-pacman.rules
+sudo install -Dm644 polkit/49-okaru-updater-pacman.rules /etc/polkit-1/rules.d/49-okaru-updater-pacman.rules
 ```
 
 The hint can be hidden with the **Hide the polkit rule suggestion**
@@ -264,6 +270,7 @@ setting.
 | `aur_helper` | `select` | `auto` | Which AUR helper to use: auto-detect (yay, then paru), `yay`, `paru`, a custom command, or off. |
 | `aur_check_cmd` | `string` | *(empty)* | Custom AUR check command, only used when `aur_helper` is `custom`. Must print `name oldver -> newver` per line. |
 | `flatpak_enabled` | `bool` | `true` | Also check and update Flatpak. Skipped automatically when `flatpak` isn't installed. |
+| `snap_enabled` | `bool` | `true` | Also check and update Snap. Skipped automatically when `snap` isn't installed. |
 | `ignore_packages` | `string_list` | *(empty)* | Package names excluded from the count and passed as `--ignore` on update, on top of the panel-managed list and `pacman.conf`'s `IgnorePkg`. |
 | `auto_check_hours` | `int` | `0` | Check automatically every N hours. `0` never checks on its own. |
 | `notify_on_updates` | `bool` | `true` | Send a desktop notification when a check finds packages to upgrade. |
@@ -277,7 +284,7 @@ setting.
 | `hide_polkit_hint` | `bool` | `false` | Hide the panel line offering to install the polkit keep-authorization rule. |
 | `log_lines` | `int` | `14` | How many of the latest update-log lines the panel shows during a run (6–30). |
 | `terminal` | `string` | *(empty)* | Terminal command for terminal-mode updates, the retry fallback and the log viewer. Empty uses OKARU's detection. |
-| `update_cmd` | `string` | *(empty)* | Full override for the update command, in both terminal and background mode. Empty builds it from the settings above. |
+| `update_cmd` | `string` | *(empty)* | Full override for the update command, in both terminal and background mode. Empty runs `okaru-update` with flags from the settings above. |
 | `config_review` | `bool` | `true` | Scan for `.pacnew`/`.pacsave` files and offer the in-panel 3-way merge. Off also stops the scan and hides the bar badge. |
 | `config_search_paths` | `string_list` | `["/etc"]` | Absolute directories to scan for `.pacnew`/`.pacsave`/`.pacorig` files. |
 | `config_include_pacsave` | `bool` | `true` | Also list `.pacsave` files (a removed package's kept config), with restore/remove actions. |
@@ -285,7 +292,7 @@ setting.
 | `config_notify` | `bool` | `true` | Notify when an update run leaves new `.pacnew` files behind. |
 | `config_auto_remove_identical` | `bool` | `false` | After a run, delete `.pacnew` files byte-identical to the live file in one `pkexec` call. |
 | `config_backup` | `bool` | `true` | Save a copy of the config before writing the merged result. |
-| `config_backup_dir` | `string` | *(empty)* | Empty: a `config-backups` folder in the data directory. An absolute path: back up there. `alongside`: a `<file>.arch-updater.bak` next to each file (root-owned). |
+| `config_backup_dir` | `string` | *(empty)* | Empty: a `config-backups` folder in the data directory. An absolute path: back up there. `alongside`: a `<file>.okaru-updater.bak` next to each file (root-owned). |
 | `config_backup_keep` | `int` | `10` | Backups to keep per file (`0` = all). Ignored for the `alongside` location. |
 | `config_merge_tool` | `string` | *(empty)* | External merge command with tokens `%mine %base %theirs %merged`. Empty uses the in-panel merge. |
 | `config_diff_tool` | `string` | *(empty)* | External diff command for **View diff**, tokens `%a` (current file) and `%b` (`.pacnew`). Empty uses `diff` in the pager. |
@@ -297,14 +304,14 @@ setting.
 ## IPC
 
 ```sh
-okaru msg plugin okaru/arch-updater:service all check
-okaru msg plugin okaru/arch-updater:service all update
-okaru msg plugin okaru/arch-updater:service all update_background
-okaru msg plugin okaru/arch-updater:service all update_terminal
-okaru msg plugin okaru/arch-updater:service all dismiss
-okaru msg plugin okaru/arch-updater:service all ignore:NAME
-okaru msg plugin okaru/arch-updater:service all unignore:NAME
-okaru msg plugin okaru/arch-updater:service all config_scan
+okaru msg plugin okaru/updater:service all check
+okaru msg plugin okaru/updater:service all update
+okaru msg plugin okaru/updater:service all update_background
+okaru msg plugin okaru/updater:service all update_terminal
+okaru msg plugin okaru/updater:service all dismiss
+okaru msg plugin okaru/updater:service all ignore:NAME
+okaru msg plugin okaru/updater:service all unignore:NAME
+okaru msg plugin okaru/updater:service all config_scan
 ```
 
 `update` follows the **Update mode** setting; `update_background` and
@@ -316,13 +323,14 @@ files.
 
 - **Commands spawned.** Checks: `checkupdates`; the AUR helper's `-Qua` (or
   your custom command); `flatpak list` / `flatpak remote-ls --updates`
-  (combined with `sed`/`awk`); `pacman -Si` piped through `awk` for the
+  (combined with `sed`/`awk`); `snap list` / `snap refresh --list`; `pacman -Si` piped through `awk` for the
   download size; `test -d` against `uname -r` for the reboot check. Update:
-  a detached `sh` running `pkexec pacman -Syu` or the AUR helper with
-  `--sudo pkexec`, then optionally `flatpak update` — all output redirected
+  a detached `sh` running `okaru-update --noconfirm` (`pkexec pacman -Syu`
+  or the AUR helper with `--sudo pkexec`, then `flatpak update` and
+  `pkexec snap refresh`) — all output redirected
   to the update log, which the engine follows with `tail`/`grep`. The
-  terminal mode runs the interactive equivalents (`sudo pacman -Syu`, the
-  helper without auto-answers) under your terminal, wrapped in `script` for
+  terminal mode runs plain `okaru-update` (`sudo pacman -Syu`, the
+  helper without auto-answers, `sudo snap refresh`) under your terminal, wrapped in `script` for
   a real pty and `tee`'d into the same log. Rollback: `pactree` to resolve
   same-run dependencies, a shell glob over the package caches to find the
   old files, `pkexec pacman -U` to
@@ -378,7 +386,7 @@ files.
 
 ## Credits
 
-Ported from the v4 QML "Arch Updater" plugin (MIT), rebuilt for v5's Luau
+Ported from the v4 QML "OKARU Updater" plugin (MIT), rebuilt for v5's Luau
 plugin API. Background update mode, ignore management, the polkit
 integration, and the update history with rollback contributed by
 [UmedjonBA](https://github.com/UmedjonBA).
