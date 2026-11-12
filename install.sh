@@ -498,6 +498,14 @@ greeter() {
   printf '[terminal]\nvt = 1\n\n[default_session]\ncommand = "/usr/bin/okaru-greeter-session"\nuser = "greeter"\n' \
     | sudo tee "$conf"
   sudo /usr/share/okaru-greeter/setup_greetd_pam.sh
+  # En Hyprland, el greeter entra siempre a la sesión con uwsm (greeter.toml gana sobre la última elegida).
+  if [[ $COMPOSITOR == hyprland ]]; then
+    local gconf=/var/lib/okaru-greeter/greeter.toml
+    sudo install -d -o greeter -g greeter -m 0750 /var/lib/okaru-greeter
+    sudo grep -q '^\[session\]' "$gconf" 2>/dev/null \
+      || printf '\n[session]\ndefault = "hyprland-uwsm"\n' | sudo tee -a "$gconf" >/dev/null
+    sudo chown greeter:greeter "$gconf" && sudo chmod 0644 "$gconf"
+  fi
   [[ $SWITCH_DM == keep ]] && { t "greetd queda instalado pero sin activar" "greetd is installed but not enabled"; echo; return 0; }
   [[ -n $SWITCH_DM ]] && sudo systemctl disable "$SWITCH_DM"
   sudo systemctl enable greetd.service
