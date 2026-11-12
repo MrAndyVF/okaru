@@ -1448,6 +1448,93 @@
       "scope-workspace": "este workspace",
       "scope-global": "todo el sistema",
       "hint": "Clic izquierdo: siguiente · Clic derecho: anterior"
+    },
+    "updates": {
+      "title": "Actualizaciones",
+      "status-idle": "Aún sin revisar",
+      "status-checking": "Buscando actualizaciones…",
+      "status-checking-step": "Revisando {step}…",
+      "status-clean": "El sistema está al día",
+      "status-running": "Actualizando en segundo plano…",
+      "status-running-terminal": "Actualizando en una terminal…",
+      "status-rolling-back": "Revirtiendo…",
+      "status-error": "Falló la búsqueda de actualizaciones",
+      "pending": "1 paquete por actualizar",
+      "pending-plural": "{count} paquetes por actualizar",
+      "err-no-checkupdates": "No se encontró checkupdates, instala pacman-contrib",
+      "err-timeout": "Se agotó el tiempo al buscar actualizaciones",
+      "err-check": "Falló checkupdates, mira el registro del sistema",
+      "err-aur": "Falló la revisión de AUR, mira el registro del sistema",
+      "err-flatpak": "Falló la revisión de Flatpak",
+      "err-snap": "Falló la revisión de Snap (¿está corriendo snapd?)",
+      "err-no-okaru-update": "No se encontró okaru-update, reinstala OKARU",
+      "err-no-pkexec": "No se encontró pkexec, instala polkit para actualizar en segundo plano",
+      "err-no-terminal": "No se encontró una terminal, configura $TERMINAL",
+      "err-spawn": "No se pudo iniciar la actualización",
+      "err-terminal-closed": "La terminal se cerró antes de terminar la actualización",
+      "err-run": "La actualización falló (salida {code}), revisa el registro o reintenta en una terminal",
+      "err-polkit": "No se pudo instalar la regla de polkit",
+      "press-enter": "Presiona Enter para cerrar",
+      "run-ok": "La actualización terminó correctamente",
+      "rollback-ok": "La reversión terminó correctamente",
+      "polkit-ok": "Regla de polkit instalada: desde ahora, una sola contraseña por actualización",
+      "rollback-missing-named": "La versión anterior de {name} ya no está en la caché",
+      "tooltip-status": "Estado",
+      "tooltip-pending": "Pendientes",
+      "tooltip-reboot": "Reinicio",
+      "tooltip-reboot-value": "recomendado",
+      "tooltip-checked": "Revisado",
+      "tooltip-hints": "clic: panel · derecho: revisar ahora",
+      "minutes-ago": "hace 1 minuto",
+      "minutes-ago-plural": "hace {count} minutos",
+      "hours-ago": "hace 1 hora",
+      "hours-ago-plural": "hace {count} horas",
+      "days-ago": "hace 1 día",
+      "days-ago-plural": "hace {count} días",
+      "open-log": "Abrir el registro completo",
+      "check": "Buscar actualizaciones",
+      "checked-at": "revisado a las {time}",
+      "size-gib": "≈ {value} GiB por descargar",
+      "size-mib": "≈ {value} MiB por descargar",
+      "reboot": "Se recomienda reiniciar: el kernel en uso ya no está instalado",
+      "update": "Actualizar",
+      "update-background-tip": "Actualizar en segundo plano: polkit pide tu contraseña y el resto es automático",
+      "update-terminal-tip": "Actualizar en una terminal: las preguntas y la revisión del PKGBUILD funcionan como siempre",
+      "dismiss": "Descartar",
+      "retry-terminal": "Reintentar en terminal",
+      "polkit-hint": "Polkit pide la contraseña varias veces por actualización",
+      "polkit-install": "Preguntar una vez",
+      "polkit-install-tip": "Instalar una regla de polkit para que cada actualización pida la contraseña una sola vez",
+      "log-title": "Registro de la actualización",
+      "log-terminal": "La actualización corre en una terminal",
+      "log-waiting": "Esperando la contraseña de polkit y la primera salida…",
+      "open-page": "Abrir la página del paquete",
+      "ignore-tip": "Ignorar: no se cuenta y se salta al actualizar",
+      "more": "+{count} más",
+      "ignored": "Ignorados",
+      "unignore-tip": "Dejar de ignorar",
+      "activity": "Actividad",
+      "updated-ago": "actualizado {when}",
+      "never-updated": "nunca actualizado",
+      "history": "Historial de actualizaciones",
+      "history-tip": "Ver los paquetes de esta actualización",
+      "packages": "1 paquete",
+      "packages-plural": "{count} paquetes",
+      "back": "Atrás",
+      "rollback-tag": "reversión",
+      "confirm": "¿Seguro?",
+      "rollback-all": "Revertir todo",
+      "rollback-all-tip": "Bajar de versión todos los paquetes de esta actualización en una sola transacción",
+      "rollback-missing": "La versión anterior ya no está en la caché de pacman/AUR",
+      "rollback-tip": "Volver a {version}, con sus dependencias de esta actualización. pacman se niega si rompería otros paquetes.",
+      "launcher-check": "Revisar pacman, AUR, Flatpak y Snap",
+      "launcher-panel": "Abrir el panel de actualizaciones",
+      "source": {
+        "pacman": "Pacman",
+        "aur": "AUR",
+        "flatpak": "Flatpak",
+        "snap": "Snap"
+      }
     }
   },
   "osd": {
@@ -1889,7 +1976,8 @@
         "google": "Google",
         "cursor": "Cursor",
         "icons": "Iconos",
-        "phone": "Teléfono"
+        "phone": "Teléfono",
+        "updates": "Actualizaciones"
       },
       "modules": {
         "advanced": "Avanzado",
@@ -2963,6 +3051,18 @@
         "unit": {
           "imperial": "Imperial",
           "metric": "Métrico"
+        }
+      },
+      "updates": {
+        "aur-helper": {
+          "auto": "Detectar (yay, luego paru)",
+          "yay": "yay",
+          "paru": "paru",
+          "off": "Apagado, solo pacman"
+        },
+        "mode": {
+          "terminal": "En una terminal",
+          "background": "En segundo plano (sin preguntas)"
         }
       }
     },
@@ -4264,6 +4364,50 @@
         "phone-recent-images-count": {
           "label": "Cantidad de imágenes recientes",
           "description": "Cuántas capturas muestra el panel del teléfono"
+        },
+        "updates-mode": {
+          "label": "Modo de actualización",
+          "description": "Cómo actualiza el botón Actualizar: en una terminal (preguntas y revisión del PKGBUILD como siempre) o en segundo plano (sin preguntas, con el registro en vivo en el panel)."
+        },
+        "updates-aur-helper": {
+          "label": "Ayudante de AUR",
+          "description": "Qué ayudante revisa y actualiza los paquetes de AUR. Detectar prueba yay y luego paru."
+        },
+        "updates-flatpak": {
+          "label": "Incluir Flatpak",
+          "description": "Revisar y actualizar también las apps Flatpak. Se salta si flatpak no está instalado."
+        },
+        "updates-snap": {
+          "label": "Incluir Snap",
+          "description": "Revisar y actualizar también los snaps. Se salta si snap no está instalado."
+        },
+        "updates-auto-check-hours": {
+          "label": "Revisar cada (horas)",
+          "description": "Buscar actualizaciones automáticamente cada N horas. 0 solo revisa a mano."
+        },
+        "updates-notify": {
+          "label": "Avisar cuando haya actualizaciones",
+          "description": "Enviar una notificación cuando una revisión encuentra paquetes por actualizar."
+        },
+        "updates-ignore": {
+          "label": "Paquetes ignorados",
+          "description": "Paquetes, apps Flatpak o snaps que no se cuentan y se saltan al actualizar, además del IgnorePkg de pacman.conf."
+        },
+        "updates-download-size": {
+          "label": "Mostrar tamaño de descarga",
+          "description": "Estimar el tamaño de descarga de los paquetes pendientes de pacman. No incluye AUR, Flatpak ni Snap."
+        },
+        "updates-check-reboot": {
+          "label": "Revisar si hace falta reiniciar",
+          "description": "Avisar cuando el kernel en uso ya no está instalado."
+        },
+        "updates-activity-graph": {
+          "label": "Mostrar gráfico de actividad",
+          "description": "Registrar las actualizaciones pendientes de las últimas revisiones y mostrarlas en un gráfico pequeño en el panel."
+        },
+        "updates-rollback-auto-ignore": {
+          "label": "Ignorar paquetes tras revertir",
+          "description": "Tras revertir, ignorar los paquetes revertidos para que la siguiente revisión no los vuelva a ofrecer."
         }
       },
       "shared": {
@@ -5641,7 +5785,8 @@
         "hide-when-empty": {
           "description": "Ocultar píldoras de espacio de trabajo cuando no haya ventanas abiertas",
           "label": "Ocultar cuando esté vacío",
-          "workspaces-description": "Ocultar píldoras de espacio de trabajo que no tengan ventanas abiertas"
+          "workspaces-description": "Ocultar píldoras de espacio de trabajo que no tengan ventanas abiertas",
+          "updates-description": "Oculta el widget cuando no hay nada que actualizar ni hace falta reiniciar"
         },
         "hide-when-full": {
           "description": "Ocultar el widget de batería cuando esté completamente cargada",
@@ -6086,6 +6231,10 @@
         "show-battery": {
           "label": "Mostrar batería",
           "description": "Muestra la batería del teléfono junto al icono"
+        },
+        "show-count": {
+          "label": "Mostrar el número",
+          "description": "Muestra el número de actualizaciones pendientes junto al icono"
         }
       },
       "types": {
@@ -6127,7 +6276,8 @@
         "cat": "Gato",
         "ports": "Red y puertos",
         "phone": "Teléfono",
-        "hypr-layout": "Layout de ventanas"
+        "hypr-layout": "Layout de ventanas",
+        "updates": "Actualizaciones"
       }
     },
     "window": {

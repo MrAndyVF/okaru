@@ -1550,6 +1550,93 @@
       "scope-workspace": "this workspace",
       "scope-global": "whole system",
       "hint": "Left click: next · Right click: previous"
+    },
+    "updates": {
+      "title": "Updates",
+      "status-idle": "Not checked yet",
+      "status-checking": "Checking for updates…",
+      "status-checking-step": "Checking {step}…",
+      "status-clean": "System is up to date",
+      "status-running": "Updating in the background…",
+      "status-running-terminal": "Updating in a terminal window…",
+      "status-rolling-back": "Rolling back…",
+      "status-error": "Update check failed",
+      "pending": "1 package to update",
+      "pending-plural": "{count} packages to update",
+      "err-no-checkupdates": "checkupdates not found, install pacman-contrib",
+      "err-timeout": "Timed out while checking for updates",
+      "err-check": "checkupdates failed, see the system log",
+      "err-aur": "AUR check failed, see the system log",
+      "err-flatpak": "Flatpak check failed",
+      "err-snap": "Snap check failed (is snapd running?)",
+      "err-no-okaru-update": "okaru-update not found, reinstall OKARU",
+      "err-no-pkexec": "pkexec not found, install polkit to update in the background",
+      "err-no-terminal": "No terminal emulator found, set $TERMINAL",
+      "err-spawn": "Could not start the update",
+      "err-terminal-closed": "The terminal closed before the update finished",
+      "err-run": "Update failed (exit {code}), check the log or retry in a terminal",
+      "err-polkit": "Could not install the polkit rule",
+      "press-enter": "Press Enter to close",
+      "run-ok": "Update finished successfully",
+      "rollback-ok": "Rollback finished successfully",
+      "polkit-ok": "Polkit rule installed: one password per update from now on",
+      "rollback-missing-named": "The old version of {name} is no longer in the cache",
+      "tooltip-status": "Status",
+      "tooltip-pending": "Pending",
+      "tooltip-reboot": "Reboot",
+      "tooltip-reboot-value": "recommended",
+      "tooltip-checked": "Checked",
+      "tooltip-hints": "click: panel · right: check now",
+      "minutes-ago": "1 minute ago",
+      "minutes-ago-plural": "{count} minutes ago",
+      "hours-ago": "1 hour ago",
+      "hours-ago-plural": "{count} hours ago",
+      "days-ago": "1 day ago",
+      "days-ago-plural": "{count} days ago",
+      "open-log": "Open full log",
+      "check": "Check for updates",
+      "checked-at": "checked at {time}",
+      "size-gib": "≈ {value} GiB to download",
+      "size-mib": "≈ {value} MiB to download",
+      "reboot": "Reboot recommended: the running kernel is no longer installed",
+      "update": "Update",
+      "update-background-tip": "Update in the background: polkit asks for your password, the rest is automatic",
+      "update-terminal-tip": "Update in a terminal window: prompts and the PKGBUILD review work as usual",
+      "dismiss": "Dismiss",
+      "retry-terminal": "Retry in terminal",
+      "polkit-hint": "Polkit asks for the password several times per update",
+      "polkit-install": "Ask once",
+      "polkit-install-tip": "Install a polkit rule so each update asks for the password only once",
+      "log-title": "Update log",
+      "log-terminal": "The update is running in a terminal window",
+      "log-waiting": "Waiting for the polkit password and the first output…",
+      "open-page": "Open package page",
+      "ignore-tip": "Ignore: hide it from the count and skip it when updating",
+      "more": "+{count} more",
+      "ignored": "Ignored",
+      "unignore-tip": "Stop ignoring",
+      "activity": "Activity",
+      "updated-ago": "updated {when}",
+      "never-updated": "never updated",
+      "history": "Update history",
+      "history-tip": "See the packages of this update",
+      "packages": "1 package",
+      "packages-plural": "{count} packages",
+      "back": "Back",
+      "rollback-tag": "rollback",
+      "confirm": "Sure?",
+      "rollback-all": "Roll back all",
+      "rollback-all-tip": "Downgrade every package of this update in one transaction",
+      "rollback-missing": "The old version is no longer in the pacman/AUR cache",
+      "rollback-tip": "Roll back to {version}, with its dependencies from this update. pacman refuses if it would break other packages.",
+      "launcher-check": "Check pacman, AUR, Flatpak and Snap",
+      "launcher-panel": "Open the updates panel",
+      "source": {
+        "pacman": "Pacman",
+        "aur": "AUR",
+        "flatpak": "Flatpak",
+        "snap": "Snap"
+      }
     }
   },
   "osd": {
@@ -2004,7 +2091,8 @@
         "google": "Google",
         "cursor": "Cursor",
         "icons": "Icons",
-        "phone": "Phone"
+        "phone": "Phone",
+        "updates": "Updates"
       },
       "modules": {
         "advanced": "Advanced",
@@ -2960,6 +3048,18 @@
         "unit": {
           "imperial": "Imperial",
           "metric": "Metric"
+        }
+      },
+      "updates": {
+        "aur-helper": {
+          "auto": "Auto-detect (yay, then paru)",
+          "yay": "yay",
+          "paru": "paru",
+          "off": "Off, pacman only"
+        },
+        "mode": {
+          "terminal": "In a terminal window",
+          "background": "In the background (no questions)"
         }
       }
     },
@@ -4380,6 +4480,50 @@
         "phone-recent-images-count": {
           "label": "Number of recent images",
           "description": "How many screenshots the phone panel shows"
+        },
+        "updates-mode": {
+          "label": "Update mode",
+          "description": "How the Update button runs: in a terminal window (prompts and PKGBUILD review as usual) or in the background (no questions, live log in the panel)."
+        },
+        "updates-aur-helper": {
+          "label": "AUR helper",
+          "description": "Which helper checks and updates AUR packages. Auto-detect tries yay, then paru."
+        },
+        "updates-flatpak": {
+          "label": "Include Flatpak",
+          "description": "Also check and update Flatpak apps. Skipped when flatpak is not installed."
+        },
+        "updates-snap": {
+          "label": "Include Snap",
+          "description": "Also check and update snaps. Skipped when snap is not installed."
+        },
+        "updates-auto-check-hours": {
+          "label": "Check every (hours)",
+          "description": "Check for updates automatically every N hours. 0 only checks by hand."
+        },
+        "updates-notify": {
+          "label": "Notify when updates are found",
+          "description": "Send a notification when a check finds packages to update."
+        },
+        "updates-ignore": {
+          "label": "Ignored packages",
+          "description": "Packages, Flatpak apps or snaps left out of the count and skipped when updating, besides IgnorePkg in pacman.conf."
+        },
+        "updates-download-size": {
+          "label": "Show download size",
+          "description": "Estimate the download size of the pending pacman packages. AUR, Flatpak and Snap are not included."
+        },
+        "updates-check-reboot": {
+          "label": "Check if a reboot is needed",
+          "description": "Warn when the running kernel is no longer installed."
+        },
+        "updates-activity-graph": {
+          "label": "Show activity graph",
+          "description": "Record pending updates in recent checks and show them as a small graph in the panel."
+        },
+        "updates-rollback-auto-ignore": {
+          "label": "Ignore packages after a rollback",
+          "description": "After a rollback, ignore the rolled-back packages so the next check does not offer them again."
         }
       },
       "shared": {
@@ -5820,7 +5964,8 @@
         "hide-when-empty": {
           "description": "Hide workspace pills when there are no open windows",
           "label": "Hide When Empty",
-          "workspaces-description": "Hide workspace pills that have no open windows"
+          "workspaces-description": "Hide workspace pills that have no open windows",
+          "updates-description": "Hide the widget when there is nothing to update and no reboot is needed"
         },
         "hide-when-full": {
           "description": "Hide the battery widget when fully charged",
@@ -6293,6 +6438,10 @@
         "show-battery": {
           "label": "Show battery",
           "description": "Show the phone battery next to the icon"
+        },
+        "show-count": {
+          "label": "Show count",
+          "description": "Show the number of pending updates next to the icon"
         }
       },
       "types": {
@@ -6334,7 +6483,8 @@
         "cat": "Cat",
         "ports": "Network & ports",
         "phone": "Phone",
-        "hypr-layout": "Window layout"
+        "hypr-layout": "Window layout",
+        "updates": "Updates"
       }
     },
     "window": {

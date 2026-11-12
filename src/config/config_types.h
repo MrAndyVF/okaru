@@ -1616,6 +1616,39 @@ struct PhoneConfig {
   bool operator==(const PhoneConfig&) const = default;
 };
 
+// OKARU: actualizaciones del sistema (pacman, AUR, Flatpak y Snap) con okaru-update; widget "updates" y panel
+// okaru-updates. Antes era el módulo Luau okaru/arch-updater.
+enum class UpdatesAurHelper : std::uint8_t { Auto = 0, Yay = 1, Paru = 2, Off = 3 };
+constexpr EnumOption<UpdatesAurHelper> kUpdatesAurHelpers[] = {
+    {UpdatesAurHelper::Auto, "auto", "settings.options.updates.aur-helper.auto"},
+    {UpdatesAurHelper::Yay, "yay", "settings.options.updates.aur-helper.yay"},
+    {UpdatesAurHelper::Paru, "paru", "settings.options.updates.aur-helper.paru"},
+    {UpdatesAurHelper::Off, "off", "settings.options.updates.aur-helper.off"},
+};
+
+enum class UpdatesMode : std::uint8_t { Terminal = 0, Background = 1 };
+constexpr EnumOption<UpdatesMode> kUpdatesModes[] = {
+    {UpdatesMode::Terminal, "terminal", "settings.options.updates.mode.terminal"},
+    {UpdatesMode::Background, "background", "settings.options.updates.mode.background"},
+};
+
+struct UpdatesConfig {
+  UpdatesAurHelper aurHelper = UpdatesAurHelper::Auto;
+  bool flatpak = true;
+  bool snap = true;
+  // Paquetes, apps Flatpak o snaps que no se cuentan ni se actualizan (además del IgnorePkg de pacman.conf).
+  std::vector<std::string> ignore;
+  std::int32_t autoCheckHours = 0; // 0: solo a mano
+  bool notify = true;
+  bool showDownloadSize = true;
+  bool checkReboot = true;
+  bool activityGraph = false;
+  UpdatesMode mode = UpdatesMode::Terminal;
+  bool rollbackAutoIgnore = false;
+
+  bool operator==(const UpdatesConfig&) const = default;
+};
+
 struct KeybindsConfig {
   std::vector<KeyChord> validate;
   std::vector<KeyChord> cancel;
@@ -1986,6 +2019,7 @@ struct Config {
   BatteryConfig battery;
   BluetoothConfig bluetooth;
   PhoneConfig phone; // OKARU
+  UpdatesConfig updates; // OKARU
   KeybindsConfig keybinds;
   NightLightConfig nightlight;
   LocationConfig location;

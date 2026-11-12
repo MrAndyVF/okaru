@@ -23,6 +23,7 @@ namespace okaru::config::schema {
   const Schema<BatteryConfig>& batterySchema();
   const Schema<BluetoothConfig>& bluetoothSchema();
   const Schema<PhoneConfig>& phoneSchema(); // OKARU
+  const Schema<UpdatesConfig>& updatesSchema(); // OKARU
   const Schema<ControlCenterConfig>& controlCenterSchema();
   const Schema<PluginsConfig>& pluginsSchema();
   const Schema<HotCornersConfig>& hotCornersSchema();

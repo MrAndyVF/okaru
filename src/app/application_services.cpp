@@ -71,6 +71,7 @@
 #include "system/brightness_service.h"
 #include "system/distro_info.h"
 #include "system/easyeffects_service.h"
+#include "system/okaru_updates.h"
 #include "system/keyboard_backlight_service.h"
 #include "system/system_monitor_service.h"
 #include "theme/apps_palette.h"
@@ -556,6 +557,12 @@ void Application::initStyleThemeAndWayland() {
   m_configService.addReloadCallback(applyStyleConfig);
   m_configService.addReloadCallback(applyPasswordMaskStyle);
   m_configService.addReloadCallback(applyInputConfig);
+  // OKARU: motor de actualizaciones (widget "updates", panel okaru-updates, lanzador /arch).
+  okaru::updates::Engine::instance().setConfigService(&m_configService);
+  okaru::updates::Engine::instance().configure(m_configService.config().updates);
+  m_configService.addReloadCallback(
+      [this] { okaru::updates::Engine::instance().configure(m_configService.config().updates); }, "updates"
+  );
   m_configService.addReloadCallback([this] {
     m_httpClient.setOfflineMode(m_configService.config().shell.offlineMode);
     m_scriptApi.setConfigSnapshot(m_configService.configTable());

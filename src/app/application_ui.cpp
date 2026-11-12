@@ -20,6 +20,7 @@
 #include "launcher/panel_provider.h"
 #include "launcher/plugin_launcher_provider.h"
 #include "launcher/session_provider.h"
+#include "launcher/updates_provider.h"
 #include "launcher/wallpaper_provider.h"
 #include "launcher/window_provider.h"
 #include "notification/notifications.h"
@@ -52,6 +53,7 @@
 #include "shell/okaru_capture/okaru_capture_panel.h"
 #include "shell/okaru_panels/okaru_ports_tab.h"
 #include "shell/okaru_phone/okaru_phone_tab.h"
+#include "shell/okaru_updates/okaru_updates_tab.h"
 #include "shell/okaru_panels/okaru_tab_panel.h"
 #include "shell/okaru_workspaces/okaru_workspace_panel.h"
 #include "shell/okaru_auth/okaru_auth_panel.h"
@@ -649,6 +651,8 @@ void Application::initPanelManagerAndPanels() {
                 [=, this] { return std::make_unique<OkaruPhoneTab>(m_kdeConnectService.get(), m_mprisService.get(),
                                                                    &m_configService, &m_asyncTextureCache); },
                 480.0F, 720.0F);
+    addTabPanel("okaru-updates", "okaru.updates.title", "package", // OKARU
+                [] { return std::make_unique<OkaruUpdatesTab>(); }, 480.0F, 680.0F);
     addTabPanel("okaru-power", "control-center.tabs.power", "bolt",
                 [=, this] { return std::make_unique<PowerTab>(m_upowerService.get(), m_powerProfilesService.get()); });
   }
@@ -663,6 +667,7 @@ void Application::initPanelManagerAndPanels() {
         std::make_unique<PanelProvider>(&m_panelManager, &m_configService)
     );
     launcherPanel->addProvider(std::make_unique<SessionProvider>(&m_configService, &m_sessionActionRunner));
+    launcherPanel->addProvider(std::make_unique<UpdatesProvider>()); // OKARU
     launcherPanel->addProvider(std::make_unique<MathProvider>(&m_clipboardService, &m_configService, &m_httpClient));
     launcherPanel->addProvider(std::make_unique<EmojiProvider>(&m_clipboardService));
     launcherPanel->setCopiedActivationCallback([this] {

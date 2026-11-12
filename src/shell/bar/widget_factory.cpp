@@ -25,6 +25,7 @@
 #include "shell/bar/widgets/okaru_ports_widget.h"
 #include "shell/bar/widgets/okaru_phone_widget.h"
 #include "shell/bar/widgets/okaru_phone_widget_definition.h"
+#include "shell/bar/widgets/okaru_updates_widget_definition.h"
 #include "shell/bar/widgets/okaru_hypr_layout_widget.h"
 #include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
@@ -189,6 +190,12 @@ std::unique_ptr<Widget> WidgetFactory::create(
             return createWidget<OkaruPhoneWidget>(
                 context.contentScale, f.m_kdeConnect, context.output,
                 okaruPhoneWidgetDefinition().resolve(context.config, context.settingContext)
+            );
+          }},
+      {"updates", [](const WidgetFactory& /*f*/, const BuiltinWidgetContext& context) { // OKARU
+            return createWidget<OkaruUpdatesWidget>(
+                context.contentScale, context.output,
+                okaruUpdatesWidgetDefinition().resolve(context.config, context.settingContext)
             );
           }},
       {"hypr_layout", [](const WidgetFactory& f, const BuiltinWidgetContext& context) { // OKARU

@@ -1108,25 +1108,46 @@ variant = "destructive"
     );
   }
 
-  void checkUpdaterRenameMigration() {
+  void checkNativeUpdatesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 23
 [plugins]
 enabled = ["okaru/arch-updater", "okaru/cursor"]
 [plugin_settings."okaru/arch-updater"]
 flatpak_enabled = false
-[widget.updates]
+aur_helper = "custom"
+ignore_packages = ["linux"]
+check_arch_news = true
+[widget.updates_bar]
 type = "okaru/arch-updater:widget"
+glyph = "package"
+hide_on_empty = true
+[widget.clock.actions]
+left = "panel-toggle okaru/arch-updater:panel"
 )");
     okaru::config::schema::Diagnostics diagnostics;
     const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 23, diagnostics);
-    expect(applied == okaru::config::currentConfigVersion(), "updater rename migration was not applied");
+    expect(applied == okaru::config::currentConfigVersion(), "native updates migration was not applied");
+    const auto* enabled = sidecar["plugins"]["enabled"].as_array();
+    expect(enabled != nullptr && enabled->size() == 1, "okaru/arch-updater was not removed from enabled plugins");
+    expect(!sidecar["plugin_settings"].as_table()->contains("okaru/arch-updater"), "plugin settings were not removed");
     expect(
-        sidecar["plugins"]["enabled"][0].value<std::string>() == std::optional<std::string>{"okaru/updater"}
-            && sidecar["plugin_settings"]["okaru/updater"]["flatpak_enabled"].value<bool>() == std::optional<bool>{false}
-            && sidecar["widget"]["updates"]["type"].value<std::string>()
-                   == std::optional<std::string>{"okaru/updater:widget"},
-        "okaru/arch-updater ids were not renamed to okaru/updater"
+        sidecar["updates"]["flatpak"].value<bool>() == std::optional<bool>{false}
+            && sidecar["updates"]["aur_helper"].value<std::string>() == std::optional<std::string>{"auto"}
+            && sidecar["updates"]["ignore"][0].value<std::string>() == std::optional<std::string>{"linux"}
+            && !sidecar["updates"].as_table()->contains("check_arch_news"),
+        "plugin settings were not moved to [updates]"
+    );
+    const auto* widget = sidecar["widget"]["updates_bar"].as_table();
+    expect(
+        widget != nullptr && (*widget)["type"].value<std::string>() == std::optional<std::string>{"updates"}
+            && !widget->contains("glyph") && (*widget)["hide_when_empty"].value<bool>() == std::optional<bool>{true},
+        "the bar widget was not replaced by the native one"
+    );
+    expect(
+        sidecar["widget"]["clock"]["actions"]["left"].value<std::string>()
+            == std::optional<std::string>{"panel-toggle okaru-updates"},
+        "panel references were not replaced"
     );
   }
 
@@ -1341,7 +1362,7 @@ int main() {
   checkNativePhoneMigration();
   checkLockscreenCleanupMigration();
   checkSessionHoldMigration();
-  checkUpdaterRenameMigration();
+  checkNativeUpdatesMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

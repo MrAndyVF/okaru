@@ -39,7 +39,7 @@ namespace okaru::config {
     constexpr int kOkaruNativePhoneMigrationVersion = 21;        // OKARU
     constexpr int kOkaruLockscreenCleanupMigrationVersion = 22;  // OKARU
     constexpr int kOkaruSessionHoldMigrationVersion = 23;        // OKARU
-    constexpr int kOkaruUpdaterRenameMigrationVersion = 24;      // OKARU
+    constexpr int kOkaruNativeUpdatesMigrationVersion = 24;      // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -888,10 +888,8 @@ namespace okaru::config {
     }
 
     // OKARU: plugins de la tienda que pasaron a ser módulos integrados (ids okaru/<nombre>).
-    // okaru/arch-updater pasó a okaru/updater (3.0.0, con Snap y okaru-update).
-    constexpr std::array<std::pair<std::string_view, std::string_view>, 7> kIntegratedModuleIds{{
-        {"yuuto/arch-updater", "okaru/updater"},
-        {"okaru/arch-updater", "okaru/updater"},
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 6> kIntegratedModuleIds{{
+        {"yuuto/arch-updater", "okaru/arch-updater"},
         {"jrohland/claudecode", "okaru/claudecode"},
         {"vn1k/cursor", "okaru/cursor"},
         {"vn1k/icons", "okaru/icons"},
@@ -1039,8 +1037,68 @@ namespace okaru::config {
       }
     }
 
-    // OKARU: el módulo arch-updater pasó a llamarse updater; los ids viejos ya están en kIntegratedModuleIds.
-    void migrateUpdaterRenameSidecar(toml::table& root, schema::Diagnostics& /*diag*/) { renameModuleIdsInNode(root); }
+    // OKARU: el módulo Luau arch-updater pasó a ser nativo (widget "updates", panel okaru-updates, [updates]).
+    // okaru/updater fue su nombre en una rama de prueba.
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 4> kNativeUpdatesIds{{
+        {"okaru/arch-updater:widget", "updates"},
+        {"okaru/arch-updater:panel", "okaru-updates"},
+        {"okaru/updater:widget", "updates"},
+        {"okaru/updater:panel", "okaru-updates"},
+    }};
+    constexpr std::array<std::string_view, 2> kNativeUpdatesPluginIds{"okaru/arch-updater", "okaru/updater"};
+    // Ajuste del plugin → clave de [updates]. Lo que no está aquí (noticias, .pacnew, terminal propia...) se quitó.
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 11> kNativeUpdatesKeys{{
+        {"aur_helper", "aur_helper"},
+        {"flatpak_enabled", "flatpak"},
+        {"snap_enabled", "snap"},
+        {"ignore_packages", "ignore"},
+        {"auto_check_hours", "auto_check_hours"},
+        {"notify_on_updates", "notify"},
+        {"show_download_size", "show_download_size"},
+        {"check_reboot_needed", "check_reboot"},
+        {"show_activity_graph", "activity_graph"},
+        {"update_mode", "mode"},
+        {"rollback_auto_ignore", "rollback_auto_ignore"},
+    }};
+
+    void migrateNativeUpdatesSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      if (auto* pluginSettings = root["plugin_settings"].as_table(); pluginSettings != nullptr) {
+        for (const auto id : kNativeUpdatesPluginIds) {
+          auto* old = (*pluginSettings)[id].as_table();
+          if (old == nullptr) {
+            continue;
+          }
+          if (!root.contains("updates")) {
+            root.insert("updates", toml::table{});
+          }
+          auto* updates = root["updates"].as_table();
+          for (const auto& [from, to] : kNativeUpdatesKeys) {
+            if (const auto* value = old->get(from); value != nullptr && !updates->contains(to)) {
+              updates->insert(to, *value);
+            }
+          }
+          // "custom" (comando propio de AUR) ya no existe.
+          if (const auto helper = (*updates)["aur_helper"].value<std::string>(); helper == "custom") {
+            updates->insert_or_assign("aur_helper", "auto");
+          }
+        }
+      }
+      replaceNativeEntryIds(root, kNativeUpdatesIds);
+      removeNativePlugins(root, kNativeUpdatesPluginIds);
+      // Opciones del widget del plugin que el nativo no tiene.
+      if (auto* widgets = root["widget"].as_table(); widgets != nullptr) {
+        for (auto& [name, node] : *widgets) {
+          if (auto* widget = node.as_table(); widget != nullptr && (*widget)["type"].value<std::string>() == "updates") {
+            widget->erase("glyph");
+            widget->erase("config_badge");
+            if (auto* hide = widget->get("hide_on_empty"); hide != nullptr) {
+              widget->insert_or_assign("hide_when_empty", *hide);
+              widget->erase("hide_on_empty");
+            }
+          }
+        }
+      }
+    }
 
     // OKARU: la paleta integrada "Noctalia" pasó a llamarse "OKARU" ([theme].builtin y favoritos).
     void renameBuiltinPaletteIn(toml::node& node) {
@@ -1222,9 +1280,9 @@ namespace okaru::config {
             .apply = migrateSessionHoldSidecar,
         },
         {
-            .toVersion = kOkaruUpdaterRenameMigrationVersion,
-            .summary = "plugins: okaru/arch-updater is now okaru/updater",
-            .apply = migrateUpdaterRenameSidecar,
+            .toVersion = kOkaruNativeUpdatesMigrationVersion,
+            .summary = "updates: the arch-updater module is now the native updates widget, panel and [updates]",
+            .apply = migrateNativeUpdatesSidecar,
         },
     };
     return migrations;

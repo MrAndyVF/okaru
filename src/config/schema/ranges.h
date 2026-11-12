@@ -46,6 +46,7 @@ namespace okaru::config::schema {
   // Battery / wallpaper.
   inline constexpr Range<std::int64_t> kBatteryWarningThresholdRange{0, 100, 1};
   inline constexpr Range<std::int64_t> kPhoneRecentImagesRange{1, 8, 1}; // OKARU
+  inline constexpr Range<std::int64_t> kUpdatesAutoCheckHoursRange{0, 168, 1}; // OKARU
   inline constexpr Range<float> kWallpaperTransitionDurationRange{100.0F, 30000.0F, 100.0F};
   inline constexpr Range<std::int64_t> kWallpaperAutomationIntervalRange{1, 86400, 1};
 
