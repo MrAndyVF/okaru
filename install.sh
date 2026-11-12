@@ -420,6 +420,8 @@ factory_config() {
   [[ $CONFIG_ACTION == replace && -e $settings ]] && backup "$settings"
   # Sin KDE Connect, el widget del teléfono solo mostraría que falta (solo toca la línea de fábrica, no una propia).
   $WANT_PHONE || sed -i 's/^end = \[ "tray", "cat", "phone", /end = [ "tray", "cat", /' "$okaru"
+  # En Niri, la plantilla de Hyprland avisaría que falta hyprland.conf: se cambia por la de Niri.
+  [[ $COMPOSITOR == niri ]] && sed -i 's/"hyprland", "hyprtoolkit", /"niri", /' "$okaru"
   return 0
 }
 
