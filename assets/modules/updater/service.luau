@@ -45,6 +45,9 @@ local NEWS_PAGE = "https://archlinux.org/news/"
 local LOG_FILE = "update.log"
 local POLKIT_RULE_NAME = "49-okaru-updater-pacman.rules"
 local POLKIT_RULE_PATH = "/etc/polkit-1/rules.d/49-okaru-updater-pacman.rules"
+-- Rule from before 3.0.0 (pacman only): still counts as installed, so the panel
+-- doesn't offer the rule again; installing the new one removes it.
+local POLKIT_OLD_RULE_PATH = "/etc/polkit-1/rules.d/49-arch-updater-pacman.rules"
 
 local CHECK_TIMEOUT_MS = 45000 -- pacman/AUR/flatpak/snap checks: each may sync a mirror
 -- Flatpak and Snap updates go through their own tools, not the pacman cache: no rollback, no size.
@@ -1031,7 +1034,7 @@ local function polkitMarkerPath()
 end
 
 local function checkPolkitRule()
-    local cmd = "if [ -f " .. POLKIT_RULE_PATH .. " ]; then echo yes;"
+    local cmd = "if [ -f " .. POLKIT_RULE_PATH .. " ] || [ -f " .. POLKIT_OLD_RULE_PATH .. " ]; then echo yes;"
         .. " elif [ -r /etc/polkit-1/rules.d ]; then echo no;"
         .. " else echo opaque; fi"
     okaru.runAsync(cmd, function(result)
@@ -1067,7 +1070,8 @@ local function installPolkitRule()
     local staged = dir .. "/" .. POLKIT_RULE_NAME
     okaru.writeFile(staged, POLKIT_RULE)
     polkitInstallBusy = true
-    local cmd = "pkexec install -Dm644 -o root -g root " .. shellQuote(staged) .. " " .. POLKIT_RULE_PATH
+    local cmd = "pkexec sh -c " .. shellQuote("install -Dm644 -o root -g root " .. shellQuote(staged) .. " " .. POLKIT_RULE_PATH
+        .. " && rm -f " .. POLKIT_OLD_RULE_PATH)
     local started = okaru.runAsync(cmd, function(result)
         polkitInstallBusy = false
         if result.exitCode == 0 then
