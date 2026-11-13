@@ -10,6 +10,60 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.2.3] - 2026-11-13
+
+### English
+
+#### Features
+- Native VPN (replaces the vpn-manager plugin), inside OKARU's network management:
+  - **VPN** tab in the control center (`okaru-vpn`): connect/disconnect, default VPN (star), details of the active
+    one (state, device, IP, gateway, DNS), edit and delete.
+  - Create and edit VPNs in OKARU itself, for every installed NetworkManager protocol (FortiSSL, OpenVPN, OpenConnect,
+    vpnc, L2TP, PPTP, IPsec, SSTP) and WireGuard, with per-protocol fields plus advanced `key=value` options; import
+    `.ovpn`, WireGuard `.conf` and Cisco `.pcf` files. Passwords are not stored in the profile: OKARU asks for them when
+    connecting.
+  - Auto-connect on untrusted networks with a trusted-networks list (Settings → Services → VPN and the VPN tab); off
+    by default.
+  - `vpn` bar widget (click: VPN tab; right click: connect or disconnect the default VPN) and a `VPN` control center
+    shortcut (available, not added by default).
+- Updates: “Clear update history” button in the history card (two clicks to confirm).
+
+#### Fixes
+- Updates: the history only showed updates made from the panel; it now also reads `/var/log/pacman.log`, so updates
+  made with pacman, yay or cachy-update appear too (without duplicates), and “updated … ago” follows them.
+- Updates: the activity graph was empty (its bars had no width).
+
+#### Changes
+- Config migration 25: the vpn-manager plugin’s widget, panel, shortcut and settings move to the native ones; its
+  trusted networks and default VPN are imported once. The plugin is removed, and so is the `nm-connection-editor`
+  optional dependency.
+
+### Español
+
+#### Novedades
+- VPN nativa (reemplaza al plugin vpn-manager), dentro de la gestión de red de OKARU:
+  - Pestaña **VPN** en el centro de control (`okaru-vpn`): conectar y desconectar, VPN por defecto (estrella), detalles
+    de la activa (estado, dispositivo, IP, puerta de enlace, DNS), editar y borrar.
+  - Crear y editar VPN desde OKARU mismo, para todos los protocolos de NetworkManager instalados (FortiSSL, OpenVPN,
+    OpenConnect, vpnc, L2TP, PPTP, IPsec, SSTP) y WireGuard, con campos por protocolo y opciones avanzadas
+    `clave=valor`; importar archivos `.ovpn`, `.conf` de WireGuard y `.pcf` de Cisco. Las contraseñas no se guardan en
+    el perfil: OKARU las pide al conectar.
+  - Autoconexión en redes que no son de confianza, con lista de redes de confianza (Ajustes → Servicios → VPN y la
+    pestaña VPN); apagada de fábrica.
+  - Widget `vpn` en la barra (clic: pestaña VPN; clic derecho: conectar o desconectar la VPN por defecto) y atajo
+    `VPN` del centro de control (disponible, no incluido de fábrica).
+- Actualizaciones: botón «Borrar el historial de actualizaciones» en la tarjeta del historial (dos clics para confirmar).
+
+#### Correcciones
+- Actualizaciones: el historial solo mostraba lo actualizado desde el panel; ahora también lee `/var/log/pacman.log`,
+  así que aparece lo actualizado con pacman, yay o cachy-update (sin duplicados), y «actualizado hace…» lo sigue.
+- Actualizaciones: el gráfico de actividad salía vacío (sus barras no tenían ancho).
+
+#### Cambios
+- Migración 25 de la configuración: el widget, el panel, el atajo y los ajustes del plugin vpn-manager pasan a los
+  nativos; sus redes de confianza y su VPN por defecto se importan una vez. El plugin se retira, y también la
+  dependencia opcional `nm-connection-editor`.
+
 ## [1.2.2] - 2026-11-13
 
 ### English
