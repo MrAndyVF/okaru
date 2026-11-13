@@ -1432,6 +1432,35 @@ namespace okaru::files {
     m_app.requestRebuild();
   }
 
+  void FilesWindow::clearRecent() {
+    // Recientes (recent:///) lee el historial compartido de GTK: dejarlo vacío lo borra para todas las apps,
+    // como "Borrar historial" de Nautilus. Se escribe un temporal y se renombra (nunca queda a medias).
+    const char* data = std::getenv("XDG_DATA_HOME");
+    const char* home = std::getenv("HOME");
+    const fs::path file =
+        (data != nullptr && data[0] != '\0' ? fs::path(data) : fs::path(home != nullptr ? home : "") / ".local/share")
+        / "recently-used.xbel";
+    const fs::path temp = file.string() + ".okaru-tmp";
+    {
+      std::ofstream out(temp, std::ios::trunc);
+      out << R"(<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
+</xbel>
+)";
+    }
+    std::error_code ec;
+    fs::rename(temp, file, ec);
+    if (ec) {
+      fs::remove(temp, ec);
+      setMessage(tr("apps.files.recent-clear-failed"), true);
+      return;
+    }
+    setMessage(tr("apps.files.recent-cleared"));
+    if (tab().model->uri().starts_with("recent:")) {
+      tab().model->reload();
+    }
+  }
+
   void FilesWindow::createLink() {
     auto uris = selectedUris();
     if (uris.empty() || !canWriteHere()) {
@@ -2074,6 +2103,10 @@ namespace okaru::files {
       // Fondo de la carpeta.
       if (inTrash()) {
         menu.push_back({tr("apps.files.menu.empty-trash"), [this] { emptyTrash(); }, !tab().model->entries().empty()});
+      } else if (here.starts_with("recent:")) {
+        menu.push_back(
+            {tr("apps.files.menu.clear-recent"), [this] { clearRecent(); }, !tab().model->entries().empty()}
+        );
       } else {
         menu.push_back({tr("apps.files.menu.new-folder"), [this] { startNew(true); }, writable});
         menu.push_back({tr("apps.files.menu.new-file"), [this] { startNew(false); }, writable});
@@ -2226,6 +2259,10 @@ namespace okaru::files {
     if (place.uri == "trash:///") {
       menu.push_back({.separator = true});
       menu.push_back({tr("apps.files.menu.empty-trash"), [this] { emptyTrash(); }});
+    }
+    if (place.uri.starts_with("recent:")) {
+      menu.push_back({.separator = true});
+      menu.push_back({tr("apps.files.menu.clear-recent"), [this] { clearRecent(); }});
     }
     if (place.canUnmount || place.canEject) {
       menu.push_back({.separator = true});

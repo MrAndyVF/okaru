@@ -475,7 +475,8 @@
         "extract": "Extract here",
         "split": "Two panes (F3)",
         "copy-other": "Copy to the other pane",
-        "move-other": "Move to the other pane"
+        "move-other": "Move to the other pane",
+        "clear-recent": "Clear recent history"
       },
       "rename": {
         "title": "Rename",
@@ -676,7 +677,9 @@
         "choose-folder": "Choose this folder",
         "replace-title": "Replace “{name}”?",
         "replace-body": "A file with that name already exists in this folder."
-      }
+      },
+      "recent-cleared": "Recent history cleared",
+      "recent-clear-failed": "Could not clear the recent history"
     },
     "pdf": {
       "title": "Document Viewer",
@@ -763,7 +766,8 @@
         "sent": "{file} was sent to the printer",
         "failed": "Could not print: check the printer in CUPS",
         "no-printers": "No printers are set up. Add one in your system's printer settings (CUPS)."
-      }
+      },
+      "recent-clear": "Clear history"
     },
     "play": {
       "title": "Media Player",

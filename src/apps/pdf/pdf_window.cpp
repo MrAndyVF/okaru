@@ -87,9 +87,12 @@ namespace okaru::pdf {
       }
       m_tabs.clear();
     });
-    for (const auto& file : files) {
-      openFile(file);
-    }
+    // Dentro del bucle: el idioma se carga en run() y abrir puede mostrar mensajes traducidos.
+    DeferredCall::callLater([this, files] {
+      for (const auto& file : files) {
+        openFile(file);
+      }
+    });
   }
 
   PdfWindow::~PdfWindow() = default;
@@ -1020,6 +1023,21 @@ namespace okaru::pdf {
             })
         );
       }
+      page->addChild(
+          ui::button({
+              .text = tr("apps.pdf.recent-clear"),
+              .glyph = "trash",
+              .fontSize = Style::fontSizeCaption * scale,
+              .variant = ButtonVariant::Ghost,
+              .onClick = [this] {
+                DeferredCall::callLater([this] {
+                  m_recent.clear();
+                  saveState();
+                  m_app.requestRebuild();
+                });
+              },
+          })
+      );
     }
     return page;
   }
