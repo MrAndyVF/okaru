@@ -1649,6 +1649,18 @@ struct UpdatesConfig {
   bool operator==(const UpdatesConfig&) const = default;
 };
 
+// OKARU: VPN nativa (antes el plugin vpn-manager). La autoconexión viene apagada.
+struct VpnConfig {
+  bool autoConnect = false;             // conectar la VPN por defecto en redes que no son de confianza
+  bool autoDisconnectOnTrusted = true;  // desconectarla (si la conectó OKARU) al volver a una de confianza
+  bool trustAllEthernet = true;         // cualquier red cableada cuenta como de confianza
+  bool notify = true;                   // avisar cuando conecta o desconecta sola
+  std::string defaultConnection;        // uuid de la VPN por defecto
+  std::vector<std::string> trusted;     // SSID o nombres de conexión de confianza
+
+  bool operator==(const VpnConfig&) const = default;
+};
+
 struct KeybindsConfig {
   std::vector<KeyChord> validate;
   std::vector<KeyChord> cancel;
@@ -2020,6 +2032,7 @@ struct Config {
   BluetoothConfig bluetooth;
   PhoneConfig phone; // OKARU
   UpdatesConfig updates; // OKARU
+  VpnConfig vpn;         // OKARU
   KeybindsConfig keybinds;
   NightLightConfig nightlight;
   LocationConfig location;

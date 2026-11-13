@@ -14,6 +14,7 @@
 #include "core/files/file_watcher.h"
 #include "core/timer_manager.h"
 #include "dbus/network/external_ip_service.h"
+#include "dbus/network/vpn_auto_connect.h"
 #include "dbus/notification/notification_poll_source.h"
 #include "dbus/secret/secret_collection_probe.h"
 #include "hooks/battery_hook_state.h"
@@ -134,7 +135,7 @@ class PolkitAgent;
 namespace okaru::auth {
   class AuthController; // OKARU
   class VpnAuthFlow;
-}
+} // namespace okaru::auth
 class PolkitPollSource;
 class PowerProfilesService;
 class ScreenSaverPollSource;
@@ -300,6 +301,7 @@ private:
   std::unique_ptr<KdeConnectService> m_kdeConnectService; // OKARU
   std::unique_ptr<PowerProfilesService> m_powerProfilesService;
   std::unique_ptr<INetworkService> m_networkService;
+  std::unique_ptr<VpnAutoConnect> m_vpnAutoConnect; // OKARU
   std::unique_ptr<NetworkSecretAgent> m_networkSecretAgent;
   ExternalIpService m_externalIpService{&m_httpClient, &m_configService};
   std::unique_ptr<IwdSecretAgent> m_iwdSecretAgent;

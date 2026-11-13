@@ -1151,6 +1151,40 @@ left = "panel-toggle okaru/arch-updater:panel"
     );
   }
 
+  void checkNativeVpnMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 24
+[plugins]
+enabled = ["okaru/claudecode", "okaru/vpn-manager", "okaru/cursor"]
+[plugin_settings."okaru/vpn-manager"]
+panel_placement = "floating"
+auto_connect_enabled = true
+notify_on_autoswitch = false
+[widget.bar]
+type = "okaru/vpn-manager:bar"
+[bar.main]
+end = ["tray", "bar", "control-center"]
+[control_center]
+cards = [{type = "shortcut:okaru/vpn-manager:toggle", size = "small"}]
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 24, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "native vpn migration was not applied");
+    const auto* enabled = sidecar["plugins"]["enabled"].as_array();
+    expect(enabled != nullptr && enabled->size() == 2, "okaru/vpn-manager was not removed from enabled plugins");
+    expect(!sidecar["plugin_settings"].as_table()->contains("okaru/vpn-manager"), "vpn plugin settings were not removed");
+    expect(
+        sidecar["vpn"]["auto_connect"].value<bool>() == std::optional<bool>{true}
+            && sidecar["vpn"]["notify"].value<bool>() == std::optional<bool>{false}
+            && !sidecar["vpn"].as_table()->contains("panel_placement"),
+        "vpn plugin settings were not moved to [vpn]"
+    );
+    expect(sidecar["widget"]["bar"]["type"].value<std::string>() == std::optional<std::string>{"vpn"},
+           "the vpn bar widget was not replaced by the native one");
+    expect(sidecar["control_center"]["cards"][0]["type"].value<std::string>() == std::optional<std::string>{"shortcut:vpn"},
+           "the vpn shortcut was not replaced by the native one");
+  }
+
   void checkPaletteRoleNamesMigration() {
     toml::table sidecar = toml::parse(R"(
 config_version = 15
@@ -1363,6 +1397,7 @@ int main() {
   checkLockscreenCleanupMigration();
   checkSessionHoldMigration();
   checkNativeUpdatesMigration();
+  checkNativeVpnMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();

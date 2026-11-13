@@ -63,6 +63,7 @@ namespace okaru::config::schema {
         t.push_back(makeSection("bluetooth", &Config::bluetooth, bluetoothSchema()));
         t.push_back(makeSection("phone", &Config::phone, phoneSchema()));
         t.push_back(makeSection("updates", &Config::updates, updatesSchema()));
+        t.push_back(makeSection("vpn", &Config::vpn, vpnSchema()));
         t.push_back(makeSection("nightlight", &Config::nightlight, nightlightSchema()));
         t.push_back(makeSection("location", &Config::location, locationSchema()));
         t.push_back(makeSection("idle", &Config::idle, idleSchema()));

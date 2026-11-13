@@ -18,20 +18,21 @@
 #include "shell/bar/widgets/clock_widget.h"
 #include "shell/bar/widgets/clock_widget_definition.h"
 #include "shell/bar/widgets/control_center_widget.h"
+#include "shell/bar/widgets/control_center_widget_definition.h"
+#include "shell/bar/widgets/custom_button_widget.h"
+#include "shell/bar/widgets/custom_button_widget_definition.h"
 #include "shell/bar/widgets/okaru_capture_widget.h"
 #include "shell/bar/widgets/okaru_capture_widget_definition.h"
 #include "shell/bar/widgets/okaru_cat_widget.h"
 #include "shell/bar/widgets/okaru_cat_widget_definition.h"
-#include "shell/bar/widgets/okaru_ports_widget.h"
-#include "shell/bar/widgets/okaru_phone_widget.h"
-#include "shell/bar/widgets/okaru_phone_widget_definition.h"
-#include "shell/bar/widgets/okaru_updates_widget_definition.h"
 #include "shell/bar/widgets/okaru_hypr_layout_widget.h"
 #include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
+#include "shell/bar/widgets/okaru_phone_widget.h"
+#include "shell/bar/widgets/okaru_phone_widget_definition.h"
+#include "shell/bar/widgets/okaru_ports_widget.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
-#include "shell/bar/widgets/control_center_widget_definition.h"
-#include "shell/bar/widgets/custom_button_widget.h"
-#include "shell/bar/widgets/custom_button_widget_definition.h"
+#include "shell/bar/widgets/okaru_updates_widget_definition.h"
+#include "shell/bar/widgets/vpn_widget_definition.h"
 #ifndef NDEBUG
 #include "shell/bar/widgets/debug_indicator_widget.h"
 #endif
@@ -190,6 +191,12 @@ std::unique_ptr<Widget> WidgetFactory::create(
             return createWidget<OkaruPhoneWidget>(
                 context.contentScale, f.m_kdeConnect, context.output,
                 okaruPhoneWidgetDefinition().resolve(context.config, context.settingContext)
+            );
+          }},
+      {"vpn", [](const WidgetFactory& f, const BuiltinWidgetContext& context) { // OKARU: antes okaru/vpn-manager:bar
+            return createWidget<VpnWidget>(
+                context.contentScale, f.m_network, &f.m_configService, context.output,
+                vpnWidgetDefinition().resolve(context.config, context.settingContext)
             );
           }},
       {"updates", [](const WidgetFactory& /*f*/, const BuiltinWidgetContext& context) { // OKARU

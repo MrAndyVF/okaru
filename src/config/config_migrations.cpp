@@ -40,6 +40,7 @@ namespace okaru::config {
     constexpr int kOkaruLockscreenCleanupMigrationVersion = 22;  // OKARU
     constexpr int kOkaruSessionHoldMigrationVersion = 23;        // OKARU
     constexpr int kOkaruNativeUpdatesMigrationVersion = 24;      // OKARU
+    constexpr int kOkaruNativeVpnMigrationVersion = 25;          // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -1100,6 +1101,45 @@ namespace okaru::config {
       }
     }
 
+    // OKARU: el plugin vpn-manager pasó a ser nativo (widget "vpn", pestaña okaru-vpn, atajo "vpn", [vpn]).
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 6> kNativeVpnIds{{
+        {"okaru/vpn-manager:bar", "vpn"},
+        {"okaru/vpn-manager:panel", "okaru-vpn"},
+        {"okaru/vpn-manager:toggle", "vpn"},
+        {"andrewdems/vpn-manager:bar", "vpn"},
+        {"andrewdems/vpn-manager:panel", "okaru-vpn"},
+        {"andrewdems/vpn-manager:toggle", "vpn"},
+    }};
+    constexpr std::array<std::string_view, 2> kNativeVpnPluginIds{"okaru/vpn-manager", "andrewdems/vpn-manager"};
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 4> kNativeVpnKeys{{
+        {"auto_connect_enabled", "auto_connect"},
+        {"auto_disconnect_on_trusted", "auto_disconnect_on_trusted"},
+        {"trust_all_ethernet", "trust_all_ethernet"},
+        {"notify_on_autoswitch", "notify"},
+    }};
+
+    void migrateNativeVpnSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      if (auto* pluginSettings = root["plugin_settings"].as_table(); pluginSettings != nullptr) {
+        for (const auto id : kNativeVpnPluginIds) {
+          auto* old = (*pluginSettings)[id].as_table();
+          if (old == nullptr) {
+            continue;
+          }
+          if (!root.contains("vpn")) {
+            root.insert("vpn", toml::table{});
+          }
+          auto* vpn = root["vpn"].as_table();
+          for (const auto& [from, to] : kNativeVpnKeys) {
+            if (const auto* value = old->get(from); value != nullptr && !vpn->contains(to)) {
+              vpn->insert(to, *value);
+            }
+          }
+        }
+      }
+      replaceNativeEntryIds(root, kNativeVpnIds);
+      removeNativePlugins(root, kNativeVpnPluginIds);
+    }
+
     // OKARU: la paleta integrada "Noctalia" pasó a llamarse "OKARU" ([theme].builtin y favoritos).
     void renameBuiltinPaletteIn(toml::node& node) {
       if (auto* table = node.as_table(); table != nullptr) {
@@ -1283,6 +1323,11 @@ namespace okaru::config {
             .toVersion = kOkaruNativeUpdatesMigrationVersion,
             .summary = "updates: the arch-updater module is now the native updates widget, panel and [updates]",
             .apply = migrateNativeUpdatesSidecar,
+        },
+        {
+            .toVersion = kOkaruNativeVpnMigrationVersion,
+            .summary = "vpn: the vpn-manager plugin is now the native vpn widget, okaru-vpn tab, shortcut and [vpn]",
+            .apply = migrateNativeVpnSidecar,
         },
     };
     return migrations;
