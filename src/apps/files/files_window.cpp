@@ -142,7 +142,13 @@ namespace okaru::files {
 
   } // namespace
 
-  FilesWindow::FilesWindow(apps::OkaruApp& app, const std::vector<std::string>& locations) : m_app(app) {
+  FilesWindow::FilesWindow(apps::OkaruApp& app, const std::vector<std::string>& locations, const PickerOptions* picker)
+      : m_app(app) {
+    if (picker != nullptr) {
+      m_picker = *picker;
+      m_pickFilter = picker->currentFilter;
+      m_pickName = picker->name;
+    }
     m_glib = std::make_unique<apps::GlibPollSource>();
     m_app.addPollSource(m_glib.get());
     loadState();
@@ -239,6 +245,12 @@ namespace okaru::files {
       } else if (m_focusFind && m_findInput != nullptr) {
         m_app.focus(m_findInput->inputArea());
         m_focusFind = false;
+      } else if (m_picker && m_picker->mode == PickMode::Save && m_pickNameInput != nullptr
+                 && (m_pickNameInput->inputArea()->focused() || m_view == nullptr || !m_view->inputArea()->focused())) {
+        // Guardar: el nombre se escribe de entrada (y conserva el foco al reconstruir).
+        if (!m_pickNameInput->inputArea()->focused()) {
+          m_app.focus(m_pickNameInput->inputArea());
+        }
       } else if (m_view != nullptr && (m_findInput == nullptr || !m_findInput->inputArea()->focused())) {
         m_app.focus(m_view->inputArea());
       }
@@ -296,6 +308,7 @@ namespace okaru::files {
       openTab(homeUri(), false);
     }
     m_active = 0;
+    applyPickFilter();
   }
 
   FilesWindow::~FilesWindow() {
@@ -338,6 +351,7 @@ namespace okaru::files {
     const std::size_t previous = m_active;
     m_active = m_tabs.size() - 1;
     navigate(uri, false);
+    applyPickFilter();
     if (!activate) {
       m_active = std::min(previous, m_tabs.size() - 1);
     }
@@ -636,6 +650,10 @@ namespace okaru::files {
   }
 
   void FilesWindow::openSelection() {
+    if (m_picker) {
+      pickAccept();
+      return;
+    }
     const auto items = selection();
     std::size_t folders = 0;
     for (const FileEntry* e : items) {
@@ -877,6 +895,156 @@ namespace okaru::files {
     const auto uris = selectedUris();
     setMetadata(uris, "metadata::custom-icon", {});
     setMetadata(uris, "metadata::custom-icon-name", {});
+  }
+
+  void FilesWindow::applyPickFilter() {
+    if (!m_picker) {
+      return;
+    }
+    if (m_picker->mode == PickMode::Folder) {
+      tab().model->setPickFilter([](const FileEntry&) { return false; }); // solo carpetas
+      return;
+    }
+    if (m_pickFilter >= m_picker->filters.size()) {
+      tab().model->setPickFilter(nullptr);
+      return;
+    }
+    const PickFilter filter = m_picker->filters[m_pickFilter];
+    tab().model->setPickFilter([filter](const FileEntry& e) {
+      for (const auto& mime : filter.mimes) {
+        if (mime == "*" || mime == "*/*" || g_content_type_is_a(e.contentType.c_str(), mime.c_str()) != FALSE
+            || (mime.ends_with("/*") && e.contentType.starts_with(mime.substr(0, mime.size() - 1)))) {
+          return true;
+        }
+      }
+      for (const auto& glob : filter.globs) {
+        // Los patrones de las apps suelen ir en minúsculas ("*.png"); se compara sin distinguir.
+        gchar* lower = g_utf8_strdown(e.name.c_str(), -1);
+        gchar* pattern = g_utf8_strdown(glob.c_str(), -1);
+        const bool match = g_pattern_match_simple(pattern, lower) != FALSE;
+        g_free(lower);
+        g_free(pattern);
+        if (match) {
+          return true;
+        }
+      }
+      return filter.mimes.empty() && filter.globs.empty();
+    });
+  }
+
+  void FilesWindow::pickFinish(const std::vector<std::string>& uris) {
+    for (const auto& uri : uris) {
+      std::fputs((uri + "\n").c_str(), stdout);
+    }
+    std::fflush(stdout);
+    m_pickResult = uris.empty() ? 1 : 0;
+    m_app.quit();
+  }
+
+  void FilesWindow::pickAccept(bool confirmed) {
+    if (!m_picker) {
+      return;
+    }
+    const auto items = selection();
+    const std::string here = tab().model->uri();
+    switch (m_picker->mode) {
+    case PickMode::Open: {
+      if (items.size() == 1 && items.front()->directory) {
+        activateEntry(*items.front());
+        return;
+      }
+      std::vector<std::string> uris;
+      for (const FileEntry* e : items) {
+        if (!e->directory) {
+          uris.push_back(e->target.empty() ? e->uri : e->target);
+        }
+      }
+      if (!m_picker->multiple && uris.size() > 1) {
+        uris.resize(1);
+      }
+      if (!uris.empty()) {
+        pickFinish(uris);
+      }
+      return;
+    }
+    case PickMode::Folder:
+      pickFinish({items.size() == 1 && items.front()->directory ? items.front()->uri : here});
+      return;
+    case PickMode::Save: {
+      const std::string name = trimmed(m_pickName);
+      if (name.empty() || name.contains('/')) {
+        return;
+      }
+      if (items.size() == 1 && items.front()->directory && items.front()->name != name) {
+        activateEntry(*items.front()); // carpeta elegida: entrar y guardar ahí
+        return;
+      }
+      const std::string uri = childUri(here, name);
+      GFile* file = g_file_new_for_uri(uri.c_str());
+      const bool exists = g_file_query_exists(file, nullptr) != FALSE;
+      g_object_unref(file);
+      if (exists && !confirmed) {
+        m_dialogTarget = uri;
+        m_overlay = Overlay::ConfirmReplace;
+        m_app.requestRebuild();
+        return;
+      }
+      pickFinish({uri});
+      return;
+    }
+    }
+  }
+
+  std::unique_ptr<Node> FilesWindow::buildPickerBar(float scale) {
+    auto bar = ui::row({
+        .align = FlexAlign::Center,
+        .gap = Style::spaceSm * scale,
+        .padding = Style::spaceSm * scale,
+        .fill = colorSpecFromRole(ColorRole::SurfaceContainerLow),
+    });
+    if (m_picker->mode == PickMode::Save) {
+      // Invisible: updateStatus la necesita (y rellena el nombre al elegir un archivo).
+      bar->addChild(ui::label({.out = &m_statusLabel, .text = " ", .visible = false, .participatesInLayout = false}));
+      bar->addChild(ui::label({.text = tr("apps.files.pick.name"), .fontSize = Style::fontSizeBody * scale,
+                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+      bar->addChild(ui::input({
+          .out = &m_pickNameInput,
+          .value = m_pickName,
+          .fontSize = Style::fontSizeBody * scale,
+          .flexGrow = 1.0F,
+          .onChange = [this](const std::string& value) { m_pickName = value; },
+          .onSubmit = [this](const std::string&) { DeferredCall::callLater([this] { pickAccept(); }); },
+      }));
+    } else {
+      bar->addChild(ui::label({.out = &m_statusLabel, .text = " ", .fontSize = Style::fontSizeCaption * scale,
+                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1,
+                               .flexGrow = 1.0F}));
+    }
+    if (m_picker->filters.size() > 1 && m_picker->mode != PickMode::Folder) {
+      std::vector<std::string> names;
+      for (const auto& f : m_picker->filters) {
+        names.push_back(f.name);
+      }
+      bar->addChild(ui::select({
+          .options = std::move(names),
+          .selectedIndex = m_pickFilter,
+          .fontSize = Style::fontSizeCaption * scale,
+          .width = 220.0F * scale,
+          .onSelectionChanged = [this](std::size_t index, std::string_view) {
+            m_pickFilter = index;
+            DeferredCall::callLater([this] { applyPickFilter(); });
+          },
+      }));
+    }
+    bar->addChild(ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost,
+                              .onClick = [this] { DeferredCall::callLater([this] { pickFinish({}); }); }}));
+    const std::string accept = !m_picker->acceptLabel.empty() ? m_picker->acceptLabel
+        : m_picker->mode == PickMode::Save                 ? tr("apps.files.pick.save")
+        : m_picker->mode == PickMode::Folder               ? tr("apps.files.pick.choose-folder")
+                                                           : tr("apps.files.pick.open");
+    bar->addChild(ui::button({.text = accept, .variant = ButtonVariant::Primary,
+                              .onClick = [this] { DeferredCall::callLater([this] { pickAccept(); }); }}));
+    return bar;
   }
 
   // ── Portapapeles ───────────────────────────────────────────────────────────────────────────────────
@@ -1996,6 +2164,7 @@ namespace okaru::files {
     m_findInput = nullptr;
     m_dialogInput = nullptr;
     m_statusLabel = nullptr;
+    m_pickNameInput = nullptr;
     m_bulkPreview = nullptr;
     m_bulkApply = nullptr;
     m_menuControl = nullptr;
@@ -2057,7 +2226,7 @@ namespace okaru::files {
     body->addChild(buildBody(width - (m_sidebar && width > 560.0F * scale ? kSidebarWidth * scale : 0.0F),
                              height, scale));
     main->addChild(std::move(body));
-    main->addChild(buildStatus(width, scale));
+    main->addChild(m_picker ? buildPickerBar(scale) : buildStatus(width, scale));
     root->addChild(std::move(main));
     if (m_overlay != Overlay::None) {
       root->addChild(buildOverlay(width, height, scale));
@@ -3093,6 +3262,11 @@ namespace okaru::files {
     }
     m_statusLabel->setText(text);
     updateDetails();
+    if (m_picker && m_picker->mode == PickMode::Save && items.size() == 1 && !items.front()->directory
+        && m_pickNameInput != nullptr) {
+      m_pickName = items.front()->display;
+      m_pickNameInput->setValue(m_pickName);
+    }
 
     std::string right;
     bool error = false;
@@ -3778,6 +3952,18 @@ namespace okaru::files {
                                           .onClick = submit}));
       break;
     }
+    case Overlay::ConfirmReplace: {
+      heading(tr("apps.files.pick.replace-title", "name", displayNameOf(m_dialogTarget)));
+      body(tr("apps.files.pick.replace-body"));
+      buttons(cancelButton(), ui::button({.text = tr("apps.files.conflict.replace"), .variant = ButtonVariant::Destructive,
+                                          .onClick = [this] {
+                                            DeferredCall::callLater([this] {
+                                              m_overlay = Overlay::None;
+                                              pickAccept(true);
+                                            });
+                                          }}));
+      break;
+    }
     case Overlay::Share: {
       heading(trp("apps.files.share.title", static_cast<long>(m_sharePaths.size()), "name",
                   m_sharePaths.empty() ? std::string() : fs::path(m_sharePaths.front()).filename().string()));
@@ -3844,7 +4030,7 @@ namespace okaru::files {
   // ── Teclado ────────────────────────────────────────────────────────────────────────────────────────
 
   bool FilesWindow::textFocused() const {
-    for (const Input* input : {m_pathInput, m_findInput, m_dialogInput}) {
+    for (const Input* input : {m_pathInput, m_findInput, m_dialogInput, m_pickNameInput}) {
       if (input != nullptr && input->inputArea()->focused()) {
         return true;
       }

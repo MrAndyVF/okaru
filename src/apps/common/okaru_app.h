@@ -46,6 +46,7 @@ namespace okaru::apps {
   struct AppOptions {
     const char* appId = "dev.okaru.App";
     std::string titleKey; // clave i18n del título; se traduce al abrir, con el idioma de la config
+    std::string title;    // título literal (gana sobre titleKey), p. ej. el que pide una app al selector
     float width = 400.0F; // tamaño lógico, antes de accessibility.ui_scale
     float height = 600.0F;
     float minWidth = 320.0F;

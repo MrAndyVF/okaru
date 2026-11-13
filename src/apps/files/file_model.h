@@ -98,6 +98,8 @@ namespace okaru::files {
     void reload();
     void setOptions(const ViewOptions& options);
     void setFilter(std::string filter);
+    // Selector de archivos: qué archivos se muestran (las carpetas siempre).
+    void setPickFilter(std::function<bool(const FileEntry&)> filter);
     // Búsqueda recursiva desde la carpeta actual; vacía vuelve al listado normal.
     void setSearch(std::string query);
 
@@ -127,6 +129,7 @@ namespace okaru::files {
     std::vector<FileEntry> m_visible;
     ViewOptions m_options;
     std::string m_filter;
+    std::function<bool(const FileEntry&)> m_pickFilter;
     std::string m_search;
     std::string m_error;
     int m_errorCode = -1;

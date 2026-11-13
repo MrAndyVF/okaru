@@ -9,6 +9,7 @@
 #include "apps/files/file_view.h"
 #include "apps/files/icon_cache.h"
 #include "apps/files/places.h"
+#include "apps/files/portal.h"
 #include "apps/files/preview.h"
 #include "apps/files/share.h"
 #include "apps/files/thumbnails.h"
@@ -65,7 +66,9 @@ namespace okaru::files {
 
   class FilesWindow {
   public:
-    FilesWindow(apps::OkaruApp& app, const std::vector<std::string>& locations);
+    FilesWindow(apps::OkaruApp& app, const std::vector<std::string>& locations, const PickerOptions* picker = nullptr);
+    // Selector: 0 si se eligió algo (ya impreso en la salida estándar), 1 si se canceló.
+    [[nodiscard]] int pickerExitCode() const noexcept { return m_pickResult; }
     ~FilesWindow();
 
   private:
@@ -87,6 +90,7 @@ namespace okaru::files {
       QuickLook,
       BulkRename,
       Compress,
+      ConfirmReplace,
       Errors,
     };
     enum class Mode : std::uint8_t { List, Grid, Columns };
@@ -184,6 +188,10 @@ namespace okaru::files {
     void updateBulkPreview();
     void applyBulkRename();
     void compressDialog();
+    [[nodiscard]] std::unique_ptr<Node> buildPickerBar(float scale);
+    void applyPickFilter();
+    void pickAccept(bool confirmed = false);
+    void pickFinish(const std::vector<std::string>& uris);
     void compressSelection();
     void extractSelection();
     void startNew(bool folder);
@@ -266,6 +274,13 @@ namespace okaru::files {
     Label* m_bulkPreview = nullptr;
     Button* m_bulkApply = nullptr;
     std::size_t m_compressFormat = 0;
+
+    // Modo selector (portal): opciones, filtro elegido y nombre al guardar.
+    std::optional<PickerOptions> m_picker;
+    std::size_t m_pickFilter = 0;
+    std::string m_pickName;
+    Input* m_pickNameInput = nullptr;
+    int m_pickResult = 1;
     Input* m_authPasswordInput = nullptr;
 
     // Teléfonos de KDE Connect: se consultan en un hilo al cambiar algo en su D-Bus.

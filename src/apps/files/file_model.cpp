@@ -395,6 +395,11 @@ namespace okaru::files {
     rebuildVisible();
   }
 
+  void DirectoryModel::setPickFilter(std::function<bool(const FileEntry&)> filter) {
+    m_pickFilter = std::move(filter);
+    rebuildVisible();
+  }
+
   void DirectoryModel::cancelSearch() {
     if (m_searchCancel) {
       m_searchCancel->store(true);
@@ -473,7 +478,8 @@ namespace okaru::files {
     m_visible.clear();
     m_visible.reserve(source.size());
     for (const auto& e : source) {
-      if ((m_options.showHidden || !e.hidden) && matchesFilter(e, needle)) {
+      if ((m_options.showHidden || !e.hidden) && matchesFilter(e, needle)
+          && (e.directory || !m_pickFilter || m_pickFilter(e))) {
         m_visible.push_back(e);
       }
     }

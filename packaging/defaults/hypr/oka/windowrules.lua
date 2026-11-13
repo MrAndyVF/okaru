@@ -13,6 +13,7 @@ hl.window_rule({ match = { class = "^dev\\.okaru\\.Calculator$" }, float = true,
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Viewer$" }, float = true, center = true, size = { 1000, 720 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Player$" }, float = true, center = true, size = { 1100, 700 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Editor$" }, float = true, center = true, size = { 1100, 760 } })
+hl.window_rule({ match = { class = "^dev\\.okaru\\.FilePicker$" }, float = true, center = true, size = { 1000, 680 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Files$" }, float = true, center = true, size = { 1300, 800 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Pdf$" }, float = true, center = true, size = { 760, 960 }, opacity = 1 })
 

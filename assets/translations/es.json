@@ -540,6 +540,15 @@
         "extracting-plural": "Extrayendo {count} comprimidos…",
         "extracted": "Extraído",
         "extract-failed": "No se pudo extraer {detail}"
+      },
+      "pick": {
+        "title": "Elegir un archivo",
+        "name": "Nombre",
+        "save": "Guardar",
+        "open": "Abrir",
+        "choose-folder": "Elegir esta carpeta",
+        "replace-title": "¿Reemplazar «{name}»?",
+        "replace-body": "Ya hay un archivo con ese nombre en esta carpeta."
       }
     },
     "pdf": {

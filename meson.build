@@ -1291,6 +1291,10 @@ _files_core_sources = files(
   'src/apps/files/file_model.cpp',
   'src/apps/files/file_ops.cpp',
 )
+# Selector de archivos del sistema: backend de xdg-desktop-portal (se elige en <escritorio>-portals.conf).
+install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
+install_data('assets/org.freedesktop.impl.portal.desktop.okaru.service',
+  install_dir: get_option('datadir') / 'dbus-1' / 'services')
 okaru_files_exe = executable('okaru-files',
   sources: files(
     'src/apps/files/archive.cpp',
@@ -1300,6 +1304,7 @@ okaru_files_exe = executable('okaru-files',
     'src/apps/files/main.cpp',
     'src/apps/files/phones.cpp',
     'src/apps/files/places.cpp',
+    'src/apps/files/portal.cpp',
     'src/apps/files/share.cpp',
     'src/apps/files/thumbnails.cpp',
     'src/apps/files/preview.cpp',
@@ -1312,7 +1317,8 @@ okaru_files_exe = executable('okaru-files',
 )
 if build_tests
   test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/icon_cache.cpp', 'src/apps/files/share.cpp',
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/icon_cache.cpp',
+                   'src/apps/files/portal.cpp', 'src/apps/files/share.cpp',
                    'src/apps/files/thumbnails.cpp') + _files_core_sources,
     dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
     override_options: ['b_ndebug=false'],

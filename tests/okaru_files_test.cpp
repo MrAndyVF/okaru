@@ -4,6 +4,7 @@
 #include "apps/files/archive.h"
 #include "apps/files/file_ops.h"
 #include "apps/files/icon_cache.h"
+#include "apps/files/portal.h"
 #include "apps/files/share.h"
 #include "apps/files/thumbnails.h"
 #include "core/deferred_call.h"
@@ -72,6 +73,17 @@ int main() {
           == std::vector<std::string>{"2026-a_v2.txt"}));
   assert(archiveStem("fotos.tar.gz") == "fotos" && archiveStem("x.zip") == "x" && archiveStem("nota.txt") == "nota.txt");
   assert(isArchive("application/zip", "a.zip") && isArchive("", "b.tar.zst") && !isArchive("text/plain", "c.txt"));
+
+  // Selector: los argumentos van y vuelven iguales.
+  {
+    PickerOptions o{.mode = PickMode::Save, .multiple = true, .title = "Guardar captura", .folder = "/tmp/a b",
+                    .name = "captura.png", .acceptLabel = "Exportar",
+                    .filters = {{"Imágenes", {"*.png", "*.JPG"}, {"image/*"}}, {"Todo", {"*"}, {}}}, .currentFilter = 1};
+    const PickerOptions back = parsePickerArguments(pickerArguments(o));
+    assert(back.mode == PickMode::Save && back.multiple && back.title == o.title && back.folder == o.folder);
+    assert(back.name == o.name && back.acceptLabel == o.acceptLabel && back.currentFilter == 1);
+    assert(back.filters.size() == 2 && back.filters[0].globs.size() == 2 && back.filters[0].mimes == std::vector<std::string>{"image/*"});
+  }
 
   // Variantes de color de Papirus.
   assert(coloredFolderIconName("folder", "red") == "folder-red");

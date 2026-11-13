@@ -540,6 +540,15 @@
         "extracting-plural": "Extracting {count} archives…",
         "extracted": "Extracted",
         "extract-failed": "Could not extract {detail}"
+      },
+      "pick": {
+        "title": "Choose a file",
+        "name": "Name",
+        "save": "Save",
+        "open": "Open",
+        "choose-folder": "Choose this folder",
+        "replace-title": "Replace “{name}”?",
+        "replace-body": "A file with that name already exists in this folder."
       }
     },
     "pdf": {

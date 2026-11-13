@@ -169,7 +169,7 @@ namespace okaru::apps {
         .height = static_cast<std::uint32_t>(std::lround(m_options.height * s)),
         .minWidth = static_cast<std::uint32_t>(std::lround(m_options.minWidth * s)),
         .minHeight = static_cast<std::uint32_t>(std::lround(m_options.minHeight * s)),
-        .title = i18n::tr(m_options.titleKey),
+        .title = m_options.title.empty() ? i18n::tr(m_options.titleKey) : m_options.title,
         .appId = m_options.appId,
     };
     if (!m_surface->initialize(nullptr, surfaceConfig)) {
