@@ -31,6 +31,8 @@ struct AccessPointInfo {
 struct VpnConnectionInfo {
   std::string path; // Backend settings connection object path.
   std::string name;
+  std::string uuid; // OKARU: para nmcli (editar, borrar, detalles)
+  std::string type; // OKARU: "fortisslvpn", "openvpn", "wireguard"…
   bool active = false;
 
   bool operator==(const VpnConnectionInfo&) const = default;
