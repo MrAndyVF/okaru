@@ -30,6 +30,9 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - Files: dragging shows the thumbnails or icons of the dragged files and how many there are.
 - Files: “Clear recent history” on Recent (sidebar menu and the folder background).
 - PDF reader: “Clear history” under the recent documents.
+- PDF reader: fill in forms (text fields typed in place, checkboxes, radio buttons and lists), highlight or underline
+  the selected text, and save (Ctrl+S) or save as (Ctrl+Shift+S); a dot in the title marks unsaved changes and closing
+  asks before discarding them.
 
 #### Fixes
 - PDF forms with non-embedded Helvetica, Arial, Times or Courier rendered with spaced letters and missing glyphs: those
@@ -59,6 +62,9 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - Archivos: al arrastrar se ven las miniaturas o iconos de lo arrastrado y cuántos son.
 - Archivos: «Borrar historial de recientes» en Recientes (menú del panel lateral y fondo de la carpeta).
 - Lector PDF: «Borrar historial» debajo de los documentos recientes.
+- Lector PDF: rellenar formularios (campos de texto escribiendo encima, casillas, opciones y listas), resaltar o
+  subrayar el texto seleccionado, y guardar (Ctrl+S) o guardar como (Ctrl+Mayús+S); un punto en el título marca los
+  cambios sin guardar y al cerrar pregunta antes de descartarlos.
 
 #### Correcciones
 - Los formularios PDF con Helvetica, Arial, Times o Courier sin incrustar salían con letras separadas y glifos
