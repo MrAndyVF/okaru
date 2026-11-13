@@ -53,6 +53,13 @@ namespace okaru::pdf {
     loadState();
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
+    m_app.setCloseRequestCallback([this] {
+      if (std::ranges::none_of(m_tabs, [](const auto& t) { return t->modified; })) {
+        return true;
+      }
+      confirmDiscard([this] { m_app.quit(); });
+      return false;
+    });
     m_app.setDropCallback([this](std::vector<std::string> paths) {
       for (const auto& path : paths) {
         openFile(path);
@@ -193,6 +200,112 @@ namespace okaru::pdf {
           }
         }
     );
+  }
+
+  // ── Formularios y anotaciones ─────────────────────────────────────────────────────────────────────
+
+  void PdfWindow::onFieldPressed(int page, const FormField& field) {
+    PdfTab* tab = current();
+    if (tab == nullptr) {
+      return;
+    }
+    switch (field.kind) {
+    case FormField::Kind::Check:
+      tab->applyEdit({.kind = Edit::Kind::Check, .page = page, .field = field.id, .checked = !field.checked});
+      break;
+    case FormField::Kind::Radio:
+      if (!field.checked) {
+        tab->applyEdit({.kind = Edit::Kind::Check, .page = page, .field = field.id, .checked = true});
+      }
+      break;
+    case FormField::Kind::Choice:
+      if (!field.choices.empty()) {
+        m_choicePage = page;
+        m_choiceField = field;
+        m_overlay = Overlay::Choice;
+      }
+      break;
+    default:
+      return;
+    }
+    m_app.requestRebuild();
+  }
+
+  void PdfWindow::markup(Edit::Kind kind) {
+    PdfTab* tab = current();
+    if (tab == nullptr) {
+      return;
+    }
+    std::vector<Rect> lines = tab->selectionLines();
+    if (lines.empty()) {
+      setMessage(tr("apps.pdf.markup-select"), false);
+      return;
+    }
+    tab->applyEdit({.kind = kind, .page = tab->selectionPage, .rects = std::move(lines)});
+    tab->selectionPage = -1;
+    tab->selectionFrom = tab->selectionTo = 0;
+    m_app.requestRebuild();
+  }
+
+  bool PdfWindow::save(PdfTab& tab, const fs::path& path) {
+    if (m_view != nullptr && &tab == current()) {
+      m_view->commitField(); // lo que se estaba escribiendo también va
+    }
+    std::string error;
+    if (!tab.doc->save(path, error)) {
+      setMessage(tr("apps.pdf.save-failed", "detail", error), true);
+      return false;
+    }
+    tab.path = path;
+    tab.modified = false;
+    setMessage(tr("apps.pdf.saved", "file", path.filename().string()), false);
+    m_app.requestRebuild();
+    return true;
+  }
+
+  void PdfWindow::saveCurrent() {
+    if (PdfTab* tab = current(); tab != nullptr) {
+      (void)save(*tab, tab->path);
+    }
+  }
+
+  void PdfWindow::saveAs() {
+    PdfTab* tab = current();
+    SessionBus* bus = m_app.sessionBus();
+    if (tab == nullptr || bus == nullptr) {
+      return;
+    }
+    if (m_chooser == nullptr) {
+      m_chooser = std::make_unique<apps::PortalFileChooser>(*bus);
+    }
+    m_chooser->save(
+        tr("apps.pdf.save-as"), tab->path.filename().string(), tab->path.parent_path().string(),
+        [this, path = tab->path](std::vector<std::string> paths) {
+          // La pestaña pudo cerrarse mientras el selector estaba abierto.
+          for (auto& t : m_tabs) {
+            if (t->path == path && !paths.empty()) {
+              (void)save(*t, paths.front());
+              return;
+            }
+          }
+        }
+    );
+  }
+
+  void PdfWindow::confirmDiscard(std::function<void()> action, std::optional<std::size_t> only) {
+    if (m_view != nullptr) {
+      m_view->commitField();
+    }
+    const bool pending = only ? (*only < m_tabs.size() && m_tabs[*only]->modified)
+                              : std::ranges::any_of(m_tabs, [](const auto& t) { return t->modified; });
+    if (!pending) {
+      action();
+      return;
+    }
+    m_confirmOnly = only;
+    m_afterConfirm = std::move(action);
+    m_overlay = Overlay::Unsaved;
+    m_app.requestRebuild();
   }
 
   void PdfWindow::rememberTab(const PdfTab& tab) {
@@ -569,7 +682,7 @@ namespace okaru::pdf {
             .active = m_active,
             .closeTooltip = tr("apps.pdf.close-tab"),
             .onActivate = [this](std::size_t i) { activate(i); },
-            .onClose = [this](std::size_t i) { closeTab(i); },
+            .onClose = [this](std::size_t i) { confirmDiscard([this, i] { closeTab(i); }, i); },
         };
         for (const auto& t : m_tabs) {
           props.tabs.push_back({title(*t), t->path.string()});
@@ -596,6 +709,14 @@ namespace okaru::pdf {
       view->setOnPageChanged([this] { updatePageLabel(); });
       view->setOnZoomChanged([this] { updatePageLabel(); });
       view->setOnOpenUri([this](const std::string& uri) { openUri(uri); });
+      view->setOnFieldPressed([this](int page, const FormField& field, float, float) { onFieldPressed(page, field); });
+      view->setOnFocusRequest([this](InputArea* area) {
+        DeferredCall::callLater([this, area] {
+          if (m_view != nullptr) {
+            m_app.focus(area);
+          }
+        });
+      });
       view->setFlexGrow(1.0F);
       body->addChild(std::move(view));
       main->addChild(std::move(body));
@@ -642,7 +763,7 @@ namespace okaru::pdf {
         ui::column({.align = FlexAlign::Start, .justify = FlexJustify::Center, .gap = 0.0F, .flexGrow = 1.0F});
     titles->addChild(
         ui::label({
-            .text = tab == nullptr ? tr("apps.pdf.title") : title(*tab),
+            .text = tab == nullptr ? tr("apps.pdf.title") : (tab->modified ? "● " : "") + title(*tab),
             .fontSize = Style::fontSizeBody * scale,
             .fontWeight = FontWeight::SemiBold,
             .maxLines = 1,
@@ -726,6 +847,9 @@ namespace okaru::pdf {
           },
           m_night
       ));
+      header->addChild(ghost("highlight", tr("apps.pdf.highlight"), [this] { markup(Edit::Kind::Highlight); }));
+      header->addChild(ghost("underline", tr("apps.pdf.underline"), [this] { markup(Edit::Kind::Underline); }));
+      header->addChild(ghost("device-floppy", tr("apps.pdf.save"), [this] { saveCurrent(); }));
       header->addChild(ghost("presentation", tr("apps.pdf.presentation"), [this] { togglePresentation(); }));
       header->addChild(ghost("printer", tr("apps.pdf.print.tooltip"), [this] { openPrint(); }));
       header->addChild(ghost("info-circle", tr("apps.pdf.properties.tooltip"), [this] {
@@ -733,7 +857,7 @@ namespace okaru::pdf {
         m_app.requestRebuild();
       }));
     }
-    header->addChild(ghost("x", tr("apps.pdf.close"), [this] { m_app.quit(); }));
+    header->addChild(ghost("x", tr("apps.pdf.close"), [this] { confirmDiscard([this] { m_app.quit(); }); }));
     return header;
   }
 
@@ -1083,7 +1207,84 @@ namespace okaru::pdf {
       );
     };
 
-    if (m_overlay == Overlay::Password) {
+    if (m_overlay == Overlay::Choice) {
+      heading(tr("apps.pdf.form.choose"));
+      for (std::size_t i = 0; i < m_choiceField.choices.size(); ++i) {
+        const int index = static_cast<int>(i);
+        card->addChild(
+            ui::button({
+                .text = m_choiceField.choices[i],
+                .contentAlign = ButtonContentAlign::Start,
+                .variant = index == m_choiceField.selected ? ButtonVariant::Secondary : ButtonVariant::Ghost,
+                .onClick = [this, index] {
+                  DeferredCall::callLater([this, index] {
+                    m_overlay = Overlay::None;
+                    if (PdfTab* tab = current(); tab != nullptr) {
+                      tab->applyEdit(
+                          {.kind = Edit::Kind::Choice, .page = m_choicePage, .field = m_choiceField.id, .choice = index}
+                      );
+                    }
+                    m_app.requestRebuild();
+                  });
+                },
+            })
+        );
+      }
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .justify = FlexJustify::End, .gap = Style::spaceSm * scale},
+              ui::button({.text = tr("apps.pdf.cancel"), .variant = ButtonVariant::Ghost, .onClick = close})
+          )
+      );
+    } else if (m_overlay == Overlay::Unsaved) {
+      heading(tr("apps.pdf.unsaved.title"));
+      card->addChild(
+          ui::label({
+              .text = tr("apps.pdf.unsaved.body"),
+              .fontSize = Style::fontSizeBody * scale,
+              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+              .maxLines = 4,
+          })
+      );
+      const auto proceed = [this](bool keep) {
+        DeferredCall::callLater([this, keep] {
+          for (std::size_t i = 0; i < m_tabs.size(); ++i) {
+            PdfTab& tab = *m_tabs[i];
+            if (!tab.modified || (m_confirmOnly && *m_confirmOnly != i)) {
+              continue;
+            }
+            if (!keep) {
+              tab.modified = false;
+            } else if (!save(tab, tab.path)) {
+              m_overlay = Overlay::None;
+              m_app.requestRebuild();
+              return; // no se pudo guardar: no se cierra nada
+            }
+          }
+          m_overlay = Overlay::None;
+          auto action = std::move(m_afterConfirm);
+          m_afterConfirm = nullptr;
+          m_app.requestRebuild();
+          if (action) {
+            action();
+          }
+        });
+      };
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .justify = FlexJustify::End, .gap = Style::spaceSm * scale},
+              ui::button({.text = tr("apps.pdf.cancel"), .variant = ButtonVariant::Ghost, .onClick = close}),
+              ui::button(
+                  {.text = tr("apps.pdf.unsaved.discard"),
+                   .variant = ButtonVariant::Destructive,
+                   .onClick = [proceed] { proceed(false); }}
+              ),
+              ui::button({.text = tr("apps.pdf.save"), .variant = ButtonVariant::Primary, .onClick = [proceed] {
+                            proceed(true);
+                          }})
+          )
+      );
+    } else if (m_overlay == Overlay::Password) {
       heading(tr("apps.pdf.password.title"));
       card->addChild(
           ui::label({
@@ -1278,6 +1479,10 @@ namespace okaru::pdf {
       return false;
     }
     PdfTab* tab = current();
+    if (ctrl && (event.sym == XKB_KEY_s || event.sym == XKB_KEY_S) && tab != nullptr && !m_presentation) {
+      shift ? saveAs() : saveCurrent();
+      return true;
+    }
     if (m_presentation) {
       // Todo el teclado es de la presentación.
       int step = 0;
@@ -1349,7 +1554,7 @@ namespace okaru::pdf {
       openDialog();
       return true;
     case XKB_KEY_w:
-      closeTab(m_active);
+      confirmDiscard([this, index = m_active] { closeTab(index); }, m_active);
       return true;
     case XKB_KEY_q:
       m_app.quit();

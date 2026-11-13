@@ -640,7 +640,22 @@
         "failed": "Could not print: check the printer in CUPS",
         "no-printers": "No printers are set up. Add one in your system's printer settings (CUPS)."
       },
-      "recent-clear": "Clear history"
+      "recent-clear": "Clear history",
+      "highlight": "Highlight selection",
+      "underline": "Underline selection",
+      "save": "Save",
+      "save-as": "Save as",
+      "saved": "Saved {file}",
+      "save-failed": "Could not save: {detail}",
+      "markup-select": "Select text on the page to highlight or underline it",
+      "form": {
+        "choose": "Choose an option"
+      },
+      "unsaved": {
+        "title": "Save changes?",
+        "body": "The document has filled fields or annotations that are not saved.",
+        "discard": "Don't save"
+      }
     },
     "play": {
       "title": "Media Player",

@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -43,7 +44,7 @@ namespace okaru::pdf {
     ~PdfWindow();
 
   private:
-    enum class Overlay : std::uint8_t { None, Password, Properties, Print };
+    enum class Overlay : std::uint8_t { None, Password, Properties, Print, Choice, Unsaved };
     enum class SidebarMode : std::uint8_t { Thumbnails, Outline };
 
     [[nodiscard]] std::unique_ptr<Node> build(float width, float height, float scale);
@@ -79,6 +80,15 @@ namespace okaru::pdf {
     void openPrint();
     void print();
     void setMessage(std::string message, bool error);
+    // Formularios y anotaciones.
+    void onFieldPressed(int page, const FormField& field);
+    void markup(Edit::Kind kind);
+    bool save(PdfTab& tab, const std::filesystem::path& path);
+    void saveCurrent();
+    void saveAs();
+    // Corre `action` (cerrar la pestaña o la app) o, si hay cambios sin guardar, pregunta antes.
+    // `only`: solo esa pestaña (cerrar una pestaña); sin ella, todas (cerrar la app).
+    void confirmDiscard(std::function<void()> action, std::optional<std::size_t> only = std::nullopt);
 
     void loadState();
     void saveState();
@@ -102,6 +112,10 @@ namespace okaru::pdf {
     bool m_wholeWords = false;
 
     Overlay m_overlay = Overlay::None;
+    int m_choicePage = -1;
+    FormField m_choiceField;
+    std::function<void()> m_afterConfirm;
+    std::optional<std::size_t> m_confirmOnly;
     std::filesystem::path m_passwordPath;
     bool m_passwordWrong = false;
     std::string m_passwordText;

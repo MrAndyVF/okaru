@@ -6,14 +6,17 @@
 #include "render/core/renderer.h"
 #include "render/core/texture_manager.h"
 #include "render/scene/input_area.h"
+#include "ui/builders.h"
 #include "ui/controls/box.h"
 #include "ui/controls/image.h"
+#include "ui/controls/input.h"
 #include "ui/controls/scrollbar.h"
 #include "ui/palette.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cursor-shape-v1-client-protocol.h>
+#include <glib.h>
 #include <linux/input-event-codes.h>
 
 namespace okaru::pdf {
@@ -47,6 +50,53 @@ namespace okaru::pdf {
       it = linkCache.emplace(page, doc->links(page)).first;
     }
     return it->second;
+  }
+
+  const std::vector<FormField>& PdfTab::fields(int page) {
+    auto it = fieldCache.find(page);
+    if (it == fieldCache.end()) {
+      it = fieldCache.emplace(page, doc->formFields(page)).first;
+    }
+    return it->second;
+  }
+
+  std::vector<Rect> PdfTab::selectionLines() {
+    std::vector<Rect> lines;
+    if (selectionPage < 0 || selectionFrom == selectionTo) {
+      return lines;
+    }
+    const TextLayout& layout = text(selectionPage);
+    const std::size_t from = std::min(selectionFrom, selectionTo);
+    const std::size_t to = std::min(std::max(selectionFrom, selectionTo), layout.chars.size());
+    // Un rectángulo por línea: los caracteres seguidos que se solapan en vertical van juntos.
+    for (std::size_t c = from; c < to; ++c) {
+      const Rect& r = layout.chars[c];
+      if (r.x1 <= r.x0) {
+        continue;
+      }
+      if (!lines.empty()) {
+        Rect& last = lines.back();
+        const double overlap = std::min(last.y1, r.y1) - std::max(last.y0, r.y0);
+        if (overlap > 0.5 * std::min(last.y1 - last.y0, r.y1 - r.y0) && r.x0 >= last.x0 - 1.0) {
+          last = {std::min(last.x0, r.x0), std::min(last.y0, r.y0), std::max(last.x1, r.x1), std::max(last.y1, r.y1)};
+          continue;
+        }
+      }
+      lines.push_back(r);
+    }
+    return lines;
+  }
+
+  void PdfTab::applyEdit(const Edit& edit) {
+    if (doc == nullptr || !doc->apply(edit)) {
+      return;
+    }
+    if (worker != nullptr) {
+      worker->edit(edit);
+    }
+    ++revision;
+    modified = true;
+    fieldCache.clear(); // una opción de radio cambia a sus hermanas
   }
 
   std::string PdfTab::selectedText() {
@@ -469,8 +519,36 @@ namespace okaru::pdf {
     m_pressedOnLink = false;
     const auto at = hit(x, y);
     if (!at) {
+      commitField();
       return;
     }
+    // Formularios: un campo de texto abre el cuadro de escritura encima; lo demás lo resuelve la ventana.
+    // Copia: confirmar el campo anterior vacía la caché de campos.
+    std::optional<FormField> pressed;
+    for (const FormField& field : m_tab->fields(at->first)) {
+      if (!field.readOnly
+          && field.kind != FormField::Kind::Other
+          && field.area.contains(at->second.first, at->second.second)) {
+        pressed = field;
+        break;
+      }
+    }
+    if (pressed) {
+      if (pressed->kind == FormField::Kind::Text && m_tab->editField == pressed->id) {
+        return; // ya se está escribiendo ahí: el clic es para el cuadro
+      }
+      commitField();
+      if (pressed->kind == FormField::Kind::Text) {
+        m_tab->editPage = at->first;
+        m_tab->editField = pressed->id;
+        m_tab->editText = pressed->text;
+        markLayoutDirty();
+      } else if (m_onFieldPressed) {
+        m_onFieldPressed(at->first, *pressed, x, y);
+      }
+      return;
+    }
+    commitField();
     for (const auto& link : m_tab->links(at->first)) {
       if (link.area.contains(at->second.first, at->second.second)) {
         m_pressedOnLink = true;
@@ -547,6 +625,14 @@ namespace okaru::pdf {
     std::uint32_t shape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT;
     if (const auto at = hit(x, y)) {
       shape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_TEXT;
+      for (const FormField& field : m_tab->fields(at->first)) {
+        if (!field.readOnly
+            && field.kind != FormField::Kind::Other
+            && field.kind != FormField::Kind::Text
+            && field.area.contains(at->second.first, at->second.second)) {
+          shape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER;
+        }
+      }
       for (const auto& link : m_tab->links(at->first)) {
         if (link.area.contains(at->second.first, at->second.second)) {
           shape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER;
@@ -604,9 +690,10 @@ namespace okaru::pdf {
       const PageSize size = m_tab->sizes[static_cast<std::size_t>(page)];
       // Una página enorme muy ampliada se dibuja hasta el lado máximo de textura (se verá algo más suave).
       const double maxScale = kMaxTextureSide / std::max(size.width, size.height);
-      const RenderJob job{page, std::min(scale, maxScale), m_tab->rotation, m_tab->night, false};
+      const RenderJob job{page, std::min(scale, maxScale), m_tab->rotation, m_tab->night, false, m_tab->revision};
       const PageTexture& slot = m_tab->pages[static_cast<std::size_t>(page)];
       const bool stale = !slot.handle.valid()
+          || slot.job.revision != job.revision
           || slot.job.rotation != job.rotation
           || slot.job.invert != job.invert
           || std::abs(slot.job.scale - job.scale) > job.scale * 0.04;
@@ -618,10 +705,14 @@ namespace okaru::pdf {
     int queued = 0;
     for (std::size_t i = 0; i < m_tab->thumbs.size() && queued < 12; ++i) {
       const PageTexture& slot = m_tab->thumbs[i];
-      if (!slot.handle.valid() || slot.job.rotation != m_tab->rotation || slot.job.invert != m_tab->night) {
+      if (!slot.handle.valid()
+          || slot.job.rotation != m_tab->rotation
+          || slot.job.invert != m_tab->night
+          || slot.job.revision != m_tab->revision) {
         const PageSize size = m_tab->sizes[i];
         jobs.push_back(
-            {static_cast<int>(i), kThumbWidth * m_bufferScale / size.width, m_tab->rotation, m_tab->night, true}
+            {static_cast<int>(i), kThumbWidth * m_bufferScale / size.width, m_tab->rotation, m_tab->night, true,
+             m_tab->revision}
         );
         ++queued;
       }
@@ -724,6 +815,14 @@ namespace okaru::pdf {
       image->setZIndex(1);
       paper->setZIndex(0);
 
+      // Campos del formulario: un tinte suave para ver dónde se puede escribir o marcar.
+      if (!m_presentation) {
+        for (const FormField& field : m_tab->fields(placed.page)) {
+          if (!field.readOnly && field.kind != FormField::Kind::Other && field.id != m_tab->editField) {
+            mark(toView(placed, field.area), colorSpecFromRole(ColorRole::Primary, 0.10F));
+          }
+        }
+      }
       // Resultados de búsqueda (el actual más fuerte) y selección de texto.
       for (std::size_t h = 0; h < m_tab->hits.size(); ++h) {
         if (m_tab->hits[h].page == placed.page) {
@@ -764,7 +863,97 @@ namespace okaru::pdf {
     for (std::size_t i = marks; i < m_marks.size(); ++i) {
       m_marks[i]->setVisible(false);
     }
+    placeEditor();
     markPaintDirty();
+  }
+
+  void PdfView::placeEditor() {
+    const auto placed = std::ranges::find(m_placed, m_tab->editPage, &Placed::page);
+    const FormField* field = nullptr;
+    if (m_tab->editField >= 0 && placed != m_placed.end()) {
+      for (const FormField& f : m_tab->fields(m_tab->editPage)) {
+        if (f.id == m_tab->editField) {
+          field = &f;
+        }
+      }
+    }
+    if (field == nullptr) {
+      if (m_editor != nullptr) {
+        m_editor->setVisible(false);
+      }
+      return;
+    }
+    const bool fresh = m_editor == nullptr || m_editorField != field->id || m_editorPage != m_tab->editPage;
+    if (m_editor == nullptr) {
+      auto input = ui::input({
+          .frameVisible = true,
+          .onChange =
+              [this](const std::string& value) {
+                if (m_tab != nullptr) {
+                  m_tab->editText = value;
+                }
+              },
+          .onFocusLoss = [this] { commitField(); },
+      });
+      input->setZIndex(5);
+      m_editor = static_cast<Input*>(m_content->addChild(std::move(input)));
+    }
+    const Rect area = toView(*placed, field->area);
+    const auto height = static_cast<float>(area.y1 - area.y0);
+    // La letra sigue el alto del campo (una línea) o un tamaño de lectura en los de varias líneas.
+    const float fontSize = std::clamp(field->multiline ? 12.0F * pxPerPoint() : height * 0.6F, 9.0F, 28.0F);
+    m_editor->setMultiline(field->multiline);
+    m_editor->setPasswordMode(field->password);
+    m_editor->setFontSize(fontSize);
+    m_editor->setControlHeight(std::max(height, fontSize + 8.0F));
+    m_editor->setHorizontalPadding(4.0F);
+    m_editor->setSubmitOnEnter(!field->multiline);
+    m_editor->setOnSubmit([this](const std::string&) { commitField(); });
+    m_editor->setOnKeyEvent([this](std::uint32_t sym, std::uint32_t) {
+      if (sym == XKB_KEY_Escape) {
+        // Esc descarta lo escrito.
+        m_tab->editText.clear();
+        m_tab->editField = -1;
+        m_editorField = -1;
+        markLayoutDirty();
+        return true;
+      }
+      return false;
+    });
+    m_editor->setPosition(static_cast<float>(area.x0), static_cast<float>(area.y0));
+    m_editor->setSize(static_cast<float>(area.x1 - area.x0), std::max(height, fontSize + 8.0F));
+    m_editor->setVisible(true);
+    if (fresh) {
+      m_editorField = field->id;
+      m_editorPage = m_tab->editPage;
+      m_editor->setValue(m_tab->editText);
+      if (m_onFocusRequest) {
+        m_onFocusRequest(m_editor->inputArea());
+      }
+    }
+  }
+
+  void PdfView::commitField() {
+    if (m_tab == nullptr || m_tab->editField < 0) {
+      return;
+    }
+    const int field = m_tab->editField;
+    const int page = m_tab->editPage;
+    m_tab->editField = -1;
+    m_tab->editPage = -1;
+    m_editorField = -1;
+    for (const FormField& f : m_tab->fields(page)) {
+      if (f.id == field && f.text != m_tab->editText) {
+        std::string text = m_tab->editText;
+        if (f.maxLength > 0 && static_cast<int>(g_utf8_strlen(text.c_str(), -1)) > f.maxLength) {
+          text.resize(static_cast<std::size_t>(g_utf8_offset_to_pointer(text.c_str(), f.maxLength) - text.c_str()));
+        }
+        m_tab->applyEdit({.kind = Edit::Kind::Text, .page = page, .field = field, .text = std::move(text)});
+        break;
+      }
+    }
+    m_tab->editText.clear();
+    markLayoutDirty();
   }
 
 } // namespace okaru::pdf
