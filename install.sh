@@ -420,6 +420,8 @@ factory_config() {
   [[ $CONFIG_ACTION == replace && -e $settings ]] && backup "$settings"
   # Sin KDE Connect, el widget del teléfono solo mostraría que falta (solo toca la línea de fábrica, no una propia).
   $WANT_PHONE || sed -i 's/^end = \[ "tray", "cat", "phone", /end = [ "tray", "cat", /' "$okaru"
+  # En Niri, la plantilla de Hyprland avisaría que falta hyprland.conf: se cambia por la de Niri.
+  [[ $COMPOSITOR == niri ]] && sed -i 's/"hyprland", "hyprtoolkit", /"niri", /' "$okaru"
   return 0
 }
 
@@ -496,6 +498,14 @@ greeter() {
   printf '[terminal]\nvt = 1\n\n[default_session]\ncommand = "/usr/bin/okaru-greeter-session"\nuser = "greeter"\n' \
     | sudo tee "$conf"
   sudo /usr/share/okaru-greeter/setup_greetd_pam.sh
+  # En Hyprland, el greeter entra siempre a la sesión con uwsm (greeter.toml gana sobre la última elegida).
+  if [[ $COMPOSITOR == hyprland ]]; then
+    local gconf=/var/lib/okaru-greeter/greeter.toml
+    sudo install -d -o greeter -g greeter -m 0750 /var/lib/okaru-greeter
+    sudo grep -q '^\[session\]' "$gconf" 2>/dev/null \
+      || printf '\n[session]\ndefault = "hyprland-uwsm"\n' | sudo tee -a "$gconf" >/dev/null
+    sudo chown greeter:greeter "$gconf" && sudo chmod 0644 "$gconf"
+  fi
   [[ $SWITCH_DM == keep ]] && { t "greetd queda instalado pero sin activar" "greetd is installed but not enabled"; echo; return 0; }
   [[ -n $SWITCH_DM ]] && sudo systemctl disable "$SWITCH_DM"
   sudo systemctl enable greetd.service
