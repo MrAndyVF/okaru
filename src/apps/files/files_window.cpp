@@ -1429,10 +1429,10 @@ namespace okaru::files {
     const fs::path temp = file.string() + ".okaru-tmp";
     {
       std::ofstream out(temp, std::ios::trunc);
-      out
-          << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-          << "<xbel version=\"1.0\" xmlns:bookmark=\"http://www.freedesktop.org/standards/desktop-bookmarks\" "
-          << "xmlns:mime=\"http://www.freedesktop.org/standards/shared-mime-info\">\n</xbel>\n";
+      out << R"(<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
+</xbel>
+)";
     }
     std::error_code ec;
     fs::rename(temp, file, ec);
