@@ -97,6 +97,7 @@ namespace okaru::files {
     void ensureVisible(std::size_t index);
     [[nodiscard]] std::vector<std::size_t> selectedIndices() const;
     [[nodiscard]] bool dragging() const noexcept { return m_dragging; }
+    [[nodiscard]] int columnsCount() const { return m_mode == ViewMode::Grid ? columns() : 1; }
 
     void setSize(float width, float height) override;
 

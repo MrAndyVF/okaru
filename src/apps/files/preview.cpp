@@ -6,6 +6,8 @@
 #include "ui/controls/image.h"
 
 #include <algorithm>
+#include <cstdio>
+#include <gio/gio.h>
 #include <cmath>
 #include <filesystem>
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -56,7 +58,35 @@ namespace okaru::files {
         return PreviewKind::Image;
       }
     }
+    // Texto plano y sus derivados (código, configuración, JSON, CSV, registros…).
+    if (g_content_type_is_a(type.c_str(), "text/plain") != FALSE || type == "application/json"
+        || type == "application/xml" || type == "application/x-shellscript" || type == "application/toml"
+        || type == "application/x-yaml" || type == "application/javascript") {
+      return PreviewKind::Text;
+    }
     return PreviewKind::None;
+  }
+
+  std::string readTextPreview(const std::string& path, std::size_t maxBytes, std::size_t maxLines) {
+    std::string out;
+    if (FILE* file = std::fopen(path.c_str(), "rb"); file != nullptr) {
+      out.resize(maxBytes);
+      out.resize(std::fread(out.data(), 1, maxBytes, file));
+      std::fclose(file);
+    }
+    gchar* valid = g_utf8_make_valid(out.data(), static_cast<gssize>(out.size()));
+    out = valid;
+    g_free(valid);
+    std::size_t lines = 0;
+    for (std::size_t i = 0; i < out.size(); ++i) {
+      if (out[i] == '\t') {
+        out.replace(i, 1, "    ");
+      } else if (out[i] == '\n' && ++lines >= maxLines) {
+        out.resize(i);
+        break;
+      }
+    }
+    return out;
   }
 
   DecodedImage decodeImage(const std::string& path, int maxSize) {

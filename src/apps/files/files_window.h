@@ -83,6 +83,7 @@ namespace okaru::files {
       Password,
       Question,
       Connect,
+      QuickLook,
       Errors,
     };
     enum class Mode : std::uint8_t { List, Grid, Columns };
@@ -127,6 +128,9 @@ namespace okaru::files {
     void openPreviewPdf(const std::string& path);
     void fillPreviewHost();
     void updatePreviewLabels();
+    void syncPreview();
+    void toggleQuickLook();
+    [[nodiscard]] std::unique_ptr<Node> buildQuickLook(float width, float height, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildOverlay(float width, float height, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildMenu(float width, float height, float scale);
     [[nodiscard]] bool onKey(const KeyboardEvent& event);
@@ -327,6 +331,7 @@ namespace okaru::files {
       int originalWidth = 0;
       int originalHeight = 0;
       std::unique_ptr<pdf::PdfTab> pdf;
+      std::string text;
       std::uint64_t generation = 0;
     };
     PreviewState m_preview;
@@ -339,6 +344,7 @@ namespace okaru::files {
     pdf::PdfView* m_pdfPreview = nullptr;
     Label* m_previewZoom = nullptr;
     Label* m_previewPage = nullptr;
+    Label* m_quickLookName = nullptr;
     Label* m_progressLabel = nullptr;
     ProgressBar* m_progressBar = nullptr;
     ScrollViewState m_sidebarScroll;

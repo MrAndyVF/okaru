@@ -1699,6 +1699,7 @@ namespace okaru::files {
     m_statusLabel = nullptr;
     m_menuControl = nullptr;
     m_previewHost = nullptr;
+    m_quickLookName = nullptr;
     m_imagePreview = nullptr;
     m_pdfPreview = nullptr;
     m_previewZoom = nullptr;
@@ -2267,35 +2268,107 @@ namespace okaru::files {
                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 6,
                               .textAlign = TextAlign::Center}));
     m_detailsScale = scale;
-    fillPreviewHost();
+    // Con la vista rápida abierta, la previsualización va allí (un solo visor por documento).
+    if (m_overlay != Overlay::QuickLook) {
+      fillPreviewHost();
+    }
     return pane;
   }
 
+  void FilesWindow::syncPreview() {
+    // Previsualizar el elegido (vista en columnas o vista rápida); con una pequeña espera para no cargar cada
+    // archivo al pasar con las flechas.
+    const auto items = selection();
+    const bool wantedHere = m_previewHost != nullptr;
+    const FileEntry* chosen = wantedHere && items.size() == 1 && !items.front()->directory ? items.front() : nullptr;
+    const std::string wanted = chosen != nullptr ? chosen->uri + "#" + std::to_string(chosen->modified) : std::string();
+    if (m_quickLookName != nullptr && items.size() == 1) {
+      m_quickLookName->setText(items.front()->display);
+    }
+    if (wanted == m_previewWanted) {
+      return;
+    }
+    m_previewWanted = wanted;
+    if (chosen == nullptr) {
+      m_previewTimer.stop();
+      startPreview(nullptr);
+    } else {
+      const FileEntry copy = *chosen;
+      m_previewTimer.start(std::chrono::milliseconds(m_overlay == Overlay::QuickLook ? 60 : 140),
+                           [this, copy] { startPreview(&copy); });
+    }
+  }
+
+  void FilesWindow::toggleQuickLook() {
+    if (m_overlay == Overlay::QuickLook) {
+      m_overlay = Overlay::None;
+    } else if (!selection().empty()) {
+      m_previewWanted.clear(); // forzar la carga en el panel nuevo
+      m_overlay = Overlay::QuickLook;
+    }
+    m_app.requestRebuild();
+  }
+
+  std::unique_ptr<Node> FilesWindow::buildQuickLook(float width, float height, float scale) {
+    auto overlay = ui::node({.width = width, .height = height, .zIndex = 10});
+    overlay->addChild(ui::inputArea({
+        .width = width,
+        .height = height,
+        .onClick = [this](const InputArea::PointerData&) { DeferredCall::callLater([this] { toggleQuickLook(); }); },
+    }));
+    overlay->addChild(ui::box({.fill = colorSpecFromRole(ColorRole::Scrim, 0.55F), .width = width, .height = height}));
+    const float cardW = std::round(width * 0.86F);
+    const float cardH = std::round(height * 0.88F);
+    auto card = ui::column({
+        .align = FlexAlign::Stretch,
+        .gap = Style::spaceSm * scale,
+        .padding = Style::spaceMd * scale,
+        .fill = colorSpecFromRole(ColorRole::SurfaceContainer),
+        .radius = Style::radiusLg * scale,
+        .width = cardW,
+        .height = cardH,
+    });
+    // La tarjeta se traga los clics (fuera de ella, cerrar).
+    auto header = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .height = 36.0F * scale});
+    header->addChild(ui::label({.out = &m_quickLookName, .text = " ", .fontSize = Style::fontSizeTitle * scale,
+                                .fontWeight = FontWeight::SemiBold, .maxLines = 1, .ellipsize = TextEllipsize::Middle,
+                                .flexGrow = 1.0F}));
+    header->addChild(ui::label({.out = &m_detailsInfo, .text = " ", .fontSize = Style::fontSizeCaption * scale,
+                                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
+    header->addChild(ui::button({.glyph = "x", .variant = ButtonVariant::Ghost, .tooltip = tr("apps.files.close"),
+                                 .onClick = [this] { DeferredCall::callLater([this] { toggleQuickLook(); }); }}));
+    card->addChild(std::move(header));
+    card->addChild(ui::column({.out = &m_previewHost, .align = FlexAlign::Stretch, .gap = Style::spaceSm * scale,
+                               .clipChildren = true, .flexGrow = 1.0F}));
+    m_detailsScale = scale;
+    auto stack = ui::node({.width = cardW, .height = cardH});
+    stack->addChild(ui::inputArea({.width = cardW, .height = cardH}));
+    stack->addChild(std::move(card));
+    auto center = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .width = width, .height = height});
+    center->addChild(std::move(stack));
+    overlay->addChild(std::move(center));
+    fillPreviewHost();
+    return overlay;
+  }
+
   void FilesWindow::updateDetails() {
-    if (m_detailsName == nullptr) {
+    syncPreview();
+    if (m_detailsInfo == nullptr) {
       return;
     }
     const auto items = selection();
     const bool show = items.size() == 1;
-    m_detailsName->setVisible(show);
-    m_detailsInfo->setVisible(show);
-    // Previsualizar el elegido; con una pequeña espera para no cargar cada archivo al pasar con las flechas.
-    const FileEntry* chosen = show && !items.front()->directory ? items.front() : nullptr;
-    const std::string wanted = chosen != nullptr ? chosen->uri + "#" + std::to_string(chosen->modified) : std::string();
-    if (wanted != m_previewWanted) {
-      m_previewWanted = wanted;
-      if (chosen == nullptr) {
-        startPreview(nullptr);
-      } else {
-        const FileEntry copy = *chosen;
-        m_previewTimer.start(std::chrono::milliseconds(140), [this, copy] { startPreview(&copy); });
-      }
+    if (m_detailsName != nullptr) {
+      m_detailsName->setVisible(show);
     }
+    m_detailsInfo->setVisible(show);
     if (!show) {
       return;
     }
     const FileEntry& e = *items.front();
-    m_detailsName->setText(e.display);
+    if (m_detailsName != nullptr) {
+      m_detailsName->setText(e.display);
+    }
     std::string info = e.typeName;
     if (!e.directory) {
       info += " · " + formatSize(e.size);
@@ -2381,6 +2454,20 @@ namespace okaru::files {
       }).detach();
       break;
     }
+    case PreviewKind::Text:
+      m_preview.loading = true;
+      std::thread([this, alive, generation, path = entry->path] {
+        auto text = readTextPreview(path, 96 * 1024, 600);
+        DeferredCall::callLater([this, alive, generation, text = std::move(text)]() mutable {
+          if (alive.expired() || generation != m_preview.generation) {
+            return;
+          }
+          m_preview.loading = false;
+          m_preview.text = std::move(text);
+          fillPreviewHost();
+        });
+      }).detach();
+      break;
     case PreviewKind::None:
       break;
     }
@@ -2532,6 +2619,22 @@ namespace okaru::files {
       m_imagePreview = view.get();
       m_previewHost->addChild(std::move(view));
       toolbar(false);
+    } else if (m_preview.kind == PreviewKind::Text) {
+      // Texto: monoespaciado, con desplazamiento; solo lectura.
+      auto scroll = ui::scrollView({.contentScale = scale, .fill = colorSpecFromRole(ColorRole::SurfaceContainerLow),
+                                    .radius = Style::radiusMd * scale, .flexGrow = 1.0F});
+      scroll->content()->addChild(ui::label({.text = m_preview.text.empty() ? std::string(" ") : m_preview.text,
+                                             .fontSize = Style::fontSizeCaption * scale,
+                                             .fontFamily = "monospace",
+                                             .color = colorSpecFromRole(ColorRole::OnSurface),
+                                             .maxLines = 600}));
+      scroll->content()->setPadding(Style::spaceMd * scale);
+      m_previewHost->addChild(std::move(scroll));
+      m_previewHost->addChild(ui::row({.align = FlexAlign::Center, .justify = FlexJustify::Center},
+                                      ui::button({.text = tr("apps.files.preview.open"), .glyph = "external-link",
+                                                  .fontSize = Style::fontSizeCaption * scale, .glyphSize = 14.0F * scale,
+                                                  .controlHeight = 30.0F * scale, .variant = ButtonVariant::Ghost,
+                                                  .onClick = [this] { openSelection(); }})));
     } else if (m_preview.pdf != nullptr) {
       auto view = std::make_unique<pdf::PdfView>();
       view->setFlexGrow(1.0F);
@@ -2762,6 +2865,9 @@ namespace okaru::files {
   }
 
   std::unique_ptr<Node> FilesWindow::buildOverlay(float width, float height, float scale) {
+    if (m_overlay == Overlay::QuickLook) {
+      return buildQuickLook(width, height, scale);
+    }
     auto overlay = ui::node({.width = width, .height = height, .zIndex = 10});
     overlay->addChild(ui::inputArea({.width = width, .height = height}));
     overlay->addChild(ui::box({.fill = colorSpecFromRole(ColorRole::Scrim, 0.45F), .width = width, .height = height}));
@@ -3324,6 +3430,21 @@ namespace okaru::files {
       }
       return true;
     }
+    if (m_overlay == Overlay::QuickLook) {
+      // Vista rápida: Espacio o Esc cierran; las flechas pasan de archivo sin cerrarla.
+      if (sym == XKB_KEY_space || sym == XKB_KEY_Escape) {
+        toggleQuickLook();
+        return true;
+      }
+      if (m_view != nullptr && mods == 0
+          && (sym == XKB_KEY_Up || sym == XKB_KEY_Down || sym == XKB_KEY_Left || sym == XKB_KEY_Right)) {
+        const int cols = tab().mode == ViewMode::Grid ? std::max(1, static_cast<int>(m_view->columnsCount())) : 1;
+        const int step = sym == XKB_KEY_Down ? cols : sym == XKB_KEY_Up ? -cols : sym == XKB_KEY_Right ? 1 : -1;
+        m_view->moveCursor(step, false);
+        return true;
+      }
+      return false;
+    }
     if (m_overlay != Overlay::None) {
       if (sym == XKB_KEY_Escape) {
         if (m_overlay == Overlay::Conflict && m_conflictReply) {
@@ -3366,6 +3487,10 @@ namespace okaru::files {
       m_pathText = uriToPath(here);
       m_editingPath = true;
       m_app.requestRebuild();
+      return true;
+    }
+    if (key(XKB_KEY_space, 0)) {
+      toggleQuickLook();
       return true;
     }
     if (key(XKB_KEY_f, KeyMod::Ctrl) || key(XKB_KEY_slash, 0)) {

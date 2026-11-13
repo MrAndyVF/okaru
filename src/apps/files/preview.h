@@ -16,7 +16,7 @@ class InputArea;
 
 namespace okaru::files {
 
-  enum class PreviewKind : std::uint8_t { None, Image, Pdf, Office };
+  enum class PreviewKind : std::uint8_t { None, Image, Pdf, Office, Text };
 
   [[nodiscard]] PreviewKind previewKindFor(const std::string& contentType);
 
@@ -30,6 +30,9 @@ namespace okaru::files {
   };
   // Lado mayor hasta `maxSize`, con la orientación EXIF aplicada. Vacía si no se pudo.
   [[nodiscard]] DecodedImage decodeImage(const std::string& path, int maxSize);
+
+  // Primeros `maxBytes` de un archivo de texto, como UTF-8 válido y hasta `maxLines` líneas.
+  [[nodiscard]] std::string readTextPreview(const std::string& path, std::size_t maxBytes, std::size_t maxLines);
 
   // PDF convertido de un documento de oficina, en la caché (uno por archivo y fecha de modificación).
   [[nodiscard]] std::string officePreviewPath(const std::string& uri, std::int64_t modified);
