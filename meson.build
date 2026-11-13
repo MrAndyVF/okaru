@@ -1322,6 +1322,12 @@ okaru_files_exe = executable('okaru-files',
   install: true,
 )
 if build_tests
+  test('okaru_archive', executable('okaru_archive_test',
+    sources: files('tests/okaru_archive_test.cpp', 'src/apps/archive/archive_backend.cpp'),
+    include_directories: include_directories('src'),
+    dependencies: [dependency('libarchive')],
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_files', executable('okaru_files_test',
     sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/drag_icon.cpp',
                    'src/apps/files/icon_cache.cpp',
