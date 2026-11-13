@@ -85,13 +85,17 @@ if [[ $helper == pacman ]]; then
   else
     run sudo pacman -Syu "${ignore_flag[@]}"
   fi
-elif $yes; then
-  # Los ayudantes corren como el usuario y suben a root con pkexec; las respuestas automáticas saltan las revisiones.
-  answers=(--answerdiff None --answerclean None --answeredit None)
-  [[ $helper == paru ]] && answers=(--skipreview)
-  run "$helper" -Syu --sudo pkexec "${answers[@]}" --noconfirm --noprogressbar --color never "${ignore_flag[@]}"
 else
-  run "$helper" -Syu "${ignore_flag[@]}"
+  # Como cachy-update: sin el menú "Packages to exclude" de yay (un prompt sin pregunta que parecía colgado) ni las
+  # revisiones de PKGBUILD; en la terminal queda solo la confirmación [S/n] de pacman.
+  answers=(--answerupgrade None --answerdiff None --answerclean None --answeredit None)
+  [[ $helper == paru ]] && answers=(--skipreview)
+  if $yes; then
+    # Los ayudantes corren como el usuario y suben a root con pkexec.
+    run "$helper" -Syu --sudo pkexec "${answers[@]}" --noconfirm --noprogressbar --color never "${ignore_flag[@]}"
+  else
+    run "$helper" -Syu "${answers[@]}" "${ignore_flag[@]}"
+  fi
 fi
 
 if $flatpak; then
