@@ -10,6 +10,65 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.2.2] - 2026-11-13
+
+### English
+
+#### Features
+- New app: **Archives** (`okaru-archive`), OKARU's own archive manager (libarchive, plus 7-Zip only where libarchive
+  falls short):
+  - Opens zip, 7z, rar, tar.*, iso, cab, deb and more in the same list view as Files; double-click enters folders or
+    opens a file with its app.
+  - Extract everything or the selection, to any folder, optionally into a folder named after the archive, asking
+    before replacing; drag files out to any app (they are extracted on drop).
+  - Passwords: AES zip, encrypted 7z (including encrypted names) and rar through 7-Zip, with the password sent on
+    stdin; optional “Remember in the keyring”.
+  - Edit zip, 7z and tar.*: add files (button or drop), new folders, rename (F2) and delete (Del). rar is read-only.
+  - Create zip, 7z, tar.gz, tar.xz or tar.zst with four compression levels, AES-256 password and split volumes.
+  - Test integrity, zip comment and properties.
+  - Default app for archives; Files’ “Compress…” opens its dialog.
+- Files: dragging shows the thumbnails or icons of the dragged files and how many there are.
+- Files: “Clear recent history” on Recent (sidebar menu and the folder background).
+- PDF reader: “Clear history” under the recent documents.
+
+#### Fixes
+- PDF forms with non-embedded Helvetica, Arial, Times or Courier rendered with spaced letters and missing glyphs: those
+  families now map to the metric-compatible Liberation fonts (JetBrains Mono stays everywhere else).
+- PDF reader: the error shown when a file passed on the command line could not be opened was untranslated.
+
+#### Changes
+- Installer: adds `ttf-liberation` and `7zip`. Package: `libarchive` dependency and `7zip` optional dependency.
+- Default Hyprland and Niri rules float Archives (900×620).
+
+### Español
+
+#### Novedades
+- App nueva: **Comprimidos** (`okaru-archive`), el gestor de comprimidos propio de OKARU (libarchive, y 7-Zip solo
+  donde libarchive no llega):
+  - Abre zip, 7z, rar, tar.*, iso, cab, deb y más con la misma vista de lista que Archivos; el doble clic entra en
+    las carpetas o abre el archivo con su app.
+  - Extrae todo o la selección, en cualquier carpeta, opcionalmente dentro de una con el nombre del comprimido, y
+    pregunta antes de reemplazar; arrastra archivos hacia cualquier app (se extraen al soltar).
+  - Contraseñas: zip AES, 7z cifrado (también los nombres) y rar mediante 7-Zip, con la contraseña por stdin;
+    opción «Recordar en el llavero».
+  - Edita zip, 7z y tar.*: agregar archivos (botón o soltando), carpetas nuevas, renombrar (F2) y borrar (Supr).
+    Los rar son de solo lectura.
+  - Crea zip, 7z, tar.gz, tar.xz o tar.zst con cuatro niveles de compresión, contraseña AES-256 y volúmenes.
+  - Prueba de integridad, comentario del zip y propiedades.
+  - App por defecto para los comprimidos; «Comprimir…» de Archivos abre su diálogo.
+- Archivos: al arrastrar se ven las miniaturas o iconos de lo arrastrado y cuántos son.
+- Archivos: «Borrar historial de recientes» en Recientes (menú del panel lateral y fondo de la carpeta).
+- Lector PDF: «Borrar historial» debajo de los documentos recientes.
+
+#### Correcciones
+- Los formularios PDF con Helvetica, Arial, Times o Courier sin incrustar salían con letras separadas y glifos
+  perdidos: esas familias van ahora a Liberation, de medidas compatibles (JetBrains Mono sigue en todo lo demás).
+- Lector PDF: el error al no poder abrir un archivo pasado por la línea de comandos salía sin traducir.
+
+#### Cambios
+- Instalador: agrega `ttf-liberation` y `7zip`. Paquete: dependencia `libarchive` y opcional `7zip`.
+- Las reglas de fábrica de Hyprland y Niri dejan flotante a Comprimidos (900×620).
+
 ## [1.2.1] - 2026-11-13
 
 ### English
