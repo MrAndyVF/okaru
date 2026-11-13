@@ -37,6 +37,7 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 #### Fixes
 - PDF forms with non-embedded Helvetica, Arial, Times or Courier rendered with spaced letters and missing glyphs: those
   families now map to the metric-compatible Liberation fonts (JetBrains Mono stays everywhere else).
+- Checked boxes in PDF forms showed an empty square: ZapfDingbats now maps to D050000L from `gsfonts` (new dependency).
 - PDF reader: the error shown when a file passed on the command line could not be opened was untranslated.
 
 #### Changes
@@ -69,6 +70,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 #### Correcciones
 - Los formularios PDF con Helvetica, Arial, Times o Courier sin incrustar salían con letras separadas y glifos
   perdidos: esas familias van ahora a Liberation, de medidas compatibles (JetBrains Mono sigue en todo lo demás).
+- Las casillas marcadas de los formularios PDF salían como un cuadro vacío: ZapfDingbats va ahora a D050000L de
+  `gsfonts` (dependencia nueva).
 - Lector PDF: el error al no poder abrir un archivo pasado por la línea de comandos salía sin traducir.
 
 #### Cambios
