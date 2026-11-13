@@ -314,6 +314,12 @@ namespace okaru::files {
 
   void FilesWindow::syncColumns() {
     Tab& t = tab();
+    m_columnViews.clear(); // las vistas viejas apuntan a columnas que van a cambiar
+    m_syncingColumns = true;
+    struct Done {
+      bool& flag;
+      ~Done() { flag = false; }
+    } done{m_syncingColumns};
     if (t.mode != ViewMode::Compact) {
       t.columns.clear();
       return;
@@ -353,7 +359,8 @@ namespace okaru::files {
   }
 
   void FilesWindow::onModelChanged() {
-    if (m_tabs.empty()) {
+    // Durante syncColumns las columnas están a medio rearmar: la escena se reconstruye al terminar.
+    if (m_tabs.empty() || m_syncingColumns) {
       return;
     }
     Tab& t = tab();
@@ -398,8 +405,10 @@ namespace okaru::files {
       );
       m_view->setEntries(&t.model->entries(), &t.view);
     }
-    for (std::size_t i = 0; i < m_columnViews.size() && i < t.columns.size(); ++i) {
-      m_columnViews[i]->setEntries(&t.columns[i].model->entries(), &t.columns[i].state);
+    for (const auto& [view, pane] : m_columnViews) {
+      if (pane < t.columns.size() && t.columns[pane].model != nullptr) {
+        view->setEntries(&t.columns[pane].model->entries(), &t.columns[pane].state);
+      }
     }
     updateStatus();
     m_app.invalidate();
@@ -1698,7 +1707,7 @@ namespace okaru::files {
         };
         view->setOnSingleClick(open);
         view->setOnActivate(open);
-        m_columnViews.push_back(view.get());
+        m_columnViews.emplace_back(view.get(), i);
         view->setSize(colW, 1.0F);
         body->addChild(std::move(view));
         body->addChild(ui::separator({.orientation = SeparatorOrientation::VerticalRule}));

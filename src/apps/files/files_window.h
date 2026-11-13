@@ -233,7 +233,8 @@ namespace okaru::files {
 
     // Nodos de la escena actual (válidos hasta la siguiente reconstrucción).
     FileView* m_view = nullptr;
-    std::vector<FileView*> m_columnViews;
+    std::vector<std::pair<FileView*, std::size_t>> m_columnViews; // vista y su índice en Tab::columns
+    bool m_syncingColumns = false;
     Input* m_pathInput = nullptr;
     Input* m_findInput = nullptr;
     Input* m_dialogInput = nullptr;
