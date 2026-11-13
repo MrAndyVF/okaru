@@ -26,7 +26,7 @@ namespace okaru::files {
     std::vector<std::string> sources; // URI
     std::string destination;          // carpeta destino (Copy/Move/Link/New*) o nombre nuevo (Rename)
     std::string name;                 // New*: nombre a crear
-    std::vector<std::string> targets; // Copy/Move/Link: destino exacto de cada origen (deshacer/rehacer)
+    std::vector<std::string> targets; // Copy/Move/Link: destino exacto de cada origen; Rename: nombre nuevo de cada uno
     bool record = true;               // guardar para deshacer (false al deshacer/rehacer)
   };
 
@@ -125,6 +125,19 @@ namespace okaru::files {
     ConflictFn m_onConflict;
     DoneFn m_onDone;
   };
+
+  enum class BulkMode : std::uint8_t { Replace, Number, Affix };
+  struct BulkRule {
+    BulkMode mode = BulkMode::Replace;
+    std::string find;
+    std::string replace;
+    std::string base; // numerar: "Vacaciones" → "Vacaciones 01.jpg"
+    int start = 1;
+    std::string prefix;
+    std::string suffix;
+  };
+  // Nombres nuevos (mismo orden) conservando la extensión.
+  [[nodiscard]] std::vector<std::string> bulkRenameNames(const std::vector<std::string>& names, const BulkRule& rule);
 
   // Inversa de un registro (lo que hay que encolar para deshacerlo).
   [[nodiscard]] std::vector<OpRequest> inverseOf(const UndoRecord& record);

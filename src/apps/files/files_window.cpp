@@ -4,6 +4,7 @@
 #include "apps/common/okaru_app.h"
 #include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
+#include "apps/files/archive.h"
 #include "apps/pdf/pdf_view.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
@@ -928,7 +929,20 @@ namespace okaru::files {
 
   void FilesWindow::startRename() {
     const auto items = selection();
-    if (items.size() != 1 || !canWriteHere()) {
+    if (items.empty() || !canWriteHere()) {
+      return;
+    }
+    if (items.size() > 1) {
+      m_bulkUris.clear();
+      m_bulkNames.clear();
+      for (const FileEntry* e : items) {
+        m_bulkUris.push_back(e->uri);
+        m_bulkNames.push_back(e->display);
+      }
+      m_bulk = {};
+      m_overlay = Overlay::BulkRename;
+      m_focusDialog = true;
+      m_app.requestRebuild();
       return;
     }
     m_dialogTarget = items.front()->uri;
@@ -936,6 +950,146 @@ namespace okaru::files {
     m_overlay = Overlay::Rename;
     m_focusDialog = true;
     m_app.requestRebuild();
+  }
+
+  void FilesWindow::updateBulkPreview() {
+    const auto names = bulkRenameNames(m_bulkNames, m_bulk);
+    // Válido: ningún nombre vacío, con "/" ni repetido (ni entre sí ni con lo que ya hay en la carpeta).
+    std::set<std::string> seen;
+    std::set<std::string> others;
+    for (const auto& e : tab().model->entries()) {
+      if (std::ranges::find(m_bulkUris, e.uri) == m_bulkUris.end()) {
+        others.insert(e.name);
+      }
+    }
+    std::string problem;
+    for (const auto& name : names) {
+      if (name.empty() || name.contains('/') || name == "." || name == "..") {
+        problem = tr("apps.files.bulk.invalid");
+      } else if (!seen.insert(name).second || others.contains(name)) {
+        problem = tr("apps.files.bulk.duplicate", "name", name);
+      }
+    }
+    m_bulkValid = problem.empty() && names != m_bulkNames;
+    if (m_bulkPreview != nullptr) {
+      std::string text;
+      for (std::size_t i = 0; i < names.size() && i < 8; ++i) {
+        text += (i > 0 ? "\n" : "") + m_bulkNames[i] + "  →  " + names[i];
+      }
+      if (names.size() > 8) {
+        text += "\n" + trp("apps.files.errors.more", static_cast<long>(names.size() - 8));
+      }
+      if (!problem.empty()) {
+        text += "\n\n" + problem;
+      }
+      m_bulkPreview->setText(text);
+      m_bulkPreview->setColor(colorSpecFromRole(problem.empty() ? ColorRole::OnSurfaceVariant : ColorRole::Error));
+    }
+    if (m_bulkApply != nullptr) {
+      m_bulkApply->setEnabled(m_bulkValid);
+    }
+    m_app.invalidate();
+  }
+
+  void FilesWindow::applyBulkRename() {
+    updateBulkPreview();
+    if (!m_bulkValid) {
+      return;
+    }
+    m_overlay = Overlay::None;
+    submit({.kind = OpKind::Rename, .sources = m_bulkUris, .targets = bulkRenameNames(m_bulkNames, m_bulk)});
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::compressDialog() {
+    const auto items = selection();
+    if (items.empty() || !canWriteHere()) {
+      return;
+    }
+    m_dialogUris = selectedUris();
+    // Un elemento: su nombre; varios: el de la carpeta.
+    m_dialogText = items.size() == 1 ? archiveStem(items.front()->display) : displayNameOf(tab().model->uri());
+    m_overlay = Overlay::Compress;
+    m_focusDialog = true;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::compressSelection() {
+    static constexpr std::array<const char*, 4> kFormats{".zip", ".tar.gz", ".tar.xz", ".7z"};
+    std::string name = trimmed(m_dialogText);
+    if (name.empty() || name.contains('/')) {
+      return;
+    }
+    m_overlay = Overlay::None;
+    m_app.requestRebuild();
+    const std::string folder = uriToPath(tab().model->uri());
+    std::vector<std::string> names;
+    for (const auto& uri : m_dialogUris) {
+      names.push_back(fs::path(uriToPath(uri)).filename().string());
+    }
+    const std::string output =
+        (fs::path(folder) / uniqueName(tab().model->uri(), name + kFormats[std::min<std::size_t>(m_compressFormat, 3)])).string();
+    setMessage(tr("apps.files.archive.compressing", "name", fs::path(output).filename().string()));
+    std::weak_ptr<int> alive = m_alive;
+    std::thread([this, alive, folder, names, output] {
+      std::string error;
+      const bool ok = compressFiles(folder, names, output, error);
+      DeferredCall::callLater([this, alive, ok, output, error] {
+        if (alive.expired()) {
+          return;
+        }
+        if (ok) {
+          setMessage(tr("apps.files.archive.compressed", "name", fs::path(output).filename().string()));
+          tab().view.revealUri = pathToUri(output);
+          tab().model->reload();
+        } else {
+          setMessage(tr("apps.files.archive.failed") + (error.empty() ? "" : ": " + trimmed(error)), true);
+        }
+      });
+    }).detach();
+  }
+
+  void FilesWindow::extractSelection() {
+    std::vector<std::string> archives;
+    for (const FileEntry* e : selection()) {
+      if (!e->path.empty() && isArchive(e->contentType, e->name)) {
+        archives.push_back(e->path);
+      }
+    }
+    if (archives.empty() || !canWriteHere()) {
+      return;
+    }
+    const std::string folder = uriToPath(tab().model->uri());
+    setMessage(trp("apps.files.archive.extracting", static_cast<long>(archives.size())));
+    std::weak_ptr<int> alive = m_alive;
+    std::thread([this, alive, folder, archives] {
+      std::vector<std::string> results;
+      std::string error;
+      for (const auto& archive : archives) {
+        std::string result;
+        std::string why;
+        if (extractArchive(archive, folder, result, why)) {
+          results.push_back(pathToUri(result));
+        } else {
+          error = fs::path(archive).filename().string() + ": " + trimmed(why);
+        }
+      }
+      DeferredCall::callLater([this, alive, results, error] {
+        if (alive.expired()) {
+          return;
+        }
+        if (error.empty()) {
+          setMessage(tr("apps.files.archive.extracted"));
+        } else {
+          setMessage(tr("apps.files.archive.extract-failed", "detail", error), true);
+        }
+        if (!results.empty()) {
+          tab().view.selected = {results.begin(), results.end()};
+          tab().view.revealUri = results.front();
+          tab().model->reload();
+        }
+      });
+    }).detach();
   }
 
   void FilesWindow::startNew(bool folder) {
@@ -1596,8 +1750,18 @@ namespace okaru::files {
     menu.push_back({tr("apps.files.menu.copy-path"), [this] { copyPaths(); }});
     menu.push_back({tr("apps.files.menu.send"), [this] { shareDialog(); }, !first.path.empty()});
     sep();
-    menu.push_back({tr("apps.files.menu.rename"), [this] { startRename(); }, single && writable});
+    menu.push_back({tr(single ? "apps.files.menu.rename" : "apps.files.menu.rename-many"), [this] { startRename(); }, writable});
     menu.push_back({tr("apps.files.menu.link"), [this] { createLink(); }, writable});
+    bool anyArchive = false;
+    bool allLocal = true;
+    for (const FileEntry* e : items) {
+      anyArchive = anyArchive || (!e->path.empty() && isArchive(e->contentType, e->name));
+      allLocal = allLocal && !e->path.empty();
+    }
+    menu.push_back({tr("apps.files.menu.compress"), [this] { compressDialog(); }, writable && allLocal});
+    if (anyArchive) {
+      menu.push_back({tr("apps.files.menu.extract"), [this] { extractSelection(); }, writable});
+    }
     if (folder) {
       const std::string uri = first.uri;
       menu.push_back({tr(m_places.isBookmarked(uri) ? "apps.files.menu.bookmark-remove" : "apps.files.menu.bookmark-add"),
@@ -1697,6 +1861,8 @@ namespace okaru::files {
     m_findInput = nullptr;
     m_dialogInput = nullptr;
     m_statusLabel = nullptr;
+    m_bulkPreview = nullptr;
+    m_bulkApply = nullptr;
     m_menuControl = nullptr;
     m_previewHost = nullptr;
     m_quickLookName = nullptr;
@@ -3332,6 +3498,116 @@ namespace okaru::files {
         }
       }
       buttons(cancelButton(), ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit}));
+      break;
+    }
+    case Overlay::BulkRename: {
+      heading(trp("apps.files.bulk.title", static_cast<long>(m_bulkUris.size())));
+      card->addChild(ui::segmented({
+          .options = std::vector<ui::SegmentedOption>{
+              {.label = tr("apps.files.bulk.replace")},
+              {.label = tr("apps.files.bulk.number")},
+              {.label = tr("apps.files.bulk.affix")},
+          },
+          .selectedIndex = static_cast<std::size_t>(m_bulk.mode),
+          .fontSize = Style::fontSizeCaption * scale,
+          .scale = scale,
+          .onChange = [this](std::size_t index) {
+            DeferredCall::callLater([this, index] {
+              m_bulk.mode = static_cast<BulkMode>(index);
+              m_focusDialog = true;
+              m_app.requestRebuild();
+            });
+          },
+      }));
+      const auto apply = [this] { DeferredCall::callLater([this] { applyBulkRename(); }); };
+      const auto field = [&](std::string placeholder, std::string& value, bool first) {
+        Input* created = nullptr;
+        card->addChild(ui::input({
+            .out = &created,
+            .value = value,
+            .placeholder = std::move(placeholder),
+            .fontSize = Style::fontSizeBody * scale,
+            .onChange = [this, &value](const std::string& v) {
+              value = v;
+              updateBulkPreview();
+            },
+            .onSubmit = [apply](const std::string&) { apply(); },
+            .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+              if (sym == XKB_KEY_Escape) {
+                close();
+                return true;
+              }
+              return false;
+            },
+        }));
+        if (first) {
+          m_dialogInput = created;
+        }
+      };
+      switch (m_bulk.mode) {
+      case BulkMode::Replace:
+        field(tr("apps.files.bulk.find"), m_bulk.find, true);
+        field(tr("apps.files.bulk.with"), m_bulk.replace, false);
+        break;
+      case BulkMode::Number: {
+        field(tr("apps.files.bulk.base"), m_bulk.base, true);
+        const std::string startText = std::to_string(m_bulk.start);
+        Input* startInput = nullptr;
+        card->addChild(ui::row(
+            {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+            ui::label({.text = tr("apps.files.bulk.start"), .fontSize = Style::fontSizeBody * scale,
+                       .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}),
+            ui::input({.out = &startInput, .value = startText, .fontSize = Style::fontSizeBody * scale,
+                       .width = 90.0F * scale,
+                       .onChange = [this](const std::string& v) {
+                         m_bulk.start = std::max(0, std::atoi(v.c_str()));
+                         updateBulkPreview();
+                       },
+                       .onSubmit = [apply](const std::string&) { apply(); }})
+        ));
+        break;
+      }
+      case BulkMode::Affix:
+        field(tr("apps.files.bulk.prefix"), m_bulk.prefix, true);
+        field(tr("apps.files.bulk.suffix"), m_bulk.suffix, false);
+        break;
+      }
+      card->addChild(ui::label({.out = &m_bulkPreview, .text = " ", .fontSize = Style::fontSizeCaption * scale,
+                                .fontFamily = "monospace", .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+                                .maxLines = 12, .ellipsize = TextEllipsize::Middle}));
+      buttons(cancelButton(), ui::button({.out = &m_bulkApply, .text = tr("apps.files.rename.action"),
+                                          .variant = ButtonVariant::Primary, .onClick = apply}));
+      updateBulkPreview();
+      break;
+    }
+    case Overlay::Compress: {
+      heading(trp("apps.files.archive.title", static_cast<long>(m_dialogUris.size())));
+      const auto submit = [this] { DeferredCall::callLater([this] { compressSelection(); }); };
+      card->addChild(ui::input({
+          .out = &m_dialogInput,
+          .value = m_dialogText,
+          .placeholder = tr("apps.files.archive.name"),
+          .fontSize = Style::fontSizeBody * scale,
+          .onChange = [this](const std::string& value) { m_dialogText = value; },
+          .onSubmit = [submit](const std::string&) { submit(); },
+          .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+            if (sym == XKB_KEY_Escape) {
+              close();
+              return true;
+            }
+            return false;
+          },
+      }));
+      card->addChild(ui::segmented({
+          .options = std::vector<ui::SegmentedOption>{{.label = ".zip"}, {.label = ".tar.gz"}, {.label = ".tar.xz"}, {.label = ".7z"}},
+          .selectedIndex = m_compressFormat,
+          .fontSize = Style::fontSizeCaption * scale,
+          .scale = scale,
+          .onChange = [this](std::size_t index) { m_compressFormat = index; },
+      }));
+      body(tr("apps.files.archive.hint"));
+      buttons(cancelButton(), ui::button({.text = tr("apps.files.archive.action"), .variant = ButtonVariant::Primary,
+                                          .onClick = submit}));
       break;
     }
     case Overlay::Share: {

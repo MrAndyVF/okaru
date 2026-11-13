@@ -342,7 +342,10 @@
         "custom-icon": "Custom icon…",
         "custom-icon-clear": "Remove custom icon",
         "thumbnails": "Show thumbnails",
-        "connect": "Connect to server…"
+        "connect": "Connect to server…",
+        "rename-many": "Rename… (F2)",
+        "compress": "Compress…",
+        "extract": "Extract here"
       },
       "rename": {
         "title": "Rename",
@@ -505,6 +508,35 @@
         "save-session": "Until logout",
         "save-forever": "Remember (keyring)",
         "connect": "Connect"
+      },
+      "bulk": {
+        "title": "Rename {count} item",
+        "title-plural": "Rename {count} items",
+        "replace": "Replace text",
+        "number": "Number",
+        "affix": "Add text",
+        "find": "Find",
+        "with": "Replace with",
+        "base": "Name (e.g. Holidays → Holidays 01.jpg)",
+        "start": "Start at",
+        "prefix": "Before the name",
+        "suffix": "After the name (before the extension)",
+        "invalid": "A name is empty or contains “/”",
+        "duplicate": "“{name}” would be repeated"
+      },
+      "archive": {
+        "title": "Compress {count} item",
+        "title-plural": "Compress {count} items",
+        "name": "Archive name",
+        "hint": ".zip opens everywhere; .tar.xz and .7z compress the most.",
+        "action": "Compress",
+        "compressing": "Compressing {name}…",
+        "compressed": "Created {name}",
+        "failed": "Could not compress",
+        "extracting": "Extracting {count} archive…",
+        "extracting-plural": "Extracting {count} archives…",
+        "extracted": "Extracted",
+        "extract-failed": "Could not extract {detail}"
       }
     },
     "pdf": {

@@ -1,6 +1,7 @@
 // OKARU: núcleo de okaru-files: nombres numerados, orden natural, filtro sin tildes y la cola de operaciones
 // (crear, copiar con conflicto, mover, papelera con deshacer) sobre una carpeta temporal.
 #include "apps/files/file_model.h"
+#include "apps/files/archive.h"
 #include "apps/files/file_ops.h"
 #include "apps/files/icon_cache.h"
 #include "apps/files/share.h"
@@ -60,6 +61,17 @@ int main() {
   assert(parseBluetoothDevice("Device 41:42:FB:63:C0:7E Buds Pro").first == "41:42:FB:63:C0:7E");
   assert(parseBluetoothDevice("[CHG] Device 41:42:FB:63:C0:7E Buds Pro").second == "Buds Pro");
   assert(parseBluetoothDevice("No default controller available").first.empty());
+
+  // Renombrado en lote: la extensión se conserva.
+  const std::vector<std::string> photos{"IMG_001.jpg", "IMG_002.jpg", ".oculto", "notas"};
+  assert((bulkRenameNames(photos, {.mode = BulkMode::Replace, .find = "IMG_", .replace = "Foto "})
+          == std::vector<std::string>{"Foto 001.jpg", "Foto 002.jpg", ".oculto", "notas"}));
+  assert((bulkRenameNames(photos, {.mode = BulkMode::Number, .base = "Viaje", .start = 9})
+          == std::vector<std::string>{"Viaje 09.jpg", "Viaje 10.jpg", "Viaje 11", "Viaje 12"}));
+  assert((bulkRenameNames({"a.txt"}, {.mode = BulkMode::Affix, .prefix = "2026-", .suffix = "_v2"})
+          == std::vector<std::string>{"2026-a_v2.txt"}));
+  assert(archiveStem("fotos.tar.gz") == "fotos" && archiveStem("x.zip") == "x" && archiveStem("nota.txt") == "nota.txt");
+  assert(isArchive("application/zip", "a.zip") && isArchive("", "b.tar.zst") && !isArchive("text/plain", "c.txt"));
 
   // Variantes de color de Papirus.
   assert(coloredFolderIconName("folder", "red") == "folder-red");
@@ -185,6 +197,27 @@ int main() {
     assert(path && thumbnailValid(*path, pdf->uri, pdf->modified));
     assert(!thumbnailValid(*path, pdf->uri, pdf->modified + 1));
   }
+
+  // Comprimir y extraer (sin carpeta doble cuando adentro hay una sola carpeta).
+  {
+    std::string error;
+    assert(compressFiles((root / "src").string(), {"sub"}, (root / "dst" / "sub.zip").string(), error));
+    std::string result;
+    assert(extractArchive((root / "dst" / "sub.zip").string(), (root / "dst").string(), result, error));
+    assert(result == (root / "dst" / "sub").string() && fs::is_directory(root / "dst" / "sub"));
+    assert(!fs::exists(root / "dst" / "sub (2)"));
+  }
+
+  // Renombrar en lote con deshacer.
+  std::ofstream(root / "dst" / "a.txt") << "a";
+  std::ofstream(root / "dst" / "b.txt") << "b";
+  runOp({.kind = OpKind::Rename, .sources = {childUri(dstUri, "a.txt"), childUri(dstUri, "b.txt")},
+         .targets = {"uno.md", "dos.md"}});
+  assert(fs::exists(root / "dst" / "uno.md") && fs::exists(root / "dst" / "dos.md"));
+  queue.undo();
+  last.reset();
+  pump([&] { return last.has_value(); });
+  assert(fs::exists(root / "dst" / "a.txt") && fs::exists(root / "dst" / "b.txt"));
 
   // Borrar para siempre.
   runOp({.kind = OpKind::Delete, .sources = {rootUri}});

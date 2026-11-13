@@ -1293,6 +1293,7 @@ _files_core_sources = files(
 )
 okaru_files_exe = executable('okaru-files',
   sources: files(
+    'src/apps/files/archive.cpp',
     'src/apps/files/file_view.cpp',
     'src/apps/files/files_window.cpp',
     'src/apps/files/icon_cache.cpp',
@@ -1311,7 +1312,7 @@ okaru_files_exe = executable('okaru-files',
 )
 if build_tests
   test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/icon_cache.cpp', 'src/apps/files/share.cpp',
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/icon_cache.cpp', 'src/apps/files/share.cpp',
                    'src/apps/files/thumbnails.cpp') + _files_core_sources,
     dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
     override_options: ['b_ndebug=false'],

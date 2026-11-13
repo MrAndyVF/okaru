@@ -342,7 +342,10 @@
         "custom-icon": "Icono personalizado…",
         "custom-icon-clear": "Quitar icono personalizado",
         "thumbnails": "Mostrar miniaturas",
-        "connect": "Conectar a servidor…"
+        "connect": "Conectar a servidor…",
+        "rename-many": "Renombrar… (F2)",
+        "compress": "Comprimir…",
+        "extract": "Extraer aquí"
       },
       "rename": {
         "title": "Renombrar",
@@ -505,6 +508,35 @@
         "save-session": "Hasta cerrar sesión",
         "save-forever": "Recordar (llavero)",
         "connect": "Conectar"
+      },
+      "bulk": {
+        "title": "Renombrar {count} elemento",
+        "title-plural": "Renombrar {count} elementos",
+        "replace": "Reemplazar texto",
+        "number": "Numerar",
+        "affix": "Agregar texto",
+        "find": "Buscar",
+        "with": "Reemplazar por",
+        "base": "Nombre (p. ej. Vacaciones → Vacaciones 01.jpg)",
+        "start": "Empezar en",
+        "prefix": "Antes del nombre",
+        "suffix": "Después del nombre (antes de la extensión)",
+        "invalid": "Algún nombre queda vacío o tiene «/»",
+        "duplicate": "«{name}» quedaría repetido"
+      },
+      "archive": {
+        "title": "Comprimir {count} elemento",
+        "title-plural": "Comprimir {count} elementos",
+        "name": "Nombre del comprimido",
+        "hint": ".zip se abre en cualquier equipo; .tar.xz y .7z comprimen más.",
+        "action": "Comprimir",
+        "compressing": "Comprimiendo {name}…",
+        "compressed": "Se creó {name}",
+        "failed": "No se pudo comprimir",
+        "extracting": "Extrayendo {count} comprimido…",
+        "extracting-plural": "Extrayendo {count} comprimidos…",
+        "extracted": "Extraído",
+        "extract-failed": "No se pudo extraer {detail}"
       }
     },
     "pdf": {

@@ -585,19 +585,26 @@ namespace okaru::files {
     }
 
     case OpKind::Rename: {
-      if (request.sources.empty()) {
-        break;
+      // Uno (destination) o en lote (targets: nombre nuevo de cada origen).
+      for (std::size_t i = 0; i < request.sources.size(); ++i) {
+        const std::string& name = i < request.targets.size() ? request.targets[i] : request.destination;
+        if (name.empty() || (request.targets.empty() && i > 0)) {
+          continue;
+        }
+        FilePtr file = fileFor(request.sources[i]);
+        if (displayNameOf(request.sources[i]) == name) {
+          continue;
+        }
+        GFile* renamed = g_file_set_display_name(file.get(), name.c_str(), job.cancellable, &error);
+        if (renamed == nullptr) {
+          job.fail(file.get(), error);
+          g_clear_error(&error);
+          continue;
+        }
+        record.items.emplace_back(request.sources[i], uriOf(renamed));
+        job.result.created.push_back(uriOf(renamed));
+        g_object_unref(renamed);
       }
-      FilePtr file = fileFor(request.sources.front());
-      GFile* renamed = g_file_set_display_name(file.get(), request.destination.c_str(), job.cancellable, &error);
-      if (renamed == nullptr) {
-        job.fail(file.get(), error);
-        g_clear_error(&error);
-        break;
-      }
-      record.items.emplace_back(request.sources.front(), uriOf(renamed));
-      job.result.created.push_back(uriOf(renamed));
-      g_object_unref(renamed);
       break;
     }
 
@@ -633,6 +640,43 @@ namespace okaru::files {
     }
   }
 
+  // ── Renombrado en lote ─────────────────────────────────────────────────────────────────────────────
+
+  std::vector<std::string> bulkRenameNames(const std::vector<std::string>& names, const BulkRule& rule) {
+    std::vector<std::string> out;
+    const std::size_t digits = std::max<std::size_t>(2, std::to_string(rule.start + static_cast<int>(names.size()) - 1).size());
+    for (std::size_t i = 0; i < names.size(); ++i) {
+      const std::string& name = names[i];
+      // La extensión se conserva (no se cuenta la de los archivos ocultos ".bashrc").
+      std::size_t dot = name.rfind('.');
+      if (dot == 0 || dot == std::string::npos) {
+        dot = name.size();
+      }
+      std::string stem = name.substr(0, dot);
+      const std::string ext = name.substr(dot);
+      switch (rule.mode) {
+      case BulkMode::Replace:
+        if (!rule.find.empty()) {
+          for (std::size_t at = stem.find(rule.find); at != std::string::npos; at = stem.find(rule.find, at + rule.replace.size())) {
+            stem.replace(at, rule.find.size(), rule.replace);
+          }
+        }
+        break;
+      case BulkMode::Number: {
+        std::string number = std::to_string(rule.start + static_cast<int>(i));
+        number.insert(0, digits > number.size() ? digits - number.size() : 0, '0');
+        stem = rule.base.empty() ? number : rule.base + " " + number;
+        break;
+      }
+      case BulkMode::Affix:
+        stem = rule.prefix + stem + rule.suffix;
+        break;
+      }
+      out.push_back(stem + ext);
+    }
+    return out;
+  }
+
   // ── Deshacer / rehacer ─────────────────────────────────────────────────────────────────────────────
 
   std::vector<OpRequest> inverseOf(const UndoRecord& record) {
@@ -661,7 +705,10 @@ namespace okaru::files {
         request.sources.push_back(to);
         break;
       case OpKind::Rename:
-        out.push_back({.kind = OpKind::Rename, .sources = {to}, .destination = displayNameOf(from), .record = false});
+        // Un lote se deshace en una sola operación.
+        request.kind = OpKind::Rename;
+        request.sources.push_back(to);
+        request.targets.push_back(displayNameOf(from));
         break;
       case OpKind::Delete:
         break;
@@ -691,7 +738,8 @@ namespace okaru::files {
         request.sources.push_back(to); // deshacer lo devolvió a la papelera: se busca por su ruta original
         break;
       case OpKind::Rename:
-        out.push_back({.kind = OpKind::Rename, .sources = {from}, .destination = displayNameOf(to), .record = false});
+        request.sources.push_back(from);
+        request.targets.push_back(displayNameOf(to));
         break;
       case OpKind::NewFolder:
       case OpKind::NewFile:

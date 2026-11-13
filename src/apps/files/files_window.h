@@ -25,6 +25,7 @@
 #include <vector>
 
 class Box;
+class Button;
 class Flex;
 class Renderer;
 class Image;
@@ -84,6 +85,8 @@ namespace okaru::files {
       Question,
       Connect,
       QuickLook,
+      BulkRename,
+      Compress,
       Errors,
     };
     enum class Mode : std::uint8_t { List, Grid, Columns };
@@ -174,6 +177,11 @@ namespace okaru::files {
     void copyPaths();
     void paste(const std::string& destination);
     void startRename();
+    void updateBulkPreview();
+    void applyBulkRename();
+    void compressDialog();
+    void compressSelection();
+    void extractSelection();
     void startNew(bool folder);
     void trashSelection();
     void deleteSelection();
@@ -243,6 +251,15 @@ namespace okaru::files {
     std::string m_mountingUri; // montaje automático en curso (no repetirlo)
     std::string m_connectText;
     std::vector<std::string> m_recentServers;
+
+    // Renombrado en lote y comprimir.
+    BulkRule m_bulk;
+    std::vector<std::string> m_bulkUris;
+    std::vector<std::string> m_bulkNames;
+    bool m_bulkValid = false;
+    Label* m_bulkPreview = nullptr;
+    Button* m_bulkApply = nullptr;
+    std::size_t m_compressFormat = 0;
     Input* m_authPasswordInput = nullptr;
 
     // Teléfonos de KDE Connect: se consultan en un hilo al cambiar algo en su D-Bus.
