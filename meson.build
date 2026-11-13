@@ -1030,8 +1030,13 @@ _okaru_sources = files(
   'src/shell/bar/widgets/okaru_cat_widget_definition.cpp',
   'src/shell/bar/widgets/okaru_ports_widget.cpp',
   'src/shell/bar/widgets/okaru_ports_widget_definition.cpp',
+  'src/shell/bar/widgets/okaru_updates_widget.cpp',
+  'src/shell/bar/widgets/okaru_updates_widget_definition.cpp',
+  'src/shell/okaru_updates/okaru_updates_tab.cpp',
+  'src/launcher/updates_provider.cpp',
   'src/shell/okaru_panels/okaru_ports_tab.cpp',
   'src/system/okaru_ports.cpp',
+  'src/system/okaru_updates.cpp',
   'src/system/okaru_autostart.cpp',
   'src/system/okaru_uwsm_env.cpp',
   'src/system/okaru_system_info.cpp',
@@ -1398,6 +1403,12 @@ install_data('data/libexec/shim/sudo',
   install_mode: 'rwxr-xr-x',
 )
 
+# OKARU: actualizador de pacman/AUR, Flatpak y Snap (lo usan el widget y el panel de Actualizaciones; sirve suelto en la terminal).
+install_data('data/bin/okaru-update',
+  install_dir: get_option('bindir'),
+  install_mode: 'rwxr-xr-x',
+)
+
 if build_tests
   wayland_server_dep = dependency('wayland-server')
 
@@ -1442,6 +1453,7 @@ if build_tests
     'okaru_google_oauth',
     'okaru_cat_widget',
     'okaru_ports',
+    'okaru_updates',
     'annotation_document',
     'annotation_raster',
     'animation_manager',
@@ -1774,6 +1786,11 @@ if build_tests
     bash_program,
     args: ['tests/install_place_test.sh', meson.current_source_dir() / 'install.sh',
       meson.current_source_dir() / 'packaging/defaults/okaru/config.toml'],
+    workdir: meson.current_source_dir(),
+  )
+  test('okaru_update',
+    bash_program,
+    args: ['tests/okaru_update_test.sh', meson.current_source_dir() / 'data/bin/okaru-update'],
     workdir: meson.current_source_dir(),
   )
   test('okaru_mimeapps',

@@ -3149,6 +3149,61 @@ namespace settings {
         "phone kde connect recent images count"
     ));
     entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-mode.label"),
+        tr("settings.schema.services.updates-mode.description"), {"updates", "mode"},
+        enumSelect(kUpdatesModes, cfg.updates.mode), "updates actualizaciones pacman aur flatpak snap mode terminal background"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-aur-helper.label"),
+        tr("settings.schema.services.updates-aur-helper.description"), {"updates", "aur_helper"},
+        enumSelect(kUpdatesAurHelpers, cfg.updates.aurHelper), "updates actualizaciones pacman aur flatpak snap yay paru helper"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-flatpak.label"),
+        tr("settings.schema.services.updates-flatpak.description"), {"updates", "flatpak"},
+        ToggleSetting{cfg.updates.flatpak}, "updates actualizaciones pacman aur flatpak snap flatpak"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-snap.label"),
+        tr("settings.schema.services.updates-snap.description"), {"updates", "snap"},
+        ToggleSetting{cfg.updates.snap}, "updates actualizaciones pacman aur flatpak snap snap"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-auto-check-hours.label"),
+        tr("settings.schema.services.updates-auto-check-hours.description"), {"updates", "auto_check_hours"},
+        sliderFor(cfg.updates.autoCheckHours, okaru::config::schema::kUpdatesAutoCheckHoursRange, true), "updates actualizaciones pacman aur flatpak snap auto check interval hours"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-notify.label"),
+        tr("settings.schema.services.updates-notify.description"), {"updates", "notify"},
+        ToggleSetting{cfg.updates.notify}, "updates actualizaciones pacman aur flatpak snap notify notification"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-ignore.label"),
+        tr("settings.schema.services.updates-ignore.description"), {"updates", "ignore"},
+        ListSetting{.items = cfg.updates.ignore}, "updates actualizaciones pacman aur flatpak snap ignore ignored packages"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-download-size.label"),
+        tr("settings.schema.services.updates-download-size.description"), {"updates", "show_download_size"},
+        ToggleSetting{cfg.updates.showDownloadSize}, "updates actualizaciones pacman aur flatpak snap download size"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-check-reboot.label"),
+        tr("settings.schema.services.updates-check-reboot.description"), {"updates", "check_reboot"},
+        ToggleSetting{cfg.updates.checkReboot}, "updates actualizaciones pacman aur flatpak snap reboot kernel"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-activity-graph.label"),
+        tr("settings.schema.services.updates-activity-graph.description"), {"updates", "activity_graph"},
+        ToggleSetting{cfg.updates.activityGraph}, "updates actualizaciones pacman aur flatpak snap activity graph history"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "updates", tr("settings.schema.services.updates-rollback-auto-ignore.label"),
+        tr("settings.schema.services.updates-rollback-auto-ignore.description"), {"updates", "rollback_auto_ignore"},
+        ToggleSetting{cfg.updates.rollbackAutoIgnore}, "updates actualizaciones pacman aur flatpak snap rollback downgrade ignore"
+    ));
+    entries.push_back(makeEntry(
         SettingsSection::Services, "media", tr("settings.schema.services.mpris-blacklist.label"),
         tr("settings.schema.services.mpris-blacklist.description"), {"shell", "mpris", "blacklist"},
         ListSetting{.items = cfg.shell.mpris.blacklist}, "mpris media player dbus session blacklist"

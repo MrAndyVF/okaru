@@ -520,6 +520,23 @@ namespace okaru::config::schema {
     return s;
   }
 
+  const Schema<UpdatesConfig>& updatesSchema() {
+    static const Schema<UpdatesConfig> s = {
+        enumField(&UpdatesConfig::aurHelper, "aur_helper", kUpdatesAurHelpers),
+        field(&UpdatesConfig::flatpak, "flatpak"),
+        field(&UpdatesConfig::snap, "snap"),
+        field(&UpdatesConfig::ignore, "ignore"),
+        field(&UpdatesConfig::autoCheckHours, "auto_check_hours", kUpdatesAutoCheckHoursRange),
+        field(&UpdatesConfig::notify, "notify"),
+        field(&UpdatesConfig::showDownloadSize, "show_download_size"),
+        field(&UpdatesConfig::checkReboot, "check_reboot"),
+        field(&UpdatesConfig::activityGraph, "activity_graph"),
+        enumField(&UpdatesConfig::mode, "mode", kUpdatesModes),
+        field(&UpdatesConfig::rollbackAutoIgnore, "rollback_auto_ignore"),
+    };
+    return s;
+  }
+
   namespace {
     const Schema<ControlCenterCardConfig>& cardSchema() {
       static const Schema<ControlCenterCardConfig> s = {

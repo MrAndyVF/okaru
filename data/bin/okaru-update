@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# okaru-update: actualiza el sistema por todos sus canales — pacman (o el ayudante de AUR), Flatpak y Snap.
+# Cada paso corre aunque falle el anterior; el código de salida es el del último paso que falló.
+set -uo pipefail
+
+usage() {
+  cat <<'EOF'
+Uso: okaru-update [opciones]
+
+  (sin opciones)        actualiza pacman/AUR, Flatpak y Snap
+  -c, --check           lista lo pendiente por canal, sin actualizar (sale 2 si no hay nada)
+  -y, --noconfirm       sin preguntas: pkexec para root y --noconfirm (modo segundo plano)
+      --ignore A,B      paquetes, apps Flatpak o snaps que no se actualizan
+      --aur-helper H    yay, paru o pacman (por defecto: yay, luego paru, si no pacman)
+      --no-aur          solo pacman, aunque haya ayudante de AUR
+      --no-flatpak      no tocar Flatpak
+      --no-snap         no tocar Snap
+  -h, --help            esta ayuda
+EOF
+}
+
+check=false yes=false ignore="" helper="" flatpak=true snap=true
+while (($#)); do
+  case $1 in
+    -c | --check) check=true ;;
+    -y | --noconfirm) yes=true ;;
+    --ignore) ignore=${2:-}; shift ;;
+    --ignore=*) ignore=${1#*=} ;;
+    --aur-helper) helper=${2:-}; shift ;;
+    --aur-helper=*) helper=${1#*=} ;;
+    --no-aur) helper=pacman ;;
+    --no-flatpak) flatpak=false ;;
+    --no-snap) snap=false ;;
+    -h | --help) usage; exit 0 ;;
+    *) printf 'okaru-update: opción desconocida: %s\n' "$1" >&2; usage >&2; exit 64 ;;
+  esac
+  shift
+done
+
+has() { command -v "$1" >/dev/null 2>&1; }
+# Las listas de nombres se filtran contra --ignore (separado por comas).
+skip_ignored() { awk -v ignore="$ignore" 'BEGIN { n = split(ignore, a, ","); for (i = 1; i <= n; i++) s[a[i]] = 1 } NF && !($1 in s)'; }
+
+if [[ -z $helper ]]; then
+  if has yay; then helper=yay; elif has paru; then helper=paru; else helper=pacman; fi
+fi
+[[ $helper != pacman ]] && ! has "$helper" && { printf 'okaru-update: no se encontró %s\n' "$helper" >&2; exit 69; }
+has flatpak || flatpak=false
+has snap || snap=false
+root=sudo
+$yes && root=pkexec
+
+section() { printf '\n\033[1;34m:: %s\033[0m\n' "$1"; }
+
+flatpak_pending() { flatpak remote-ls --updates --columns=application 2>/dev/null | skip_ignored; }
+# `snap refresh --list` trae encabezado; sin pendientes solo escribe "All snaps up to date." en stderr.
+snap_pending() { LC_ALL=C snap refresh --list 2>/dev/null | awk 'NR > 1 { print $1 }' | skip_ignored; }
+
+if $check; then
+  found=0
+  list() { # $1 = canal, $2 = una línea por paquete
+    [[ -z $2 ]] && return
+    found=1
+    section "$1"
+    printf '%s\n' "$2"
+  }
+  list pacman "$(LC_ALL=C checkupdates 2>/dev/null | skip_ignored)"
+  [[ $helper != pacman ]] && list "AUR ($helper)" "$(LC_ALL=C "$helper" -Qua 2>/dev/null | skip_ignored)"
+  $flatpak && list Flatpak "$(flatpak_pending)"
+  $snap && list Snap "$(snap_pending)"
+  ((found)) || { echo "okaru-update: todo al día"; exit 2; }
+  exit 0
+fi
+
+rc=0
+run() { "$@" || rc=$?; }
+
+ignore_flag=()
+[[ -n $ignore ]] && ignore_flag=(--ignore "$ignore")
+
+section "$([[ $helper == pacman ]] && echo pacman || echo "pacman + AUR ($helper)")"
+if [[ $helper == pacman ]]; then
+  if $yes; then
+    run pkexec pacman -Syu --noconfirm --noprogressbar --color never "${ignore_flag[@]}"
+  else
+    run sudo pacman -Syu "${ignore_flag[@]}"
+  fi
+elif $yes; then
+  # Los ayudantes corren como el usuario y suben a root con pkexec; las respuestas automáticas saltan las revisiones.
+  answers=(--answerdiff None --answerclean None --answeredit None)
+  [[ $helper == paru ]] && answers=(--skipreview)
+  run "$helper" -Syu --sudo pkexec "${answers[@]}" --noconfirm --noprogressbar --color never "${ignore_flag[@]}"
+else
+  run "$helper" -Syu "${ignore_flag[@]}"
+fi
+
+if $flatpak; then
+  section Flatpak
+  # flatpak decide su pregunta S/n con isatty(stdout); el plugin lo pasa por tee, así que siempre -y.
+  if [[ -z $ignore ]]; then
+    run flatpak update -y --noninteractive
+  else
+    mapfile -t refs < <(flatpak_pending)
+    if ((${#refs[@]})); then run flatpak update -y --noninteractive "${refs[@]}"; else echo "Nada que actualizar."; fi
+  fi
+fi
+
+if $snap; then
+  section Snap
+  if [[ -z $ignore ]]; then
+    run "$root" snap refresh
+  else
+    mapfile -t snaps < <(snap_pending)
+    if ((${#snaps[@]})); then run "$root" snap refresh "${snaps[@]}"; else echo "Nada que actualizar."; fi
+  fi
+fi
+
+exit "$rc"

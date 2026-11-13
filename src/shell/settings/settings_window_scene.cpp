@@ -423,6 +423,9 @@ namespace {
     if (section == "phone") {
       return schema::writeTable(cfg.phone, schema::phoneSchema());
     }
+    if (section == "updates") {
+      return schema::writeTable(cfg.updates, schema::updatesSchema());
+    }
     if (section == "brightness") {
       return schema::writeTable(cfg.brightness, schema::brightnessSchema());
     }
