@@ -1,6 +1,7 @@
 #include "app/main_loop.h"
 #include "application.h"
 #include "application_internal.h"
+#include "capture/okaru_recorder.h"
 #include "compositors/compositor_detect.h"
 #include "config/config_types.h"
 #include "core/deferred_call.h"
@@ -42,21 +43,20 @@
 #include "shell/control_center/tabs/power_tab.h"
 #include "shell/control_center/tabs/screen_time_tab.h"
 #include "shell/control_center/tabs/system_tab.h"
+#include "shell/control_center/tabs/vpn_tab.h"
 #include "shell/control_center/tabs/weather_tab.h"
-#include "shell/okaru_dashboard/okaru_dashboard_panel.h"
 #include "shell/greeter/greeter_appearance_sync.h"
 #include "shell/launcher/launcher_panel.h"
-#include "capture/okaru_recorder.h"
 #include "shell/okaru_auth/okaru_auth_controller.h"
+#include "shell/okaru_auth/okaru_auth_panel.h"
 #include "shell/okaru_auth/okaru_vpn_auth.h"
-#include "shell/control_center/tabs/screen_time_tab.h"
 #include "shell/okaru_capture/okaru_capture_panel.h"
+#include "shell/okaru_dashboard/okaru_dashboard_panel.h"
 #include "shell/okaru_panels/okaru_ports_tab.h"
+#include "shell/okaru_panels/okaru_tab_panel.h"
 #include "shell/okaru_phone/okaru_phone_tab.h"
 #include "shell/okaru_updates/okaru_updates_tab.h"
-#include "shell/okaru_panels/okaru_tab_panel.h"
 #include "shell/okaru_workspaces/okaru_workspace_panel.h"
-#include "shell/okaru_auth/okaru_auth_panel.h"
 #include "shell/panel/plugin_panel.h"
 #include "shell/polkit/polkit_panel.h"
 #include "shell/session/session_ipc.h"
@@ -206,9 +206,7 @@ void Application::performGreeterSync(bool quiet) {
   m_greeterSyncTimeoutTimer.stop();
   if (launch == greeter::GreeterSyncLaunch::Failed) {
     if (quiet) {
-      notify::error(
-          "OKARU", i18n::tr("notifications.internal.greeter-sync"), i18n::tr("settings.errors.sync-greeter")
-      );
+      notify::error("OKARU", i18n::tr("notifications.internal.greeter-sync"), i18n::tr("settings.errors.sync-greeter"));
     } else {
       m_settingsWindow.markSettingsWriteError(i18n::tr("settings.errors.sync-greeter"));
     }
@@ -216,9 +214,7 @@ void Application::performGreeterSync(bool quiet) {
   }
   if (launch == greeter::GreeterSyncLaunch::StagedOnly) {
     if (quiet) {
-      notify::error(
-          "OKARU", i18n::tr("notifications.internal.greeter-sync"), i18n::tr("settings.errors.sync-greeter")
-      );
+      notify::error("OKARU", i18n::tr("notifications.internal.greeter-sync"), i18n::tr("settings.errors.sync-greeter"));
     } else {
       notify::info(
           "OKARU", i18n::tr("notifications.internal.greeter-sync"),
@@ -564,42 +560,49 @@ void Application::initPanelManagerAndPanels() {
   m_panelManager.registerPanel("session", std::make_unique<SessionPanel>(&m_configService, m_sessionActionRunner));
   m_panelManager.registerPanel("test", std::make_unique<TestPanel>());
   // OKARU: centro de control tipo dashboard (tarjetas independientes).
-  auto controlCenterPanel = std::make_unique<OkaruDashboardPanel>(okaru::dashboard::CardDeps{.services = ControlCenterServices{
-      .notifications = &m_notificationManager,
-      .audio = m_pipewireService.get(),
-      .easyEffects = m_easyEffectsService.get(),
-      .mpris = m_mprisService.get(),
-      .config = &m_configService,
-      .httpClient = &m_httpClient,
-      .weather = &m_weatherService,
-      .spectrum = m_pipewireSpectrum.get(),
-      .upower = m_upowerService.get(),
-      .powerProfiles = m_powerProfilesService.get(),
-      .network = m_networkService.get(),
-      .modem = m_modemManagerService.get(),
-      .networkSecrets = m_networkSecretAgent.get(),
-      .externalIp = &m_externalIpService,
-      .bluetooth = m_bluetoothService.get(),
-      .bluetoothAgent = m_bluetoothAgent.get(),
-      .brightness = m_brightnessService.get(),
-      .sysmon = m_systemMonitor.get(),
-      .screenTime = &m_screenTimeService,
-      .nightLight = &m_gammaService,
-      .theme = &m_themeService,
-      .idleInhibitor = &m_idleInhibitor,
-      .dependencies = &m_dependencyService,
-      .platform = &m_compositorPlatform,
-      .ipc = &m_ipcService,
-      .wallpaper = &m_wallpaper,
-      .calendar = &m_calendarService,
-      .scriptApi = &m_scriptApi,
-      .fileWatcher = &m_fileWatcher,
-      .clipboard = &m_clipboardService,
-      .accounts = m_accountsService.get(),
-      .thumbnails = &m_thumbnailService,
-      .asyncTextures = &m_asyncTextureCache,
-      .kdeConnect = m_kdeConnectService.get(),
-  }, .session = &m_sessionActionRunner});
+  auto controlCenterPanel =
+      std::make_unique<OkaruDashboardPanel>(
+          okaru::dashboard::CardDeps{
+              .services =
+                  ControlCenterServices{
+                      .notifications = &m_notificationManager,
+                      .audio = m_pipewireService.get(),
+                      .easyEffects = m_easyEffectsService.get(),
+                      .mpris = m_mprisService.get(),
+                      .config = &m_configService,
+                      .httpClient = &m_httpClient,
+                      .weather = &m_weatherService,
+                      .spectrum = m_pipewireSpectrum.get(),
+                      .upower = m_upowerService.get(),
+                      .powerProfiles = m_powerProfilesService.get(),
+                      .network = m_networkService.get(),
+                      .modem = m_modemManagerService.get(),
+                      .networkSecrets = m_networkSecretAgent.get(),
+                      .externalIp = &m_externalIpService,
+                      .bluetooth = m_bluetoothService.get(),
+                      .bluetoothAgent = m_bluetoothAgent.get(),
+                      .brightness = m_brightnessService.get(),
+                      .sysmon = m_systemMonitor.get(),
+                      .screenTime = &m_screenTimeService,
+                      .nightLight = &m_gammaService,
+                      .theme = &m_themeService,
+                      .idleInhibitor = &m_idleInhibitor,
+                      .dependencies = &m_dependencyService,
+                      .platform = &m_compositorPlatform,
+                      .ipc = &m_ipcService,
+                      .wallpaper = &m_wallpaper,
+                      .calendar = &m_calendarService,
+                      .scriptApi = &m_scriptApi,
+                      .fileWatcher = &m_fileWatcher,
+                      .clipboard = &m_clipboardService,
+                      .accounts = m_accountsService.get(),
+                      .thumbnails = &m_thumbnailService,
+                      .asyncTextures = &m_asyncTextureCache,
+                      .kdeConnect = m_kdeConnectService.get(),
+                  },
+              .session = &m_sessionActionRunner
+          }
+      );
   // OKARU: lo que eran pestañas del centro de control son paneles propios, que abren sus widgets de la barra.
   {
     WaylandConnection* wayland = &m_compositorPlatform.wayland();
@@ -614,47 +617,84 @@ void Application::initPanelManagerAndPanels() {
       m_panelManager.registerPanel(id, std::make_unique<OkaruTabPanel>(titleKey, glyph, makeTab(), width, height));
       dashboard->addDetail(id, titleKey, glyph, makeTab(), height);
     };
-    addTabPanel("okaru-audio", "okaru.audio.output-panel", "volume",
-                [=, this] { return std::make_unique<AudioTab>(m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(),
-                                           &m_configService, wayland, renderContext, AudioTabMode::Output); },
-                560.0F, 820.0F);
-    addTabPanel("okaru-microphone", "okaru.audio.input-panel", "microphone",
-                [=, this] { return std::make_unique<AudioTab>(m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(),
-                                           &m_configService, wayland, renderContext, AudioTabMode::Input); },
-                480.0F, 480.0F);
-    addTabPanel("okaru-media", "control-center.tabs.media", "music",
-                [=, this] { return std::make_unique<MediaTab>(m_mprisService.get(), &m_httpClient, m_pipewireSpectrum.get(), &m_configService,
-                                           wayland, renderContext); });
-    addTabPanel("okaru-network", "control-center.tabs.network", "wifi",
-                [=, this] { return std::make_unique<NetworkTab>(m_networkService.get(), m_networkSecretAgent.get(), &m_externalIpService,
-                                             m_modemManagerService.get()); });
-    addTabPanel("okaru-bluetooth", "control-center.tabs.bluetooth", "bluetooth",
-                [=, this] { return std::make_unique<BluetoothTab>(m_bluetoothService.get(), m_bluetoothAgent.get()); });
-    addTabPanel("okaru-calendar", "control-center.tabs.calendar", "calendar",
-                [=, this] { return std::make_unique<CalendarTab>(&m_configService, &m_calendarService); },
-                760.0F, 560.0F);
-    addTabPanel("okaru-weather", "control-center.tabs.weather", "cloud",
-                [=, this] { return std::make_unique<WeatherTab>(&m_weatherService, &m_configService); },
-                680.0F, 560.0F); // dos columnas: con 460 el pronóstico cortaba los días y la zona horaria partía en dos
-    addTabPanel("okaru-notifications", "control-center.tabs.notifications", "bell",
-                [=, this] { return std::make_unique<NotificationsTab>(&m_notificationManager, &m_compositorPlatform); });
-    addTabPanel("okaru-monitor", "control-center.tabs.monitor", "brightness-half",
-                [=, this] { return std::make_unique<MonitorTab>(m_brightnessService.get(), &m_configService); });
-    addTabPanel("okaru-system", "control-center.tabs.system", "activity",
-                [=, this] { return std::make_unique<SystemTab>(m_systemMonitor.get()); },
-                620.0F, 560.0F); // dos columnas: con 460 «Recursos» cortaba la carga y los discos (/mnt/…)
-    addTabPanel("okaru-ports", "okaru.ports.title", "plug-connected", // OKARU
-                [=, this] { return std::make_unique<OkaruPortsTab>(m_systemMonitor.get()); }, 460.0F, 560.0F);
-    addTabPanel("okaru-screen-time", "control-center.tabs.screen-time", "hourglass",
-                [=, this] { return std::make_unique<ScreenTimeTab>(&m_screenTimeService); });
-    addTabPanel("okaru-phone", "okaru.phone.title", "device-mobile", // OKARU
-                [=, this] { return std::make_unique<OkaruPhoneTab>(m_kdeConnectService.get(), m_mprisService.get(),
-                                                                   &m_configService, &m_asyncTextureCache); },
-                480.0F, 720.0F);
-    addTabPanel("okaru-updates", "okaru.updates.title", "package", // OKARU
-                [] { return std::make_unique<OkaruUpdatesTab>(); }, 480.0F, 680.0F);
-    addTabPanel("okaru-power", "control-center.tabs.power", "bolt",
-                [=, this] { return std::make_unique<PowerTab>(m_upowerService.get(), m_powerProfilesService.get()); });
+    addTabPanel(
+        "okaru-audio", "okaru.audio.output-panel", "volume",
+        [=, this] {
+          return std::make_unique<AudioTab>(
+              m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(), &m_configService, wayland,
+              renderContext, AudioTabMode::Output
+          );
+        },
+        560.0F, 820.0F
+    );
+    addTabPanel(
+        "okaru-microphone", "okaru.audio.input-panel", "microphone",
+        [=, this] {
+          return std::make_unique<AudioTab>(
+              m_pipewireService.get(), m_easyEffectsService.get(), m_mprisService.get(), &m_configService, wayland,
+              renderContext, AudioTabMode::Input
+          );
+        },
+        480.0F, 480.0F
+    );
+    addTabPanel("okaru-media", "control-center.tabs.media", "music", [=, this] {
+      return std::make_unique<MediaTab>(
+          m_mprisService.get(), &m_httpClient, m_pipewireSpectrum.get(), &m_configService, wayland, renderContext
+      );
+    });
+    addTabPanel("okaru-network", "control-center.tabs.network", "wifi", [=, this] {
+      return std::make_unique<NetworkTab>(
+          m_networkService.get(), m_networkSecretAgent.get(), &m_externalIpService, m_modemManagerService.get()
+      );
+    });
+    addTabPanel("okaru-bluetooth", "control-center.tabs.bluetooth", "bluetooth", [=, this] {
+      return std::make_unique<BluetoothTab>(m_bluetoothService.get(), m_bluetoothAgent.get());
+    });
+    addTabPanel(
+        "okaru-calendar", "control-center.tabs.calendar", "calendar",
+        [=, this] { return std::make_unique<CalendarTab>(&m_configService, &m_calendarService); }, 760.0F, 560.0F
+    );
+    addTabPanel(
+        "okaru-weather", "control-center.tabs.weather", "cloud",
+        [=, this] { return std::make_unique<WeatherTab>(&m_weatherService, &m_configService); }, 680.0F, 560.0F
+    ); // dos columnas: con 460 el pronóstico cortaba los días y la zona horaria partía en dos
+    addTabPanel("okaru-notifications", "control-center.tabs.notifications", "bell", [=, this] {
+      return std::make_unique<NotificationsTab>(&m_notificationManager, &m_compositorPlatform);
+    });
+    addTabPanel("okaru-monitor", "control-center.tabs.monitor", "brightness-half", [=, this] {
+      return std::make_unique<MonitorTab>(m_brightnessService.get(), &m_configService);
+    });
+    addTabPanel(
+        "okaru-system", "control-center.tabs.system", "activity",
+        [=, this] { return std::make_unique<SystemTab>(m_systemMonitor.get()); }, 620.0F, 560.0F
+    ); // dos columnas: con 460 «Recursos» cortaba la carga y los discos (/mnt/…)
+    addTabPanel(
+        "okaru-ports", "okaru.ports.title", "plug-connected", // OKARU
+        [=, this] { return std::make_unique<OkaruPortsTab>(m_systemMonitor.get()); }, 460.0F, 560.0F
+    );
+    addTabPanel("okaru-screen-time", "control-center.tabs.screen-time", "hourglass", [=, this] {
+      return std::make_unique<ScreenTimeTab>(&m_screenTimeService);
+    });
+    addTabPanel(
+        "okaru-phone", "okaru.phone.title", "device-mobile", // OKARU
+        [=, this] {
+          return std::make_unique<OkaruPhoneTab>(
+              m_kdeConnectService.get(), m_mprisService.get(), &m_configService, &m_asyncTextureCache
+          );
+        },
+        480.0F, 720.0F
+    );
+    addTabPanel(
+        "okaru-updates", "okaru.updates.title", "package", // OKARU
+        [] { return std::make_unique<OkaruUpdatesTab>(); }, 480.0F, 680.0F
+    );
+    addTabPanel(
+        "okaru-vpn", "okaru.vpn.title", "shield-lock", // OKARU: VPN nativa (antes el plugin vpn-manager)
+        [=, this] { return std::make_unique<VpnTab>(m_networkService.get(), &m_configService); }, 460.0F, 640.0F
+    );
+    addTabPanel("okaru-power", "control-center.tabs.power", "bolt", [=, this] {
+      return std::make_unique<PowerTab>(m_upowerService.get(), m_powerProfilesService.get());
+    });
   }
   m_panelManager.registerPanel("control-center", std::move(controlCenterPanel));
   {
@@ -663,9 +703,7 @@ void Application::initPanelManagerAndPanels() {
     launcherPanel->addProvider(std::make_unique<AppProvider>(&m_configService, &m_compositorPlatform));
     launcherPanel->addProvider(std::make_unique<WallpaperProvider>(&m_configService, &m_wayland, &m_themeService));
     launcherPanel->addProvider(std::make_unique<WindowProvider>(&m_compositorPlatform));
-    launcherPanel->addProvider(
-        std::make_unique<PanelProvider>(&m_panelManager, &m_configService)
-    );
+    launcherPanel->addProvider(std::make_unique<PanelProvider>(&m_panelManager, &m_configService));
     launcherPanel->addProvider(std::make_unique<SessionProvider>(&m_configService, &m_sessionActionRunner));
     launcherPanel->addProvider(std::make_unique<UpdatesProvider>()); // OKARU
     launcherPanel->addProvider(std::make_unique<MathProvider>(&m_clipboardService, &m_configService, &m_httpClient));
@@ -738,9 +776,7 @@ void Application::initPanelManagerAndPanels() {
     m_bar.scheduleSmartAutoHideReevaluation();
     m_dock.scheduleSmartAutoHideReevaluation();
   });
-  m_panelManager.setPanelOpenedCallback([this] {
-    m_overviewLauncherCapture.sync();
-  });
+  m_panelManager.setPanelOpenedCallback([this] { m_overviewLauncherCapture.sync(); });
   m_panelManager.setPanelClosedCallback([this] {
     m_overviewLauncherCapture.sync();
     m_bar.rearmTooltipForHoveredWidget();

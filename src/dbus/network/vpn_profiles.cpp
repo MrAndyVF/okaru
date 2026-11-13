@@ -115,67 +115,67 @@ namespace vpn {
     };
     if (type == "fortisslvpn") {
       return {
-          text("gateway", "vpn.field.gateway", true, "vpn.empresa.com:443"), text("user", "vpn.field.user"),
-          text("realm", "vpn.field.realm"), text("trusted-cert", "vpn.field.trusted-cert")
+          text("gateway", "okaru.vpn.field.gateway", true, "vpn.empresa.com:443"), text("user", "okaru.vpn.field.user"),
+          text("realm", "okaru.vpn.field.realm"), text("trusted-cert", "okaru.vpn.field.trusted-cert")
       };
     }
     if (type == "openvpn") {
       return {
-          text("remote", "vpn.field.gateway", true, "vpn.empresa.com:1194"),
+          text("remote", "okaru.vpn.field.gateway", true, "vpn.empresa.com:1194"),
           VpnField{
               .key = "connection-type",
-              .labelKey = "vpn.field.auth",
+              .labelKey = "okaru.vpn.field.auth",
               .kind = K::Choice,
               .choices = {"tls", "password", "password-tls", "static-key"}
           },
-          text("username", "vpn.field.user"),
-          file("ca", "vpn.field.ca"),
-          file("cert", "vpn.field.cert"),
-          file("key", "vpn.field.key")
+          text("username", "okaru.vpn.field.user"),
+          file("ca", "okaru.vpn.field.ca"),
+          file("cert", "okaru.vpn.field.cert"),
+          file("key", "okaru.vpn.field.key")
       };
     }
     if (type == "openconnect") {
       return {
-          text("gateway", "vpn.field.gateway", true, "vpn.empresa.com"),
+          text("gateway", "okaru.vpn.field.gateway", true, "vpn.empresa.com"),
           VpnField{
               .key = "protocol",
-              .labelKey = "vpn.field.protocol",
+              .labelKey = "okaru.vpn.field.protocol",
               .kind = K::Choice,
               .choices = {"anyconnect", "nc", "gp", "pulse", "fortinet", "f5", "array"}
           },
-          file("usercert", "vpn.field.cert"), file("userkey", "vpn.field.key")
+          file("usercert", "okaru.vpn.field.cert"), file("userkey", "okaru.vpn.field.key")
       };
     }
     if (type == "vpnc") {
       return {
-          text("IPSec gateway", "vpn.field.gateway", true), text("IPSec ID", "vpn.field.group"),
-          text("Xauth username", "vpn.field.user")
+          text("IPSec gateway", "okaru.vpn.field.gateway", true), text("IPSec ID", "okaru.vpn.field.group"),
+          text("Xauth username", "okaru.vpn.field.user")
       };
     }
     if (type == "l2tp" || type == "pptp" || type == "sstp") {
-      return {text("gateway", "vpn.field.gateway", true), text("user", "vpn.field.user")};
+      return {text("gateway", "okaru.vpn.field.gateway", true), text("user", "okaru.vpn.field.user")};
     }
     if (type == "strongswan") {
       return {
-          text("address", "vpn.field.gateway", true),
+          text("address", "okaru.vpn.field.gateway", true),
           VpnField{
               .key = "method",
-              .labelKey = "vpn.field.auth",
+              .labelKey = "okaru.vpn.field.auth",
               .kind = K::Choice,
               .choices = {"eap", "key", "psk", "agent", "smartcard"}
           },
-          text("user", "vpn.field.user"), file("certificate", "vpn.field.ca")
+          text("user", "okaru.vpn.field.user"), file("certificate", "okaru.vpn.field.ca")
       };
     }
     if (type == "wireguard") {
       // No son claves de vpn.data: arman la configuración de wg-quick que se importa.
       return {
-          text("PrivateKey", "vpn.field.private-key", true),
-          text("Address", "vpn.field.address", true, "10.0.0.2/32"),
-          text("DNS", "vpn.field.dns"),
-          text("PublicKey", "vpn.field.peer-key", true),
-          text("Endpoint", "vpn.field.gateway", true, "vpn.empresa.com:51820"),
-          text("AllowedIPs", "vpn.field.allowed-ips", false, "0.0.0.0/0, ::/0")
+          text("PrivateKey", "okaru.vpn.field.private-key", true),
+          text("Address", "okaru.vpn.field.address", true, "10.0.0.2/32"),
+          text("DNS", "okaru.vpn.field.dns"),
+          text("PublicKey", "okaru.vpn.field.peer-key", true),
+          text("Endpoint", "okaru.vpn.field.gateway", true, "vpn.empresa.com:51820"),
+          text("AllowedIPs", "okaru.vpn.field.allowed-ips", false, "0.0.0.0/0, ::/0")
       };
     }
     return {};
