@@ -31,9 +31,22 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   - Batch rename, compress and extract (zip, tar, 7z, rar, iso…), Open with, properties, open a terminal
     here (kitty-floating with your login shell).
   - System file chooser: an xdg-desktop-portal backend (`FileChooser=okaru` in `<desktop>-portals.conf`).
+- Native updates (the arch-updater plugin is now part of OKARU): the `updates` bar widget (reload icon, with
+  an alert when a reboot is needed), the updates panel and `/arch` in the launcher. Checks pacman, AUR (yay or
+  paru), Flatpak and Snap; updates with `okaru-update` in a terminal or in the background with a live log;
+  history with rollback from the package cache, download size and an activity graph. Options in Settings →
+  Services.
+
+#### Fixes
+- Installer: on Niri the stock templates are Niri's instead of Hyprland/Hyprtoolkit.
+- Installer: the greeter logs into Hyprland with uwsm by default.
 
 #### Changes
 - Default file associations now include the media player (video and audio) and Files (folders).
+- Files replaces Nautilus out of the box: the installer no longer installs Nautilus, Super+E opens Files,
+  the dock pins it, folders open with it and it is the system file chooser.
+- The arch-updater widget, panels, settings and history move to the native ones automatically (config
+  migration 24).
 - Default Hyprland and Niri rules float Files (1300×800) and its file chooser (1000×680).
 - Optional dependencies for Files: gvfs and its backends (smb, nfs, mtp, wsdd), ffmpegthumbnailer and
   LibreOffice.
@@ -63,9 +76,22 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
     terminal aquí (kitty-floating con tu shell).
   - Selector de archivos del sistema: un backend de xdg-desktop-portal (`FileChooser=okaru` en
     `<escritorio>-portals.conf`).
+- Actualizaciones nativas (el plugin arch-updater pasa a ser parte de OKARU): el widget `updates` de la barra
+  (icono de recarga, con aviso cuando hace falta reiniciar), el panel de actualizaciones y `/arch` en el
+  lanzador. Revisa pacman, AUR (yay o paru), Flatpak y Snap; actualiza con `okaru-update` en una terminal o en
+  segundo plano con registro en vivo; historial con reversión desde la caché de paquetes, tamaño de descarga y
+  gráfico de actividad. Opciones en Ajustes → Servicios.
+
+#### Correcciones
+- Instalador: en Niri las plantillas de fábrica son las de Niri en vez de Hyprland/Hyprtoolkit.
+- Instalador: el greeter entra por defecto a Hyprland con uwsm.
 
 #### Cambios
 - Las asociaciones de fábrica incluyen ahora el reproductor (video y audio) y Archivos (carpetas).
+- Archivos reemplaza a Nautilus de fábrica: el instalador ya no instala Nautilus, Super+E abre Archivos, el
+  dock lo fija, las carpetas se abren con él y es el selector de archivos del sistema.
+- El widget, los paneles, los ajustes y el historial de arch-updater pasan solos a los nativos (migración 24
+  de la configuración).
 - Las reglas de fábrica de Hyprland y Niri dejan flotante a Archivos (1300×800) y a su selector (1000×680).
 - Dependencias opcionales de Archivos: gvfs y sus backends (smb, nfs, mtp, wsdd), ffmpegthumbnailer y
   LibreOffice.
