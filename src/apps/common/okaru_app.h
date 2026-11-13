@@ -98,7 +98,7 @@ namespace okaru::apps {
     void setDropCallback(FileDrop::DropFn callback) { m_drop.setOnDrop(std::move(callback)); }
     [[nodiscard]] FileDrop& fileDrop() noexcept { return m_drop; }
     // Arrastrar archivos hacia afuera (u otra parte de la misma ventana); `serial` del clic que lo empezó.
-    bool startDrag(std::vector<std::string> uris, unsigned serial);
+    bool startDrag(std::vector<std::string> uris, unsigned serial, const DragIcon& icon = {});
 
     void setFullscreen(bool fullscreen);
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
