@@ -28,6 +28,9 @@ namespace okaru::files {
     std::string target;             // standard::target-uri (montables, recientes, papelera)
     std::string trashOrigin;        // papelera: ruta original
     std::string location;           // búsqueda: carpeta que lo contiene, relativa a la raíz buscada
+    std::string customIcon;         // metadata::custom-icon (ruta local de una imagen), como en Nautilus
+    std::string customIconName;     // metadata::custom-icon-name (nombre del tema)
+    std::string folderColor;        // metadata::okaru-folder-color: id de color o "#rrggbb"
     std::uint64_t size = 0;
     std::int64_t modified = 0; // segundos desde la época
     std::int64_t deleted = 0;  // papelera: fecha de borrado

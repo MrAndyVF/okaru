@@ -15,7 +15,8 @@ namespace okaru::files {
                                        "standard::content-type,standard::fast-content-type,standard::icon,"
                                        "standard::target-uri,time::modified,unix::mode,owner::user,"
                                        "access::can-write,access::can-execute,trash::orig-path,"
-                                       "trash::deletion-date";
+                                       "trash::deletion-date,metadata::custom-icon,metadata::custom-icon-name,"
+                                       "metadata::okaru-folder-color";
 
   namespace {
 
@@ -105,6 +106,15 @@ namespace okaru::files {
     if (const char* orig = g_file_info_get_attribute_byte_string(info, G_FILE_ATTRIBUTE_TRASH_ORIG_PATH);
         orig != nullptr) {
       e.trashOrigin = orig;
+    }
+    if (const char* icon = g_file_info_get_attribute_string(info, "metadata::custom-icon"); icon != nullptr) {
+      e.customIcon = takeString(g_filename_from_uri(icon, nullptr, nullptr));
+    }
+    if (const char* name = g_file_info_get_attribute_string(info, "metadata::custom-icon-name"); name != nullptr) {
+      e.customIconName = name;
+    }
+    if (const char* color = g_file_info_get_attribute_string(info, "metadata::okaru-folder-color"); color != nullptr) {
+      e.folderColor = color;
     }
     e.deleted = parseIsoDate(g_file_info_get_attribute_string(info, G_FILE_ATTRIBUTE_TRASH_DELETION_DATE));
 

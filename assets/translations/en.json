@@ -335,7 +335,12 @@
         "redo": "Redo (Ctrl+Shift+Z)",
         "unmount": "Unmount",
         "eject": "Eject",
-        "send": "Send to…"
+        "send": "Send to…",
+        "folder-color": "Folder color…",
+        "folder-color-all": "Color of all folders…",
+        "custom-icon": "Custom icon…",
+        "custom-icon-clear": "Remove custom icon",
+        "thumbnails": "Show thumbnails"
       },
       "rename": {
         "title": "Rename",
@@ -432,6 +437,37 @@
         "failed": "Could not send to {name}",
         "no-folders": "{name} only accepts files, not folders",
         "no-local": "Only local files can be sent"
+      },
+      "metadata": {
+        "failed": "Could not save the change (this location does not support it)"
+      },
+      "icon": {
+        "choose": "Choose an icon",
+        "filter": "Images"
+      },
+      "color": {
+        "title": "Color of “{name}”",
+        "title-plural": "Color of {count} folders",
+        "title-all": "Color of all folders",
+        "body-all": "Folders with their own color keep it.",
+        "theme": "Icon theme",
+        "accent": "OKARU accent",
+        "red": "Red",
+        "deeporange": "Deep orange",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "teal": "Teal",
+        "cyan": "Cyan",
+        "blue": "Blue",
+        "indigo": "Indigo",
+        "violet": "Violet",
+        "magenta": "Magenta",
+        "pink": "Pink",
+        "brown": "Brown",
+        "grey": "Grey",
+        "black": "Black",
+        "white": "White"
       }
     },
     "pdf": {

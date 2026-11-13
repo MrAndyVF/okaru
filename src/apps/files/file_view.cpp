@@ -53,6 +53,7 @@ namespace okaru::files {
     Node* root = nullptr;
     Box* background = nullptr;
     Image* icon = nullptr;
+    Box* frame = nullptr;    // borde fino de las miniaturas (una hoja blanca se perdería en el fondo)
     Glyph* fallback = nullptr; // sin icono en el tema
     Glyph* chevron = nullptr;  // modo compacto: carpetas
     Label* name = nullptr;
@@ -726,6 +727,7 @@ namespace okaru::files {
         slot->root = m_content->addChild(std::make_unique<Node>());
         slot->root->setHitTestVisible(false);
         slot->background = static_cast<Box*>(slot->root->addChild(std::make_unique<Box>()));
+        slot->frame = static_cast<Box*>(slot->root->addChild(std::make_unique<Box>()));
         slot->icon = static_cast<Image*>(slot->root->addChild(std::make_unique<Image>()));
         slot->icon->setFit(ImageFit::Contain);
         slot->fallback = static_cast<Glyph*>(slot->root->addChild(std::make_unique<Glyph>()));
@@ -762,6 +764,22 @@ namespace okaru::files {
 
       const float iconPx = (m_mode == ViewMode::Grid ? m_iconSize : kListIcon) * s;
       TextureHandle texture = m_icons ? m_icons(renderer, e, static_cast<int>(std::lround(iconPx * 1.5F))) : TextureHandle{};
+      // Miniatura (textura opaca): borde ajustado a lo que de verdad se dibuja dentro del cuadro del icono.
+      const auto placeFrame = [&](float iconX, float iconY) {
+        const bool thumb = texture.valid() && texture.opaque && texture.width > 0 && texture.height > 0;
+        slot.frame->setVisible(thumb);
+        if (!thumb) {
+          return;
+        }
+        const float aspect = static_cast<float>(texture.width) / static_cast<float>(texture.height);
+        const float w = aspect >= 1.0F ? iconPx : iconPx * aspect;
+        const float h = aspect >= 1.0F ? iconPx / aspect : iconPx;
+        slot.frame->setPosition(std::round(iconX + (iconPx - w) * 0.5F) - 1.0F, std::round(iconY + (iconPx - h) * 0.5F) - 1.0F);
+        slot.frame->setSize(std::round(w) + 2.0F, std::round(h) + 2.0F);
+        slot.frame->setFill(clearColorSpec());
+        slot.frame->setBorder(colorSpecFromRole(ColorRole::OutlineVariant), 1.0F);
+        slot.frame->setRadius(2.0F * s);
+      };
       slot.icon->setVisible(texture.valid());
       slot.fallback->setVisible(!texture.valid());
       if (texture.valid()) {
@@ -782,6 +800,7 @@ namespace okaru::files {
         const float iconY = 8.0F * s;
         slot.icon->setPosition(iconX, iconY);
         slot.icon->setSize(iconPx, iconPx);
+        placeFrame(iconX, iconY);
         slot.fallback->layout(renderer);
         slot.fallback->setPosition(std::round((itemW - slot.fallback->width()) * 0.5F),
                                    iconY + std::round((iconPx - slot.fallback->height()) * 0.5F));
@@ -802,6 +821,7 @@ namespace okaru::files {
       const float iconX = Style::spaceSm * s;
       slot.icon->setPosition(iconX, std::round((itemH - iconPx) * 0.5F));
       slot.icon->setSize(iconPx, iconPx);
+      placeFrame(iconX, std::round((itemH - iconPx) * 0.5F));
       slot.fallback->layout(renderer);
       slot.fallback->setPosition(iconX, std::round((itemH - slot.fallback->height()) * 0.5F));
       const float nameX = iconX + iconPx + Style::spaceMd * s;

@@ -2,6 +2,7 @@
 
 #include "apps/common/glib_poll_source.h"
 #include "apps/common/okaru_app.h"
+#include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
@@ -9,6 +10,7 @@
 #include "core/process/process.h"
 #include "i18n/i18n.h"
 #include "render/core/renderer.h"
+#include "render/core/texture_manager.h"
 #include "render/scene/input_area.h"
 #include "ui/builders.h"
 #include "ui/controls/box.h"
@@ -144,7 +146,21 @@ namespace okaru::files {
     loadState();
 
     // Los nombres de los lugares se traducen al construir la escena (el idioma se carga dentro de run()).
-    m_app.setReloadCallback([this] { m_placesReady = false; });
+    // Idioma, tema o paleta cambiados: lugares traducidos de nuevo e iconos (acento) otra vez.
+    m_app.setReloadCallback([this] {
+      m_placesReady = false;
+      m_iconsDirty = true;
+    });
+    m_thumbs.setOnReady([this] {
+      if (m_view != nullptr) {
+        m_view->markLayoutDirty();
+      }
+      for (const auto& [view, pane] : m_columnViews) {
+        view->markLayoutDirty();
+      }
+      updateDetails();
+      m_app.invalidate();
+    });
     m_ops.setOnProgress([this](const OpProgress& progress) {
       m_progress = progress;
       updateStatus();
@@ -181,6 +197,10 @@ namespace okaru::files {
       saveState();
       if (Renderer* renderer = m_app.renderer(); renderer != nullptr) {
         m_icons.clear(*renderer);
+        for (auto& [key, thumb] : m_thumbTextures) {
+          renderer->textureManager().unload(thumb.handle);
+        }
+        m_thumbTextures.clear();
       }
       m_tabs.clear();
     });
@@ -610,6 +630,115 @@ namespace okaru::files {
         setMessage(tr("apps.files.share.failed", "name", name) + (detail.empty() ? "" : ": " + detail), true);
       }
     });
+  }
+
+  TextureHandle FilesWindow::iconFor(Renderer& renderer, const FileEntry& entry, int pixels) {
+    // Icono propio > miniatura > icono del tema (con el color de la carpeta).
+    if (m_thumbnails && entry.customIcon.empty() && entry.customIconName.empty() && m_thumbs.supports(entry)) {
+      if (const auto path = m_thumbs.get(entry, pixels > 128)) {
+        const std::string key = *path + "#" + std::to_string(entry.modified);
+        auto it = m_thumbTextures.find(key);
+        if (it == m_thumbTextures.end()) {
+          // Tope de texturas: se sueltan las que hace más tiempo no se dibujan.
+          if (m_thumbTextures.size() >= 700) {
+            std::vector<std::pair<std::uint64_t, std::string>> byAge;
+            for (const auto& [k, t] : m_thumbTextures) {
+              byAge.emplace_back(t.used, k);
+            }
+            std::ranges::sort(byAge);
+            for (std::size_t i = 0; i < 200; ++i) {
+              auto victim = m_thumbTextures.find(byAge[i].second);
+              renderer.textureManager().unload(victim->second.handle);
+              m_thumbTextures.erase(victim);
+            }
+          }
+          it = m_thumbTextures.emplace(key, ThumbTexture{renderer.textureManager().loadFromFile(*path, 0)}).first;
+        }
+        it->second.used = ++m_thumbTick;
+        if (it->second.handle.valid()) {
+          return it->second.handle;
+        }
+      }
+    }
+    return m_icons.get(renderer, entry, pixels);
+  }
+
+  void FilesWindow::setMetadata(const std::vector<std::string>& uris, const char* key, const std::string& value) {
+    std::size_t failed = 0;
+    for (const auto& uri : uris) {
+      GFile* file = g_file_new_for_uri(uri.c_str());
+      GError* error = nullptr;
+      // Vacío = quitar el atributo (G_FILE_ATTRIBUTE_TYPE_INVALID lo borra de los metadatos de gvfs).
+      const gboolean ok = value.empty()
+          ? g_file_set_attribute(file, key, G_FILE_ATTRIBUTE_TYPE_INVALID, nullptr, G_FILE_QUERY_INFO_NONE, nullptr, &error)
+          : g_file_set_attribute_string(file, key, value.c_str(), G_FILE_QUERY_INFO_NONE, nullptr, &error);
+      failed += ok == FALSE ? 1 : 0;
+      g_clear_error(&error);
+      g_object_unref(file);
+    }
+    if (failed > 0) {
+      setMessage(tr("apps.files.metadata.failed"), true);
+    }
+    tab().model->reload();
+    for (auto& pane : tab().columns) {
+      pane.model->reload();
+    }
+  }
+
+  void FilesWindow::folderColorDialog(bool global) {
+    m_colorTargets.clear();
+    if (!global) {
+      for (const FileEntry* e : selection()) {
+        if (e->directory) {
+          m_colorTargets.push_back(e->uri);
+        }
+      }
+      if (m_colorTargets.empty()) {
+        return;
+      }
+    }
+    m_overlay = Overlay::FolderColor;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::setFolderColor(const std::string& color) {
+    m_overlay = Overlay::None;
+    if (m_colorTargets.empty()) {
+      m_icons.setDefaultFolderColor(color);
+      saveState();
+    } else {
+      setMetadata(m_colorTargets, "metadata::okaru-folder-color", color);
+    }
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::chooseCustomIcon() {
+    const auto uris = selectedUris();
+    SessionBus* bus = m_app.sessionBus();
+    if (uris.empty() || bus == nullptr) {
+      return;
+    }
+    if (m_chooser == nullptr) {
+      m_chooser = std::make_unique<apps::PortalFileChooser>(*bus);
+    }
+    std::weak_ptr<int> alive = m_alive;
+    m_chooser->open(
+        tr("apps.files.icon.choose"), {{.name = tr("apps.files.icon.filter"), .mimeTypes = {"image/png", "image/svg+xml", "image/jpeg", "image/webp"}}},
+        false,
+        [this, alive, uris](std::vector<std::string> paths) {
+          if (alive.expired() || paths.empty()) {
+            return;
+          }
+          setMetadata(uris, "metadata::custom-icon", pathToUri(paths.front()));
+          setMetadata(uris, "metadata::custom-icon-name", {});
+        }
+    );
+  }
+
+  void FilesWindow::clearCustomIcon() {
+    const auto uris = selectedUris();
+    setMetadata(uris, "metadata::custom-icon", {});
+    setMetadata(uris, "metadata::custom-icon-name", {});
   }
 
   // ── Portapapeles ───────────────────────────────────────────────────────────────────────────────────
@@ -1118,6 +1247,19 @@ namespace okaru::files {
                       [this, uri] { toggleBookmark(uri); }});
       menu.push_back({tr("apps.files.menu.terminal"), [this, uri] { openTerminal(uri); }});
     }
+    bool anyFolder = false;
+    bool anyCustom = false;
+    for (const FileEntry* e : items) {
+      anyFolder = anyFolder || e->directory;
+      anyCustom = anyCustom || !e->customIcon.empty() || !e->customIconName.empty();
+    }
+    if (anyFolder) {
+      menu.push_back({tr("apps.files.menu.folder-color"), [this] { folderColorDialog(false); }, !first.path.empty()});
+    }
+    menu.push_back({tr("apps.files.menu.custom-icon"), [this] { chooseCustomIcon(); }, !first.path.empty()});
+    if (anyCustom) {
+      menu.push_back({tr("apps.files.menu.custom-icon-clear"), [this] { clearCustomIcon(); }});
+    }
     sep();
     menu.push_back({tr("apps.files.menu.trash"), [this] { trashSelection(); }, writable || tab().model->searching()});
     menu.push_back({tr("apps.files.menu.delete"), [this] { deleteSelection(); }});
@@ -1183,6 +1325,13 @@ namespace okaru::files {
                       m_app.requestRebuild();
                     },
                     .checked = m_sidebar, .check = true});
+    menu.push_back({.label = tr("apps.files.menu.thumbnails"), .action = [this] {
+                      m_thumbnails = !m_thumbnails;
+                      saveState();
+                      m_app.requestRebuild();
+                    },
+                    .checked = m_thumbnails, .check = true});
+    menu.push_back({tr("apps.files.menu.folder-color-all"), [this] { folderColorDialog(true); }});
     menu.push_back({.separator = true});
     menu.push_back({tr("apps.files.menu.terminal"), [this, here] { openTerminal(here); }});
     menu.push_back({tr("apps.files.menu.bookmark-toggle"), [this, here] { toggleBookmark(here); }});
@@ -1207,6 +1356,13 @@ namespace okaru::files {
     m_progressBar = nullptr;
     m_placeRows.clear();
     m_width = width;
+    if (Renderer* renderer = m_app.renderer(); renderer != nullptr) {
+      m_icons.setAccent(colorForRole(ColorRole::Primary));
+      if (m_iconsDirty) {
+        m_iconsDirty = false;
+        m_icons.clear(*renderer);
+      }
+    }
     if (!m_placesReady) {
       m_placesReady = true;
       m_places.setOnChanged(nullptr);
@@ -1641,7 +1797,7 @@ namespace okaru::files {
     const ViewOptions sorted = tab().model->options();
     view->setSort(sorted.sort, sorted.descending);
     view->setIconProvider([this](Renderer& renderer, const FileEntry& entry, int pixels) {
-      return m_icons.get(renderer, entry, pixels);
+      return iconFor(renderer, entry, pixels);
     });
     view->setOnZoom([this](int direction) { zoom(direction); });
     view->setOnBack([this](bool forward) { forward ? goForward() : goBack(); });
@@ -1785,7 +1941,7 @@ namespace okaru::files {
     }
     const FileEntry& e = *items.front();
     if (Renderer* renderer = m_app.renderer(); renderer != nullptr) {
-      if (const TextureHandle t = m_icons.get(*renderer, e, static_cast<int>(128 * m_detailsScale)); t.valid()) {
+      if (const TextureHandle t = iconFor(*renderer, e, static_cast<int>(128 * m_detailsScale)); t.valid()) {
         m_detailsIcon->setExternalTexture(*renderer, t);
       }
     }
@@ -2173,7 +2329,7 @@ namespace okaru::files {
         Image* icon = nullptr;
         top->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 48.0F * scale, .height = 48.0F * scale}));
         if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
-          if (const TextureHandle t = m_icons.get(*renderer, e, static_cast<int>(64 * scale)); t.valid()) {
+          if (const TextureHandle t = iconFor(*renderer, e, static_cast<int>(64 * scale)); t.valid()) {
             icon->setExternalTexture(*renderer, t);
           }
         }
@@ -2252,6 +2408,58 @@ namespace okaru::files {
                         .onChange = [this](bool value) { m_openWithDefault = value; }}),
           ui::label({.text = tr("apps.files.open-with.default"), .fontSize = Style::fontSizeBody * scale})
       ));
+      buttons(cancelButton());
+      break;
+    }
+    case Overlay::FolderColor: {
+      heading(m_colorTargets.empty() ? tr("apps.files.color.title-all")
+                                     : trp("apps.files.color.title", static_cast<long>(m_colorTargets.size()), "name",
+                                           displayNameOf(m_colorTargets.front())));
+      if (m_colorTargets.empty()) {
+        body(tr("apps.files.color.body-all"));
+      }
+      // Muestras: tema (sin cambio), acento de OKARU y los colores de Papirus.
+      const std::string current = m_colorTargets.empty() ? m_icons.defaultFolderColor() : std::string("-");
+      struct Swatch {
+        std::string id;
+        std::string label;
+        ColorSpec fill;
+        const char* glyph;
+      };
+      std::vector<Swatch> swatches{
+          {"", tr("apps.files.color.theme"), colorSpecFromRole(ColorRole::SurfaceContainerHighest), "x"},
+          {"accent", tr("apps.files.color.accent"), colorSpecFromRole(ColorRole::Primary), "palette"},
+      };
+      for (const auto& option : folderColorOptions()) {
+        swatches.push_back({option.id, tr(option.label), fixedColorSpec(option.color), nullptr});
+      }
+      const float dot = 36.0F * scale;
+      auto grid = ui::row({.align = FlexAlign::Center, .wrap = true, .gap = Style::spaceSm * scale});
+      for (const auto& swatch : swatches) {
+        auto cell = ui::node({.width = dot, .height = dot});
+        Box* ring = nullptr;
+        cell->addChild(ui::box({.out = &ring, .fill = swatch.fill,
+                                .border = colorSpecFromRole(swatch.id == current ? ColorRole::OnSurface : ColorRole::OutlineVariant),
+                                .borderWidth = swatch.id == current ? 3.0F * scale : 1.0F, .radius = dot * 0.5F,
+                                .width = dot, .height = dot}));
+        if (swatch.glyph != nullptr) {
+          auto icon = ui::glyph({.glyph = swatch.glyph, .glyphSize = 16.0F * scale,
+                                 .color = colorSpecFromRole(swatch.id == "accent" ? ColorRole::OnPrimary : ColorRole::OnSurfaceVariant)});
+          icon->setPosition(dot * 0.5F - 8.0F * scale, dot * 0.5F - 8.0F * scale);
+          cell->addChild(std::move(icon));
+        }
+        cell->addChild(ui::inputArea({
+            .cursorShape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER,
+            .tooltip = swatch.label,
+            .width = dot,
+            .height = dot,
+            .onClick = [this, id = swatch.id](const InputArea::PointerData&) {
+              DeferredCall::callLater([this, id] { setFolderColor(id); });
+            },
+        }));
+        grid->addChild(std::move(cell));
+      }
+      card->addChild(std::move(grid));
       buttons(cancelButton());
       break;
     }
@@ -2589,6 +2797,8 @@ namespace okaru::files {
         m_iconSize = static_cast<float>((*view)["icon_size"].value_or(64.0));
         m_sidebar = (*view)["sidebar"].value_or(true);
         m_options.showHidden = (*view)["show_hidden"].value_or(false);
+        m_thumbnails = (*view)["thumbnails"].value_or(true);
+        m_icons.setDefaultFolderColor((*view)["folder_color"].value_or(std::string()));
       }
       if (const auto* folders = table["folders"].as_table(); folders != nullptr) {
         for (const auto& [key, value] : *folders) {
@@ -2618,6 +2828,8 @@ namespace okaru::files {
         {"icon_size", static_cast<double>(m_iconSize)},
         {"sidebar", m_sidebar},
         {"show_hidden", m_options.showHidden},
+        {"thumbnails", m_thumbnails},
+        {"folder_color", m_icons.defaultFolderColor()},
     };
     toml::table folders;
     for (const auto& [uri, m] : m_folderModes) {

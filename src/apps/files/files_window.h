@@ -10,6 +10,7 @@
 #include "apps/files/icon_cache.h"
 #include "apps/files/places.h"
 #include "apps/files/share.h"
+#include "apps/files/thumbnails.h"
 #include "core/timer_manager.h"
 #include "ui/controls/context_menu.h"
 #include "ui/controls/scroll_view.h"
@@ -19,9 +20,11 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 class Box;
+class Renderer;
 class Image;
 class Input;
 class Label;
@@ -31,6 +34,7 @@ struct KeyboardEvent;
 
 namespace okaru::apps {
   class OkaruApp;
+  class PortalFileChooser;
   class GlibPollSource;
 } // namespace okaru::apps
 
@@ -68,6 +72,7 @@ namespace okaru::files {
       Properties,
       OpenWith,
       Share,
+      FolderColor,
       Errors,
     };
     enum class Mode : std::uint8_t { List, Grid, Columns };
@@ -139,6 +144,12 @@ namespace okaru::files {
     void openSelection();
     void openWithDialog();
     void shareDialog();
+    [[nodiscard]] TextureHandle iconFor(Renderer& renderer, const FileEntry& entry, int pixels);
+    void folderColorDialog(bool global);
+    void setFolderColor(const std::string& color);
+    void chooseCustomIcon();
+    void clearCustomIcon();
+    void setMetadata(const std::vector<std::string>& uris, const char* key, const std::string& value);
     void sendTo(const ShareTarget& target);
     void launchWith(const std::string& appId, bool makeDefault);
     void copyToClipboard(bool cut);
@@ -179,6 +190,16 @@ namespace okaru::files {
     Places m_places;
     OperationQueue m_ops;
     IconCache m_icons;
+    Thumbnailer m_thumbs;
+    struct ThumbTexture {
+      TextureHandle handle;
+      std::uint64_t used = 0;
+    };
+    std::unordered_map<std::string, ThumbTexture> m_thumbTextures; // miniatura#mtime → textura
+    std::uint64_t m_thumbTick = 0;
+    bool m_iconsDirty = false;
+    std::unique_ptr<apps::PortalFileChooser> m_chooser;
+    std::vector<std::string> m_colorTargets; // carpetas a pintar; vacío = color de todas
     std::vector<std::unique_ptr<Tab>> m_tabs;
     std::size_t m_active = 0;
 
@@ -187,6 +208,7 @@ namespace okaru::files {
     Mode m_defaultMode = Mode::List;
     float m_iconSize = 64.0F;
     bool m_sidebar = true;
+    bool m_thumbnails = true;
     std::map<std::string, Mode> m_folderModes;
     std::map<std::string, ViewOptions> m_folderSorts; // orden elegido a mano por carpeta
 

@@ -335,7 +335,12 @@
         "redo": "Rehacer (Ctrl+Mayús+Z)",
         "unmount": "Desmontar",
         "eject": "Expulsar",
-        "send": "Enviar a…"
+        "send": "Enviar a…",
+        "folder-color": "Color de carpeta…",
+        "folder-color-all": "Color de todas las carpetas…",
+        "custom-icon": "Icono personalizado…",
+        "custom-icon-clear": "Quitar icono personalizado",
+        "thumbnails": "Mostrar miniaturas"
       },
       "rename": {
         "title": "Renombrar",
@@ -432,6 +437,37 @@
         "failed": "No se pudo enviar a {name}",
         "no-folders": "{name} solo acepta archivos, no carpetas",
         "no-local": "Solo se pueden enviar archivos locales"
+      },
+      "metadata": {
+        "failed": "No se pudo guardar el cambio (esta ubicación no lo admite)"
+      },
+      "icon": {
+        "choose": "Elegir un icono",
+        "filter": "Imágenes"
+      },
+      "color": {
+        "title": "Color de «{name}»",
+        "title-plural": "Color de {count} carpetas",
+        "title-all": "Color de todas las carpetas",
+        "body-all": "Las carpetas con color propio lo conservan.",
+        "theme": "Del tema de iconos",
+        "accent": "Acento de OKARU",
+        "red": "Rojo",
+        "deeporange": "Naranja intenso",
+        "orange": "Naranja",
+        "yellow": "Amarillo",
+        "green": "Verde",
+        "teal": "Verde azulado",
+        "cyan": "Cian",
+        "blue": "Azul",
+        "indigo": "Índigo",
+        "violet": "Violeta",
+        "magenta": "Magenta",
+        "pink": "Rosa",
+        "brown": "Marrón",
+        "grey": "Gris",
+        "black": "Negro",
+        "white": "Blanco"
       }
     },
     "pdf": {

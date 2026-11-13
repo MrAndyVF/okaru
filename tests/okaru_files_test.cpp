@@ -2,13 +2,17 @@
 // (crear, copiar con conflicto, mover, papelera con deshacer) sobre una carpeta temporal.
 #include "apps/files/file_model.h"
 #include "apps/files/file_ops.h"
+#include "apps/files/icon_cache.h"
 #include "apps/files/share.h"
+#include "apps/files/thumbnails.h"
 #include "core/deferred_call.h"
 
 #include <cassert>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <algorithm>
+#include <glib.h>
 #include <thread>
 #include <unistd.h>
 
@@ -56,6 +60,29 @@ int main() {
   assert(parseBluetoothDevice("Device 41:42:FB:63:C0:7E Buds Pro").first == "41:42:FB:63:C0:7E");
   assert(parseBluetoothDevice("[CHG] Device 41:42:FB:63:C0:7E Buds Pro").second == "Buds Pro");
   assert(parseBluetoothDevice("No default controller available").first.empty());
+
+  // Variantes de color de Papirus.
+  assert(coloredFolderIconName("folder", "red") == "folder-red");
+  assert(coloredFolderIconName("folder-documents", "blue") == "folder-blue-documents");
+  assert(coloredFolderIconName("user-home", "teal") == "user-teal-home");
+  assert(coloredFolderIconName("folders", "red").empty());
+  assert(coloredFolderIconName("text-x-generic", "red").empty());
+
+  // Recolorear: el azul pasa a rojo; el blanco y la transparencia no se tocan.
+  std::uint8_t pixels[] = {82, 148, 226, 255, /**/ 255, 255, 255, 255, /**/ 10, 20, 200, 0};
+  recolorRgba(pixels, 3, 1, Color{0.89F, 0.32F, 0.32F, 1.0F});
+  assert(pixels[0] > 150 && pixels[2] < 120);
+  assert(pixels[4] == 255 && pixels[5] == 255 && pixels[6] == 255);
+  assert(pixels[8] == 10 && pixels[11] == 0);
+
+  // Miniaturadores del sistema.
+  const auto thumbnailer = parseThumbnailer("[Thumbnailer Entry]\nExec=ffmpegthumbnailer -i %i -o %o -s %s -f\n"
+                                            "MimeType=video/mp4;video/webm;\n");
+  assert(thumbnailer && thumbnailer->mimeTypes.size() == 2);
+  const auto args = expandThumbnailerExec(thumbnailer->exec, "/a b.mp4", "file:///a%20b.mp4", "/tmp/o.png", 256);
+  assert(args.size() == 8 && args[2] == "/a b.mp4" && args[6] == "256");
+  assert(!parseThumbnailer("[Thumbnailer Entry]\nExec=x %i\n"));
+  assert(thumbnailPath("file:///home/a/x.png", true).ends_with("/thumbnails/large/e56197f63f505b6cda552a17e763bfdc.png"));
   assert(matchesFilter(entry("Música"), normalizeForMatch("musi")));
   assert(!matchesFilter(entry("Música"), normalizeForMatch("video")));
 
@@ -138,6 +165,26 @@ int main() {
   std::string error;
   assert(listDirectory(srcUri, entries, error));
   assert(entries.size() == 4);
+
+  // Miniatura real de un PDF (poppler) con las etiquetas de la especificación, en una caché aparte.
+  if (fs::exists("/usr/share/doc/speex/manual.pdf")) {
+    g_setenv("XDG_CACHE_HOME", (root / "cache").c_str(), TRUE);
+    fs::copy_file("/usr/share/doc/speex/manual.pdf", root / "manual.pdf");
+    std::vector<FileEntry> listed;
+    std::string err;
+    assert(listDirectory(rootUri, listed, err));
+    const auto pdf = std::ranges::find_if(listed, [](const FileEntry& e) { return e.name == "manual.pdf"; });
+    assert(pdf != listed.end());
+    Thumbnailer thumbs;
+    bool ready = false;
+    thumbs.setOnReady([&] { ready = true; });
+    assert(thumbs.supports(*pdf));
+    assert(!thumbs.get(*pdf, false).has_value());
+    pump([&] { return ready; });
+    const auto path = thumbs.get(*pdf, false);
+    assert(path && thumbnailValid(*path, pdf->uri, pdf->modified));
+    assert(!thumbnailValid(*path, pdf->uri, pdf->modified + 1));
+  }
 
   // Borrar para siempre.
   runOp({.kind = OpKind::Delete, .sources = {rootUri}});
