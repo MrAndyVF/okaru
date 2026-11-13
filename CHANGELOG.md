@@ -39,6 +39,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   families now map to the metric-compatible Liberation fonts (JetBrains Mono stays everywhere else).
 - Checked boxes in PDF forms showed an empty square: ZapfDingbats now maps to D050000L from `gsfonts` (new dependency).
 - PDF reader: the error shown when a file passed on the command line could not be opened was untranslated.
+- Updates: with yay, updating stopped at yay’s “Packages to exclude” menu, which looked stuck. Now, like cachy-update,
+  it skips that menu and the PKGBUILD reviews; the terminal only asks pacman’s [Y/n] confirmation.
 
 #### Changes
 - Installer: adds `ttf-liberation` and `7zip`. Package: `libarchive` dependency and `7zip` optional dependency.
@@ -73,6 +75,9 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - Las casillas marcadas de los formularios PDF salían como un cuadro vacío: ZapfDingbats va ahora a D050000L de
   `gsfonts` (dependencia nueva).
 - Lector PDF: el error al no poder abrir un archivo pasado por la línea de comandos salía sin traducir.
+- Actualizaciones: con yay, la actualización se detenía en su menú «Packages to exclude», que parecía colgado. Ahora,
+  como cachy-update, salta ese menú y las revisiones de PKGBUILD; en la terminal solo pregunta la confirmación [S/n] de
+  pacman.
 
 #### Cambios
 - Instalador: agrega `ttf-liberation` y `7zip`. Paquete: dependencia `libarchive` y opcional `7zip`.
