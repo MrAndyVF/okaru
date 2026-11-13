@@ -1,7 +1,8 @@
 # OKARU: apps por defecto del escritorio (Hyprland y Niri). Se instala como hyprland-mimeapps.list y
 # niri-mimeapps.list en /usr/share/applications; lo que elija el usuario en ~/.config/mimeapps.list manda.
 # Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes), dev.okaru.Editor.desktop (texto),
-# dev.okaru.Pdf.desktop (PDF), dev.okaru.Player.desktop (video y audio) y dev.okaru.Files.desktop (carpetas);
+# dev.okaru.Pdf.desktop (PDF), dev.okaru.Player.desktop (video y audio), dev.okaru.Files.desktop (carpetas) y
+# dev.okaru.Archive.desktop (comprimidos);
 # lo verifica tests/okaru_mimeapps_test.sh.
 [Default Applications]
 image/png=dev.okaru.Viewer.desktop
@@ -129,3 +130,41 @@ audio/x-wavpack=dev.okaru.Player.desktop
 audio/x-matroska=dev.okaru.Player.desktop
 audio/ac3=dev.okaru.Player.desktop
 inode/directory=dev.okaru.Files.desktop
+application/zip=dev.okaru.Archive.desktop
+application/x-zip-compressed=dev.okaru.Archive.desktop
+application/x-7z-compressed=dev.okaru.Archive.desktop
+application/vnd.rar=dev.okaru.Archive.desktop
+application/x-rar=dev.okaru.Archive.desktop
+application/x-rar-compressed=dev.okaru.Archive.desktop
+application/x-tar=dev.okaru.Archive.desktop
+application/x-compressed-tar=dev.okaru.Archive.desktop
+application/x-xz-compressed-tar=dev.okaru.Archive.desktop
+application/x-bzip2-compressed-tar=dev.okaru.Archive.desktop
+application/x-bzip-compressed-tar=dev.okaru.Archive.desktop
+application/x-zstd-compressed-tar=dev.okaru.Archive.desktop
+application/x-lzma-compressed-tar=dev.okaru.Archive.desktop
+application/x-lz4-compressed-tar=dev.okaru.Archive.desktop
+application/x-lzip-compressed-tar=dev.okaru.Archive.desktop
+application/gzip=dev.okaru.Archive.desktop
+application/x-gzip=dev.okaru.Archive.desktop
+application/x-xz=dev.okaru.Archive.desktop
+application/x-bzip2=dev.okaru.Archive.desktop
+application/x-bzip=dev.okaru.Archive.desktop
+application/zstd=dev.okaru.Archive.desktop
+application/x-lzma=dev.okaru.Archive.desktop
+application/x-lzip=dev.okaru.Archive.desktop
+application/x-cpio=dev.okaru.Archive.desktop
+application/x-cd-image=dev.okaru.Archive.desktop
+application/x-iso9660-image=dev.okaru.Archive.desktop
+application/vnd.ms-cab-compressed=dev.okaru.Archive.desktop
+application/x-cab=dev.okaru.Archive.desktop
+application/x-archive=dev.okaru.Archive.desktop
+application/x-ar=dev.okaru.Archive.desktop
+application/x-lha=dev.okaru.Archive.desktop
+application/x-lzh-compressed=dev.okaru.Archive.desktop
+application/x-xar=dev.okaru.Archive.desktop
+application/x-rpm=dev.okaru.Archive.desktop
+application/x-deb=dev.okaru.Archive.desktop
+application/vnd.debian.binary-package=dev.okaru.Archive.desktop
+application/x-java-archive=dev.okaru.Archive.desktop
+application/x-apple-diskimage=dev.okaru.Archive.desktop

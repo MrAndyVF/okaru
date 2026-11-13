@@ -1,5 +1,132 @@
 {
   "apps": {
+    "archive": {
+      "title": "Comprimidos",
+      "up": "Subir",
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "cancelled": "Cancelado",
+      "failed": "No se pudo: {detail}",
+      "loading": "Abriendo el comprimido…",
+      "opening": "Abriendo {name}…",
+      "updating": "Actualizando el comprimido…",
+      "testing": "Probando el comprimido…",
+      "test-ok": "El comprimido está sano",
+      "read-only": "Solo lectura",
+      "empty-folder": "Carpeta vacía",
+      "name": "Nombre",
+      "welcome": "Comprimidos",
+      "welcome-hint": "Abre un zip, 7z, rar o tar, o suelta archivos aquí para comprimirlos.",
+      "open-title": "Abrir un comprimido",
+      "add-title": "Agregar al comprimido",
+      "create-choose": "Elegir qué comprimir",
+      "summary": "{count} archivo · {size}",
+      "summary-plural": "{count} archivos · {size}",
+      "selected": "{count} seleccionado",
+      "selected-plural": "{count} seleccionados",
+      "added": "Se agregó {count} elemento",
+      "added-plural": "Se agregaron {count} elementos",
+      "deleted": "Se borró {count} elemento",
+      "deleted-plural": "Se borraron {count} elementos",
+      "renamed": "Renombrado",
+      "folder-created": "Carpeta creada",
+      "extracting": "Extrayendo {name}…",
+      "extracted": "Extraído en {folder}",
+      "creating": "Creando {name}…",
+      "created": "Se creó {name}",
+      "yes": "Sí",
+      "no": "No",
+      "menu": {
+        "title": "Menú",
+        "open": "Abrir",
+        "open-archive": "Abrir comprimido…",
+        "create": "Comprimido nuevo…",
+        "extract": "Extraer…",
+        "extract-selection": "Extraer selección…",
+        "rename": "Renombrar",
+        "delete": "Borrar del comprimido",
+        "add": "Agregar archivos…",
+        "new-folder": "Carpeta nueva",
+        "select-all": "Seleccionar todo",
+        "test": "Probar integridad",
+        "comment": "Comentario del zip…",
+        "properties": "Propiedades",
+        "show-folder": "Mostrar en la carpeta"
+      },
+      "password": {
+        "title": "Comprimido protegido",
+        "body": "{name} tiene contraseña.",
+        "wrong": "La contraseña no es correcta. Inténtalo de nuevo.",
+        "placeholder": "Contraseña",
+        "remember": "Recordar en el llavero",
+        "unlock": "Abrir"
+      },
+      "extract": {
+        "title": "Extraer todo",
+        "title-selection": "Extraer {count} elemento",
+        "title-selection-plural": "Extraer {count} elementos",
+        "destination": "Destino",
+        "choose": "Elegir carpeta…",
+        "own-folder": "Crear la carpeta «{name}»",
+        "only-selection": "Solo lo seleccionado",
+        "action": "Extraer"
+      },
+      "replace": {
+        "title": "¿Reemplazar?",
+        "body": "Ya existe {names} en el destino.",
+        "body-plural": "Ya existen {count} elementos en el destino: {names}.",
+        "action": "Reemplazar"
+      },
+      "rename": {
+        "title": "Renombrar",
+        "action": "Renombrar"
+      },
+      "new-folder": {
+        "title": "Carpeta nueva",
+        "action": "Crear"
+      },
+      "delete": {
+        "title": "¿Borrar {count} elemento del comprimido?",
+        "title-plural": "¿Borrar {count} elementos del comprimido?",
+        "body": "Se quita del comprimido; no se puede deshacer.",
+        "action": "Borrar"
+      },
+      "comment": {
+        "title": "Comentario del zip",
+        "placeholder": "Comentario",
+        "save": "Guardar",
+        "saved": "Comentario guardado"
+      },
+      "props": {
+        "location": "Ubicación",
+        "format": "Formato",
+        "contents": "Contenido",
+        "files": "{count} archivo",
+        "files-plural": "{count} archivos",
+        "folders": "{count} carpeta",
+        "folders-plural": "{count} carpetas",
+        "size": "Tamaño real",
+        "packed": "Tamaño comprimido",
+        "ratio": "Proporción",
+        "encrypted": "Con contraseña",
+        "comment": "Comentario"
+      },
+      "create": {
+        "title": "Comprimir {count} elemento",
+        "title-plural": "Comprimir {count} elementos",
+        "format": "Formato",
+        "level": "Compresión",
+        "level-store": "Sin comprimir",
+        "level-fast": "Rápida",
+        "level-normal": "Normal",
+        "level-max": "Máxima",
+        "password": "Contraseña (opcional, AES-256)",
+        "password-placeholder": "Sin contraseña",
+        "volumes": "Dividir en partes",
+        "volume-none": "No",
+        "action": "Comprimir"
+      }
+    },
     "calc": {
       "title": "Calculadora",
       "back": "Volver",

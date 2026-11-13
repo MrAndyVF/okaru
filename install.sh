@@ -13,7 +13,7 @@ readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packagin
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS_ROOT="/usr/share/okaru/defaults"
-readonly COMMON_PACKAGES=(kitty xdg-desktop-portal-gtk noto-fonts ttf-liberation ttf-jetbrains-mono-nerd fastfetch starship
+readonly COMMON_PACKAGES=(kitty xdg-desktop-portal-gtk noto-fonts ttf-liberation 7zip ttf-jetbrains-mono-nerd fastfetch starship
   firefox localsend gpu-screen-recorder slurp) # localsend viene de Chaotic-AUR; los dos últimos, para el widget Captura
 # Chaotic-AUR (https://aur.chaotic.cx): llave y paquetes de su llavero y lista de espejos.
 readonly CHAOTIC_KEY="3056513887B78AEB"

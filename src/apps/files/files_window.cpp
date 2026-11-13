@@ -1283,6 +1283,19 @@ namespace okaru::files {
     if (items.empty() || !canWriteHere()) {
       return;
     }
+    // Con okaru-archive instalado, su diálogo (formato, nivel, contraseña, volúmenes); si no, el sencillo de aquí.
+    if (process::commandExists("okaru-archive")) {
+      std::vector<std::string> args{"okaru-archive", "--create"};
+      for (const FileEntry* entry : items) {
+        if (!entry->path.empty()) {
+          args.push_back(entry->path);
+        }
+      }
+      if (args.size() > 2) {
+        (void)process::runAsync(args);
+        return;
+      }
+    }
     m_dialogUris = selectedUris();
     // Un elemento: su nombre; varios: el de la carpeta.
     m_dialogText = items.size() == 1 ? archiveStem(items.front()->display) : displayNameOf(tab().model->uri());

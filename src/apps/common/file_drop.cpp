@@ -210,7 +210,10 @@ namespace okaru::apps {
     }
   }
 
-  bool FileDrop::startDrag(wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon) {
+  bool FileDrop::startDrag(
+      wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon,
+      std::function<void()> prepare
+  ) {
     if (m_manager == nullptr || m_device == nullptr || origin == nullptr || uris.empty()) {
       return false;
     }
@@ -218,6 +221,7 @@ namespace okaru::apps {
       wl_data_source_destroy(m_source);
     }
     m_dragUris = std::move(uris);
+    m_prepare = std::move(prepare);
     m_source = wl_data_device_manager_create_data_source(m_manager);
     wl_data_source_add_listener(m_source, &kSourceListener, this);
     wl_data_source_offer(m_source, kUriList);
@@ -288,6 +292,13 @@ namespace okaru::apps {
   }
 
   void FileDrop::onSourceSend(const char* mime, int fd) {
+    if (m_prepare) {
+      // shortcut: corre en el hilo de la interfaz (se congela mientras extrae); pasar a un hilo y escribir la
+      // tubería al terminar si se arrastran archivos enormes.
+      auto prepare = std::move(m_prepare);
+      m_prepare = nullptr;
+      prepare();
+    }
     std::string data;
     const bool plain = std::strcmp(mime, kUriList) != 0;
     for (const auto& uri : m_dragUris) {
@@ -321,6 +332,7 @@ namespace okaru::apps {
     }
     destroyIconSurface();
     m_dragUris.clear();
+    m_prepare = nullptr;
   }
 
   void FileDrop::onDrop() {
