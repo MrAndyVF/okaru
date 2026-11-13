@@ -37,7 +37,12 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   history with rollback from the package cache, download size and an activity graph. Options in Settings →
   Services.
 
+- Notification history grouped by app: one card per app with its count (`App · N`); the stack button shows the
+  rest below it, and the trash on a closed group clears the whole group.
+
 #### Fixes
+- Notification action buttons are smaller and no longer cut their labels (they used to stretch evenly): in the
+  popup they line up with the text, in the history they are centered.
 - Installer: on Niri the stock templates are Niri's instead of Hyprland/Hyprtoolkit.
 - Installer: the greeter logs into Hyprland with uwsm by default.
 
@@ -82,7 +87,12 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   segundo plano con registro en vivo; historial con reversión desde la caché de paquetes, tamaño de descarga y
   gráfico de actividad. Opciones en Ajustes → Servicios.
 
+- Historial de notificaciones agrupado por app: una tarjeta por app con su número (`App · N`); el botón de pila
+  muestra el resto debajo y la papelera de un grupo cerrado lo borra entero.
+
 #### Correcciones
+- Los botones de acción de las notificaciones son más pequeños y ya no cortan su texto (antes se estiraban a
+  partes iguales): en el aviso se alinean con el texto y en el historial van centrados.
 - Instalador: en Niri las plantillas de fábrica son las de Niri en vez de Hyprland/Hyprtoolkit.
 - Instalador: el greeter entra por defecto a Hyprland con uwsm.
 
