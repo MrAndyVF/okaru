@@ -2017,7 +2017,8 @@
         "aur": "AUR",
         "flatpak": "Flatpak",
         "snap": "Snap"
-      }
+      },
+      "clear-history": "Borrar el historial de actualizaciones"
     }
   },
   "osd": {

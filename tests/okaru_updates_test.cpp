@@ -17,6 +17,26 @@ namespace {
 } // namespace
 
 int main() {
+  {
+    // pacman.log: solo las transacciones con "upgraded", con la hora (y su zona) en que terminaron.
+    const auto runs = parsePacmanLog(
+        "[2026-11-13T14:38:40-0500] [PACMAN] Running 'pacman -Syu'\n"
+        "[2026-11-13T14:38:41-0500] [ALPM] transaction started\n"
+        "[2026-11-13T14:38:46-0500] [ALPM] upgraded go (2:1.27.4-2 -> 2:1.27.4-3)\n"
+        "[2026-11-13T14:38:48-0500] [ALPM] upgraded okaru (1.2.1.r0.gdc1f5f4aa-1 -> 1.2.2.r0.g55afb091d-1)\n"
+        "[2026-11-13T14:38:48-0500] [ALPM] transaction completed\n"
+        "[2026-11-13T15:00:00-0500] [ALPM] transaction started\n"
+        "[2026-11-13T15:00:01-0500] [ALPM] installed nano (8.5-1)\n"
+        "[2026-11-13T15:00:02-0500] [ALPM] transaction completed\n"
+        "[2026-11-13T16:00:00-0500] [ALPM] transaction started\n"
+        "[2026-11-13T16:00:01-0500] [ALPM] upgraded vim (9.1-1 -> 9.1-2)\n"
+    );
+    expect(runs.size() == 1, "pacman.log: una transacción con actualizaciones (la de instalar y la sin cerrar no)");
+    expect(!runs.empty() && runs[0].packages.size() == 2 && runs[0].packages[0].name == "go"
+               && runs[0].packages[0].from == "2:1.27.4-2" && runs[0].packages[1].to == "1.2.2.r0.g55afb091d-1",
+           "pacman.log: nombres y versiones");
+    expect(!runs.empty() && runs[0].at == 1794598728, "pacman.log: hora de fin con la zona horaria");
+  }
   std::vector<Package> ignored;
   const auto pacman = parseVersionLines("linux 6.1-1 -> 6.2-1\nmesa 1:24-1 -> 1:25-1\n"
                                         "glibc 2.40-1 -> 2.41-1 [ignored]\nbasura\n",

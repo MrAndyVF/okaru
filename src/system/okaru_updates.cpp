@@ -519,6 +519,7 @@ polkit.addRule(function(action, subject) {
     m_configured = true;
     if (first) {
       load();
+      mergePacmanLog();
       checkPolkitRule();
       resumeRun();
     }
@@ -739,6 +740,7 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     m_reboot =
         m_settings.checkReboot && !release.empty() && !std::filesystem::exists("/usr/lib/modules/" + release, ec);
     m_step.clear();
+    mergePacmanLog(); // lo actualizado fuera del panel desde la última revisión
     m_phase = total() > 0 ? Phase::Ready : Phase::Clean;
     const std::time_t t = std::time(nullptr);
     std::tm local{};
@@ -970,6 +972,127 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
           check();
         }
     );
+  }
+
+  std::vector<Run> parsePacmanLog(std::string_view log) {
+    std::vector<Run> runs;
+    Run current;
+    bool open = false;
+    // "[2026-11-13T14:38:48-0500] [ALPM] ..." → segundos desde la época (con su zona horaria).
+    const auto stamp = [](std::string_view line) -> std::int64_t {
+      if (line.size() < 26 || line[0] != '[') {
+        return 0;
+      }
+      std::tm tm{};
+      const std::string text(line.substr(1, 19));
+      if (::strptime(text.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) == nullptr) {
+        return 0;
+      }
+      int offset = 0;
+      const std::string_view zone = line.substr(20, 5);
+      if ((zone[0] == '+' || zone[0] == '-') && std::isdigit(static_cast<unsigned char>(zone[1])) != 0) {
+        const int hh = (zone[1] - '0') * 10 + (zone[2] - '0');
+        const int mm = (zone[3] - '0') * 10 + (zone[4] - '0');
+        offset = (zone[0] == '-' ? -1 : 1) * (hh * 3600 + mm * 60);
+      }
+      return static_cast<std::int64_t>(::timegm(&tm)) - offset;
+    };
+    std::size_t start = 0;
+    while (start < log.size()) {
+      std::size_t end = log.find('\n', start);
+      if (end == std::string_view::npos) {
+        end = log.size();
+      }
+      const std::string_view line = log.substr(start, end - start);
+      start = end + 1;
+      if (line.contains("[ALPM] transaction started")) {
+        current = {};
+        open = true;
+      } else if (open && line.contains("[ALPM] transaction completed")) {
+        open = false;
+        if (!current.packages.empty()) {
+          current.at = stamp(line);
+          runs.push_back(std::move(current));
+          current = {};
+        }
+      } else if (open && line.contains("[ALPM] upgraded ")) {
+        // "upgraded nombre (vieja -> nueva)"
+        const auto at = line.find("[ALPM] upgraded ") + 16;
+        const auto paren = line.find(" (", at);
+        const auto arrow = line.find(" -> ", paren);
+        const auto close = line.rfind(')');
+        if (paren == std::string_view::npos
+            || arrow == std::string_view::npos
+            || close == std::string_view::npos
+            || close < arrow) {
+          continue;
+        }
+        Package package{
+            .name = std::string(line.substr(at, paren - at)),
+            .from = std::string(line.substr(paren + 2, arrow - paren - 2)),
+            .to = std::string(line.substr(arrow + 4, close - arrow - 4)),
+            .source = "pacman",
+        };
+        if (validName(package.name) && validVersion(package.from) && validVersion(package.to)) {
+          current.packages.push_back(std::move(package));
+        }
+      }
+    }
+    return runs;
+  }
+
+  void Engine::mergePacmanLog() {
+    // Solo la cola del log: basta para las últimas transacciones y el archivo crece sin límite.
+    std::ifstream in("/var/log/pacman.log", std::ios::binary | std::ios::ate);
+    if (!in) {
+      return;
+    }
+    constexpr std::streamoff kTail = 2 * 1024 * 1024;
+    const std::streamoff size = in.tellg();
+    in.seekg(std::max<std::streamoff>(0, size - kTail));
+    std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    bool changed = false;
+    for (Run& run : parsePacmanLog(text)) {
+      if (run.at <= m_historyClearedAt || run.at <= 0) {
+        continue;
+      }
+      // Ya está si el panel grabó esa actualización (unos minutos antes, con alguno de sus paquetes) o si es la misma.
+      const bool known = std::ranges::any_of(m_runs, [&](const Run& r) {
+        if (r.at == run.at) {
+          return true;
+        }
+        if (std::llabs(r.at - run.at) > 15 * 60) {
+          return false;
+        }
+        return std::ranges::any_of(r.packages, [&](const Package& p) {
+          return std::ranges::any_of(run.packages, [&](const Package& q) { return p.name == q.name && p.to == q.to; });
+        });
+      });
+      m_lastUpdateAt = std::max(m_lastUpdateAt, run.at);
+      if (known) {
+        continue;
+      }
+      if (run.packages.size() > kMaxRunPackages) {
+        run.packages.resize(kMaxRunPackages);
+      }
+      m_runs.push_back(std::move(run));
+      changed = true;
+    }
+    if (!changed) {
+      return;
+    }
+    std::ranges::sort(m_runs, {}, &Run::at);
+    if (m_runs.size() > kMaxRuns) {
+      m_runs.erase(m_runs.begin(), m_runs.end() - static_cast<std::ptrdiff_t>(kMaxRuns));
+    }
+    save();
+  }
+
+  void Engine::clearHistory() {
+    m_runs.clear();
+    m_historyClearedAt = now();
+    save();
+    notifyListeners();
   }
 
   void Engine::recordRun(bool rollback, std::vector<Package> packages) {
@@ -1244,6 +1367,7 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
       }
     }
     m_lastUpdateAt = json->value("lastUpdateAt", std::int64_t{0});
+    m_historyClearedAt = json->value("historyClearedAt", std::int64_t{0});
     if (!readText(dataPath())) {
       save();
     }
@@ -1251,7 +1375,10 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
 
   void Engine::save() const {
     nlohmann::json json = {
-        {"runs", nlohmann::json::array()}, {"activity", nlohmann::json::array()}, {"lastUpdateAt", m_lastUpdateAt}
+        {"runs", nlohmann::json::array()},
+        {"activity", nlohmann::json::array()},
+        {"lastUpdateAt", m_lastUpdateAt},
+        {"historyClearedAt", m_historyClearedAt},
     };
     for (const auto& run : m_runs) {
       nlohmann::json packages = nlohmann::json::array();
