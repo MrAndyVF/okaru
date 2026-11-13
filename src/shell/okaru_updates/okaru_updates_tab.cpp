@@ -3,6 +3,7 @@
 #include "core/process/process.h"
 #include "i18n/i18n.h"
 #include "render/core/renderer.h"
+#include "render/scene/input_area.h"
 #include "shell/panel/panel_button_style.h"
 #include "shell/panel/panel_manager.h"
 #include "system/okaru_updates.h"
@@ -541,6 +542,20 @@ void OkaruUpdatesTab::addIgnored(Flex& parent) {
   parent.addChild(std::move(c));
 }
 
+namespace {
+  // Barra del gráfico con su tooltip: un InputArea no reparte su tamaño a los hijos (quedaban de ancho 0 y el gráfico
+  // salía vacío); este se lo pasa a la columna que lleva la barra.
+  class ActivitySlot final : public InputArea {
+  protected:
+    void doLayout(Renderer& renderer) override {
+      for (const auto& child : children()) {
+        child->setSize(width(), height());
+        child->layout(renderer);
+      }
+    }
+  };
+} // namespace
+
 void OkaruUpdatesTab::addActivity(Flex& parent) {
   const float scale = contentScale();
   const auto& e = Engine::instance();
@@ -569,17 +584,16 @@ void OkaruUpdatesTab::addActivity(Flex& parent) {
              point.afterUpdate ? ColorRole::Tertiary : ColorRole::Primary, point.count == 0 ? 0.35F : 1.0F
          ),
          .radius = 2.0F * scale,
-         .height = h,
-         .flexGrow = 1.0F}
+         .height = h}
     );
     auto holder = ui::column(
         {.align = FlexAlign::Stretch, .justify = FlexJustify::End, .height = kActivityHeight * scale, .flexGrow = 1.0F}
     );
     holder->addChild(std::move(bar));
-    auto area = ui::inputArea(
-        {.tooltip = std::format("{} · {}", formatDate(point.at), i18n::trp("okaru.updates.pending", point.count)),
-         .flexGrow = 1.0F}
-    );
+    auto area = std::make_unique<ActivitySlot>();
+    area->setTooltip(std::format("{} · {}", formatDate(point.at), i18n::trp("okaru.updates.pending", point.count)));
+    area->setSize(0.0F, kActivityHeight * scale);
+    area->setFlexGrow(1.0F);
     area->addChild(std::move(holder));
     bars->addChild(std::move(area));
   }
@@ -594,7 +608,27 @@ void OkaruUpdatesTab::addHistory(Flex& parent) {
     return;
   }
   auto c = card(scale, panelCardOpacity());
-  c->addChild(makeCardHeaderRow(i18n::tr("okaru.updates.history"), scale));
+  auto header = makeCardHeaderRow(i18n::tr("okaru.updates.history"), scale);
+  // Dos clics: el primero arma, el segundo borra (no se puede deshacer).
+  const bool armed = m_armed == "clear-history";
+  header->addChild(
+      ui::button({
+          .text = armed ? i18n::tr("okaru.updates.confirm") : std::string{},
+          .glyph = "trash",
+          .variant = armed ? ButtonVariant::Destructive : ButtonVariant::Ghost,
+          .tooltip = i18n::tr("okaru.updates.clear-history"),
+          .onClick = [this, armed] {
+            if (armed) {
+              m_armed.clear();
+              Engine::instance().clearHistory();
+            } else {
+              m_armed = "clear-history";
+            }
+            requestRebuild();
+          },
+      })
+  );
+  c->addChild(std::move(header));
   for (const auto& run : std::views::reverse(runs)) {
     auto row = ui::button(
         {.variant = ButtonVariant::Ghost,

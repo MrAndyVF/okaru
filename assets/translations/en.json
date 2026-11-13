@@ -1349,7 +1349,8 @@
       "system": "System",
       "wallpaper": "Wallpaper",
       "weather": "Weather",
-      "wifi": "Wi-Fi"
+      "wifi": "Wi-Fi",
+      "vpn": "VPN"
     },
     "system": {
       "labels": {
@@ -2119,7 +2120,74 @@
         "aur": "AUR",
         "flatpak": "Flatpak",
         "snap": "Snap"
-      }
+      },
+      "clear-history": "Clear update history"
+    },
+    "vpn": {
+      "title": "VPN",
+      "connections": "VPN connections",
+      "empty": "No VPNs yet. Create one with + or import a .ovpn, .conf or .pcf file.",
+      "default": "Default VPN (used by auto-connect and the shortcut)",
+      "details": "Details",
+      "state": "State",
+      "device": "Device",
+      "ipv4": "IPv4",
+      "ipv6": "IPv6",
+      "gateway": "Gateway",
+      "dns": "DNS",
+      "inactive": "Not connected: no address or route yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirm-delete": "Delete?",
+      "deleted": "Deleted {name}",
+      "failed": "Failed: {detail}",
+      "auto-connect": "Auto-connect",
+      "auto-connect-hint": "Connects the default VPN on untrusted networks and disconnects it back on a trusted one.",
+      "auto-connect-no-default": "Star a VPN so auto-connect knows which one to use.",
+      "trusted": "Trusted networks",
+      "trusted-empty": "None yet.",
+      "untrust": "Stop trusting",
+      "trust-current": "Trust “{name}”",
+      "more-settings": "More options in Settings",
+      "new": "New VPN",
+      "edit-title": "Edit “{name}”",
+      "type": "Protocol",
+      "name": "Name",
+      "name-placeholder": "My VPN",
+      "choose-file": "Choose file",
+      "advanced": "Advanced options (key=value per line)",
+      "password-hint": "The password is not stored here: OKARU asks for it when connecting (and can remember it in the keyring).",
+      "wireguard-edit-hint": "Saving recreates the connection with these values (type the keys again).",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Saved {name}",
+      "need-name": "Give the VPN a name.",
+      "need-field": "{field} is missing.",
+      "import": "Import VPN",
+      "imported": "VPN imported",
+      "import-unknown": "Unrecognized file: use a .ovpn (OpenVPN), .conf (WireGuard) or .pcf (Cisco).",
+      "no-picker": "okaru-files was not found to choose the file.",
+      "field": {
+        "gateway": "Server",
+        "user": "User",
+        "realm": "Realm",
+        "trusted-cert": "Trusted certificate (fingerprint)",
+        "auth": "Authentication",
+        "ca": "CA certificate",
+        "cert": "User certificate",
+        "key": "Private key",
+        "protocol": "Protocol",
+        "group": "Group (IPSec ID)",
+        "private-key": "Private key",
+        "address": "Address",
+        "dns": "DNS",
+        "peer-key": "Server public key",
+        "allowed-ips": "Allowed IPs"
+      },
+      "widget-off": "Disconnected",
+      "widget-hints": "Click: open VPN · Right click: connect or disconnect the default VPN",
+      "auto-connected": "Connected {name}: this network is not trusted",
+      "auto-disconnected": "Disconnected {name}: back on a trusted network"
     }
   },
   "osd": {
@@ -2575,7 +2643,8 @@
         "cursor": "Cursor",
         "icons": "Icons",
         "phone": "Phone",
-        "updates": "Updates"
+        "updates": "Updates",
+        "vpn": "VPN"
       },
       "modules": {
         "advanced": "Advanced",
@@ -5007,6 +5076,26 @@
         "updates-rollback-auto-ignore": {
           "label": "Ignore packages after a rollback",
           "description": "After a rollback, ignore the rolled-back packages so the next check does not offer them again."
+        },
+        "vpn-auto-connect": {
+          "label": "Connect the VPN on untrusted networks",
+          "description": "Connects the default VPN (the starred one in the VPN tab) when you join a network that is not on your trusted list."
+        },
+        "vpn-auto-disconnect": {
+          "label": "Disconnect it on trusted networks",
+          "description": "Back on a trusted network, disconnects the VPN if OKARU connected it (one you connected yourself is left alone)."
+        },
+        "vpn-trust-ethernet": {
+          "label": "Any wired network is trusted",
+          "description": "Wired connections count as trusted even if they are not on the list."
+        },
+        "vpn-notify": {
+          "label": "Notify on automatic connect or disconnect",
+          "description": "Shows a notification when auto-connect changes the VPN state."
+        },
+        "vpn-trusted": {
+          "label": "Trusted networks",
+          "description": "Wi-Fi names (SSID) or connection names where the VPN is not needed."
         }
       },
       "shared": {
@@ -6925,6 +7014,10 @@
         "show-count": {
           "label": "Show count",
           "description": "Show the number of pending updates next to the icon"
+        },
+        "show-name": {
+          "label": "Show the name",
+          "description": "Writes the connected VPN name next to the shield."
         }
       },
       "types": {
@@ -6967,7 +7060,8 @@
         "ports": "Network & ports",
         "phone": "Phone",
         "hypr-layout": "Window layout",
-        "updates": "Updates"
+        "updates": "Updates",
+        "vpn": "VPN"
       }
     },
     "window": {

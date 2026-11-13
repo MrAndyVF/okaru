@@ -15,12 +15,6 @@
 #include "shell/bar/widgets/clipboard_widget_definition.h"
 #include "shell/bar/widgets/clock_widget_definition.h"
 #include "shell/bar/widgets/control_center_widget_definition.h"
-#include "shell/bar/widgets/okaru_capture_widget_definition.h"
-#include "shell/bar/widgets/okaru_cat_widget_definition.h"
-#include "shell/bar/widgets/okaru_ports_widget_definition.h"
-#include "shell/bar/widgets/okaru_phone_widget_definition.h"
-#include "shell/bar/widgets/okaru_updates_widget_definition.h"
-#include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
 #include "shell/bar/widgets/custom_button_widget_definition.h"
 #include "shell/bar/widgets/keyboard_layout_widget_definition.h"
 #include "shell/bar/widgets/launcher_widget_definition.h"
@@ -29,6 +23,12 @@
 #include "shell/bar/widgets/network_widget_definition.h"
 #include "shell/bar/widgets/nightlight_widget_definition.h"
 #include "shell/bar/widgets/notification_widget_definition.h"
+#include "shell/bar/widgets/okaru_capture_widget_definition.h"
+#include "shell/bar/widgets/okaru_cat_widget_definition.h"
+#include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
+#include "shell/bar/widgets/okaru_phone_widget_definition.h"
+#include "shell/bar/widgets/okaru_ports_widget_definition.h"
+#include "shell/bar/widgets/okaru_updates_widget_definition.h"
 #include "shell/bar/widgets/power_profile_widget_definition.h"
 #include "shell/bar/widgets/privacy_widget_definition.h"
 #include "shell/bar/widgets/screenshot_widget_definition.h"
@@ -152,11 +152,11 @@ namespace settings {
         projectWidgetDefinition<clipboardWidgetDefinition>(),
         projectWidgetDefinition<clockWidgetDefinition>(),
         projectWidgetDefinition<controlCenterWidgetDefinition>(),
-        projectWidgetDefinition<okaruCaptureWidgetDefinition>(), // OKARU
-        projectWidgetDefinition<okaruCatWidgetDefinition>(),     // OKARU
-        projectWidgetDefinition<okaruPortsWidgetDefinition>(),   // OKARU
-        projectWidgetDefinition<okaruPhoneWidgetDefinition>(),   // OKARU
-        projectWidgetDefinition<okaruUpdatesWidgetDefinition>(), // OKARU
+        projectWidgetDefinition<okaruCaptureWidgetDefinition>(),    // OKARU
+        projectWidgetDefinition<okaruCatWidgetDefinition>(),        // OKARU
+        projectWidgetDefinition<okaruPortsWidgetDefinition>(),      // OKARU
+        projectWidgetDefinition<okaruPhoneWidgetDefinition>(),      // OKARU
+        projectWidgetDefinition<okaruUpdatesWidgetDefinition>(),    // OKARU
         projectWidgetDefinition<okaruHyprLayoutWidgetDefinition>(), // OKARU
         projectWidgetDefinition<customButtonWidgetDefinition>(),
         projectWidgetDefinition<keyboardLayoutWidgetDefinition>(),
@@ -249,12 +249,15 @@ namespace settings {
         {.type = "clipboard", .labelKey = "settings.widgets.types.clipboard", .glyph = "clipboard"},
         {.type = "custom_button", .labelKey = "settings.widgets.types.custom-button", .glyph = "circuit-pushbutton"},
         {.type = "caffeine", .labelKey = "settings.widgets.types.caffeine", .glyph = "caffeine-off"},
-        {.type = "capture", .labelKey = "settings.widgets.types.capture", .glyph = "capture"}, // OKARU
-        {.type = "cat", .labelKey = "settings.widgets.types.cat", .glyph = "paw"},             // OKARU
+        {.type = "capture", .labelKey = "settings.widgets.types.capture", .glyph = "capture"},    // OKARU
+        {.type = "cat", .labelKey = "settings.widgets.types.cat", .glyph = "paw"},                // OKARU
         {.type = "ports", .labelKey = "settings.widgets.types.ports", .glyph = "plug-connected"}, // OKARU
-        {.type = "phone", .labelKey = "settings.widgets.types.phone", .glyph = "device-mobile"}, // OKARU
-        {.type = "updates", .labelKey = "settings.widgets.types.updates", .glyph = "package"}, // OKARU
-        {.type = "hypr_layout", .labelKey = "settings.widgets.types.hypr-layout", .glyph = "layout-board-split"}, // OKARU
+        {.type = "phone", .labelKey = "settings.widgets.types.phone", .glyph = "device-mobile"},  // OKARU
+        {.type = "updates", .labelKey = "settings.widgets.types.updates", .glyph = "package"},    // OKARU
+        {.type = "vpn", .labelKey = "settings.widgets.types.vpn", .glyph = "shield-lock"},        // OKARU
+        {.type = "hypr_layout",
+         .labelKey = "settings.widgets.types.hypr-layout",
+         .glyph = "layout-board-split"}, // OKARU
         {.type = "keyboard_layout", .labelKey = "settings.widgets.types.keyboard-layout", .glyph = "keyboard"},
         {.type = "launcher", .labelKey = "settings.widgets.types.launcher", .glyph = "search"},
         {.type = "lock_keys", .labelKey = "settings.widgets.types.lock-keys", .glyph = "lock"},
@@ -741,9 +744,9 @@ namespace settings {
     // OKARU: barra fija. El aspecto de cada widget (escala, color, fuente, cápsula) lo define la barra:
     // esas opciones siguen en el esquema (la config las valida) pero no se muestran.
     const WidgetSettingVisibility never{"__okaru_fixed_look", {"never"}};
-    for (auto* spec : {&scale, &fontScale, &widgetColor, &widgetIconColor, &fontFamily, &fontWeight, &capsuleToggle,
-                       &capsuleRadius, &capsuleFill, &capsuleBorder, &capsuleBorderWidth, &capsuleForeground,
-                       &capsulePadding, &capsuleOpacity}) {
+    for (auto* spec :
+         {&scale, &fontScale, &widgetColor, &widgetIconColor, &fontFamily, &fontWeight, &capsuleToggle, &capsuleRadius,
+          &capsuleFill, &capsuleBorder, &capsuleBorderWidth, &capsuleForeground, &capsulePadding, &capsuleOpacity}) {
       spec->visibleWhen = never;
     }
     return {

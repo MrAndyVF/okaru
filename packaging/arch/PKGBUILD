@@ -1,6 +1,6 @@
 # Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
 pkgname=okaru
-pkgver=1.2.2
+pkgver=1.2.3
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)
@@ -18,8 +18,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'upower: batería y dispositivos de energía'
             'gpu-screen-recorder: grabación de pantalla (widget Captura)'
             'slurp: grabar una región (widget Captura)'
-            'networkmanager: red y VPN (vpn-manager)'
-            'nm-connection-editor: editar conexiones VPN con ventana (vpn-manager)'
+            'networkmanager: red y VPN'
             'pacman-contrib: buscar actualizaciones (Actualizaciones)'
             'flatpak: actualizaciones Flatpak (Actualizaciones) y cursor en apps Flatpak (cursor)'
             'paru: actualizaciones de AUR (Actualizaciones)'
@@ -34,7 +33,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'python-wand: convertir cursores de Windows (cursor)'
             'imagemagick: convertir cursores de Windows (cursor)'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
-            'zenity: diálogos de archivos (cursor, icons, vpn-manager)'
+            'zenity: diálogos de archivos (cursor, icons)'
             'cups: imprimir desde el visor de documentos (okaru-pdf)'
             'gvfs: papelera, recientes, red y unidades extraíbles (okaru-files)'
             'gvfs-smb: carpetas compartidas de Windows y Samba (okaru-files)'

@@ -57,24 +57,33 @@ namespace okaru::updates {
   [[nodiscard]] bool validVersion(std::string_view version);
   // Formato de checkupdates / `yay -Qua`: "nombre vieja -> nueva", con " [ignored]" si lo ignora pacman.conf.
   // Los ignorados (por la lista o por pacman.conf) van a `ignoredOut` en lugar de contarse.
-  [[nodiscard]] Source parseVersionLines(std::string_view output, std::string_view source,
-                                         const std::set<std::string>& ignored, std::vector<Package>& ignoredOut);
+  [[nodiscard]] Source parseVersionLines(
+      std::string_view output, std::string_view source, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  );
   // Filas "nombre\tvieja\tnueva" (Flatpak).
-  [[nodiscard]] Source parseTabLines(std::string_view output, std::string_view source,
-                                     const std::set<std::string>& ignored, std::vector<Package>& ignoredOut);
+  [[nodiscard]] Source parseTabLines(
+      std::string_view output, std::string_view source, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  );
   // `snap list` y `snap refresh --list`, ambos con encabezado; la versión instalada sale de la primera.
-  [[nodiscard]] Source parseSnap(std::string_view listOutput, std::string_view refreshOutput,
-                                 const std::set<std::string>& ignored, std::vector<Package>& ignoredOut);
+  [[nodiscard]] Source parseSnap(
+      std::string_view listOutput, std::string_view refreshOutput, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  );
   // Suma "Download Size" de `LC_ALL=C pacman -Si` (una vez por paquete). nullopt si no hay ninguno.
   [[nodiscard]] std::optional<double> parseDownloadSizeMiB(std::string_view pacmanSi);
   // Comando okaru-update según los ajustes; `background` = sin preguntas (pkexec).
-  [[nodiscard]] std::string updateCommand(const UpdatesConfig& config, bool background, bool aurHelperFound,
-                                          std::string_view aurHelper);
+  [[nodiscard]] std::string
+  updateCommand(const UpdatesConfig& config, bool background, bool aurHelperFound, std::string_view aurHelper);
   // Lo que la terminal mostró al final de cada línea (texto tras el último \r, sin escapes ANSI).
   [[nodiscard]] std::string cleanLogLine(std::string_view line);
   // Paquetes ya procesados en el log (pacman/AUR y Flatpak) para la barra de progreso.
   [[nodiscard]] int countProgress(std::string_view log);
   [[nodiscard]] std::string shellQuote(std::string_view value);
+  // Transacciones de /var/log/pacman.log con paquetes actualizados ("[ALPM] upgraded x (a -> b)"), con la hora en que
+  // terminaron: así el historial también ve lo actualizado fuera del panel (pacman, yay, cachy-update…).
+  [[nodiscard]] std::vector<Run> parsePacmanLog(std::string_view log);
 
   class Engine;
   // "Pacman 12 · AUR (yay) 3 · Flatpak 1": solo los canales con pendientes.
@@ -101,6 +110,8 @@ namespace okaru::updates {
     void dismiss();
     void openLog() const;
     void installPolkitRule();
+    // Borra el historial de actualizaciones (no el gráfico de actividad ni el log de pacman).
+    void clearHistory();
 
     [[nodiscard]] const UpdatesConfig& config() const noexcept { return m_settings; }
     [[nodiscard]] Phase phase() const noexcept { return m_phase; }
@@ -146,6 +157,8 @@ namespace okaru::updates {
     void pollRun();
     void finishRun(int code);
     void recordRun(bool rollback, std::vector<Package> packages);
+    // Suma al historial lo que pacman.log registró desde la última vez (sin repetir lo que ya grabó el panel).
+    void mergePacmanLog();
     void resumeRun();
     void checkPolkitRule();
     [[nodiscard]] std::set<std::string> ignoredSet() const;
@@ -187,6 +200,7 @@ namespace okaru::updates {
     std::vector<Run> m_runs;
     std::vector<ActivityPoint> m_activity;
     std::int64_t m_lastUpdateAt = 0;
+    std::int64_t m_historyClearedAt = 0; // lo del log anterior a esto no vuelve tras borrar el historial
     bool m_polkitInstalled = false;
     bool m_loaded = false;
 

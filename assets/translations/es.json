@@ -1292,7 +1292,8 @@
       "system": "Sistema",
       "wallpaper": "Fondo de Pantalla",
       "weather": "Clima",
-      "wifi": "Wi-Fi"
+      "wifi": "Wi-Fi",
+      "vpn": "VPN"
     },
     "system": {
       "labels": {
@@ -2017,7 +2018,74 @@
         "aur": "AUR",
         "flatpak": "Flatpak",
         "snap": "Snap"
-      }
+      },
+      "clear-history": "Borrar el historial de actualizaciones"
+    },
+    "vpn": {
+      "title": "VPN",
+      "connections": "Conexiones VPN",
+      "empty": "No hay VPN. Crea una con + o importa un archivo .ovpn, .conf o .pcf.",
+      "default": "VPN por defecto (la que usa la autoconexión y el atajo)",
+      "details": "Detalles",
+      "state": "Estado",
+      "device": "Dispositivo",
+      "ipv4": "IPv4",
+      "ipv6": "IPv6",
+      "gateway": "Puerta de enlace",
+      "dns": "DNS",
+      "inactive": "Sin conectar: no hay dirección ni ruta todavía.",
+      "edit": "Editar",
+      "delete": "Borrar",
+      "confirm-delete": "¿Borrar?",
+      "deleted": "Se borró {name}",
+      "failed": "No se pudo: {detail}",
+      "auto-connect": "Autoconexión",
+      "auto-connect-hint": "Conecta la VPN por defecto en redes que no son de confianza y la desconecta al volver a una de confianza.",
+      "auto-connect-no-default": "Marca una VPN con la estrella para que la autoconexión sepa cuál usar.",
+      "trusted": "Redes de confianza",
+      "trusted-empty": "Ninguna todavía.",
+      "untrust": "Quitar de confianza",
+      "trust-current": "Confiar en «{name}»",
+      "more-settings": "Más opciones en Ajustes",
+      "new": "VPN nueva",
+      "edit-title": "Editar «{name}»",
+      "type": "Protocolo",
+      "name": "Nombre",
+      "name-placeholder": "Mi VPN",
+      "choose-file": "Elegir archivo",
+      "advanced": "Opciones avanzadas (clave=valor por línea)",
+      "password-hint": "La contraseña no se guarda aquí: OKARU la pide al conectar (y puede recordarla en el llavero).",
+      "wireguard-edit-hint": "Guardar vuelve a crear la conexión con estos datos (escribe de nuevo las claves).",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saved": "Se guardó {name}",
+      "need-name": "Ponle un nombre a la VPN.",
+      "need-field": "Falta {field}.",
+      "import": "Importar VPN",
+      "imported": "VPN importada",
+      "import-unknown": "No se reconoce el archivo: usa un .ovpn (OpenVPN), .conf (WireGuard) o .pcf (Cisco).",
+      "no-picker": "No se encontró okaru-files para elegir el archivo.",
+      "field": {
+        "gateway": "Servidor",
+        "user": "Usuario",
+        "realm": "Dominio (realm)",
+        "trusted-cert": "Certificado de confianza (huella)",
+        "auth": "Autenticación",
+        "ca": "Certificado de la CA",
+        "cert": "Certificado de usuario",
+        "key": "Clave privada",
+        "protocol": "Protocolo",
+        "group": "Grupo (IPSec ID)",
+        "private-key": "Clave privada",
+        "address": "Dirección",
+        "dns": "DNS",
+        "peer-key": "Clave pública del servidor",
+        "allowed-ips": "IP permitidas"
+      },
+      "widget-off": "Desconectada",
+      "widget-hints": "Clic: abrir VPN · Clic derecho: conectar o desconectar la VPN por defecto",
+      "auto-connected": "Se conectó {name}: esta red no es de confianza",
+      "auto-disconnected": "Se desconectó {name}: volviste a una red de confianza"
     }
   },
   "osd": {
@@ -2460,7 +2528,8 @@
         "cursor": "Cursor",
         "icons": "Iconos",
         "phone": "Teléfono",
-        "updates": "Actualizaciones"
+        "updates": "Actualizaciones",
+        "vpn": "VPN"
       },
       "modules": {
         "advanced": "Avanzado",
@@ -4891,6 +4960,26 @@
         "updates-rollback-auto-ignore": {
           "label": "Ignorar paquetes tras revertir",
           "description": "Tras revertir, ignorar los paquetes revertidos para que la siguiente revisión no los vuelva a ofrecer."
+        },
+        "vpn-auto-connect": {
+          "label": "Conectar la VPN en redes que no son de confianza",
+          "description": "Conecta sola la VPN por defecto (la de la estrella en la pestaña VPN) al entrar a una red que no está en tu lista de confianza."
+        },
+        "vpn-auto-disconnect": {
+          "label": "Desconectarla en redes de confianza",
+          "description": "Al volver a una red de confianza, desconecta la VPN si la conectó OKARU (una que conectaste tú no se toca)."
+        },
+        "vpn-trust-ethernet": {
+          "label": "Cualquier red por cable es de confianza",
+          "description": "Las conexiones por cable cuentan como de confianza aunque no estén en la lista."
+        },
+        "vpn-notify": {
+          "label": "Avisar al conectar o desconectar sola",
+          "description": "Muestra una notificación cuando la autoconexión cambia el estado de la VPN."
+        },
+        "vpn-trusted": {
+          "label": "Redes de confianza",
+          "description": "Nombres de Wi-Fi (SSID) o de conexiones donde la VPN no hace falta."
         }
       },
       "shared": {
@@ -6718,6 +6807,10 @@
         "show-count": {
           "label": "Mostrar el número",
           "description": "Muestra el número de actualizaciones pendientes junto al icono"
+        },
+        "show-name": {
+          "label": "Mostrar el nombre",
+          "description": "Escribe el nombre de la VPN conectada junto al escudo."
         }
       },
       "types": {
@@ -6760,7 +6853,8 @@
         "ports": "Red y puertos",
         "phone": "Teléfono",
         "hypr-layout": "Layout de ventanas",
-        "updates": "Actualizaciones"
+        "updates": "Actualizaciones",
+        "vpn": "VPN"
       }
     },
     "window": {

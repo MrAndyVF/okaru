@@ -1784,6 +1784,23 @@ void NetworkManagerService::refreshVpnAndActiveConnections(const std::function<v
                                   if (info.name.empty()) {
                                     info.name = info.path;
                                   }
+                                  // OKARU: uuid y protocolo (el final de vpn.service-type) para la sección VPN.
+                                  if (auto uuidIt = connIt->second.find("uuid"); uuidIt != connIt->second.end()) {
+                                    try {
+                                      info.uuid = uuidIt->second.get<std::string>();
+                                    } catch (const sdbus::Error&) {
+                                    }
+                                  }
+                                  info.type = type == "wireguard" ? std::string("wireguard") : std::string{};
+                                  if (auto vpnIt = cfg.find("vpn"); vpnIt != cfg.end() && info.type.empty()) {
+                                    if (auto svc = vpnIt->second.find("service-type"); svc != vpnIt->second.end()) {
+                                      try {
+                                        const auto service = svc->second.get<std::string>();
+                                        info.type = service.substr(service.rfind('.') + 1);
+                                      } catch (const sdbus::Error&) {
+                                      }
+                                    }
+                                  }
                                   info.active = false;
                                   vpnState->vpnPaths.insert(info.path);
                                   vpnState->vpns.push_back(std::move(info));
