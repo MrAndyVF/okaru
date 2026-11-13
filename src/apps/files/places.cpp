@@ -34,7 +34,7 @@ namespace okaru::files {
       return out;
     }
 
-    std::string glyphFor(const std::vector<std::string>& icons, bool remote) {
+    std::string_view glyphFor(const std::vector<std::string>& icons, bool remote) {
       for (const auto& name : icons) {
         if (name.contains("phone") || name.contains("multimedia-player") || name.contains("pda")) {
           return "device-mobile";
@@ -68,7 +68,7 @@ namespace okaru::files {
           value = value.substr(1, value.size() - 2);
         }
         if (value.starts_with("$HOME")) {
-          value = home + value.substr(5);
+          value.replace(0, 5, home);
         }
         return value == home ? std::string() : value; // apuntar a la personal = desactivada
       }
@@ -118,8 +118,9 @@ namespace okaru::files {
 
   Places::Places() {
     m_monitor = g_volume_monitor_get();
-    for (const char* signal : {"mount-added", "mount-removed", "mount-changed", "volume-added", "volume-removed",
-                               "volume-changed", "drive-connected", "drive-disconnected"}) {
+    for (const char* signal :
+         {"mount-added", "mount-removed", "mount-changed", "volume-added", "volume-removed", "volume-changed",
+          "drive-connected", "drive-disconnected"}) {
       g_signal_connect(m_monitor, signal, G_CALLBACK(&Places::onMonitorChanged), this);
     }
     refresh();
@@ -141,7 +142,9 @@ namespace okaru::files {
     using i18n::tr;
     m_places.clear();
     const auto add = [this](PlaceSection section, std::string name, std::string uri, std::string glyph) {
-      m_places.push_back({.section = section, .name = std::move(name), .uri = std::move(uri), .glyph = std::move(glyph)});
+      m_places.push_back(
+          {.section = section, .name = std::move(name), .uri = std::move(uri), .glyph = std::move(glyph)}
+      );
     };
 
     // Lugares: carpeta personal, recientes, carpetas XDG que existan y no sean la personal, papelera.
@@ -175,8 +178,12 @@ namespace okaru::files {
 
     // Raíz del sistema con su espacio libre.
     {
-      Place root{.section = PlaceSection::Devices, .name = tr("apps.files.places.computer"), .uri = "file:///",
-                 .glyph = "device-laptop"};
+      Place root{
+          .section = PlaceSection::Devices,
+          .name = tr("apps.files.places.computer"),
+          .uri = "file:///",
+          .glyph = "device-laptop"
+      };
       GFile* file = g_file_new_for_path("/");
       fillSpace(root, file);
       g_object_unref(file);
@@ -216,7 +223,7 @@ namespace okaru::files {
           .section = device ? PlaceSection::Devices : PlaceSection::Network,
           .name = takeString(g_mount_get_name(mount)),
           .uri = uri,
-          .glyph = glyphFor(icons, !device),
+          .glyph = std::string(glyphFor(icons, !device)),
           .id = "mount:" + uri,
           .canUnmount = g_mount_can_unmount(mount) != FALSE,
           .canEject = g_mount_can_eject(mount) != FALSE,
@@ -248,7 +255,7 @@ namespace okaru::files {
       m_places.push_back({
           .section = PlaceSection::Devices,
           .name = takeString(g_volume_get_name(volume)),
-          .glyph = glyphFor(icons, false),
+          .glyph = std::string(glyphFor(icons, false)),
           .id = volumeId(volume),
           .mounted = false,
           .canEject = g_volume_can_eject(volume) != FALSE,

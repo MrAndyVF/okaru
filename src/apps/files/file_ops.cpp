@@ -47,12 +47,10 @@ namespace okaru::files {
     OpProgress progress;
     OpResult result;
     std::uint64_t fileBase = 0; // bytes ya contados antes del archivo en curso
-    Clock::time_point lastReport{};
+    Clock::time_point lastReport;
     OperationQueue* queue = nullptr;
 
-    [[nodiscard]] bool cancelled() const {
-      return cancel->load() || g_cancellable_is_cancelled(cancellable) != FALSE;
-    }
+    [[nodiscard]] bool cancelled() const { return cancel->load() || g_cancellable_is_cancelled(cancellable) != FALSE; }
 
     void report(bool force = false) {
       const auto now = Clock::now();
@@ -89,8 +87,7 @@ namespace okaru::files {
         if (info != nullptr) {
           dir = g_file_info_get_file_type(info) == G_FILE_TYPE_DIRECTORY;
           size = static_cast<std::uint64_t>(g_file_info_get_size(info));
-          modified =
-              static_cast<std::int64_t>(g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_TIME_MODIFIED));
+          modified = static_cast<std::int64_t>(g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_TIME_MODIFIED));
           g_object_unref(info);
         }
       };
@@ -206,8 +203,9 @@ namespace okaru::files {
         // Mismo sistema de archivos: renombrar, sin copiar bytes.
         if (g_file_move(
                 source, destination,
-                static_cast<GFileCopyFlags>(G_FILE_COPY_NOFOLLOW_SYMLINKS | G_FILE_COPY_NO_FALLBACK_FOR_MOVE
-                                            | G_FILE_COPY_ALL_METADATA),
+                static_cast<GFileCopyFlags>(
+                    G_FILE_COPY_NOFOLLOW_SYMLINKS | G_FILE_COPY_NO_FALLBACK_FOR_MOVE | G_FILE_COPY_ALL_METADATA
+                ),
                 job.cancellable, nullptr, nullptr, &error
             )
             != FALSE) {
@@ -255,7 +253,8 @@ namespace okaru::files {
           FilePtr from(g_file_get_child(source, name));
           FilePtr to(g_file_get_child(destination, name));
           if (g_file_query_exists(to.get(), nullptr) != FALSE) {
-            const bool bothDirs = typeOf(from.get()) == G_FILE_TYPE_DIRECTORY && typeOf(to.get()) == G_FILE_TYPE_DIRECTORY;
+            const bool bothDirs =
+                typeOf(from.get()) == G_FILE_TYPE_DIRECTORY && typeOf(to.get()) == G_FILE_TYPE_DIRECTORY;
             if (!bothDirs) {
               const ConflictAnswer answer = job.ask(from.get(), to.get());
               if (answer.choice == ConflictChoice::Cancel) {
@@ -285,20 +284,20 @@ namespace okaru::files {
       }
 
       job.fileBase = job.progress.bytesDone;
-      const auto flags = static_cast<GFileCopyFlags>(
-          G_FILE_COPY_NOFOLLOW_SYMLINKS | G_FILE_COPY_ALL_METADATA | G_FILE_COPY_OVERWRITE
-      );
-      const bool ok =
-          (move ? g_file_move(source, destination, flags, job.cancellable, onCopyProgress, &job, &error)
-                : g_file_copy(source, destination, flags, job.cancellable, onCopyProgress, &job, &error))
+      const auto flags =
+          static_cast<GFileCopyFlags>(G_FILE_COPY_NOFOLLOW_SYMLINKS | G_FILE_COPY_ALL_METADATA | G_FILE_COPY_OVERWRITE);
+      const bool ok = (move ? g_file_move(source, destination, flags, job.cancellable, onCopyProgress, &job, &error)
+                            : g_file_copy(source, destination, flags, job.cancellable, onCopyProgress, &job, &error))
           != FALSE;
       if (!ok) {
         job.fail(source, error);
         g_clear_error(&error);
         return false;
       }
-      GFileInfo* info = g_file_query_info(destination, "standard::size", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, nullptr, nullptr);
-      job.progress.bytesDone = job.fileBase + (info != nullptr ? static_cast<std::uint64_t>(g_file_info_get_size(info)) : 0);
+      GFileInfo* info =
+          g_file_query_info(destination, "standard::size", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, nullptr, nullptr);
+      job.progress.bytesDone =
+          job.fileBase + (info != nullptr ? static_cast<std::uint64_t>(g_file_info_get_size(info)) : 0);
       if (info != nullptr) {
         g_object_unref(info);
       }
@@ -394,7 +393,7 @@ namespace okaru::files {
       job.result.record = job.request.record;
       m_busy = false;
       std::weak_ptr<int> alive = m_alive;
-      DeferredCall::callLater([this, alive, result = std::move(job.result)]() mutable {
+      DeferredCall::callLater([this, alive, result = std::move(job.result)] mutable {
         if (!alive.expired() && m_onDone) {
           m_onDone(std::move(result));
         }
@@ -445,8 +444,8 @@ namespace okaru::files {
           job.result.errors.push_back(i18n::tr("apps.files.error.into-itself", "name", nameOf(source.get())));
           continue;
         } else if (g_file_query_exists(destination.get(), nullptr) != FALSE) {
-          const bool merge = typeOf(source.get()) == G_FILE_TYPE_DIRECTORY
-              && typeOf(destination.get()) == G_FILE_TYPE_DIRECTORY;
+          const bool merge =
+              typeOf(source.get()) == G_FILE_TYPE_DIRECTORY && typeOf(destination.get()) == G_FILE_TYPE_DIRECTORY;
           const ConflictAnswer answer = job.ask(source.get(), destination.get());
           if (answer.choice == ConflictChoice::Cancel) {
             job.cancel->store(true);
@@ -529,8 +528,9 @@ namespace okaru::files {
         std::string original;
         if (uri.starts_with("trash:")) {
           trashed = fileFor(uri);
-          GFileInfo* info =
-              g_file_query_info(trashed.get(), G_FILE_ATTRIBUTE_TRASH_ORIG_PATH, G_FILE_QUERY_INFO_NONE, nullptr, nullptr);
+          GFileInfo* info = g_file_query_info(
+              trashed.get(), G_FILE_ATTRIBUTE_TRASH_ORIG_PATH, G_FILE_QUERY_INFO_NONE, nullptr, nullptr
+          );
           if (info != nullptr) {
             if (const char* orig = g_file_info_get_attribute_byte_string(info, G_FILE_ATTRIBUTE_TRASH_ORIG_PATH);
                 orig != nullptr) {
@@ -569,8 +569,10 @@ namespace okaru::files {
           }
         }
         job.progress.current = nameOf(destination.get());
-        if (g_file_move(trashed.get(), destination.get(), G_FILE_COPY_NOFOLLOW_SYMLINKS, job.cancellable, nullptr,
-                        nullptr, &error)
+        if (g_file_move(
+                trashed.get(), destination.get(), G_FILE_COPY_NOFOLLOW_SYMLINKS, job.cancellable, nullptr, nullptr,
+                &error
+            )
             == FALSE) {
           job.fail(destination.get(), error);
           g_clear_error(&error);
@@ -615,8 +617,10 @@ namespace okaru::files {
       bool ok = false;
       if (request.kind == OpKind::NewFolder) {
         ok = g_file_make_directory(file.get(), job.cancellable, &error) != FALSE;
-      } else if (GFileOutputStream* stream = g_file_create(file.get(), G_FILE_CREATE_NONE, job.cancellable, &error);
-                 stream != nullptr) {
+      } else if (
+          GFileOutputStream* stream = g_file_create(file.get(), G_FILE_CREATE_NONE, job.cancellable, &error);
+          stream != nullptr
+      ) {
         g_output_stream_close(G_OUTPUT_STREAM(stream), nullptr, nullptr);
         g_object_unref(stream);
         ok = true;
@@ -644,7 +648,8 @@ namespace okaru::files {
 
   std::vector<std::string> bulkRenameNames(const std::vector<std::string>& names, const BulkRule& rule) {
     std::vector<std::string> out;
-    const std::size_t digits = std::max<std::size_t>(2, std::to_string(rule.start + static_cast<int>(names.size()) - 1).size());
+    const std::size_t digits =
+        std::max<std::size_t>(2, std::to_string(rule.start + static_cast<int>(names.size()) - 1).size());
     for (std::size_t i = 0; i < names.size(); ++i) {
       const std::string& name = names[i];
       // La extensión se conserva (no se cuenta la de los archivos ocultos ".bashrc").
@@ -657,7 +662,8 @@ namespace okaru::files {
       switch (rule.mode) {
       case BulkMode::Replace:
         if (!rule.find.empty()) {
-          for (std::size_t at = stem.find(rule.find); at != std::string::npos; at = stem.find(rule.find, at + rule.replace.size())) {
+          for (std::size_t at = stem.find(rule.find); at != std::string::npos;
+               at = stem.find(rule.find, at + rule.replace.size())) {
             stem.replace(at, rule.find.size(), rule.replace);
           }
         }
@@ -669,7 +675,7 @@ namespace okaru::files {
         break;
       }
       case BulkMode::Affix:
-        stem = rule.prefix + stem + rule.suffix;
+        stem.insert(0, rule.prefix).append(rule.suffix);
         break;
       }
       out.push_back(stem + ext);

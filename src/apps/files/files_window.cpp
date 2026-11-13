@@ -26,16 +26,17 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <cursor-shape-v1-client-protocol.h>
 #include <filesystem>
 #include <format>
 #include <fstream>
 #include <gio/gio.h>
 #include <linux/input-event-codes.h>
+#include <pwd.h>
 #include <sstream>
 #include <thread>
 #include <toml++/toml.hpp>
-#include <pwd.h>
 #include <unistd.h>
 
 namespace okaru::files {
@@ -55,7 +56,7 @@ namespace okaru::files {
 
     std::string homeUri() { return pathToUri(g_get_home_dir()); }
 
-    std::string sortId(SortKey key) {
+    std::string_view sortId(SortKey key) {
       switch (key) {
       case SortKey::Size:
         return "size";
@@ -70,12 +71,16 @@ namespace okaru::files {
     }
 
     SortKey sortFromId(std::string_view id) {
-      return id == "size" ? SortKey::Size : id == "modified" ? SortKey::Modified : id == "type" ? SortKey::Type : SortKey::Name;
+      return id == "size"    ? SortKey::Size
+          : id == "modified" ? SortKey::Modified
+          : id == "type"     ? SortKey::Type
+                             : SortKey::Name;
     }
 
     std::string filesystemId(const std::string& uri) {
       GFile* file = g_file_new_for_uri(uri.c_str());
-      GFileInfo* info = g_file_query_info(file, G_FILE_ATTRIBUTE_ID_FILESYSTEM, G_FILE_QUERY_INFO_NONE, nullptr, nullptr);
+      GFileInfo* info =
+          g_file_query_info(file, G_FILE_ATTRIBUTE_ID_FILESYSTEM, G_FILE_QUERY_INFO_NONE, nullptr, nullptr);
       std::string out;
       if (info != nullptr) {
         if (const char* id = g_file_info_get_attribute_string(info, G_FILE_ATTRIBUTE_ID_FILESYSTEM); id != nullptr) {
@@ -93,8 +98,10 @@ namespace okaru::files {
       if (g_file_is_native(file) != FALSE) {
         GFileInfo* info = g_file_query_filesystem_info(file, "filesystem::free,filesystem::size", nullptr, nullptr);
         if (info != nullptr) {
-          out = {g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_FILESYSTEM_FREE),
-                 g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_FILESYSTEM_SIZE)};
+          out = {
+              g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_FILESYSTEM_FREE),
+              g_file_info_get_attribute_uint64(info, G_FILE_ATTRIBUTE_FILESYSTEM_SIZE)
+          };
           g_object_unref(info);
         }
       }
@@ -103,8 +110,10 @@ namespace okaru::files {
     }
 
     // Suma recursiva para Propiedades (en un hilo).
-    void countRecursive(const std::string& uri, std::uint64_t& bytes, std::size_t& files, std::size_t& folders,
-                        const std::weak_ptr<int>& alive, int depth = 0) {
+    void countRecursive(
+        const std::string& uri, std::uint64_t& bytes, std::size_t& files, std::size_t& folders,
+        const std::weak_ptr<int>& alive, int depth = 0
+    ) {
       std::vector<FileEntry> entries;
       std::string error;
       if (depth > 64 || alive.expired() || !listDirectory(uri, entries, error)) {
@@ -186,8 +195,9 @@ namespace okaru::files {
       }
       m_retiredPdfs.clear();
       if (!m_preview.pending.rgba.empty()) {
-        m_preview.texture =
-            renderer.textureManager().loadFromRgba(m_preview.pending.rgba.data(), m_preview.pending.width, m_preview.pending.height);
+        m_preview.texture = renderer.textureManager().loadFromRgba(
+            m_preview.pending.rgba.data(), m_preview.pending.width, m_preview.pending.height
+        );
         m_preview.width = m_preview.pending.width;
         m_preview.height = m_preview.pending.height;
         m_preview.pending = {};
@@ -230,8 +240,8 @@ namespace okaru::files {
       (void)highlightPlaceAt(x, y);
       m_app.invalidate();
     });
-    m_app.fileDrop().setOnDropAt([this](std::vector<std::string> paths, float x, float y, bool own) {
-      dropAt(std::move(paths), x, y, own);
+    m_app.fileDrop().setOnDropAt([this](const std::vector<std::string>& paths, float x, float y, bool own) {
+      dropAt(paths, x, y, own);
     });
     m_app.setAfterBuild([this] {
       if (m_overlay != Overlay::None && m_dialogInput != nullptr) {
@@ -245,8 +255,12 @@ namespace okaru::files {
       } else if (m_focusFind && m_findInput != nullptr) {
         m_app.focus(m_findInput->inputArea());
         m_focusFind = false;
-      } else if (m_picker && m_picker->mode == PickMode::Save && m_pickNameInput != nullptr
-                 && (m_pickNameInput->inputArea()->focused() || m_view == nullptr || !m_view->inputArea()->focused())) {
+      } else if (
+          m_picker
+          && m_picker->mode == PickMode::Save
+          && m_pickNameInput != nullptr
+          && (m_pickNameInput->inputArea()->focused() || m_view == nullptr || !m_view->inputArea()->focused())
+      ) {
         // Guardar: el nombre se escribe de entrada (y conserva el foco al reconstruir).
         if (!m_pickNameInput->inputArea()->focused()) {
           m_app.focus(m_pickNameInput->inputArea());
@@ -287,10 +301,12 @@ namespace okaru::files {
       m_dbus = bus;
       m_dbusSubscription = g_dbus_connection_signal_subscribe(
           bus, "org.kde.kdeconnect", nullptr, nullptr, nullptr, nullptr, G_DBUS_SIGNAL_FLAGS_NONE,
-          [](GDBusConnection*, const gchar*, const gchar*, const gchar* interface, const gchar*, GVariant*, gpointer self) {
+          [](GDBusConnection*, const gchar*, const gchar*, const gchar* interface, const gchar*, GVariant*,
+             gpointer self) {
             const std::string_view name = interface != nullptr ? interface : "";
             // Batería, notificaciones y demás no cambian la lista de teléfonos.
-            if (name == "org.kde.kdeconnect.daemon" || name == "org.kde.kdeconnect.device"
+            if (name == "org.kde.kdeconnect.daemon"
+                || name == "org.kde.kdeconnect.device"
                 || name == "org.kde.kdeconnect.device.sftp") {
               auto* window = static_cast<FilesWindow*>(self);
               window->m_phonesTimer.start(std::chrono::milliseconds(700), [window] { window->refreshPhones(); });
@@ -435,7 +451,9 @@ namespace okaru::files {
     t.view = {};
     t.view.revealUri = reveal;
     if (const auto it = m_folderModes.find(requested); it != m_folderModes.end()) {
-      t.mode = it->second == Mode::Grid ? ViewMode::Grid : it->second == Mode::Columns ? ViewMode::Compact : ViewMode::List;
+      t.mode = it->second == Mode::Grid ? ViewMode::Grid
+          : it->second == Mode::Columns ? ViewMode::Compact
+                                        : ViewMode::List;
     } else if (current.empty()) {
       t.mode = m_defaultMode == Mode::Grid ? ViewMode::Grid
           : m_defaultMode == Mode::Columns ? ViewMode::Compact
@@ -505,7 +523,9 @@ namespace okaru::files {
     std::vector<ColumnPane> next;
     for (std::size_t i = 0; i < chain.size(); ++i) {
       ColumnPane pane;
-      if (const auto it = std::ranges::find_if(t.columns, [&](const ColumnPane& p) { return p.model != nullptr && p.model->uri() == chain[i]; });
+      if (const auto it = std::ranges::find_if(
+              t.columns, [&](const ColumnPane& p) { return p.model != nullptr && p.model->uri() == chain[i]; }
+          );
           it != t.columns.end()) {
         pane = std::move(*it);
       } else {
@@ -566,9 +586,10 @@ namespace okaru::files {
     }
     if (m_view != nullptr) {
       m_view->setEmptyText(
-          t.model->loading()          ? ""
+          t.model->loading()              ? ""
               : !t.model->error().empty() ? t.model->error()
-              : t.model->searching()      ? (t.model->searchRunning() ? tr("apps.files.searching") : tr("apps.files.no-results"))
+              : t.model->searching()
+              ? (t.model->searchRunning() ? tr("apps.files.searching") : tr("apps.files.no-results"))
               : !t.model->filter().empty() ? tr("apps.files.no-results")
                                            : tr("apps.files.empty-folder")
       );
@@ -623,7 +644,9 @@ namespace okaru::files {
 
   bool FilesWindow::canWriteHere() const {
     const std::string& uri = m_tabs[m_active]->model->uri();
-    return !uri.starts_with("trash:") && !uri.starts_with("recent:") && !uri.starts_with("network:")
+    return !uri.starts_with("trash:")
+        && !uri.starts_with("recent:")
+        && !uri.starts_with("network:")
         && !m_tabs[m_active]->model->searching();
   }
 
@@ -745,7 +768,7 @@ namespace okaru::files {
     std::weak_ptr<int> alive = m_alive;
     std::thread([this, alive] {
       auto targets = discoverShareTargets();
-      DeferredCall::callLater([this, alive, targets = std::move(targets)]() mutable {
+      DeferredCall::callLater([this, alive, targets = std::move(targets)] mutable {
         if (alive.expired()) {
           return;
         }
@@ -774,7 +797,7 @@ namespace okaru::files {
     const bool device = target.kind == ShareKind::KdeConnect || target.kind == ShareKind::Bluetooth;
     setMessage(tr(device ? "apps.files.share.sending" : "apps.files.share.opening", "name", target.name));
     std::weak_ptr<int> alive = m_alive;
-    shareFiles(target, m_sharePaths, [this, alive, device, name = target.name](bool ok, std::string detail) {
+    shareFiles(target, m_sharePaths, [this, alive, device, name = target.name](bool ok, const std::string& detail) {
       if (alive.expired()) {
         return;
       }
@@ -798,6 +821,7 @@ namespace okaru::files {
           // Tope de texturas: se sueltan las que hace más tiempo no se dibujan.
           if (m_thumbTextures.size() >= 700) {
             std::vector<std::pair<std::uint64_t, std::string>> byAge;
+            byAge.reserve(m_thumbTextures.size());
             for (const auto& [k, t] : m_thumbTextures) {
               byAge.emplace_back(t.used, k);
             }
@@ -826,7 +850,9 @@ namespace okaru::files {
       GError* error = nullptr;
       // Vacío = quitar el atributo (G_FILE_ATTRIBUTE_TYPE_INVALID lo borra de los metadatos de gvfs).
       const gboolean ok = value.empty()
-          ? g_file_set_attribute(file, key, G_FILE_ATTRIBUTE_TYPE_INVALID, nullptr, G_FILE_QUERY_INFO_NONE, nullptr, &error)
+          ? g_file_set_attribute(
+                file, key, G_FILE_ATTRIBUTE_TYPE_INVALID, nullptr, G_FILE_QUERY_INFO_NONE, nullptr, &error
+            )
           : g_file_set_attribute_string(file, key, value.c_str(), G_FILE_QUERY_INFO_NONE, nullptr, &error);
       failed += ok == FALSE ? 1 : 0;
       g_clear_error(&error);
@@ -879,9 +905,10 @@ namespace okaru::files {
     }
     std::weak_ptr<int> alive = m_alive;
     m_chooser->open(
-        tr("apps.files.icon.choose"), {{.name = tr("apps.files.icon.filter"), .mimeTypes = {"image/png", "image/svg+xml", "image/jpeg", "image/webp"}}},
-        false,
-        [this, alive, uris](std::vector<std::string> paths) {
+        tr("apps.files.icon.choose"),
+        {{.name = tr("apps.files.icon.filter"),
+          .mimeTypes = {"image/png", "image/svg+xml", "image/jpeg", "image/webp"}}},
+        false, [this, alive, uris](std::vector<std::string> paths) {
           if (alive.expired() || paths.empty()) {
             return;
           }
@@ -912,7 +939,9 @@ namespace okaru::files {
     const PickFilter filter = m_picker->filters[m_pickFilter];
     tab().model->setPickFilter([filter](const FileEntry& e) {
       for (const auto& mime : filter.mimes) {
-        if (mime == "*" || mime == "*/*" || g_content_type_is_a(e.contentType.c_str(), mime.c_str()) != FALSE
+        if (mime == "*"
+            || mime == "*/*"
+            || g_content_type_is_a(e.contentType.c_str(), mime.c_str()) != FALSE
             || (mime.ends_with("/*") && e.contentType.starts_with(mime.substr(0, mime.size() - 1)))) {
           return true;
         }
@@ -1005,45 +1034,63 @@ namespace okaru::files {
     if (m_picker->mode == PickMode::Save) {
       // Invisible: updateStatus la necesita (y rellena el nombre al elegir un archivo).
       bar->addChild(ui::label({.out = &m_statusLabel, .text = " ", .visible = false, .participatesInLayout = false}));
-      bar->addChild(ui::label({.text = tr("apps.files.pick.name"), .fontSize = Style::fontSizeBody * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
-      bar->addChild(ui::input({
-          .out = &m_pickNameInput,
-          .value = m_pickName,
-          .fontSize = Style::fontSizeBody * scale,
-          .flexGrow = 1.0F,
-          .onChange = [this](const std::string& value) { m_pickName = value; },
-          .onSubmit = [this](const std::string&) { DeferredCall::callLater([this] { pickAccept(); }); },
-      }));
+      bar->addChild(
+          ui::label(
+              {.text = tr("apps.files.pick.name"),
+               .fontSize = Style::fontSizeBody * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+          )
+      );
+      bar->addChild(
+          ui::input({
+              .out = &m_pickNameInput,
+              .value = m_pickName,
+              .fontSize = Style::fontSizeBody * scale,
+              .flexGrow = 1.0F,
+              .onChange = [this](const std::string& value) { m_pickName = value; },
+              .onSubmit = [this](const std::string&) { DeferredCall::callLater([this] { pickAccept(); }); },
+          })
+      );
     } else {
-      bar->addChild(ui::label({.out = &m_statusLabel, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1,
-                               .flexGrow = 1.0F}));
+      bar->addChild(
+          ui::label(
+              {.out = &m_statusLabel,
+               .text = " ",
+               .fontSize = Style::fontSizeCaption * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+               .maxLines = 1,
+               .flexGrow = 1.0F}
+          )
+      );
     }
     if (m_picker->filters.size() > 1 && m_picker->mode != PickMode::Folder) {
       std::vector<std::string> names;
       for (const auto& f : m_picker->filters) {
         names.push_back(f.name);
       }
-      bar->addChild(ui::select({
-          .options = std::move(names),
-          .selectedIndex = m_pickFilter,
-          .fontSize = Style::fontSizeCaption * scale,
-          .width = 220.0F * scale,
-          .onSelectionChanged = [this](std::size_t index, std::string_view) {
-            m_pickFilter = index;
-            DeferredCall::callLater([this] { applyPickFilter(); });
-          },
-      }));
+      bar->addChild(
+          ui::select({
+              .options = std::move(names),
+              .selectedIndex = m_pickFilter,
+              .fontSize = Style::fontSizeCaption * scale,
+              .width = 220.0F * scale,
+              .onSelectionChanged = [this](std::size_t index, std::string_view) {
+                m_pickFilter = index;
+                DeferredCall::callLater([this] { applyPickFilter(); });
+              },
+          })
+      );
     }
-    bar->addChild(ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost,
-                              .onClick = [this] { DeferredCall::callLater([this] { pickFinish({}); }); }}));
+    bar->addChild(ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost, .onClick = [this] {
+                                DeferredCall::callLater([this] { pickFinish({}); });
+                              }}));
     const std::string accept = !m_picker->acceptLabel.empty() ? m_picker->acceptLabel
-        : m_picker->mode == PickMode::Save                 ? tr("apps.files.pick.save")
-        : m_picker->mode == PickMode::Folder               ? tr("apps.files.pick.choose-folder")
-                                                           : tr("apps.files.pick.open");
-    bar->addChild(ui::button({.text = accept, .variant = ButtonVariant::Primary,
-                              .onClick = [this] { DeferredCall::callLater([this] { pickAccept(); }); }}));
+        : m_picker->mode == PickMode::Save                    ? tr("apps.files.pick.save")
+        : m_picker->mode == PickMode::Folder                  ? tr("apps.files.pick.choose-folder")
+                                                              : tr("apps.files.pick.open");
+    bar->addChild(ui::button({.text = accept, .variant = ButtonVariant::Primary, .onClick = [this] {
+                                DeferredCall::callLater([this] { pickAccept(); });
+                              }}));
     return bar;
   }
 
@@ -1061,9 +1108,13 @@ namespace okaru::files {
     }
     // text/uri-list: lo entienden Nautilus, Dolphin, Thunar, navegadores y terminales.
     (void)process::runAsync({"wl-copy", "--type", "text/uri-list", "--", list.c_str()});
-    setMessage(trp(cut ? "apps.files.clipboard.cut" : "apps.files.clipboard.copied", static_cast<long>(m_clipUris.size())));
+    setMessage(
+        trp(cut ? "apps.files.clipboard.cut" : "apps.files.clipboard.copied", static_cast<long>(m_clipUris.size()))
+    );
     if (m_view != nullptr) {
-      m_view->setDimmed(m_clipCut ? std::set<std::string>(m_clipUris.begin(), m_clipUris.end()) : std::set<std::string>{});
+      m_view->setDimmed(
+          m_clipCut ? std::set<std::string>(m_clipUris.begin(), m_clipUris.end()) : std::set<std::string>{}
+      );
       m_app.invalidate();
     }
   }
@@ -1092,14 +1143,17 @@ namespace okaru::files {
     bool cut = false;
     if (types.out.contains("x-special/gnome-copied-files")) {
       // Nautilus y Thunar: primera línea "copy" o "cut".
-      const auto data = process::runSync(std::vector<std::string>{"wl-paste", "--no-newline", "--type", "x-special/gnome-copied-files"}, options);
+      const auto data = process::runSync(
+          std::vector<std::string>{"wl-paste", "--no-newline", "--type", "x-special/gnome-copied-files"}, options
+      );
       auto lines = splitLines(data.out);
       if (!lines.empty()) {
         cut = lines.front() == "cut";
         uris.assign(lines.begin() + 1, lines.end());
       }
     } else if (types.out.contains("text/uri-list")) {
-      const auto data = process::runSync(std::vector<std::string>{"wl-paste", "--no-newline", "--type", "text/uri-list"}, options);
+      const auto data =
+          process::runSync(std::vector<std::string>{"wl-paste", "--no-newline", "--type", "text/uri-list"}, options);
       uris = splitLines(data.out);
       cut = m_clipCut && uris == m_clipUris;
     }
@@ -1246,11 +1300,13 @@ namespace okaru::files {
     m_app.requestRebuild();
     const std::string folder = uriToPath(tab().model->uri());
     std::vector<std::string> names;
+    names.reserve(m_dialogUris.size());
     for (const auto& uri : m_dialogUris) {
       names.push_back(fs::path(uriToPath(uri)).filename().string());
     }
     const std::string output =
-        (fs::path(folder) / uniqueName(tab().model->uri(), name + kFormats[std::min<std::size_t>(m_compressFormat, 3)])).string();
+        (fs::path(folder) / uniqueName(tab().model->uri(), name + kFormats[std::min<std::size_t>(m_compressFormat, 3)]))
+            .string();
     setMessage(tr("apps.files.archive.compressing", "name", fs::path(output).filename().string()));
     std::weak_ptr<int> alive = m_alive;
     std::thread([this, alive, folder, names, output] {
@@ -1373,7 +1429,12 @@ namespace okaru::files {
       const std::string dir = parentUri(uri);
       targets.push_back(childUri(dir, uniqueName(dir, tr("apps.files.link-name", "name", displayNameOf(uri)))));
     }
-    submit({.kind = OpKind::Link, .sources = std::move(uris), .destination = tab().model->uri(), .targets = std::move(targets)});
+    submit(
+        {.kind = OpKind::Link,
+         .sources = std::move(uris),
+         .destination = tab().model->uri(),
+         .targets = std::move(targets)}
+    );
   }
 
   void FilesWindow::showProperties(std::vector<std::string> uris) {
@@ -1414,7 +1475,9 @@ namespace okaru::files {
         }
       }
       DeferredCall::callLater([this, alive, items, bytes, files, folders] {
-        if (alive.expired() || m_properties.uris.size() != items.size() || m_properties.uris.front() != items.front().first) {
+        if (alive.expired()
+            || m_properties.uris.size() != items.size()
+            || m_properties.uris.front() != items.front().first) {
           return;
         }
         m_properties.bytes = bytes;
@@ -1431,7 +1494,7 @@ namespace okaru::files {
 
   void FilesWindow::openTerminal(const std::string& uri) {
     std::string path = uriToPath(uri);
-    if (path.empty() || path.find("://") != std::string::npos) {
+    if (path.empty() || path.contains("://")) {
       path = g_get_home_dir();
     }
     // kitty flotante, la misma clase que el resto del sistema (Super+T); otra terminal: $TERMINAL tal cual.
@@ -1442,6 +1505,7 @@ namespace okaru::files {
       args.insert(args.end(), {"--class", "kitty-floating", "--directory", path});
     }
     std::vector<gchar*> argv;
+    argv.reserve(args.size());
     for (auto& arg : args) {
       argv.push_back(arg.data());
     }
@@ -1452,7 +1516,8 @@ namespace okaru::files {
       envp = g_environ_setenv(envp, "SHELL", account->pw_shell, TRUE);
     }
     GError* error = nullptr;
-    if (g_spawn_async(path.c_str(), argv.data(), envp, G_SPAWN_SEARCH_PATH, nullptr, nullptr, nullptr, &error) == FALSE) {
+    if (g_spawn_async(path.c_str(), argv.data(), envp, G_SPAWN_SEARCH_PATH, nullptr, nullptr, nullptr, &error)
+        == FALSE) {
       setMessage(error != nullptr ? error->message : "?", true);
       g_clear_error(&error);
     }
@@ -1512,8 +1577,12 @@ namespace okaru::files {
       float x = 0.0F;
       float y = 0.0F;
       Node::absolutePosition(row.node, x, y);
-      if (!row.uri.empty() && !row.uri.starts_with("okaru:") && sceneX >= x && sceneX < x + row.node->width()
-          && sceneY >= y && sceneY < y + row.node->height()) {
+      if (!row.uri.empty()
+          && !row.uri.starts_with("okaru:")
+          && sceneX >= x
+          && sceneX < x + row.node->width()
+          && sceneY >= y
+          && sceneY < y + row.node->height()) {
         hovered = row.uri;
       }
     }
@@ -1522,8 +1591,8 @@ namespace okaru::files {
       for (auto& row : m_placeRows) {
         row.background->setFill(
             row.uri == hovered && !hovered.empty() ? colorSpecFromRole(ColorRole::Primary, 0.32F)
-            : row.active                            ? colorSpecFromRole(ColorRole::Primary, 0.16F)
-                                                    : clearColorSpec()
+                : row.active                       ? colorSpecFromRole(ColorRole::Primary, 0.16F)
+                                                   : clearColorSpec()
         );
       }
       m_app.invalidate();
@@ -1531,7 +1600,7 @@ namespace okaru::files {
     return hovered;
   }
 
-  void FilesWindow::dropAt(std::vector<std::string> paths, float x, float y, bool own) {
+  void FilesWindow::dropAt(const std::vector<std::string>& paths, float x, float y, bool own) {
     // Destino: la carpeta bajo el puntero, una fila del panel lateral o la carpeta que se está viendo.
     std::string target = m_view != nullptr ? m_view->dropTargetAt(x, y, own) : std::string();
     if (target.empty() && m_otherView != nullptr && split()) {
@@ -1554,8 +1623,9 @@ namespace okaru::files {
     }
     (void)highlightPlaceAt(-1.0F, -1.0F);
     std::vector<std::string> uris;
+    uris.reserve(paths.size());
     for (const auto& p : paths) {
-      uris.push_back(p.find("://") != std::string::npos ? p : pathToUri(p));
+      uris.push_back(p.contains("://") ? p : pathToUri(p));
     }
     if (target.empty() || uris.empty()) {
       return;
@@ -1572,8 +1642,13 @@ namespace okaru::files {
     }
     const bool ctrl = (modifiers & KeyMod::Ctrl) != 0;
     const bool shift = (modifiers & KeyMod::Shift) != 0;
-    submit({.kind = ctrl && shift ? OpKind::Link : shift ? OpKind::Move : OpKind::Copy, .sources = std::move(uris),
-            .destination = target});
+    submit(
+        {.kind = ctrl && shift ? OpKind::Link
+             : shift           ? OpKind::Move
+                               : OpKind::Copy,
+         .sources = std::move(uris),
+         .destination = target}
+    );
   }
 
   void FilesWindow::dropExternal(const std::vector<std::string>& paths) {
@@ -1581,8 +1656,9 @@ namespace okaru::files {
       return;
     }
     std::vector<std::string> uris;
+    uris.reserve(paths.size());
     for (const auto& p : paths) {
-      uris.push_back(p.find("://") != std::string::npos ? p : pathToUri(p));
+      uris.push_back(p.contains("://") ? p : pathToUri(p));
     }
     submit({.kind = OpKind::Copy, .sources = std::move(uris), .destination = tab().model->uri()});
   }
@@ -1634,8 +1710,8 @@ namespace okaru::files {
       setMode(Mode::Grid);
       return;
     }
-    const auto it = std::ranges::lower_bound(kIconSizes, m_iconSize);
-    std::size_t index = static_cast<std::size_t>(it - kIconSizes.begin());
+    const auto* const it = std::ranges::lower_bound(kIconSizes, m_iconSize);
+    auto index = static_cast<std::size_t>(it - kIconSizes.begin());
     if (direction > 0 && index + 1 < kIconSizes.size()) {
       ++index;
     } else if (direction < 0 && index > 0) {
@@ -1680,7 +1756,7 @@ namespace okaru::files {
       const std::string name = place.name;
       std::weak_ptr<int> alive = m_alive;
       auto* operation = static_cast<GMountOperation*>(newMountOperation());
-      m_places.mount(place.id, operation, [this, alive, newTab, name](bool ok, std::string result) {
+      m_places.mount(place.id, operation, [this, alive, newTab, name](bool ok, const std::string& result) {
         if (alive.expired()) {
           return;
         }
@@ -1726,11 +1802,13 @@ namespace okaru::files {
     }
     leave(place.uri);
     auto* operation = static_cast<GMountOperation*>(newMountOperation());
-    m_places.unmount(place.id, eject, operation, [this, alive, name](bool ok, std::string error) {
+    m_places.unmount(place.id, eject, operation, [this, alive, name](bool ok, const std::string& error) {
       if (!alive.expired()) {
-        setMessage(ok ? tr("apps.files.unmount.done", "name", name)
-                      : tr("apps.files.unmount.failed", "name", name) + (error.empty() ? "" : ": " + error),
-                   !ok);
+        setMessage(
+            ok ? tr("apps.files.unmount.done", "name", name)
+               : tr("apps.files.unmount.failed", "name", name) + (error.empty() ? "" : ": " + error),
+            !ok
+        );
       }
     });
     g_object_unref(operation);
@@ -1745,7 +1823,7 @@ namespace okaru::files {
     std::weak_ptr<int> alive = m_alive;
     std::thread([this, alive] {
       auto phones = listPhones();
-      DeferredCall::callLater([this, alive, phones = std::move(phones)]() mutable {
+      DeferredCall::callLater([this, alive, phones = std::move(phones)] mutable {
         if (alive.expired()) {
           return;
         }
@@ -1763,26 +1841,31 @@ namespace okaru::files {
 
   void* FilesWindow::newMountOperation() {
     GMountOperation* op = g_mount_operation_new();
-    g_signal_connect(op, "ask-password",
-                     G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar* user, const gchar* domain,
-                                    GAskPasswordFlags flags, gpointer self) {
-                       static_cast<FilesWindow*>(self)->onAskPassword(o, message, user, domain, flags);
-                     }),
-                     this);
-    g_signal_connect(op, "ask-question",
-                     G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar** choices, gpointer self) {
-                       static_cast<FilesWindow*>(self)->onAskQuestion(o, message, choices);
-                     }),
-                     this);
-    g_signal_connect(op, "aborted", G_CALLBACK(+[](GMountOperation* o, gpointer self) {
-                       static_cast<FilesWindow*>(self)->onMountAborted(o);
-                     }),
-                     this);
+    g_signal_connect(
+        op, "ask-password",
+        G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar* user, const gchar* domain,
+                       GAskPasswordFlags flags, gpointer self) {
+          static_cast<FilesWindow*>(self)->onAskPassword(o, message, user, domain, flags);
+        }),
+        this
+    );
+    g_signal_connect(
+        op, "ask-question",
+        G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar** choices, gpointer self) {
+          static_cast<FilesWindow*>(self)->onAskQuestion(o, message, choices);
+        }),
+        this
+    );
+    g_signal_connect(
+        op, "aborted",
+        G_CALLBACK(+[](GMountOperation* o, gpointer self) { static_cast<FilesWindow*>(self)->onMountAborted(o); }), this
+    );
     return op;
   }
 
-  void FilesWindow::onAskPassword(void* operation, const char* message, const char* user, const char* domain,
-                                  unsigned flags) {
+  void FilesWindow::onAskPassword(
+      void* operation, const char* message, const char* user, const char* domain, unsigned flags
+  ) {
     if (m_mountOp != nullptr) {
       g_mount_operation_reply(G_MOUNT_OPERATION(m_mountOp), G_MOUNT_OPERATION_ABORTED);
       g_object_unref(m_mountOp);
@@ -1842,13 +1925,16 @@ namespace okaru::files {
         g_mount_operation_set_password(op, m_authPassword.c_str());
       }
       // "Recordar siempre" lo guarda gvfs en el llavero (libsecret).
-      g_mount_operation_set_password_save(op, m_authSave == 2   ? G_PASSWORD_SAVE_PERMANENTLY
-                                                : m_authSave == 1 ? G_PASSWORD_SAVE_FOR_SESSION
-                                                                  : G_PASSWORD_SAVE_NEVER);
+      g_mount_operation_set_password_save(
+          op,
+          m_authSave == 2       ? G_PASSWORD_SAVE_PERMANENTLY
+              : m_authSave == 1 ? G_PASSWORD_SAVE_FOR_SESSION
+                                : G_PASSWORD_SAVE_NEVER
+      );
     }
     g_mount_operation_reply(op, accept ? G_MOUNT_OPERATION_HANDLED : G_MOUNT_OPERATION_ABORTED);
     g_object_unref(op);
-    std::fill(m_authPassword.begin(), m_authPassword.end(), '\0');
+    std::ranges::fill(m_authPassword, '\0');
     m_authPassword.clear();
     m_overlay = Overlay::None;
     m_app.requestRebuild();
@@ -1889,12 +1975,16 @@ namespace okaru::files {
     // ¿Hay backend de gvfs para ese protocolo? Si no, decir qué paquete falta.
     const std::string protocol = address.substr(0, scheme);
     bool supported = false;
-    for (const gchar* const* s = g_vfs_get_supported_uri_schemes(g_vfs_get_default()); s != nullptr && *s != nullptr; ++s) {
+    for (const gchar* const* s = g_vfs_get_supported_uri_schemes(g_vfs_get_default()); s != nullptr && *s != nullptr;
+         ++s) {
       supported = supported || protocol == *s;
     }
     if (!supported) {
-      const std::string package = protocol == "smb" ? "gvfs-smb" : protocol == "nfs" ? "gvfs-nfs"
-          : protocol == "mtp" ? "gvfs-mtp" : protocol == "afc" ? "gvfs-afc" : "gvfs";
+      const std::string package = protocol == "smb" ? "gvfs-smb"
+          : protocol == "nfs"                       ? "gvfs-nfs"
+          : protocol == "mtp"                       ? "gvfs-mtp"
+          : protocol == "afc"                       ? "gvfs-afc"
+                                                    : "gvfs";
       setMessage(tr("apps.files.connect.missing", "scheme", protocol, "package", package), true);
       return;
     }
@@ -1981,13 +2071,19 @@ namespace okaru::files {
                           m_view->selectAll();
                         }
                       }});
-      menu.push_back({.label = tr("apps.files.menu.show-hidden"), .action = [this] { toggleHidden(); },
-                      .checked = m_options.showHidden, .check = true});
+      menu.push_back(
+          {.label = tr("apps.files.menu.show-hidden"),
+           .action = [this] { toggleHidden(); },
+           .checked = m_options.showHidden,
+           .check = true}
+      );
       const ViewOptions current = optionsFor(here);
-      menu.push_back({.label = tr("apps.files.menu.folders-first"), .action = [this] {
-                        changeSort([](ViewOptions& options) { options.foldersFirst = !options.foldersFirst; });
-                      },
-                      .checked = current.foldersFirst, .check = true});
+      menu.push_back(
+          {.label = tr("apps.files.menu.folders-first"),
+           .action = [this] { changeSort([](ViewOptions& options) { options.foldersFirst = !options.foldersFirst; }); },
+           .checked = current.foldersFirst,
+           .check = true}
+      );
       sep();
       for (const auto& [key, label] : std::array<std::pair<SortKey, const char*>, 4>{
                {{SortKey::Name, "apps.files.sort.name"},
@@ -1995,8 +2091,12 @@ namespace okaru::files {
                 {SortKey::Modified, "apps.files.sort.modified"},
                 {SortKey::Type, "apps.files.sort.type"}}
            }) {
-        menu.push_back({.label = tr(label), .action = [this, k = key] { setSort(k); }, .checked = current.sort == key,
-                        .check = true});
+        menu.push_back(
+            {.label = tr(label),
+             .action = [this, k = key] { setSort(k); },
+             .checked = current.sort == key,
+             .check = true}
+        );
       }
       sep();
       menu.push_back({tr("apps.files.menu.terminal"), [this, here] { openTerminal(here); }});
@@ -2045,13 +2145,16 @@ namespace okaru::files {
       menu.push_back({tr("apps.files.menu.copy-other"), [this, other] {
                         submit({.kind = OpKind::Copy, .sources = selectedUris(), .destination = other});
                       }});
-      menu.push_back({tr("apps.files.menu.move-other"), [this, other] {
-                        submit({.kind = OpKind::Move, .sources = selectedUris(), .destination = other});
-                      }, writable});
+      menu.push_back(
+          {tr("apps.files.menu.move-other"),
+           [this, other] { submit({.kind = OpKind::Move, .sources = selectedUris(), .destination = other}); }, writable}
+      );
     }
     menu.push_back({tr("apps.files.menu.send"), [this] { shareDialog(); }, !first.path.empty()});
     sep();
-    menu.push_back({tr(single ? "apps.files.menu.rename" : "apps.files.menu.rename-many"), [this] { startRename(); }, writable});
+    menu.push_back(
+        {tr(single ? "apps.files.menu.rename" : "apps.files.menu.rename-many"), [this] { startRename(); }, writable}
+    );
     menu.push_back({tr("apps.files.menu.link"), [this] { createLink(); }, writable});
     bool anyArchive = false;
     bool allLocal = true;
@@ -2065,8 +2168,10 @@ namespace okaru::files {
     }
     if (folder) {
       const std::string uri = first.uri;
-      menu.push_back({tr(m_places.isBookmarked(uri) ? "apps.files.menu.bookmark-remove" : "apps.files.menu.bookmark-add"),
-                      [this, uri] { toggleBookmark(uri); }});
+      menu.push_back(
+          {tr(m_places.isBookmarked(uri) ? "apps.files.menu.bookmark-remove" : "apps.files.menu.bookmark-add"),
+           [this, uri] { toggleBookmark(uri); }}
+      );
       menu.push_back({tr("apps.files.menu.terminal"), [this, uri] { openTerminal(uri); }});
     }
     bool anyFolder = false;
@@ -2092,7 +2197,7 @@ namespace okaru::files {
 
   void FilesWindow::openPlaceMenu(const Place& place, float x, float y) {
     std::vector<MenuEntry> menu;
-    const Place copy = place;
+    const Place& copy = place;
     menu.push_back({tr("apps.files.menu.open"), [this, copy] { activatePlace(copy); }});
     menu.push_back({tr("apps.files.menu.open-tab"), [this, copy] { activatePlace(copy, true); }, true});
     if (place.mounted && !place.uri.empty()) {
@@ -2100,7 +2205,9 @@ namespace okaru::files {
     }
     if (place.section == PlaceSection::Bookmarks) {
       menu.push_back({.separator = true});
-      menu.push_back({tr("apps.files.menu.bookmark-remove"), [this, uri = place.uri] { m_places.removeBookmark(uri); }});
+      menu.push_back({tr("apps.files.menu.bookmark-remove"), [this, uri = place.uri] {
+                        m_places.removeBookmark(uri);
+                      }});
     }
     if (place.uri == "trash:///") {
       menu.push_back({.separator = true});
@@ -2125,8 +2232,9 @@ namespace okaru::files {
     menu.push_back({tr("apps.files.menu.new-tab"), [this, here] { openTab(here); }});
     menu.push_back({tr("apps.files.menu.new-window"), [this, here] { newWindow(here); }});
     menu.push_back({tr("apps.files.menu.connect"), [this] { connectDialog(); }});
-    menu.push_back({.label = tr("apps.files.menu.split"), .action = [this] { toggleSplit(); }, .checked = split(),
-                    .check = true});
+    menu.push_back(
+        {.label = tr("apps.files.menu.split"), .action = [this] { toggleSplit(); }, .checked = split(), .check = true}
+    );
     menu.push_back({.separator = true});
     menu.push_back({tr("apps.files.menu.new-folder"), [this] { startNew(true); }, canWriteHere()});
     menu.push_back({tr("apps.files.menu.new-file"), [this] { startNew(false); }, canWriteHere()});
@@ -2134,19 +2242,33 @@ namespace okaru::files {
     menu.push_back({tr("apps.files.menu.undo"), [this] { m_ops.undo(); }, m_ops.canUndo()});
     menu.push_back({tr("apps.files.menu.redo"), [this] { m_ops.redo(); }, m_ops.canRedo()});
     menu.push_back({.separator = true});
-    menu.push_back({.label = tr("apps.files.menu.show-hidden"), .action = [this] { toggleHidden(); },
-                    .checked = m_options.showHidden, .check = true});
-    menu.push_back({.label = tr("apps.files.menu.sidebar"), .action = [this] {
-                      m_sidebar = !m_sidebar;
-                      m_app.requestRebuild();
-                    },
-                    .checked = m_sidebar, .check = true});
-    menu.push_back({.label = tr("apps.files.menu.thumbnails"), .action = [this] {
-                      m_thumbnails = !m_thumbnails;
-                      saveState();
-                      m_app.requestRebuild();
-                    },
-                    .checked = m_thumbnails, .check = true});
+    menu.push_back(
+        {.label = tr("apps.files.menu.show-hidden"),
+         .action = [this] { toggleHidden(); },
+         .checked = m_options.showHidden,
+         .check = true}
+    );
+    menu.push_back(
+        {.label = tr("apps.files.menu.sidebar"),
+         .action =
+             [this] {
+               m_sidebar = !m_sidebar;
+               m_app.requestRebuild();
+             },
+         .checked = m_sidebar,
+         .check = true}
+    );
+    menu.push_back(
+        {.label = tr("apps.files.menu.thumbnails"),
+         .action =
+             [this] {
+               m_thumbnails = !m_thumbnails;
+               saveState();
+               m_app.requestRebuild();
+             },
+         .checked = m_thumbnails,
+         .check = true}
+    );
     menu.push_back({tr("apps.files.menu.folder-color-all"), [this] { folderColorDialog(true); }});
     menu.push_back({.separator = true});
     menu.push_back({tr("apps.files.menu.terminal"), [this, here] { openTerminal(here); }});
@@ -2223,8 +2345,9 @@ namespace okaru::files {
     if (m_sidebar && width > 560.0F * scale) {
       body->addChild(buildSidebar(height, scale));
     }
-    body->addChild(buildBody(width - (m_sidebar && width > 560.0F * scale ? kSidebarWidth * scale : 0.0F),
-                             height, scale));
+    body->addChild(
+        buildBody(width - (m_sidebar && width > 560.0F * scale ? kSidebarWidth * scale : 0.0F), height, scale)
+    );
     main->addChild(std::move(body));
     main->addChild(m_picker ? buildPickerBar(scale) : buildStatus(width, scale));
     root->addChild(std::move(main));
@@ -2258,44 +2381,57 @@ namespace okaru::files {
         .height = 52.0F * scale,
     });
     if (width > 560.0F * scale) {
-      header->addChild(ghost("layout-sidebar", tr("apps.files.sidebar"), [this] {
-        m_sidebar = !m_sidebar;
-        m_app.requestRebuild();
-      }, true, m_sidebar));
+      header->addChild(ghost(
+          "layout-sidebar", tr("apps.files.sidebar"),
+          [this] {
+            m_sidebar = !m_sidebar;
+            m_app.requestRebuild();
+          },
+          true, m_sidebar
+      ));
     }
     header->addChild(ghost("arrow-left", tr("apps.files.back"), [this] { goBack(); }, !t.back.empty()));
     header->addChild(ghost("arrow-right", tr("apps.files.forward"), [this] { goForward(); }, !t.forward.empty()));
     header->addChild(ghost("arrow-up", tr("apps.files.up"), [this] { goUp(); }, !parentUri(t.model->uri()).empty()));
     header->addChild(buildPathBar(scale));
-    header->addChild(ghost("search", tr("apps.files.find.title"), [this] {
-      m_findOpen = !m_findOpen;
-      m_focusFind = m_findOpen;
-      if (!m_findOpen) {
-        tab().model->setFilter({});
-        tab().model->setSearch({});
-        m_findText.clear();
-      }
-      m_app.requestRebuild();
-    }, true, m_findOpen));
-    header->addChild(ui::segmented({
-        .options = std::vector<ui::SegmentedOption>{
-            {.glyph = "list", .tooltip = tr("apps.files.view.list")},
-            {.glyph = "layout-grid", .tooltip = tr("apps.files.view.grid")},
-            {.glyph = "layout-columns", .tooltip = tr("apps.files.view.columns")},
+    header->addChild(ghost(
+        "search", tr("apps.files.find.title"),
+        [this] {
+          m_findOpen = !m_findOpen;
+          m_focusFind = m_findOpen;
+          if (!m_findOpen) {
+            tab().model->setFilter({});
+            tab().model->setSearch({});
+            m_findText.clear();
+          }
+          m_app.requestRebuild();
         },
-        .selectedIndex = static_cast<std::size_t>(mode()),
-        .scale = scale,
-        .compact = true,
-        .onChange = [this](std::size_t index) {
-          DeferredCall::callLater([this, index] { setMode(static_cast<Mode>(index)); });
-        },
-    }));
-    header->addChild(ui::button({
-        .glyph = "dots-vertical",
-        .variant = ButtonVariant::Ghost,
-        .tooltip = tr("apps.files.menu.title"),
-        .onClick = [this, scale] { openMainMenu(m_width - 250.0F * scale, 48.0F * scale); },
-    }));
+        true, m_findOpen
+    ));
+    header->addChild(
+        ui::segmented({
+            .options =
+                std::vector<ui::SegmentedOption>{
+                    {.glyph = "list", .tooltip = tr("apps.files.view.list")},
+                    {.glyph = "layout-grid", .tooltip = tr("apps.files.view.grid")},
+                    {.glyph = "layout-columns", .tooltip = tr("apps.files.view.columns")},
+                },
+            .selectedIndex = static_cast<std::size_t>(mode()),
+            .scale = scale,
+            .compact = true,
+            .onChange = [this](std::size_t index) {
+              DeferredCall::callLater([this, index] { setMode(static_cast<Mode>(index)); });
+            },
+        })
+    );
+    header->addChild(
+        ui::button({
+            .glyph = "dots-vertical",
+            .variant = ButtonVariant::Ghost,
+            .tooltip = tr("apps.files.menu.title"),
+            .onClick = [this, scale] { openMainMenu(m_width - 250.0F * scale, 48.0F * scale); },
+        })
+    );
     return header;
   }
 
@@ -2312,38 +2448,42 @@ namespace okaru::files {
         .flexGrow = 1.0F,
     });
     if (m_editingPath) {
-      bar->addChild(ui::input({
-          .out = &m_pathInput,
-          .value = m_pathText,
-          .fontSize = Style::fontSizeBody * scale,
-          .frameVisible = false,
-          .flexGrow = 1.0F,
-          .onChange = [this](const std::string& value) { m_pathText = value; },
-          .onSubmit = [this](const std::string& value) {
-            GFile* file = g_file_parse_name(value.c_str());
-            char* uri = g_file_get_uri(file);
-            const std::string target = uri != nullptr ? uri : "";
-            g_free(uri);
-            g_object_unref(file);
-            DeferredCall::callLater([this, target] { navigate(target); });
-          },
-          .onKeyEvent = [this](std::uint32_t sym, std::uint32_t) -> bool {
-            if (sym == XKB_KEY_Escape) {
-              m_editingPath = false;
-              m_app.requestRebuild();
-              return true;
-            }
-            return false;
-          },
-          .onFocusLoss = [this] {
-            DeferredCall::callLater([this] {
-              if (m_editingPath && (m_pathInput == nullptr || !m_pathInput->inputArea()->focused())) {
-                m_editingPath = false;
-                m_app.requestRebuild();
-              }
-            });
-          },
-      }));
+      bar->addChild(
+          ui::input({
+              .out = &m_pathInput,
+              .value = m_pathText,
+              .fontSize = Style::fontSizeBody * scale,
+              .frameVisible = false,
+              .flexGrow = 1.0F,
+              .onChange = [this](const std::string& value) { m_pathText = value; },
+              .onSubmit =
+                  [this](const std::string& value) {
+                    GFile* file = g_file_parse_name(value.c_str());
+                    char* uri = g_file_get_uri(file);
+                    const std::string target = uri != nullptr ? uri : "";
+                    g_free(uri);
+                    g_object_unref(file);
+                    DeferredCall::callLater([this, target] { navigate(target); });
+                  },
+              .onKeyEvent = [this](std::uint32_t sym, std::uint32_t) -> bool {
+                if (sym == XKB_KEY_Escape) {
+                  m_editingPath = false;
+                  m_app.requestRebuild();
+                  return true;
+                }
+                return false;
+              },
+              .onFocusLoss =
+                  [this] {
+                    DeferredCall::callLater([this] {
+                      if (m_editingPath && (m_pathInput == nullptr || !m_pathInput->inputArea()->focused())) {
+                        m_editingPath = false;
+                        m_app.requestRebuild();
+                      }
+                    });
+                  },
+          })
+      );
       return bar;
     }
 
@@ -2357,7 +2497,9 @@ namespace okaru::files {
         break;
       }
       const std::string parent = parentUri(uri);
-      std::string name = parent.empty() ? (uri == "file:///" ? tr("apps.files.places.computer") : current == uri ? displayNameOf(uri) : displayNameOf(uri))
+      std::string name = parent.empty() ? (uri == "file:///"    ? tr("apps.files.places.computer")
+                                               : current == uri ? displayNameOf(uri)
+                                                                : displayNameOf(uri))
                                         : displayNameOf(uri);
       if (uri == "trash:///") {
         name = tr("apps.files.places.trash");
@@ -2371,30 +2513,43 @@ namespace okaru::files {
     }
     std::ranges::reverse(crumbs);
     // Con muchas migas solo caben las últimas.
-    const std::size_t maxCrumbs = std::max<std::size_t>(2, static_cast<std::size_t>((m_width - 520.0F * scale) / (110.0F * scale)));
+    const std::size_t maxCrumbs =
+        std::max<std::size_t>(2, static_cast<std::size_t>((m_width - 520.0F * scale) / (110.0F * scale)));
     const std::size_t skip = crumbs.size() > maxCrumbs ? crumbs.size() - maxCrumbs : 0;
     if (skip > 0) {
-      bar->addChild(ui::label({.text = "…", .fontSize = Style::fontSizeBody * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+      bar->addChild(
+          ui::label(
+              {.text = "…",
+               .fontSize = Style::fontSizeBody * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+          )
+      );
     }
     for (std::size_t i = skip; i < crumbs.size(); ++i) {
       const bool last = i + 1 == crumbs.size();
       if (i > skip) {
-        bar->addChild(ui::glyph({.glyph = "chevron-right", .glyphSize = 12.0F * scale,
-                                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+        bar->addChild(
+            ui::glyph(
+                {.glyph = "chevron-right",
+                 .glyphSize = 12.0F * scale,
+                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+            )
+        );
       }
       const std::string target = crumbs[i].first;
-      bar->addChild(ui::button({
-          .text = crumbs[i].second,
-          .glyph = i == 0 && target == home ? std::optional<std::string>("home") : std::nullopt,
-          .fontSize = Style::fontSizeCaption * scale,
-          .glyphSize = i == 0 && target == home ? std::optional<float>(14.0F * scale) : std::nullopt,
-          .controlHeight = (Style::controlHeightSm - 6.0F) * scale,
-          .variant = last ? ButtonVariant::Secondary : ButtonVariant::Ghost,
-          .maxWidth = 200.0F * scale,
-          .paddingH = Style::spaceSm * scale,
-          .onClick = [this, target] { DeferredCall::callLater([this, target] { navigate(target); }); },
-      }));
+      bar->addChild(
+          ui::button({
+              .text = crumbs[i].second,
+              .glyph = i == 0 && target == home ? std::optional<std::string>("home") : std::nullopt,
+              .fontSize = Style::fontSizeCaption * scale,
+              .glyphSize = i == 0 && target == home ? std::optional<float>(14.0F * scale) : std::nullopt,
+              .controlHeight = (Style::controlHeightSm - 6.0F) * scale,
+              .variant = last ? ButtonVariant::Secondary : ButtonVariant::Ghost,
+              .maxWidth = 200.0F * scale,
+              .paddingH = Style::spaceSm * scale,
+              .onClick = [this, target] { DeferredCall::callLater([this, target] { navigate(target); }); },
+          })
+      );
     }
     // Clic en el espacio libre: escribir la ruta (Ctrl+L).
     auto rest = ui::inputArea({
@@ -2419,68 +2574,75 @@ namespace okaru::files {
         .paddingV = Style::spaceXs * scale,
         .paddingH = Style::spaceMd * scale,
     });
-    bar->addChild(ui::input({
-        .out = &m_findInput,
-        .value = m_findText,
-        .placeholder = tr(m_findRecursive ? "apps.files.find.search-placeholder" : "apps.files.find.filter-placeholder"),
-        .fontSize = Style::fontSizeBody * scale,
-        .clearButtonEnabled = true,
-        .flexGrow = 1.0F,
-        .onChange = [this](const std::string& value) {
-          m_findText = value;
-          if (m_findRecursive) {
-            m_searchTimer.start(std::chrono::milliseconds(300), [this] { tab().model->setSearch(m_findText); });
-          } else {
-            tab().model->setFilter(value);
-          }
-        },
-        .onSubmit = [this](const std::string&) {
-          if (m_view != nullptr) {
-            m_app.focus(m_view->inputArea());
-            if (tab().view.selected.empty()) {
-              m_view->moveCursor(1, false);
-            }
-          }
-        },
-        .onKeyEvent = [this](std::uint32_t sym, std::uint32_t) -> bool {
-          if (sym == XKB_KEY_Escape) {
-            DeferredCall::callLater([this] {
-              m_findOpen = false;
-              m_findText.clear();
-              tab().model->setFilter({});
-              tab().model->setSearch({});
+    bar->addChild(
+        ui::input({
+            .out = &m_findInput,
+            .value = m_findText,
+            .placeholder =
+                tr(m_findRecursive ? "apps.files.find.search-placeholder" : "apps.files.find.filter-placeholder"),
+            .fontSize = Style::fontSizeBody * scale,
+            .clearButtonEnabled = true,
+            .flexGrow = 1.0F,
+            .onChange =
+                [this](const std::string& value) {
+                  m_findText = value;
+                  if (m_findRecursive) {
+                    m_searchTimer.start(std::chrono::milliseconds(300), [this] { tab().model->setSearch(m_findText); });
+                  } else {
+                    tab().model->setFilter(value);
+                  }
+                },
+            .onSubmit =
+                [this](const std::string&) {
+                  if (m_view != nullptr) {
+                    m_app.focus(m_view->inputArea());
+                    if (tab().view.selected.empty()) {
+                      m_view->moveCursor(1, false);
+                    }
+                  }
+                },
+            .onKeyEvent = [this](std::uint32_t sym, std::uint32_t) -> bool {
+              if (sym == XKB_KEY_Escape) {
+                DeferredCall::callLater([this] {
+                  m_findOpen = false;
+                  m_findText.clear();
+                  tab().model->setFilter({});
+                  tab().model->setSearch({});
+                  m_app.requestRebuild();
+                });
+                return true;
+              }
+              if (sym == XKB_KEY_Down && m_view != nullptr) {
+                m_app.focus(m_view->inputArea());
+                m_view->moveCursor(1, false);
+                return true;
+              }
+              return false;
+            },
+        })
+    );
+    bar->addChild(
+        ui::button({
+            .text = tr("apps.files.find.recursive"),
+            .glyph = "folders",
+            .fontSize = Style::fontSizeCaption * scale,
+            .selected = m_findRecursive,
+            .variant = m_findRecursive ? ButtonVariant::Secondary : ButtonVariant::Ghost,
+            .tooltip = tr("apps.files.find.recursive-hint"),
+            .onClick = [this] {
+              m_findRecursive = !m_findRecursive;
+              if (m_findRecursive) {
+                tab().model->setFilter({});
+                tab().model->setSearch(m_findText);
+              } else {
+                tab().model->setSearch({});
+                tab().model->setFilter(m_findText);
+              }
+              m_focusFind = true;
               m_app.requestRebuild();
-            });
-            return true;
-          }
-          if (sym == XKB_KEY_Down && m_view != nullptr) {
-            m_app.focus(m_view->inputArea());
-            m_view->moveCursor(1, false);
-            return true;
-          }
-          return false;
-        },
-    }));
-    bar->addChild(ui::button({
-        .text = tr("apps.files.find.recursive"),
-        .glyph = "folders",
-        .fontSize = Style::fontSizeCaption * scale,
-        .selected = m_findRecursive,
-        .variant = m_findRecursive ? ButtonVariant::Secondary : ButtonVariant::Ghost,
-        .tooltip = tr("apps.files.find.recursive-hint"),
-        .onClick = [this] {
-          m_findRecursive = !m_findRecursive;
-          if (m_findRecursive) {
-            tab().model->setFilter({});
-            tab().model->setSearch(m_findText);
-          } else {
-            tab().model->setSearch({});
-            tab().model->setFilter(m_findText);
-          }
-          m_focusFind = true;
-          m_app.requestRebuild();
-        },
-    }));
+            },
+        })
+    );
     return bar;
   }
 
@@ -2501,24 +2663,28 @@ namespace okaru::files {
     for (const Place& place : m_places.places()) {
       if (section != place.section) {
         section = place.section;
-        column->addChild(ui::label({
-            .text = tr(sectionKeys[static_cast<std::size_t>(place.section)]),
-            .fontSize = Style::fontSizeMini * scale,
-            .fontWeight = FontWeight::SemiBold,
-            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-        }));
+        column->addChild(
+            ui::label({
+                .text = tr(sectionKeys[static_cast<std::size_t>(place.section)]),
+                .fontSize = Style::fontSizeMini * scale,
+                .fontWeight = FontWeight::SemiBold,
+                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+            })
+        );
       }
       const bool active = !place.uri.empty() && place.uri == current;
       const float rowHeight = (place.total > 0 ? 40.0F : 32.0F) * scale;
       auto row = ui::node({.height = rowHeight});
       Box* background = nullptr;
-      row->addChild(ui::box({
-          .out = &background,
-          .fill = active ? colorSpecFromRole(ColorRole::Primary, 0.16F) : clearColorSpec(),
-          .radius = Style::radiusMd * scale,
-          .width = (kSidebarWidth - 2.0F * Style::spaceSm) * scale,
-          .height = rowHeight,
-      }));
+      row->addChild(
+          ui::box({
+              .out = &background,
+              .fill = active ? colorSpecFromRole(ColorRole::Primary, 0.16F) : clearColorSpec(),
+              .radius = Style::radiusMd * scale,
+              .width = (kSidebarWidth - 2.0F * Style::spaceSm) * scale,
+              .height = rowHeight,
+          })
+      );
       auto content = ui::row({
           .align = FlexAlign::Center,
           .gap = Style::spaceSm * scale,
@@ -2526,67 +2692,86 @@ namespace okaru::files {
           .width = (kSidebarWidth - 2.0F * Style::spaceSm) * scale,
           .height = rowHeight,
       });
-      content->addChild(ui::glyph({
-          .glyph = place.glyph,
-          .glyphSize = 16.0F * scale,
-          .color = colorSpecFromRole(active ? ColorRole::Primary : ColorRole::OnSurfaceVariant),
-      }));
-      auto texts = ui::column({.align = FlexAlign::Stretch, .justify = FlexJustify::Center, .gap = 3.0F * scale, .flexGrow = 1.0F});
-      texts->addChild(ui::label({
-          .text = place.name,
-          .fontSize = Style::fontSizeCaption * scale,
-          .fontWeight = active ? FontWeight::SemiBold : FontWeight::Normal,
-          .color = colorSpecFromRole(place.mounted ? ColorRole::OnSurface : ColorRole::OnSurfaceVariant),
-          .maxLines = 1,
-          .ellipsize = TextEllipsize::End,
-      }));
+      content->addChild(
+          ui::glyph({
+              .glyph = place.glyph,
+              .glyphSize = 16.0F * scale,
+              .color = colorSpecFromRole(active ? ColorRole::Primary : ColorRole::OnSurfaceVariant),
+          })
+      );
+      auto texts = ui::column(
+          {.align = FlexAlign::Stretch, .justify = FlexJustify::Center, .gap = 3.0F * scale, .flexGrow = 1.0F}
+      );
+      texts->addChild(
+          ui::label({
+              .text = place.name,
+              .fontSize = Style::fontSizeCaption * scale,
+              .fontWeight = active ? FontWeight::SemiBold : FontWeight::Normal,
+              .color = colorSpecFromRole(place.mounted ? ColorRole::OnSurface : ColorRole::OnSurfaceVariant),
+              .maxLines = 1,
+              .ellipsize = TextEllipsize::End,
+          })
+      );
       if (place.total > 0) {
-        const float used = 1.0F - static_cast<float>(static_cast<double>(place.free) / static_cast<double>(place.total));
-        texts->addChild(ui::progressBar({
-            .fill = colorSpecFromRole(used > 0.9F ? ColorRole::Error : ColorRole::Primary),
-            .track = colorSpecFromRole(ColorRole::OnSurface, 0.1F),
-            .radius = 2.0F * scale,
-            .progress = used,
-            .height = 3.0F * scale,
-        }));
+        const float used =
+            1.0F - static_cast<float>(static_cast<double>(place.free) / static_cast<double>(place.total));
+        texts->addChild(
+            ui::progressBar({
+                .fill = colorSpecFromRole(used > 0.9F ? ColorRole::Error : ColorRole::Primary),
+                .track = colorSpecFromRole(ColorRole::OnSurface, 0.1F),
+                .radius = 2.0F * scale,
+                .progress = used,
+                .height = 3.0F * scale,
+            })
+        );
       }
       content->addChild(std::move(texts));
       if (place.canEject || place.canUnmount) {
         const bool eject = place.canEject;
-        const Place target = place;
-        content->addChild(ui::button({
-            .glyph = "player-eject",
-            .glyphSize = 14.0F * scale,
-            .controlHeight = 24.0F * scale,
-            .variant = ButtonVariant::Ghost,
-            .tooltip = tr(eject ? "apps.files.menu.eject" : "apps.files.menu.unmount"),
-            .onClick = [this, target, eject] { DeferredCall::callLater([this, target, eject] { unmountPlace(target, eject); }); },
-        }));
+        const Place& target = place;
+        content->addChild(
+            ui::button({
+                .glyph = "player-eject",
+                .glyphSize = 14.0F * scale,
+                .controlHeight = 24.0F * scale,
+                .variant = ButtonVariant::Ghost,
+                .tooltip = tr(eject ? "apps.files.menu.eject" : "apps.files.menu.unmount"),
+                .onClick = [this, target, eject] {
+                  DeferredCall::callLater([this, target, eject] { unmountPlace(target, eject); });
+                },
+            })
+        );
       }
       row->addChild(std::move(content));
-      const Place copy = place;
+      const Place& copy = place;
       auto hit = ui::inputArea({
           .acceptedButtons = InputArea::buttonMask({BTN_LEFT, BTN_RIGHT, BTN_MIDDLE}),
           .tooltip = place.uri.empty() ? place.name : uriToPath(place.uri),
-          .width = (kSidebarWidth - 2.0F * Style::spaceSm) * scale - (place.canEject || place.canUnmount ? 34.0F * scale : 0.0F),
+          .width = (kSidebarWidth - 2.0F * Style::spaceSm) * scale
+              - (place.canEject || place.canUnmount ? 34.0F * scale : 0.0F),
           .height = rowHeight,
-          .onEnter = [background, active](const InputArea::PointerData&) {
-            if (!active) {
-              background->setFill(colorSpecFromRole(ColorRole::OnSurface, 0.06F));
-            }
-          },
-          .onLeave = [background, active] {
-            if (!active) {
-              background->setFill(clearColorSpec());
-            }
-          },
-          .onClick = [this, copy](const InputArea::PointerData& data) {
-            if (data.button == BTN_RIGHT) {
-              openPlaceMenu(copy, data.sceneX, data.sceneY);
-            } else {
-              DeferredCall::callLater([this, copy, tabbed = data.button == BTN_MIDDLE] { activatePlace(copy, tabbed); });
-            }
-          },
+          .onEnter =
+              [background, active](const InputArea::PointerData&) {
+                if (!active) {
+                  background->setFill(colorSpecFromRole(ColorRole::OnSurface, 0.06F));
+                }
+              },
+          .onLeave =
+              [background, active] {
+                if (!active) {
+                  background->setFill(clearColorSpec());
+                }
+              },
+          .onClick =
+              [this, copy](const InputArea::PointerData& data) {
+                if (data.button == BTN_RIGHT) {
+                  openPlaceMenu(copy, data.sceneX, data.sceneY);
+                } else {
+                  DeferredCall::callLater([this, copy, tabbed = data.button == BTN_MIDDLE] {
+                    activatePlace(copy, tabbed);
+                  });
+                }
+              },
       });
       hit->setCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER);
       row->addChild(std::move(hit));
@@ -2629,17 +2814,30 @@ namespace okaru::files {
     const bool active = tabIndex == m_active;
     auto pane = ui::column({.align = FlexAlign::Stretch, .gap = 0.0F, .flexGrow = 1.0F});
     // Encabezado del panel: su carpeta; el activo, resaltado.
-    pane->addChild(ui::row(
-        {.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingH = Style::spaceMd * scale,
-         .fill = active ? colorSpecFromRole(ColorRole::Primary, 0.14F) : colorSpecFromRole(ColorRole::SurfaceContainerLow),
-         .height = 28.0F * scale},
-        ui::glyph({.glyph = "folder", .glyphSize = 14.0F * scale,
-                   .color = colorSpecFromRole(active ? ColorRole::Primary : ColorRole::OnSurfaceVariant)}),
-        ui::label({.text = uriToPath(t.model->uri()), .fontSize = Style::fontSizeCaption * scale,
-                   .fontWeight = active ? FontWeight::SemiBold : FontWeight::Normal,
-                   .color = colorSpecFromRole(active ? ColorRole::OnSurface : ColorRole::OnSurfaceVariant),
-                   .maxLines = 1, .ellipsize = TextEllipsize::Start, .flexGrow = 1.0F})
-    ));
+    pane->addChild(
+        ui::row(
+            {.align = FlexAlign::Center,
+             .gap = Style::spaceSm * scale,
+             .paddingH = Style::spaceMd * scale,
+             .fill = active ? colorSpecFromRole(ColorRole::Primary, 0.14F)
+                            : colorSpecFromRole(ColorRole::SurfaceContainerLow),
+             .height = 28.0F * scale},
+            ui::glyph(
+                {.glyph = "folder",
+                 .glyphSize = 14.0F * scale,
+                 .color = colorSpecFromRole(active ? ColorRole::Primary : ColorRole::OnSurfaceVariant)}
+            ),
+            ui::label(
+                {.text = uriToPath(t.model->uri()),
+                 .fontSize = Style::fontSizeCaption * scale,
+                 .fontWeight = active ? FontWeight::SemiBold : FontWeight::Normal,
+                 .color = colorSpecFromRole(active ? ColorRole::OnSurface : ColorRole::OnSurfaceVariant),
+                 .maxLines = 1,
+                 .ellipsize = TextEllipsize::Start,
+                 .flexGrow = 1.0F}
+            )
+        )
+    );
     auto view = makeView(scale);
     view->setMode(t.mode == ViewMode::Compact ? ViewMode::List : t.mode);
     view->setShowLocation(t.model->searching());
@@ -2649,12 +2847,16 @@ namespace okaru::files {
     if (active) {
       view->setOnActivate([this](std::size_t) { openSelection(); });
       view->setOnSelectionChanged([this] { updateStatus(); });
-      view->setOnContextMenu([this](std::optional<std::size_t> index, float x, float y) { openContextMenu(index, x, y); });
+      view->setOnContextMenu([this](std::optional<std::size_t> index, float x, float y) {
+        openContextMenu(index, x, y);
+      });
       view->setOnSortChanged([this](SortKey key) { setSort(key); });
       m_view = view.get();
     } else {
       // Panel sin foco: cualquier clic lo activa (el clic siguiente ya actúa).
-      view->setOnSelectionChanged([this, tabIndex] { DeferredCall::callLater([this, tabIndex] { focusPane(tabIndex); }); });
+      view->setOnSelectionChanged([this, tabIndex] {
+        DeferredCall::callLater([this, tabIndex] { focusPane(tabIndex); });
+      });
       view->setOnContextMenu([this, tabIndex](std::optional<std::size_t>, float, float) {
         DeferredCall::callLater([this, tabIndex] { focusPane(tabIndex); });
       });
@@ -2729,7 +2931,9 @@ namespace okaru::files {
       }
     });
     view->setOnSelectionChanged([this] { updateStatus(); });
-    view->setOnContextMenu([this](std::optional<std::size_t> index, float x, float y) { openContextMenu(index, x, y); });
+    view->setOnContextMenu([this](std::optional<std::size_t> index, float x, float y) {
+      openContextMenu(index, x, y);
+    });
     view->setOnSortChanged([this](SortKey key) { setSort(key); });
     if (t.mode == ViewMode::Compact) {
       view->setOnSingleClick([this](std::size_t index) {
@@ -2762,14 +2966,36 @@ namespace okaru::files {
         .padding = Style::spaceMd * scale,
         .flexGrow = 1.0F,
     });
-    pane->addChild(ui::column({.out = &m_previewHost, .align = FlexAlign::Stretch, .gap = Style::spaceSm * scale,
-                               .clipChildren = true, .flexGrow = 1.0F}));
-    pane->addChild(ui::label({.out = &m_detailsName, .text = " ", .fontSize = Style::fontSizeTitle * scale,
-                              .fontWeight = FontWeight::SemiBold, .maxLines = 2, .textAlign = TextAlign::Center,
-                              .ellipsize = TextEllipsize::Middle}));
-    pane->addChild(ui::label({.out = &m_detailsInfo, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 6,
-                              .textAlign = TextAlign::Center}));
+    pane->addChild(
+        ui::column(
+            {.out = &m_previewHost,
+             .align = FlexAlign::Stretch,
+             .gap = Style::spaceSm * scale,
+             .clipChildren = true,
+             .flexGrow = 1.0F}
+        )
+    );
+    pane->addChild(
+        ui::label(
+            {.out = &m_detailsName,
+             .text = " ",
+             .fontSize = Style::fontSizeTitle * scale,
+             .fontWeight = FontWeight::SemiBold,
+             .maxLines = 2,
+             .textAlign = TextAlign::Center,
+             .ellipsize = TextEllipsize::Middle}
+        )
+    );
+    pane->addChild(
+        ui::label(
+            {.out = &m_detailsInfo,
+             .text = " ",
+             .fontSize = Style::fontSizeCaption * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+             .maxLines = 6,
+             .textAlign = TextAlign::Center}
+        )
+    );
     m_detailsScale = scale;
     // Con la vista rápida abierta, la previsualización va allí (un solo visor por documento).
     if (m_overlay != Overlay::QuickLook) {
@@ -2797,8 +3023,9 @@ namespace okaru::files {
       startPreview(nullptr);
     } else {
       const FileEntry copy = *chosen;
-      m_previewTimer.start(std::chrono::milliseconds(m_overlay == Overlay::QuickLook ? 60 : 140),
-                           [this, copy] { startPreview(&copy); });
+      m_previewTimer.start(std::chrono::milliseconds(m_overlay == Overlay::QuickLook ? 60 : 140), [this, copy] {
+        startPreview(&copy);
+      });
     }
   }
 
@@ -2814,11 +3041,15 @@ namespace okaru::files {
 
   std::unique_ptr<Node> FilesWindow::buildQuickLook(float width, float height, float scale) {
     auto overlay = ui::node({.width = width, .height = height, .zIndex = 10});
-    overlay->addChild(ui::inputArea({
-        .width = width,
-        .height = height,
-        .onClick = [this](const InputArea::PointerData&) { DeferredCall::callLater([this] { toggleQuickLook(); }); },
-    }));
+    overlay->addChild(
+        ui::inputArea({
+            .width = width,
+            .height = height,
+            .onClick = [this](const InputArea::PointerData&) {
+              DeferredCall::callLater([this] { toggleQuickLook(); });
+            },
+        })
+    );
     overlay->addChild(ui::box({.fill = colorSpecFromRole(ColorRole::Scrim, 0.55F), .width = width, .height = height}));
     const float cardW = std::round(width * 0.86F);
     const float cardH = std::round(height * 0.88F);
@@ -2833,21 +3064,49 @@ namespace okaru::files {
     });
     // La tarjeta se traga los clics (fuera de ella, cerrar).
     auto header = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .height = 36.0F * scale});
-    header->addChild(ui::label({.out = &m_quickLookName, .text = " ", .fontSize = Style::fontSizeTitle * scale,
-                                .fontWeight = FontWeight::SemiBold, .maxLines = 1, .ellipsize = TextEllipsize::Middle,
-                                .flexGrow = 1.0F}));
-    header->addChild(ui::label({.out = &m_detailsInfo, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
-    header->addChild(ui::button({.glyph = "x", .variant = ButtonVariant::Ghost, .tooltip = tr("apps.files.close"),
-                                 .onClick = [this] { DeferredCall::callLater([this] { toggleQuickLook(); }); }}));
+    header->addChild(
+        ui::label(
+            {.out = &m_quickLookName,
+             .text = " ",
+             .fontSize = Style::fontSizeTitle * scale,
+             .fontWeight = FontWeight::SemiBold,
+             .maxLines = 1,
+             .ellipsize = TextEllipsize::Middle,
+             .flexGrow = 1.0F}
+        )
+    );
+    header->addChild(
+        ui::label(
+            {.out = &m_detailsInfo,
+             .text = " ",
+             .fontSize = Style::fontSizeCaption * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+             .maxLines = 1}
+        )
+    );
+    header->addChild(
+        ui::button(
+            {.glyph = "x", .variant = ButtonVariant::Ghost, .tooltip = tr("apps.files.close"), .onClick = [this] {
+               DeferredCall::callLater([this] { toggleQuickLook(); });
+             }}
+        )
+    );
     card->addChild(std::move(header));
-    card->addChild(ui::column({.out = &m_previewHost, .align = FlexAlign::Stretch, .gap = Style::spaceSm * scale,
-                               .clipChildren = true, .flexGrow = 1.0F}));
+    card->addChild(
+        ui::column(
+            {.out = &m_previewHost,
+             .align = FlexAlign::Stretch,
+             .gap = Style::spaceSm * scale,
+             .clipChildren = true,
+             .flexGrow = 1.0F}
+        )
+    );
     m_detailsScale = scale;
     auto stack = ui::node({.width = cardW, .height = cardH});
     stack->addChild(ui::inputArea({.width = cardW, .height = cardH}));
     stack->addChild(std::move(card));
-    auto center = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .width = width, .height = height});
+    auto center =
+        ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .width = width, .height = height});
     center->addChild(std::move(stack));
     overlay->addChild(std::move(center));
     fillPreviewHost();
@@ -2912,7 +3171,7 @@ namespace okaru::files {
       m_preview.loading = true;
       std::thread([this, alive, generation, path = entry->path] {
         auto decoded = decodeImage(path, 3072);
-        DeferredCall::callLater([this, alive, generation, decoded = std::move(decoded)]() mutable {
+        DeferredCall::callLater([this, alive, generation, decoded = std::move(decoded)] mutable {
           if (alive.expired() || generation != m_preview.generation) {
             return;
           }
@@ -2961,7 +3220,7 @@ namespace okaru::files {
       m_preview.loading = true;
       std::thread([this, alive, generation, path = entry->path] {
         auto text = readTextPreview(path, 96 * 1024, 600);
-        DeferredCall::callLater([this, alive, generation, text = std::move(text)]() mutable {
+        DeferredCall::callLater([this, alive, generation, text = std::move(text)] mutable {
           if (alive.expired() || generation != m_preview.generation) {
             return;
           }
@@ -2980,8 +3239,8 @@ namespace okaru::files {
   void FilesWindow::openPreviewPdf(const std::string& path) {
     auto opened = pdf::Document::open(path);
     if (!opened) {
-      m_preview.error = tr(opened.error() == pdf::OpenError::Damaged ? "apps.files.preview.failed"
-                                                                      : "apps.files.preview.locked");
+      m_preview.error =
+          tr(opened.error() == pdf::OpenError::Damaged ? "apps.files.preview.failed" : "apps.files.preview.locked");
       return;
     }
     auto tab = std::make_unique<pdf::PdfTab>();
@@ -2995,16 +3254,18 @@ namespace okaru::files {
     tab->thumbs.resize(static_cast<std::size_t>(pages));
     tab->fit = pdf::Fit::Width;
     pdf::PdfTab* raw = tab.get();
-    tab->worker = std::make_unique<pdf::RenderWorker>(path, std::string(), [this, raw](const pdf::RenderJob& job, pdf::RenderedPage page) {
-      if (m_preview.pdf.get() != raw) {
-        return; // previsualización ya cambiada
-      }
-      raw->arrived.emplace_back(job, std::move(page));
-      if (m_pdfPreview != nullptr) {
-        m_pdfPreview->markLayoutDirty();
-      }
-      m_app.invalidate();
-    });
+    tab->worker = std::make_unique<pdf::RenderWorker>(
+        path, std::string(), [this, raw](const pdf::RenderJob& job, pdf::RenderedPage page) {
+          if (m_preview.pdf.get() != raw) {
+            return; // previsualización ya cambiada
+          }
+          raw->arrived.emplace_back(job, std::move(page));
+          if (m_pdfPreview != nullptr) {
+            m_pdfPreview->markLayoutDirty();
+          }
+          m_app.invalidate();
+        }
+    );
     m_preview.pdf = std::move(tab);
   }
 
@@ -3021,25 +3282,45 @@ namespace okaru::files {
     m_previewPage = nullptr;
     const float scale = m_detailsScale;
     const auto message = [&](std::string text, bool spinner) {
-      auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .gap = Style::spaceMd * scale,
-                             .flexGrow = 1.0F});
+      auto box = ui::column(
+          {.align = FlexAlign::Center, .justify = FlexJustify::Center, .gap = Style::spaceMd * scale, .flexGrow = 1.0F}
+      );
       if (spinner) {
-        box->addChild(ui::glyph({.glyph = "loader-2", .glyphSize = 28.0F * scale,
-                                 .color = colorSpecFromRole(ColorRole::Primary)}));
+        box->addChild(
+            ui::glyph({.glyph = "loader-2", .glyphSize = 28.0F * scale, .color = colorSpecFromRole(ColorRole::Primary)})
+        );
       }
-      box->addChild(ui::label({.text = std::move(text), .fontSize = Style::fontSizeBody * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 4,
-                               .textAlign = TextAlign::Center}));
+      box->addChild(
+          ui::label(
+              {.text = std::move(text),
+               .fontSize = Style::fontSizeBody * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+               .maxLines = 4,
+               .textAlign = TextAlign::Center}
+          )
+      );
       m_previewHost->addChild(std::move(box));
     };
     const auto ghost = [&](const char* glyph, std::string tooltip, std::function<void()> onClick) {
-      return ui::button({.glyph = glyph, .glyphSize = 16.0F * scale, .controlHeight = 30.0F * scale,
-                         .variant = ButtonVariant::Ghost, .tooltip = std::move(tooltip), .onClick = std::move(onClick)});
+      return ui::button(
+          {.glyph = glyph,
+           .glyphSize = 16.0F * scale,
+           .controlHeight = 30.0F * scale,
+           .variant = ButtonVariant::Ghost,
+           .tooltip = std::move(tooltip),
+           .onClick = std::move(onClick)}
+      );
     };
     const auto toolbar = [&](bool pages) {
-      auto bar = ui::row({.align = FlexAlign::Center, .justify = FlexJustify::Center, .gap = Style::spaceXs * scale,
-                          .paddingH = Style::spaceSm * scale, .fill = colorSpecFromRole(ColorRole::SurfaceContainerHigh),
-                          .radius = Style::radiusLg * scale, .height = 38.0F * scale});
+      auto bar = ui::row(
+          {.align = FlexAlign::Center,
+           .justify = FlexJustify::Center,
+           .gap = Style::spaceXs * scale,
+           .paddingH = Style::spaceSm * scale,
+           .fill = colorSpecFromRole(ColorRole::SurfaceContainerHigh),
+           .radius = Style::radiusLg * scale,
+           .height = 38.0F * scale}
+      );
       if (pages) {
         bar->addChild(ghost("chevron-up", tr("apps.files.preview.previous"), [this] {
           if (m_pdfPreview != nullptr && m_preview.pdf != nullptr) {
@@ -3047,9 +3328,16 @@ namespace okaru::files {
             m_app.invalidate();
           }
         }));
-        bar->addChild(ui::label({.out = &m_previewPage, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .minWidth = 64.0F * scale,
-                                 .textAlign = TextAlign::Center}));
+        bar->addChild(
+            ui::label(
+                {.out = &m_previewPage,
+                 .text = " ",
+                 .fontSize = Style::fontSizeCaption * scale,
+                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+                 .minWidth = 64.0F * scale,
+                 .textAlign = TextAlign::Center}
+            )
+        );
         bar->addChild(ghost("chevron-down", tr("apps.files.preview.next"), [this] {
           if (m_pdfPreview != nullptr && m_preview.pdf != nullptr) {
             m_pdfPreview->goToPage(m_preview.pdf->currentPage + 1);
@@ -3068,9 +3356,16 @@ namespace okaru::files {
         m_app.invalidate();
       };
       bar->addChild(ghost("zoom-out", tr("apps.files.preview.zoom-out"), [zoom] { zoom(1.0F / 1.25F); }));
-      bar->addChild(ui::label({.out = &m_previewZoom, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .minWidth = 48.0F * scale,
-                               .textAlign = TextAlign::Center}));
+      bar->addChild(
+          ui::label(
+              {.out = &m_previewZoom,
+               .text = " ",
+               .fontSize = Style::fontSizeCaption * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+               .minWidth = 48.0F * scale,
+               .textAlign = TextAlign::Center}
+          )
+      );
       bar->addChild(ghost("zoom-in", tr("apps.files.preview.zoom-in"), [zoom] { zoom(1.25F); }));
       bar->addChild(ghost("arrows-maximize", tr("apps.files.preview.fit"), [this] {
         if (m_imagePreview != nullptr) {
@@ -3082,15 +3377,17 @@ namespace okaru::files {
         m_app.invalidate();
       }));
       bar->addChild(ui::separator({.orientation = SeparatorOrientation::VerticalRule}));
-      bar->addChild(ui::button({
-          .text = tr("apps.files.preview.open"),
-          .glyph = "external-link",
-          .fontSize = Style::fontSizeCaption * scale,
-          .glyphSize = 14.0F * scale,
-          .controlHeight = 30.0F * scale,
-          .variant = ButtonVariant::Ghost,
-          .onClick = [this] { openSelection(); },
-      }));
+      bar->addChild(
+          ui::button({
+              .text = tr("apps.files.preview.open"),
+              .glyph = "external-link",
+              .fontSize = Style::fontSizeCaption * scale,
+              .glyphSize = 14.0F * scale,
+              .controlHeight = 30.0F * scale,
+              .variant = ButtonVariant::Ghost,
+              .onClick = [this] { openSelection(); },
+          })
+      );
       m_previewHost->addChild(std::move(bar));
     };
 
@@ -3100,7 +3397,9 @@ namespace okaru::files {
       if (items.size() == 1) {
         auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .flexGrow = 1.0F});
         Image* icon = nullptr;
-        box->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 128.0F * scale, .height = 128.0F * scale}));
+        box->addChild(
+            ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 128.0F * scale, .height = 128.0F * scale})
+        );
         if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
           if (const TextureHandle t = iconFor(*renderer, *items.front(), static_cast<int>(128 * scale)); t.valid()) {
             icon->setExternalTexture(*renderer, t);
@@ -3124,20 +3423,37 @@ namespace okaru::files {
       toolbar(false);
     } else if (m_preview.kind == PreviewKind::Text) {
       // Texto: monoespaciado, con desplazamiento; solo lectura.
-      auto scroll = ui::scrollView({.contentScale = scale, .fill = colorSpecFromRole(ColorRole::SurfaceContainerLow),
-                                    .radius = Style::radiusMd * scale, .flexGrow = 1.0F});
-      scroll->content()->addChild(ui::label({.text = m_preview.text.empty() ? std::string(" ") : m_preview.text,
-                                             .fontSize = Style::fontSizeCaption * scale,
-                                             .fontFamily = "monospace",
-                                             .color = colorSpecFromRole(ColorRole::OnSurface),
-                                             .maxLines = 600}));
+      auto scroll = ui::scrollView(
+          {.contentScale = scale,
+           .fill = colorSpecFromRole(ColorRole::SurfaceContainerLow),
+           .radius = Style::radiusMd * scale,
+           .flexGrow = 1.0F}
+      );
+      scroll->content()->addChild(
+          ui::label(
+              {.text = m_preview.text.empty() ? std::string(" ") : m_preview.text,
+               .fontSize = Style::fontSizeCaption * scale,
+               .fontFamily = "monospace",
+               .color = colorSpecFromRole(ColorRole::OnSurface),
+               .maxLines = 600}
+          )
+      );
       scroll->content()->setPadding(Style::spaceMd * scale);
       m_previewHost->addChild(std::move(scroll));
-      m_previewHost->addChild(ui::row({.align = FlexAlign::Center, .justify = FlexJustify::Center},
-                                      ui::button({.text = tr("apps.files.preview.open"), .glyph = "external-link",
-                                                  .fontSize = Style::fontSizeCaption * scale, .glyphSize = 14.0F * scale,
-                                                  .controlHeight = 30.0F * scale, .variant = ButtonVariant::Ghost,
-                                                  .onClick = [this] { openSelection(); }})));
+      m_previewHost->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .justify = FlexJustify::Center},
+              ui::button(
+                  {.text = tr("apps.files.preview.open"),
+                   .glyph = "external-link",
+                   .fontSize = Style::fontSizeCaption * scale,
+                   .glyphSize = 14.0F * scale,
+                   .controlHeight = 30.0F * scale,
+                   .variant = ButtonVariant::Ghost,
+                   .onClick = [this] { openSelection(); }}
+              )
+          )
+      );
     } else if (m_preview.pdf != nullptr) {
       auto view = std::make_unique<pdf::PdfView>();
       view->setFlexGrow(1.0F);
@@ -3159,7 +3475,9 @@ namespace okaru::files {
       if (items.size() == 1) {
         auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .flexGrow = 1.0F});
         Image* icon = nullptr;
-        box->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 192.0F * scale, .height = 192.0F * scale}));
+        box->addChild(
+            ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 192.0F * scale, .height = 192.0F * scale})
+        );
         if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
           if (const TextureHandle t = iconFor(*renderer, *items.front(), static_cast<int>(256 * scale)); t.valid()) {
             icon->setExternalTexture(*renderer, t);
@@ -3194,41 +3512,49 @@ namespace okaru::files {
         .fill = colorSpecFromRole(ColorRole::SurfaceContainerLow),
         .height = 30.0F * scale,
     });
-    bar->addChild(ui::label({
-        .out = &m_statusLabel,
-        .text = " ",
-        .fontSize = Style::fontSizeCaption * scale,
-        .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-        .maxLines = 1,
-        .flexGrow = 1.0F,
-    }));
-    bar->addChild(ui::label({
-        .out = &m_progressLabel,
-        .text = " ",
-        .fontSize = Style::fontSizeCaption * scale,
-        .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-        .maxWidth = 360.0F * scale,
-        .maxLines = 1,
-        .ellipsize = TextEllipsize::Middle,
-    }));
-    bar->addChild(ui::progressBar({
-        .out = &m_progressBar,
-        .fill = colorSpecFromRole(ColorRole::Primary),
-        .track = colorSpecFromRole(ColorRole::OnSurface, 0.1F),
-        .radius = 2.0F * scale,
-        .width = 140.0F * scale,
-        .height = 4.0F * scale,
-        .visible = false,
-    }));
+    bar->addChild(
+        ui::label({
+            .out = &m_statusLabel,
+            .text = " ",
+            .fontSize = Style::fontSizeCaption * scale,
+            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+            .maxLines = 1,
+            .flexGrow = 1.0F,
+        })
+    );
+    bar->addChild(
+        ui::label({
+            .out = &m_progressLabel,
+            .text = " ",
+            .fontSize = Style::fontSizeCaption * scale,
+            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+            .maxWidth = 360.0F * scale,
+            .maxLines = 1,
+            .ellipsize = TextEllipsize::Middle,
+        })
+    );
+    bar->addChild(
+        ui::progressBar({
+            .out = &m_progressBar,
+            .fill = colorSpecFromRole(ColorRole::Primary),
+            .track = colorSpecFromRole(ColorRole::OnSurface, 0.1F),
+            .radius = 2.0F * scale,
+            .width = 140.0F * scale,
+            .height = 4.0F * scale,
+            .visible = false,
+        })
+    );
     if (m_ops.busy() || m_progress) {
-      bar->addChild(ui::button({
-          .glyph = "x",
-          .glyphSize = 12.0F * scale,
-          .controlHeight = 22.0F * scale,
-          .variant = ButtonVariant::Ghost,
-          .tooltip = tr("apps.files.op.cancel"),
-          .onClick = [this] { m_ops.cancelCurrent(); },
-      }));
+      bar->addChild(
+          ui::button({
+              .glyph = "x",
+              .glyphSize = 12.0F * scale,
+              .controlHeight = 22.0F * scale,
+              .variant = ButtonVariant::Ghost,
+              .tooltip = tr("apps.files.op.cancel"),
+              .onClick = [this] { m_ops.cancelCurrent(); },
+          })
+      );
     }
     updateStatus();
     return bar;
@@ -3262,7 +3588,10 @@ namespace okaru::files {
     }
     m_statusLabel->setText(text);
     updateDetails();
-    if (m_picker && m_picker->mode == PickMode::Save && items.size() == 1 && !items.front()->directory
+    if (m_picker
+        && m_picker->mode == PickMode::Save
+        && items.size() == 1
+        && !items.front()->directory
         && m_pickNameInput != nullptr) {
       m_pickName = items.front()->display;
       m_pickNameInput->setValue(m_pickName);
@@ -3272,14 +3601,17 @@ namespace okaru::files {
     bool error = false;
     float progress = -1.0F;
     if (m_progress) {
-      static constexpr std::array<const char*, 9> kOps{
-          "apps.files.op.copy", "apps.files.op.move", "apps.files.op.link", "apps.files.op.trash", "apps.files.op.delete",
-          "apps.files.op.restore", "apps.files.op.rename", "apps.files.op.new", "apps.files.op.new"
-      };
+      static constexpr std::array<const char*, 9> kOps{"apps.files.op.copy",   "apps.files.op.move",
+                                                       "apps.files.op.link",   "apps.files.op.trash",
+                                                       "apps.files.op.delete", "apps.files.op.restore",
+                                                       "apps.files.op.rename", "apps.files.op.new",
+                                                       "apps.files.op.new"};
       right = tr(kOps[static_cast<std::size_t>(m_progress->kind)], "name", m_progress->current);
       if (m_progress->bytesTotal > 0) {
         right += "  " + formatSize(m_progress->bytesDone) + " / " + formatSize(m_progress->bytesTotal);
-        progress = static_cast<float>(static_cast<double>(m_progress->bytesDone) / static_cast<double>(m_progress->bytesTotal));
+        progress = static_cast<float>(
+            static_cast<double>(m_progress->bytesDone) / static_cast<double>(m_progress->bytesTotal)
+        );
       } else if (m_progress->itemsTotal > 0) {
         right += std::format("  {} / {}", m_progress->itemsDone, m_progress->itemsTotal);
         progress = static_cast<float>(m_progress->itemsDone) / static_cast<float>(m_progress->itemsTotal);
@@ -3304,17 +3636,19 @@ namespace okaru::files {
 
   std::unique_ptr<Node> FilesWindow::buildMenu(float width, float height, float scale) {
     auto layer = ui::node({.width = width, .height = height, .zIndex = 20});
-    layer->addChild(ui::inputArea({
-        .acceptedButtons = InputArea::buttonMask({BTN_LEFT, BTN_RIGHT, BTN_MIDDLE}),
-        .width = width,
-        .height = height,
-        .onPress = [this](const InputArea::PointerData&) {
-          DeferredCall::callLater([this] {
-            m_menu.clear();
-            m_app.requestRebuild();
-          });
-        },
-    }));
+    layer->addChild(
+        ui::inputArea({
+            .acceptedButtons = InputArea::buttonMask({BTN_LEFT, BTN_RIGHT, BTN_MIDDLE}),
+            .width = width,
+            .height = height,
+            .onPress = [this](const InputArea::PointerData&) {
+              DeferredCall::callLater([this] {
+                m_menu.clear();
+                m_app.requestRebuild();
+              });
+            },
+        })
+    );
     std::vector<ContextMenuControlEntry> entries;
     for (std::size_t i = 0; i < m_menu.size(); ++i) {
       const MenuEntry& e = m_menu[i];
@@ -3335,15 +3669,17 @@ namespace okaru::files {
     const float menuHeight = ContextMenuControl::preferredHeight(entries, entries.size(), scale);
     const float x = std::clamp(m_menuX, 4.0F, std::max(4.0F, width - menuWidth - 4.0F));
     const float y = std::clamp(m_menuY, 4.0F, std::max(4.0F, height - menuHeight - 4.0F));
-    layer->addChild(ui::box({
-        .fill = colorSpecFromRole(ColorRole::SurfaceContainerHigh),
-        .border = colorSpecFromRole(ColorRole::OutlineVariant),
-        .borderWidth = 1.0F,
-        .radius = Style::radiusLg * scale,
-        .width = menuWidth,
-        .height = menuHeight,
-        .configure = [x, y](Box& box) { box.setPosition(x, y); },
-    }));
+    layer->addChild(
+        ui::box({
+            .fill = colorSpecFromRole(ColorRole::SurfaceContainerHigh),
+            .border = colorSpecFromRole(ColorRole::OutlineVariant),
+            .borderWidth = 1.0F,
+            .radius = Style::radiusLg * scale,
+            .width = menuWidth,
+            .height = menuHeight,
+            .configure = [x, y](Box& box) { box.setPosition(x, y); },
+        })
+    );
     auto menu = std::make_unique<ContextMenuControl>();
     menu->setContentScale(scale);
     menu->setMenuWidth(menuWidth);
@@ -3388,12 +3724,25 @@ namespace okaru::files {
         .width = std::min(480.0F * scale, width - 32.0F),
     });
     const auto heading = [&](std::string text) {
-      card->addChild(ui::label({.text = std::move(text), .fontSize = Style::fontSizeTitle * scale,
-                                .fontWeight = FontWeight::SemiBold, .maxLines = 2, .ellipsize = TextEllipsize::Middle}));
+      card->addChild(
+          ui::label(
+              {.text = std::move(text),
+               .fontSize = Style::fontSizeTitle * scale,
+               .fontWeight = FontWeight::SemiBold,
+               .maxLines = 2,
+               .ellipsize = TextEllipsize::Middle}
+          )
+      );
     };
     const auto body = [&](std::string text, ColorRole role = ColorRole::OnSurfaceVariant) {
-      card->addChild(ui::label({.text = std::move(text), .fontSize = Style::fontSizeBody * scale,
-                                .color = colorSpecFromRole(role), .maxLines = 8}));
+      card->addChild(
+          ui::label(
+              {.text = std::move(text),
+               .fontSize = Style::fontSizeBody * scale,
+               .color = colorSpecFromRole(role),
+               .maxLines = 8}
+          )
+      );
     };
     const auto close = [this] {
       DeferredCall::callLater([this] {
@@ -3402,8 +3751,12 @@ namespace okaru::files {
       });
     };
     const auto buttons = [&](auto... children) {
-      card->addChild(ui::row({.align = FlexAlign::Center, .justify = FlexJustify::End, .gap = Style::spaceSm * scale},
-                             std::move(children)...));
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .justify = FlexJustify::End, .gap = Style::spaceSm * scale},
+              std::move(children)...
+          )
+      );
     };
     const auto cancelButton = [&] {
       return ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost, .onClick = close});
@@ -3412,21 +3765,34 @@ namespace okaru::files {
       if (value.empty()) {
         return;
       }
-      card->addChild(ui::row(
-          {.align = FlexAlign::Start, .gap = Style::spaceMd * scale},
-          ui::label({.text = std::move(name), .fontSize = Style::fontSizeCaption * scale,
-                     .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .width = 120.0F * scale}),
-          ui::label({.text = std::move(value), .fontSize = Style::fontSizeCaption * scale, .maxLines = 4, .flexGrow = 1.0F})
-      ));
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Start, .gap = Style::spaceMd * scale},
+              ui::label(
+                  {.text = std::move(name),
+                   .fontSize = Style::fontSizeCaption * scale,
+                   .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+                   .width = 120.0F * scale}
+              ),
+              ui::label(
+                  {.text = std::move(value),
+                   .fontSize = Style::fontSizeCaption * scale,
+                   .maxLines = 4,
+                   .flexGrow = 1.0F}
+              )
+          )
+      );
     };
 
     switch (m_overlay) {
     case Overlay::Rename:
     case Overlay::NewFolder:
     case Overlay::NewFile: {
-      heading(tr(m_overlay == Overlay::Rename ? "apps.files.rename.title"
+      heading(
+          tr(m_overlay == Overlay::Rename          ? "apps.files.rename.title"
                  : m_overlay == Overlay::NewFolder ? "apps.files.new.folder-title"
-                                                   : "apps.files.new.file-title"));
+                                                   : "apps.files.new.file-title")
+      );
       const auto submit = [this] {
         std::string name = trimmed(m_dialogText);
         if (name.empty() || name.contains('/') || name == "." || name == "..") {
@@ -3439,49 +3805,67 @@ namespace okaru::files {
             this->submit({.kind = OpKind::Rename, .sources = {m_dialogTarget}, .destination = name});
           }
         } else {
-          this->submit({.kind = kind == Overlay::NewFolder ? OpKind::NewFolder : OpKind::NewFile,
-                        .destination = m_dialogTarget, .name = name});
+          this->submit(
+              {.kind = kind == Overlay::NewFolder ? OpKind::NewFolder : OpKind::NewFile,
+               .destination = m_dialogTarget,
+               .name = name}
+          );
         }
         m_app.requestRebuild();
       };
       const bool invalid = m_dialogText.contains('/');
-      card->addChild(ui::input({
-          .out = &m_dialogInput,
-          .value = m_dialogText,
-          .fontSize = Style::fontSizeBody * scale,
-          .invalid = invalid,
-          .onChange = [this](const std::string& value) { m_dialogText = value; },
-          .onSubmit = [submit](const std::string&) { DeferredCall::callLater(submit); },
-          .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
-            if (sym == XKB_KEY_Escape) {
-              close();
-              return true;
-            }
-            return false;
-          },
-      }));
-      buttons(cancelButton(), ui::button({
-          .text = tr(m_overlay == Overlay::Rename ? "apps.files.rename.action" : "apps.files.new.action"),
-          .variant = ButtonVariant::Primary,
-          .onClick = [submit] { DeferredCall::callLater(submit); },
-      }));
+      card->addChild(
+          ui::input({
+              .out = &m_dialogInput,
+              .value = m_dialogText,
+              .fontSize = Style::fontSizeBody * scale,
+              .invalid = invalid,
+              .onChange = [this](const std::string& value) { m_dialogText = value; },
+              .onSubmit = [submit](const std::string&) { DeferredCall::callLater(submit); },
+              .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+                if (sym == XKB_KEY_Escape) {
+                  close();
+                  return true;
+                }
+                return false;
+              },
+          })
+      );
+      buttons(
+          cancelButton(),
+          ui::button({
+              .text = tr(m_overlay == Overlay::Rename ? "apps.files.rename.action" : "apps.files.new.action"),
+              .variant = ButtonVariant::Primary,
+              .onClick = [submit] { DeferredCall::callLater(submit); },
+          })
+      );
       break;
     }
     case Overlay::Conflict: {
       const Conflict& c = *m_conflict;
       const bool merge = c.sourceIsDir && c.destinationIsDir;
-      heading(tr(merge ? "apps.files.conflict.folder-title" : "apps.files.conflict.title", "name", displayNameOf(c.destination)));
-      body(tr("apps.files.conflict.body", "folder", displayNameOf(parentUri(c.destination))));
-      info(tr("apps.files.conflict.existing"),
-           (c.destinationIsDir ? std::string() : formatSize(c.destinationSize) + " · ") + formatDate(c.destinationModified));
-      info(tr("apps.files.conflict.incoming"),
-           (c.sourceIsDir ? std::string() : formatSize(c.sourceSize) + " · ") + formatDate(c.sourceModified));
-      card->addChild(ui::row(
-          {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
-          ui::checkbox({.checked = m_conflictAll, .scale = scale,
-                        .onChange = [this](bool value) { m_conflictAll = value; }}),
-          ui::label({.text = tr("apps.files.conflict.all"), .fontSize = Style::fontSizeBody * scale})
+      heading(tr(
+          merge ? "apps.files.conflict.folder-title" : "apps.files.conflict.title", "name", displayNameOf(c.destination)
       ));
+      body(tr("apps.files.conflict.body", "folder", displayNameOf(parentUri(c.destination))));
+      info(
+          tr("apps.files.conflict.existing"),
+          (c.destinationIsDir ? std::string() : formatSize(c.destinationSize) + " · ")
+              + formatDate(c.destinationModified)
+      );
+      info(
+          tr("apps.files.conflict.incoming"),
+          (c.sourceIsDir ? std::string() : formatSize(c.sourceSize) + " · ") + formatDate(c.sourceModified)
+      );
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+              ui::checkbox(
+                  {.checked = m_conflictAll, .scale = scale, .onChange = [this](bool value) { m_conflictAll = value; }}
+              ),
+              ui::label({.text = tr("apps.files.conflict.all"), .fontSize = Style::fontSizeBody * scale})
+          )
+      );
       const auto answer = [this](ConflictChoice choice) {
         return [this, choice] {
           DeferredCall::callLater([this, choice] {
@@ -3495,55 +3879,78 @@ namespace okaru::files {
         };
       };
       buttons(
-          ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost, .onClick = answer(ConflictChoice::Cancel)}),
-          ui::button({.text = tr("apps.files.conflict.skip"), .variant = ButtonVariant::Ghost, .onClick = answer(ConflictChoice::Skip)}),
-          ui::button({.text = tr("apps.files.conflict.keep-both"), .variant = ButtonVariant::Secondary,
-                      .onClick = answer(ConflictChoice::KeepBoth)}),
-          ui::button({.text = tr(merge ? "apps.files.conflict.merge" : "apps.files.conflict.replace"),
-                      .variant = ButtonVariant::Primary, .onClick = answer(ConflictChoice::Replace)})
+          ui::button(
+              {.text = tr("apps.files.cancel"),
+               .variant = ButtonVariant::Ghost,
+               .onClick = answer(ConflictChoice::Cancel)}
+          ),
+          ui::button(
+              {.text = tr("apps.files.conflict.skip"),
+               .variant = ButtonVariant::Ghost,
+               .onClick = answer(ConflictChoice::Skip)}
+          ),
+          ui::button(
+              {.text = tr("apps.files.conflict.keep-both"),
+               .variant = ButtonVariant::Secondary,
+               .onClick = answer(ConflictChoice::KeepBoth)}
+          ),
+          ui::button(
+              {.text = tr(merge ? "apps.files.conflict.merge" : "apps.files.conflict.replace"),
+               .variant = ButtonVariant::Primary,
+               .onClick = answer(ConflictChoice::Replace)}
+          )
       );
       break;
     }
     case Overlay::ConfirmDelete: {
-      heading(trp("apps.files.delete.title", static_cast<long>(m_dialogUris.size()),
-                  "name", m_dialogUris.empty() ? std::string() : displayNameOf(m_dialogUris.front())));
+      heading(
+          trp("apps.files.delete.title", static_cast<long>(m_dialogUris.size()), "name",
+              m_dialogUris.empty() ? std::string() : displayNameOf(m_dialogUris.front()))
+      );
       body(m_dialogText.empty() ? tr("apps.files.delete.body") : m_dialogText);
-      buttons(cancelButton(), ui::button({
-          .text = tr("apps.files.delete.action"),
-          .variant = ButtonVariant::Destructive,
-          .onClick = [this] {
-            DeferredCall::callLater([this] {
-              m_overlay = Overlay::None;
-              submit({.kind = OpKind::Delete, .sources = m_dialogUris});
-              m_app.requestRebuild();
-            });
-          },
-      }));
+      buttons(
+          cancelButton(),
+          ui::button({
+              .text = tr("apps.files.delete.action"),
+              .variant = ButtonVariant::Destructive,
+              .onClick = [this] {
+                DeferredCall::callLater([this] {
+                  m_overlay = Overlay::None;
+                  submit({.kind = OpKind::Delete, .sources = m_dialogUris});
+                  m_app.requestRebuild();
+                });
+              },
+          })
+      );
       break;
     }
     case Overlay::ConfirmEmptyTrash: {
       heading(tr("apps.files.empty-trash.title"));
       body(tr("apps.files.empty-trash.body"));
-      buttons(cancelButton(), ui::button({
-          .text = tr("apps.files.empty-trash.action"),
-          .variant = ButtonVariant::Destructive,
-          .onClick = [this] {
-            DeferredCall::callLater([this] {
-              m_overlay = Overlay::None;
-              std::vector<FileEntry> entries;
-              std::string error;
-              (void)listDirectory("trash:///", entries, error);
-              std::vector<std::string> uris;
-              for (const auto& e : entries) {
-                uris.push_back(e.uri);
-              }
-              if (!uris.empty()) {
-                submit({.kind = OpKind::Delete, .sources = std::move(uris)});
-              }
-              m_app.requestRebuild();
-            });
-          },
-      }));
+      buttons(
+          cancelButton(),
+          ui::button({
+              .text = tr("apps.files.empty-trash.action"),
+              .variant = ButtonVariant::Destructive,
+              .onClick = [this] {
+                DeferredCall::callLater([this] {
+                  m_overlay = Overlay::None;
+                  std::vector<FileEntry> entries;
+                  std::string error;
+                  (void)listDirectory("trash:///", entries, error);
+                  std::vector<std::string> uris;
+                  uris.reserve(entries.size());
+                  for (const auto& e : entries) {
+                    uris.push_back(e.uri);
+                  }
+                  if (!uris.empty()) {
+                    submit({.kind = OpKind::Delete, .sources = std::move(uris)});
+                  }
+                  m_app.requestRebuild();
+                });
+              },
+          })
+      );
       break;
     }
     case Overlay::Properties: {
@@ -3563,15 +3970,23 @@ namespace okaru::files {
       if (single) {
         auto top = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale});
         Image* icon = nullptr;
-        top->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 48.0F * scale, .height = 48.0F * scale}));
+        top->addChild(
+            ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 48.0F * scale, .height = 48.0F * scale})
+        );
         if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
           if (const TextureHandle t = iconFor(*renderer, e, static_cast<int>(64 * scale)); t.valid()) {
             icon->setExternalTexture(*renderer, t);
           }
         }
-        top->addChild(ui::label({.text = e.display.empty() ? displayNameOf(p.uris.front()) : e.display,
-                                 .fontSize = Style::fontSizeTitle * scale, .fontWeight = FontWeight::SemiBold,
-                                 .maxLines = 3, .flexGrow = 1.0F}));
+        top->addChild(
+            ui::label(
+                {.text = e.display.empty() ? displayNameOf(p.uris.front()) : e.display,
+                 .fontSize = Style::fontSizeTitle * scale,
+                 .fontWeight = FontWeight::SemiBold,
+                 .maxLines = 3,
+                 .flexGrow = 1.0F}
+            )
+        );
         card->addChild(std::move(top));
         info(tr("apps.files.prop.type"), e.typeName);
         info(tr("apps.files.prop.location"), uriToPath(parentUri(p.uris.front())));
@@ -3592,11 +4007,16 @@ namespace okaru::files {
       if (single) {
         info(tr("apps.files.prop.modified"), formatDate(e.modified));
         if (e.mode != 0) {
-          info(tr("apps.files.prop.permissions"), formatPermissions(e.mode) + (e.owner.empty() ? "" : "  · " + e.owner));
+          info(
+              tr("apps.files.prop.permissions"), formatPermissions(e.mode) + (e.owner.empty() ? "" : "  · " + e.owner)
+          );
         }
       }
       if (p.total > 0) {
-        info(tr("apps.files.prop.free"), tr("apps.files.prop.free-value", "free", formatSize(p.free), "total", formatSize(p.total)));
+        info(
+            tr("apps.files.prop.free"),
+            tr("apps.files.prop.free-value", "free", formatSize(p.free), "total", formatSize(p.total))
+        );
       }
       buttons(ui::button({.text = tr("apps.files.close"), .variant = ButtonVariant::Primary, .onClick = close}));
       break;
@@ -3606,17 +4026,26 @@ namespace okaru::files {
       auto list = ui::column({.align = FlexAlign::Stretch, .gap = 2.0F * scale});
       Renderer* renderer = m_app.renderer();
       for (const auto& app : m_openWith) {
-        auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingH = Style::spaceSm * scale,
-                            .height = 36.0F * scale});
+        auto row = ui::row(
+            {.align = FlexAlign::Center,
+             .gap = Style::spaceSm * scale,
+             .paddingH = Style::spaceSm * scale,
+             .height = 36.0F * scale}
+        );
         Image* icon = nullptr;
-        row->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 24.0F * scale, .height = 24.0F * scale}));
+        row->addChild(
+            ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 24.0F * scale, .height = 24.0F * scale})
+        );
         if (renderer != nullptr && icon != nullptr && !app.icon.empty()) {
-          if (const TextureHandle t = m_icons.named(*renderer, {app.icon, "application-x-executable"}, static_cast<int>(32 * scale));
+          if (const TextureHandle t =
+                  m_icons.named(*renderer, {app.icon, "application-x-executable"}, static_cast<int>(32 * scale));
               t.valid()) {
             icon->setExternalTexture(*renderer, t);
           }
         }
-        row->addChild(ui::label({.text = app.name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1, .flexGrow = 1.0F}));
+        row->addChild(
+            ui::label({.text = app.name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1, .flexGrow = 1.0F})
+        );
         auto hit = ui::inputArea({
             .height = 36.0F * scale,
             .flexGrow = 1.0F,
@@ -3626,31 +4055,44 @@ namespace okaru::files {
         });
         hit->setCursorShape(WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER);
         auto stack = ui::node({.height = 36.0F * scale});
-        stack->addChild(ui::box({.fill = colorSpecFromRole(ColorRole::OnSurface, 0.04F), .radius = Style::radiusMd * scale,
-                                 .width = std::min(480.0F * scale, width - 32.0F) - 2.0F * Style::spaceLg * scale,
-                                 .height = 36.0F * scale}));
+        stack->addChild(
+            ui::box(
+                {.fill = colorSpecFromRole(ColorRole::OnSurface, 0.04F),
+                 .radius = Style::radiusMd * scale,
+                 .width = std::min(480.0F * scale, width - 32.0F) - 2.0F * Style::spaceLg * scale,
+                 .height = 36.0F * scale}
+            )
+        );
         row->setSize(std::min(480.0F * scale, width - 32.0F) - 2.0F * Style::spaceLg * scale, 36.0F * scale);
         stack->addChild(std::move(row));
         hit->setSize(std::min(480.0F * scale, width - 32.0F) - 2.0F * Style::spaceLg * scale, 36.0F * scale);
         stack->addChild(std::move(hit));
         list->addChild(std::move(stack));
       }
-      auto scroll = ui::scrollView({.contentScale = scale, .height = std::min(360.0F * scale, height - 220.0F * scale)});
+      auto scroll =
+          ui::scrollView({.contentScale = scale, .height = std::min(360.0F * scale, height - 220.0F * scale)});
       scroll->content()->addChild(std::move(list));
       card->addChild(std::move(scroll));
-      card->addChild(ui::row(
-          {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
-          ui::checkbox({.checked = m_openWithDefault, .scale = scale,
-                        .onChange = [this](bool value) { m_openWithDefault = value; }}),
-          ui::label({.text = tr("apps.files.open-with.default"), .fontSize = Style::fontSizeBody * scale})
-      ));
+      card->addChild(
+          ui::row(
+              {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+              ui::checkbox(
+                  {.checked = m_openWithDefault,
+                   .scale = scale,
+                   .onChange = [this](bool value) { m_openWithDefault = value; }}
+              ),
+              ui::label({.text = tr("apps.files.open-with.default"), .fontSize = Style::fontSizeBody * scale})
+          )
+      );
       buttons(cancelButton());
       break;
     }
     case Overlay::FolderColor: {
-      heading(m_colorTargets.empty() ? tr("apps.files.color.title-all")
-                                     : trp("apps.files.color.title", static_cast<long>(m_colorTargets.size()), "name",
-                                           displayNameOf(m_colorTargets.front())));
+      heading(
+          m_colorTargets.empty() ? tr("apps.files.color.title-all")
+                                 : trp("apps.files.color.title", static_cast<long>(m_colorTargets.size()), "name",
+                                       displayNameOf(m_colorTargets.front()))
+      );
       if (m_colorTargets.empty()) {
         body(tr("apps.files.color.body-all"));
       }
@@ -3674,25 +4116,37 @@ namespace okaru::files {
       for (const auto& swatch : swatches) {
         auto cell = ui::node({.width = dot, .height = dot});
         Box* ring = nullptr;
-        cell->addChild(ui::box({.out = &ring, .fill = swatch.fill,
-                                .border = colorSpecFromRole(swatch.id == current ? ColorRole::OnSurface : ColorRole::OutlineVariant),
-                                .borderWidth = swatch.id == current ? 3.0F * scale : 1.0F, .radius = dot * 0.5F,
-                                .width = dot, .height = dot}));
+        cell->addChild(
+            ui::box(
+                {.out = &ring,
+                 .fill = swatch.fill,
+                 .border = colorSpecFromRole(swatch.id == current ? ColorRole::OnSurface : ColorRole::OutlineVariant),
+                 .borderWidth = swatch.id == current ? 3.0F * scale : 1.0F,
+                 .radius = dot * 0.5F,
+                 .width = dot,
+                 .height = dot}
+            )
+        );
         if (swatch.glyph != nullptr) {
-          auto icon = ui::glyph({.glyph = swatch.glyph, .glyphSize = 16.0F * scale,
-                                 .color = colorSpecFromRole(swatch.id == "accent" ? ColorRole::OnPrimary : ColorRole::OnSurfaceVariant)});
+          auto icon = ui::glyph(
+              {.glyph = swatch.glyph,
+               .glyphSize = 16.0F * scale,
+               .color = colorSpecFromRole(swatch.id == "accent" ? ColorRole::OnPrimary : ColorRole::OnSurfaceVariant)}
+          );
           icon->setPosition(dot * 0.5F - 8.0F * scale, dot * 0.5F - 8.0F * scale);
           cell->addChild(std::move(icon));
         }
-        cell->addChild(ui::inputArea({
-            .cursorShape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER,
-            .tooltip = swatch.label,
-            .width = dot,
-            .height = dot,
-            .onClick = [this, id = swatch.id](const InputArea::PointerData&) {
-              DeferredCall::callLater([this, id] { setFolderColor(id); });
-            },
-        }));
+        cell->addChild(
+            ui::inputArea({
+                .cursorShape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER,
+                .tooltip = swatch.label,
+                .width = dot,
+                .height = dot,
+                .onClick = [this, id = swatch.id](const InputArea::PointerData&) {
+                  DeferredCall::callLater([this, id] { setFolderColor(id); });
+                },
+            })
+        );
         grid->addChild(std::move(cell));
       }
       card->addChild(std::move(grid));
@@ -3716,28 +4170,37 @@ namespace okaru::files {
       };
       const bool anonymous = m_authAnonymous && (m_authFlags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED) != 0;
       if ((m_authFlags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED) != 0) {
-        card->addChild(ui::row(
-            {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
-            ui::checkbox({.checked = m_authAnonymous, .scale = scale, .onChange = [this](bool value) {
-                            m_authAnonymous = value;
-                            m_app.requestRebuild();
-                          }}),
-            ui::label({.text = tr("apps.files.auth.anonymous"), .fontSize = Style::fontSizeBody * scale})
-        ));
+        card->addChild(
+            ui::row(
+                {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+                ui::checkbox(
+                    {.checked = m_authAnonymous,
+                     .scale = scale,
+                     .onChange =
+                         [this](bool value) {
+                           m_authAnonymous = value;
+                           m_app.requestRebuild();
+                         }}
+                ),
+                ui::label({.text = tr("apps.files.auth.anonymous"), .fontSize = Style::fontSizeBody * scale})
+            )
+        );
       }
       Input** first = &m_dialogInput;
       const auto field = [&](std::string placeholder, std::string& value, bool password) {
         Input* created = nullptr;
-        card->addChild(ui::input({
-            .out = &created,
-            .value = value,
-            .placeholder = std::move(placeholder),
-            .fontSize = Style::fontSizeBody * scale,
-            .passwordMode = password,
-            .onChange = [&value](const std::string& v) { value = v; },
-            .onSubmit = [submit](const std::string&) { submit(); },
-            .onKeyEvent = escape,
-        }));
+        card->addChild(
+            ui::input({
+                .out = &created,
+                .value = value,
+                .placeholder = std::move(placeholder),
+                .fontSize = Style::fontSizeBody * scale,
+                .passwordMode = password,
+                .onChange = [&value](const std::string& v) { value = v; },
+                .onSubmit = [submit](const std::string&) { submit(); },
+                .onKeyEvent = escape,
+            })
+        );
         if (*first == nullptr) {
           *first = created;
         }
@@ -3754,30 +4217,41 @@ namespace okaru::files {
           field(tr("apps.files.auth.domain"), m_authDomain, false);
         }
         if ((m_authFlags & G_ASK_PASSWORD_NEED_PASSWORD) != 0) {
-          field(tr((m_authFlags & G_ASK_PASSWORD_TCRYPT) != 0 ? "apps.files.auth.passphrase" : "apps.files.auth.password"),
-                m_authPassword, true);
+          field(
+              tr((m_authFlags & G_ASK_PASSWORD_TCRYPT) != 0 ? "apps.files.auth.passphrase"
+                                                            : "apps.files.auth.password"),
+              m_authPassword, true
+          );
         }
         // Con el usuario ya puesto, el cursor va directo a la contraseña.
         if (m_authPasswordInput != nullptr && !m_authUser.empty()) {
           m_dialogInput = m_authPasswordInput;
         }
         if ((m_authFlags & G_ASK_PASSWORD_SAVING_SUPPORTED) != 0) {
-          card->addChild(ui::segmented({
-              .options = std::vector<ui::SegmentedOption>{
-                  {.label = tr("apps.files.auth.save-never")},
-                  {.label = tr("apps.files.auth.save-session")},
-                  {.label = tr("apps.files.auth.save-forever")},
-              },
-              .selectedIndex = m_authSave,
-              .fontSize = Style::fontSizeCaption * scale,
-              .scale = scale,
-              .onChange = [this](std::size_t index) { m_authSave = index; },
-          }));
+          card->addChild(
+              ui::segmented({
+                  .options =
+                      std::vector<ui::SegmentedOption>{
+                          {.label = tr("apps.files.auth.save-never")},
+                          {.label = tr("apps.files.auth.save-session")},
+                          {.label = tr("apps.files.auth.save-forever")},
+                      },
+                  .selectedIndex = m_authSave,
+                  .fontSize = Style::fontSizeCaption * scale,
+                  .scale = scale,
+                  .onChange = [this](std::size_t index) { m_authSave = index; },
+              })
+          );
         }
       }
-      buttons(ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost,
-                          .onClick = [this] { DeferredCall::callLater([this] { replyPassword(false); }); }}),
-              ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit}));
+      buttons(
+          ui::button(
+              {.text = tr("apps.files.cancel"),
+               .variant = ButtonVariant::Ghost,
+               .onClick = [this] { DeferredCall::callLater([this] { replyPassword(false); }); }}
+          ),
+          ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit})
+      );
       break;
     }
     case Overlay::Question: {
@@ -3786,13 +4260,17 @@ namespace okaru::files {
       if (newline != std::string::npos) {
         body(m_authMessage.substr(newline + 1));
       }
-      auto row = ui::row({.align = FlexAlign::Center, .justify = FlexJustify::End, .wrap = true, .gap = Style::spaceSm * scale});
+      auto row = ui::row(
+          {.align = FlexAlign::Center, .justify = FlexJustify::End, .wrap = true, .gap = Style::spaceSm * scale}
+      );
       for (std::size_t i = 0; i < m_questionChoices.size(); ++i) {
-        row->addChild(ui::button({
-            .text = m_questionChoices[i],
-            .variant = i + 1 == m_questionChoices.size() ? ButtonVariant::Primary : ButtonVariant::Ghost,
-            .onClick = [this, i] { DeferredCall::callLater([this, i] { replyQuestion(static_cast<int>(i)); }); },
-        }));
+        row->addChild(
+            ui::button({
+                .text = m_questionChoices[i],
+                .variant = i + 1 == m_questionChoices.size() ? ButtonVariant::Primary : ButtonVariant::Ghost,
+                .onClick = [this, i] { DeferredCall::callLater([this, i] { replyQuestion(static_cast<int>(i)); }); },
+            })
+        );
       }
       card->addChild(std::move(row));
       break;
@@ -3800,25 +4278,28 @@ namespace okaru::files {
     case Overlay::Connect: {
       heading(tr("apps.files.connect.title"));
       const auto submit = [this] { DeferredCall::callLater([this] { connectToServer(m_connectText); }); };
-      card->addChild(ui::input({
-          .out = &m_dialogInput,
-          .value = m_connectText,
-          .placeholder = "smb://servidor/carpeta · sftp://usuario@equipo",
-          .fontSize = Style::fontSizeBody * scale,
-          .onChange = [this](const std::string& value) { m_connectText = value; },
-          .onSubmit = [submit](const std::string&) { submit(); },
-          .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
-            if (sym == XKB_KEY_Escape) {
-              close();
-              return true;
-            }
-            return false;
-          },
-      }));
+      card->addChild(
+          ui::input({
+              .out = &m_dialogInput,
+              .value = m_connectText,
+              .placeholder = "smb://servidor/carpeta · sftp://usuario@equipo",
+              .fontSize = Style::fontSizeBody * scale,
+              .onChange = [this](const std::string& value) { m_connectText = value; },
+              .onSubmit = [submit](const std::string&) { submit(); },
+              .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+                if (sym == XKB_KEY_Escape) {
+                  close();
+                  return true;
+                }
+                return false;
+              },
+          })
+      );
       // Protocolos que hay en este equipo (backends de gvfs).
       std::string schemes;
       for (const char* wanted : {"smb", "sftp", "ftp", "davs", "dav", "nfs", "afp"}) {
-        for (const gchar* const* sc = g_vfs_get_supported_uri_schemes(g_vfs_get_default()); sc != nullptr && *sc != nullptr; ++sc) {
+        for (const gchar* const* sc = g_vfs_get_supported_uri_schemes(g_vfs_get_default());
+             sc != nullptr && *sc != nullptr; ++sc) {
           if (std::string_view(*sc) == wanted) {
             schemes += (schemes.empty() ? "" : ", ") + std::string(wanted) + "://";
           }
@@ -3826,62 +4307,79 @@ namespace okaru::files {
       }
       body(tr("apps.files.connect.available", "schemes", schemes));
       if (!m_recentServers.empty()) {
-        card->addChild(ui::label({.text = tr("apps.files.connect.recent"), .fontSize = Style::fontSizeCaption * scale,
-                                  .fontWeight = FontWeight::SemiBold, .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+        card->addChild(
+            ui::label(
+                {.text = tr("apps.files.connect.recent"),
+                 .fontSize = Style::fontSizeCaption * scale,
+                 .fontWeight = FontWeight::SemiBold,
+                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+            )
+        );
         for (const auto& server : m_recentServers) {
-          card->addChild(ui::button({
-              .text = server,
-              .glyph = "server-2",
-              .fontSize = Style::fontSizeCaption * scale,
-              .contentAlign = ButtonContentAlign::Start,
-              .variant = ButtonVariant::Ghost,
-              .onClick = [this, server] { DeferredCall::callLater([this, server] { connectToServer(server); }); },
-          }));
+          card->addChild(
+              ui::button({
+                  .text = server,
+                  .glyph = "server-2",
+                  .fontSize = Style::fontSizeCaption * scale,
+                  .contentAlign = ButtonContentAlign::Start,
+                  .variant = ButtonVariant::Ghost,
+                  .onClick = [this, server] { DeferredCall::callLater([this, server] { connectToServer(server); }); },
+              })
+          );
         }
       }
-      buttons(cancelButton(), ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit}));
+      buttons(
+          cancelButton(),
+          ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit})
+      );
       break;
     }
     case Overlay::BulkRename: {
       heading(trp("apps.files.bulk.title", static_cast<long>(m_bulkUris.size())));
-      card->addChild(ui::segmented({
-          .options = std::vector<ui::SegmentedOption>{
-              {.label = tr("apps.files.bulk.replace")},
-              {.label = tr("apps.files.bulk.number")},
-              {.label = tr("apps.files.bulk.affix")},
-          },
-          .selectedIndex = static_cast<std::size_t>(m_bulk.mode),
-          .fontSize = Style::fontSizeCaption * scale,
-          .scale = scale,
-          .onChange = [this](std::size_t index) {
-            DeferredCall::callLater([this, index] {
-              m_bulk.mode = static_cast<BulkMode>(index);
-              m_focusDialog = true;
-              m_app.requestRebuild();
-            });
-          },
-      }));
+      card->addChild(
+          ui::segmented({
+              .options =
+                  std::vector<ui::SegmentedOption>{
+                      {.label = tr("apps.files.bulk.replace")},
+                      {.label = tr("apps.files.bulk.number")},
+                      {.label = tr("apps.files.bulk.affix")},
+                  },
+              .selectedIndex = static_cast<std::size_t>(m_bulk.mode),
+              .fontSize = Style::fontSizeCaption * scale,
+              .scale = scale,
+              .onChange = [this](std::size_t index) {
+                DeferredCall::callLater([this, index] {
+                  m_bulk.mode = static_cast<BulkMode>(index);
+                  m_focusDialog = true;
+                  m_app.requestRebuild();
+                });
+              },
+          })
+      );
       const auto apply = [this] { DeferredCall::callLater([this] { applyBulkRename(); }); };
       const auto field = [&](std::string placeholder, std::string& value, bool first) {
         Input* created = nullptr;
-        card->addChild(ui::input({
-            .out = &created,
-            .value = value,
-            .placeholder = std::move(placeholder),
-            .fontSize = Style::fontSizeBody * scale,
-            .onChange = [this, &value](const std::string& v) {
-              value = v;
-              updateBulkPreview();
-            },
-            .onSubmit = [apply](const std::string&) { apply(); },
-            .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
-              if (sym == XKB_KEY_Escape) {
-                close();
-                return true;
-              }
-              return false;
-            },
-        }));
+        card->addChild(
+            ui::input({
+                .out = &created,
+                .value = value,
+                .placeholder = std::move(placeholder),
+                .fontSize = Style::fontSizeBody * scale,
+                .onChange =
+                    [this, &value](const std::string& v) {
+                      value = v;
+                      updateBulkPreview();
+                    },
+                .onSubmit = [apply](const std::string&) { apply(); },
+                .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+                  if (sym == XKB_KEY_Escape) {
+                    close();
+                    return true;
+                  }
+                  return false;
+                },
+            })
+        );
         if (first) {
           m_dialogInput = created;
         }
@@ -3895,18 +4393,29 @@ namespace okaru::files {
         field(tr("apps.files.bulk.base"), m_bulk.base, true);
         const std::string startText = std::to_string(m_bulk.start);
         Input* startInput = nullptr;
-        card->addChild(ui::row(
-            {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
-            ui::label({.text = tr("apps.files.bulk.start"), .fontSize = Style::fontSizeBody * scale,
-                       .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}),
-            ui::input({.out = &startInput, .value = startText, .fontSize = Style::fontSizeBody * scale,
-                       .width = 90.0F * scale,
-                       .onChange = [this](const std::string& v) {
-                         m_bulk.start = std::max(0, std::atoi(v.c_str()));
-                         updateBulkPreview();
-                       },
-                       .onSubmit = [apply](const std::string&) { apply(); }})
-        ));
+        card->addChild(
+            ui::row(
+                {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+                ui::label(
+                    {.text = tr("apps.files.bulk.start"),
+                     .fontSize = Style::fontSizeBody * scale,
+                     .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+                ),
+                ui::input(
+                    {.out = &startInput,
+                     .value = startText,
+                     .fontSize = Style::fontSizeBody * scale,
+                     .width = 90.0F * scale,
+                     .onChange =
+                         [this](const std::string& v) {
+                           m_bulk.start =
+                               static_cast<int>(std::clamp(std::strtol(v.c_str(), nullptr, 10), 0L, 1000000L));
+                           updateBulkPreview();
+                         },
+                     .onSubmit = [apply](const std::string&) { apply(); }}
+                )
+            )
+        );
         break;
       }
       case BulkMode::Affix:
@@ -3914,59 +4423,89 @@ namespace okaru::files {
         field(tr("apps.files.bulk.suffix"), m_bulk.suffix, false);
         break;
       }
-      card->addChild(ui::label({.out = &m_bulkPreview, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                                .fontFamily = "monospace", .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-                                .maxLines = 12, .ellipsize = TextEllipsize::Middle}));
-      buttons(cancelButton(), ui::button({.out = &m_bulkApply, .text = tr("apps.files.rename.action"),
-                                          .variant = ButtonVariant::Primary, .onClick = apply}));
+      card->addChild(
+          ui::label(
+              {.out = &m_bulkPreview,
+               .text = " ",
+               .fontSize = Style::fontSizeCaption * scale,
+               .fontFamily = "monospace",
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+               .maxLines = 12,
+               .ellipsize = TextEllipsize::Middle}
+          )
+      );
+      buttons(
+          cancelButton(),
+          ui::button(
+              {.out = &m_bulkApply,
+               .text = tr("apps.files.rename.action"),
+               .variant = ButtonVariant::Primary,
+               .onClick = apply}
+          )
+      );
       updateBulkPreview();
       break;
     }
     case Overlay::Compress: {
       heading(trp("apps.files.archive.title", static_cast<long>(m_dialogUris.size())));
       const auto submit = [this] { DeferredCall::callLater([this] { compressSelection(); }); };
-      card->addChild(ui::input({
-          .out = &m_dialogInput,
-          .value = m_dialogText,
-          .placeholder = tr("apps.files.archive.name"),
-          .fontSize = Style::fontSizeBody * scale,
-          .onChange = [this](const std::string& value) { m_dialogText = value; },
-          .onSubmit = [submit](const std::string&) { submit(); },
-          .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
-            if (sym == XKB_KEY_Escape) {
-              close();
-              return true;
-            }
-            return false;
-          },
-      }));
-      card->addChild(ui::segmented({
-          .options = std::vector<ui::SegmentedOption>{{.label = ".zip"}, {.label = ".tar.gz"}, {.label = ".tar.xz"}, {.label = ".7z"}},
-          .selectedIndex = m_compressFormat,
-          .fontSize = Style::fontSizeCaption * scale,
-          .scale = scale,
-          .onChange = [this](std::size_t index) { m_compressFormat = index; },
-      }));
+      card->addChild(
+          ui::input({
+              .out = &m_dialogInput,
+              .value = m_dialogText,
+              .placeholder = tr("apps.files.archive.name"),
+              .fontSize = Style::fontSizeBody * scale,
+              .onChange = [this](const std::string& value) { m_dialogText = value; },
+              .onSubmit = [submit](const std::string&) { submit(); },
+              .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+                if (sym == XKB_KEY_Escape) {
+                  close();
+                  return true;
+                }
+                return false;
+              },
+          })
+      );
+      card->addChild(
+          ui::segmented({
+              .options =
+                  std::vector<ui::SegmentedOption>{
+                      {.label = ".zip"}, {.label = ".tar.gz"}, {.label = ".tar.xz"}, {.label = ".7z"}
+                  },
+              .selectedIndex = m_compressFormat,
+              .fontSize = Style::fontSizeCaption * scale,
+              .scale = scale,
+              .onChange = [this](std::size_t index) { m_compressFormat = index; },
+          })
+      );
       body(tr("apps.files.archive.hint"));
-      buttons(cancelButton(), ui::button({.text = tr("apps.files.archive.action"), .variant = ButtonVariant::Primary,
-                                          .onClick = submit}));
+      buttons(
+          cancelButton(),
+          ui::button({.text = tr("apps.files.archive.action"), .variant = ButtonVariant::Primary, .onClick = submit})
+      );
       break;
     }
     case Overlay::ConfirmReplace: {
       heading(tr("apps.files.pick.replace-title", "name", displayNameOf(m_dialogTarget)));
       body(tr("apps.files.pick.replace-body"));
-      buttons(cancelButton(), ui::button({.text = tr("apps.files.conflict.replace"), .variant = ButtonVariant::Destructive,
-                                          .onClick = [this] {
-                                            DeferredCall::callLater([this] {
-                                              m_overlay = Overlay::None;
-                                              pickAccept(true);
-                                            });
-                                          }}));
+      buttons(
+          cancelButton(),
+          ui::button(
+              {.text = tr("apps.files.conflict.replace"), .variant = ButtonVariant::Destructive, .onClick = [this] {
+                 DeferredCall::callLater([this] {
+                   m_overlay = Overlay::None;
+                   pickAccept(true);
+                 });
+               }}
+          )
+      );
       break;
     }
     case Overlay::Share: {
-      heading(trp("apps.files.share.title", static_cast<long>(m_sharePaths.size()), "name",
-                  m_sharePaths.empty() ? std::string() : fs::path(m_sharePaths.front()).filename().string()));
+      heading(
+          trp("apps.files.share.title", static_cast<long>(m_sharePaths.size()), "name",
+              m_sharePaths.empty() ? std::string() : fs::path(m_sharePaths.front()).filename().string())
+      );
       if (m_shareSearching) {
         body(tr("apps.files.share.searching"));
       } else if (m_shareTargets.empty()) {
@@ -3976,26 +4515,48 @@ namespace okaru::files {
       for (const auto& target : m_shareTargets) {
         auto stack = ui::node({.height = 40.0F * scale});
         Box* background = nullptr;
-        stack->addChild(ui::box({.out = &background, .fill = colorSpecFromRole(ColorRole::OnSurface, 0.04F),
-                                 .radius = Style::radiusMd * scale, .width = rowWidth, .height = 40.0F * scale}));
-        auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale, .paddingH = Style::spaceMd * scale,
-                            .width = rowWidth, .height = 40.0F * scale});
-        row->addChild(ui::glyph({.glyph = target.glyph, .glyphSize = 18.0F * scale,
-                                 .color = colorSpecFromRole(ColorRole::Primary)}));
-        row->addChild(ui::label({.text = std::to_string(&target - m_shareTargets.data() + 1) + "  " + target.name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1,
-                                 .ellipsize = TextEllipsize::End, .flexGrow = 1.0F}));
+        stack->addChild(
+            ui::box(
+                {.out = &background,
+                 .fill = colorSpecFromRole(ColorRole::OnSurface, 0.04F),
+                 .radius = Style::radiusMd * scale,
+                 .width = rowWidth,
+                 .height = 40.0F * scale}
+            )
+        );
+        auto row = ui::row(
+            {.align = FlexAlign::Center,
+             .gap = Style::spaceMd * scale,
+             .paddingH = Style::spaceMd * scale,
+             .width = rowWidth,
+             .height = 40.0F * scale}
+        );
+        row->addChild(
+            ui::glyph(
+                {.glyph = target.glyph, .glyphSize = 18.0F * scale, .color = colorSpecFromRole(ColorRole::Primary)}
+            )
+        );
+        row->addChild(
+            ui::label(
+                {.text = std::to_string(&target - m_shareTargets.data() + 1) + "  " + target.name,
+                 .fontSize = Style::fontSizeBody * scale,
+                 .maxLines = 1,
+                 .ellipsize = TextEllipsize::End,
+                 .flexGrow = 1.0F}
+            )
+        );
         stack->addChild(std::move(row));
         auto hit = ui::inputArea({
             .cursorShape = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_POINTER,
             .width = rowWidth,
             .height = 40.0F * scale,
-            .onEnter = [background](const InputArea::PointerData&) {
-              background->setFill(colorSpecFromRole(ColorRole::Primary, 0.16F));
-            },
+            .onEnter = [background](
+                           const InputArea::PointerData&
+                       ) { background->setFill(colorSpecFromRole(ColorRole::Primary, 0.16F)); },
             .onLeave = [background] { background->setFill(colorSpecFromRole(ColorRole::OnSurface, 0.04F)); },
-            .onClick = [this, target](const InputArea::PointerData&) {
-              DeferredCall::callLater([this, target] { sendTo(target); });
-            },
+            .onClick = [this, target](
+                           const InputArea::PointerData&
+                       ) { DeferredCall::callLater([this, target] { sendTo(target); }); },
         });
         stack->addChild(std::move(hit));
         card->addChild(std::move(stack));
@@ -4017,11 +4578,13 @@ namespace okaru::files {
       break;
     }
     case Overlay::None:
+    case Overlay::QuickLook: // se construye antes, en buildQuickLook
       break;
     }
 
     // Centrada.
-    auto center = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .width = width, .height = height});
+    auto center =
+        ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .width = width, .height = height});
     center->addChild(std::move(card));
     overlay->addChild(std::move(center));
     return overlay;
@@ -4030,12 +4593,10 @@ namespace okaru::files {
   // ── Teclado ────────────────────────────────────────────────────────────────────────────────────────
 
   bool FilesWindow::textFocused() const {
-    for (const Input* input : {m_pathInput, m_findInput, m_dialogInput, m_pickNameInput}) {
-      if (input != nullptr && input->inputArea()->focused()) {
-        return true;
-      }
-    }
-    return false;
+    return std::ranges::any_of(
+        std::initializer_list<const Input*>{m_pathInput, m_findInput, m_dialogInput, m_pickNameInput},
+        [](const Input* input) { return input != nullptr && input->inputArea()->focused(); }
+    );
   }
 
   bool FilesWindow::onKey(const KeyboardEvent& event) {
@@ -4066,9 +4627,10 @@ namespace okaru::files {
         toggleQuickLook();
         return true;
       }
-      if (m_view != nullptr && mods == 0
+      if (m_view != nullptr
+          && mods == 0
           && (sym == XKB_KEY_Up || sym == XKB_KEY_Down || sym == XKB_KEY_Left || sym == XKB_KEY_Right)) {
-        const int cols = tab().mode == ViewMode::Grid ? std::max(1, static_cast<int>(m_view->columnsCount())) : 1;
+        const int cols = tab().mode == ViewMode::Grid ? std::max(1, m_view->columnsCount()) : 1;
         const int step = sym == XKB_KEY_Down ? cols : sym == XKB_KEY_Up ? -cols : sym == XKB_KEY_Right ? 1 : -1;
         m_view->moveCursor(step, false);
         return true;
@@ -4093,7 +4655,9 @@ namespace okaru::files {
         m_app.requestRebuild();
         return true;
       }
-      if (m_overlay == Overlay::Share && sym >= XKB_KEY_1 && sym <= XKB_KEY_9
+      if (m_overlay == Overlay::Share
+          && sym >= XKB_KEY_1
+          && sym <= XKB_KEY_9
           && static_cast<std::size_t>(sym - XKB_KEY_1) < m_shareTargets.size()) {
         const ShareTarget target = m_shareTargets[sym - XKB_KEY_1];
         sendTo(target);
@@ -4162,7 +4726,8 @@ namespace okaru::files {
       activateTab((m_active + 1) % m_tabs.size());
       return true;
     }
-    if ((key(XKB_KEY_ISO_Left_Tab, KeyMod::Ctrl | KeyMod::Shift) || key(XKB_KEY_Tab, KeyMod::Ctrl | KeyMod::Shift)
+    if ((key(XKB_KEY_ISO_Left_Tab, KeyMod::Ctrl | KeyMod::Shift)
+         || key(XKB_KEY_Tab, KeyMod::Ctrl | KeyMod::Shift)
          || key(XKB_KEY_Prior, KeyMod::Ctrl))
         && m_tabs.size() > 1) {
       activateTab((m_active + m_tabs.size() - 1) % m_tabs.size());
@@ -4220,7 +4785,8 @@ namespace okaru::files {
       m_view->selectAll();
       return true;
     }
-    if ((key(XKB_KEY_I, KeyMod::Ctrl | KeyMod::Shift) || key(XKB_KEY_i, KeyMod::Ctrl | KeyMod::Shift)) && m_view != nullptr) {
+    if ((key(XKB_KEY_I, KeyMod::Ctrl | KeyMod::Shift) || key(XKB_KEY_i, KeyMod::Ctrl | KeyMod::Shift))
+        && m_view != nullptr) {
       m_view->invertSelection();
       return true;
     }
@@ -4240,7 +4806,8 @@ namespace okaru::files {
       m_ops.undo();
       return true;
     }
-    if (key(XKB_KEY_Z, KeyMod::Ctrl | KeyMod::Shift) || key(XKB_KEY_z, KeyMod::Ctrl | KeyMod::Shift)
+    if (key(XKB_KEY_Z, KeyMod::Ctrl | KeyMod::Shift)
+        || key(XKB_KEY_z, KeyMod::Ctrl | KeyMod::Shift)
         || key(XKB_KEY_y, KeyMod::Ctrl)) {
       m_ops.redo();
       return true;
@@ -4266,7 +4833,9 @@ namespace okaru::files {
       setMode(static_cast<Mode>(sym - XKB_KEY_1));
       return true;
     }
-    if (key(XKB_KEY_plus, KeyMod::Ctrl) || key(XKB_KEY_equal, KeyMod::Ctrl) || key(XKB_KEY_KP_Add, KeyMod::Ctrl)
+    if (key(XKB_KEY_plus, KeyMod::Ctrl)
+        || key(XKB_KEY_equal, KeyMod::Ctrl)
+        || key(XKB_KEY_KP_Add, KeyMod::Ctrl)
         || key(XKB_KEY_plus, KeyMod::Ctrl | KeyMod::Shift)) {
       zoom(1);
       return true;
@@ -4367,12 +4936,9 @@ namespace okaru::files {
   void FilesWindow::saveState() {
     const auto modeId = [](Mode m) { return m == Mode::Grid ? "grid" : m == Mode::Columns ? "columns" : "list"; };
     toml::table view{
-        {"mode", modeId(m_defaultMode)},
-        {"icon_size", static_cast<double>(m_iconSize)},
-        {"sidebar", m_sidebar},
-        {"show_hidden", m_options.showHidden},
-        {"thumbnails", m_thumbnails},
-        {"folder_color", m_icons.defaultFolderColor()},
+        {"mode", modeId(m_defaultMode)}, {"icon_size", static_cast<double>(m_iconSize)},
+        {"sidebar", m_sidebar},          {"show_hidden", m_options.showHidden},
+        {"thumbnails", m_thumbnails},    {"folder_color", m_icons.defaultFolderColor()},
     };
     toml::table folders;
     for (const auto& [uri, m] : m_folderModes) {
@@ -4380,14 +4946,20 @@ namespace okaru::files {
     }
     toml::table sorts;
     for (const auto& [uri, options] : m_folderSorts) {
-      sorts.insert(uri, toml::table{{"by", sortId(options.sort)}, {"descending", options.descending},
-                                    {"folders_first", options.foldersFirst}});
+      sorts.insert(
+          uri,
+          toml::table{
+              {"by", sortId(options.sort)}, {"descending", options.descending}, {"folders_first", options.foldersFirst}
+          }
+      );
     }
     toml::array servers;
     for (const auto& server : m_recentServers) {
       servers.push_back(server);
     }
-    toml::table root{{"view", view}, {"folders", folders}, {"sort", sorts}, {"servers", toml::table{{"recent", servers}}}};
+    toml::table root{
+        {"view", view}, {"folders", folders}, {"sort", sorts}, {"servers", toml::table{{"recent", servers}}}
+    };
     std::error_code ec;
     fs::create_directories(statePath().parent_path(), ec);
     std::ofstream out(statePath(), std::ios::trunc);

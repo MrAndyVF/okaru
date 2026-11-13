@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <csignal>
 #include <cstdint>
+#include <cstdlib>
 #include <gio/gio.h>
 #include <memory>
 #include <sstream>
@@ -141,8 +142,10 @@ namespace okaru::files {
       finish(pending, ok ? 0 : 1, g_variant_builder_end(&results));
     }
 
-    void onRequestCall(GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar* method, GVariant*,
-                       GDBusMethodInvocation* invocation, gpointer data) {
+    void onRequestCall(
+        GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar* method, GVariant*,
+        GDBusMethodInvocation* invocation, gpointer data
+    ) {
       // Close: la app cerró su pedido; el selector se cierra y el pedido termina como cancelado.
       if (g_strcmp0(method, "Close") == 0) {
         ::kill(static_cast<Pending*>(data)->pid, SIGTERM);
@@ -150,8 +153,10 @@ namespace okaru::files {
       g_dbus_method_invocation_return_value(invocation, nullptr);
     }
 
-    void onCall(GDBusConnection* bus, const gchar*, const gchar*, const gchar*, const gchar* method,
-                GVariant* parameters, GDBusMethodInvocation* invocation, gpointer data) {
+    void onCall(
+        GDBusConnection* bus, const gchar*, const gchar*, const gchar*, const gchar* method, GVariant* parameters,
+        GDBusMethodInvocation* invocation, gpointer data
+    ) {
       const auto* self = static_cast<const std::string*>(data);
       const char* handle = nullptr;
       const char* appId = nullptr;
@@ -179,11 +184,13 @@ namespace okaru::files {
       if (g_variant_lookup(options, "current_name", "&s", &text)) {
         pick.name = text;
       }
-      if (GVariant* folder = g_variant_lookup_value(options, "current_folder", G_VARIANT_TYPE_BYTESTRING); folder != nullptr) {
+      if (GVariant* folder = g_variant_lookup_value(options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
+          folder != nullptr) {
         pick.folder = bytesToString(folder);
         g_variant_unref(folder);
       }
-      if (GVariant* file = g_variant_lookup_value(options, "current_file", G_VARIANT_TYPE_BYTESTRING); file != nullptr) {
+      if (GVariant* file = g_variant_lookup_value(options, "current_file", G_VARIANT_TYPE_BYTESTRING);
+          file != nullptr) {
         // Guardar sobre un archivo existente: su carpeta y su nombre.
         const std::string path = bytesToString(file);
         gchar* dir = g_path_get_dirname(path.c_str());
@@ -194,7 +201,8 @@ namespace okaru::files {
         g_free(base);
         g_variant_unref(file);
       }
-      if (GVariant* filters = g_variant_lookup_value(options, "filters", G_VARIANT_TYPE("a(sa(us))")); filters != nullptr) {
+      if (GVariant* filters = g_variant_lookup_value(options, "filters", G_VARIANT_TYPE("a(sa(us))"));
+          filters != nullptr) {
         GVariantIter iter;
         g_variant_iter_init(&iter, filters);
         while (GVariant* filter = g_variant_iter_next_value(&iter)) {
@@ -203,7 +211,8 @@ namespace okaru::files {
         }
         g_variant_unref(filters);
       }
-      if (GVariant* current = g_variant_lookup_value(options, "current_filter", G_VARIANT_TYPE("(sa(us))")); current != nullptr) {
+      if (GVariant* current = g_variant_lookup_value(options, "current_filter", G_VARIANT_TYPE("(sa(us))"));
+          current != nullptr) {
         const PickFilter wanted = parseFilter(current);
         for (std::size_t i = 0; i < pick.filters.size(); ++i) {
           if (pick.filters[i].name == wanted.name) {
@@ -233,13 +242,16 @@ namespace okaru::files {
       const auto pickArgs = pickerArguments(pick);
       args.insert(args.end(), pickArgs.begin(), pickArgs.end());
       std::vector<gchar*> argv;
+      argv.reserve(args.size());
       for (auto& arg : args) {
         argv.push_back(arg.data());
       }
       argv.push_back(nullptr);
       GError* error = nullptr;
-      if (g_spawn_async_with_pipes(nullptr, argv.data(), nullptr, G_SPAWN_DO_NOT_REAP_CHILD, nullptr, nullptr,
-                                   &pending->pid, nullptr, &pending->out, nullptr, &error)
+      if (g_spawn_async_with_pipes(
+              nullptr, argv.data(), nullptr, G_SPAWN_DO_NOT_REAP_CHILD, nullptr, nullptr, &pending->pid, nullptr,
+              &pending->out, nullptr, &error
+          )
           == FALSE) {
         g_clear_error(&error);
         GVariantBuilder empty;
@@ -258,12 +270,18 @@ namespace okaru::files {
   } // namespace
 
   std::vector<std::string> pickerArguments(const PickerOptions& o) {
-    std::vector<std::string> args{"--pick", o.mode == PickMode::Save ? "save" : o.mode == PickMode::Folder ? "folder" : "open"};
+    std::vector<std::string> args{
+        "--pick",
+        o.mode == PickMode::Save         ? "save"
+            : o.mode == PickMode::Folder ? "folder"
+                                         : "open"
+    };
     if (o.multiple) {
       args.emplace_back("--multiple");
     }
-    for (const auto& [flag, value] : {std::pair{"--title", &o.title}, std::pair{"--folder", &o.folder},
-                                      std::pair{"--name", &o.name}, std::pair{"--accept", &o.acceptLabel}}) {
+    for (const auto& [flag, value] :
+         {std::pair{"--title", &o.title}, std::pair{"--folder", &o.folder}, std::pair{"--name", &o.name},
+          std::pair{"--accept", &o.acceptLabel}}) {
       if (!value->empty()) {
         args.emplace_back(flag);
         args.push_back(*value);
@@ -306,7 +324,7 @@ namespace okaru::files {
       } else if (a == "--accept" && hasValue) {
         o.acceptLabel = args[++i];
       } else if (a == "--current-filter" && hasValue) {
-        o.currentFilter = static_cast<std::size_t>(std::max(0, std::atoi(args[++i].c_str())));
+        o.currentFilter = static_cast<std::size_t>(std::max(0L, std::strtol(args[++i].c_str(), nullptr, 10)));
       } else if (a == "--filter" && hasValue) {
         PickFilter filter;
         std::istringstream parts(args[++i]);
@@ -340,8 +358,9 @@ namespace okaru::files {
         G_BUS_TYPE_SESSION, kBusName, G_BUS_NAME_OWNER_FLAGS_REPLACE,
         [](GDBusConnection* bus, const gchar*, gpointer) {
           g_dbus_connection_register_object(
-              bus, kObjectPath, g_dbus_node_info_lookup_interface(nodeInfo(), "org.freedesktop.impl.portal.FileChooser"),
-              &vtable, &selfPath, nullptr, nullptr
+              bus, kObjectPath,
+              g_dbus_node_info_lookup_interface(nodeInfo(), "org.freedesktop.impl.portal.FileChooser"), &vtable,
+              &selfPath, nullptr, nullptr
           );
         },
         nullptr, [](GDBusConnection*, const gchar*, gpointer data) { g_main_loop_quit(static_cast<GMainLoop*>(data)); },

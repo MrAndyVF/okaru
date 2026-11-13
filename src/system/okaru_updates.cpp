@@ -13,7 +13,7 @@
 #include <cctype>
 #include <cerrno>
 #include <charconv>
-#include <signal.h>
+#include <csignal>
 #include <ctime>
 #include <filesystem>
 #include <format>
@@ -131,8 +131,10 @@ polkit.addRule(function(action, subject) {
       return out;
     }
 
-    void addPending(Source& source, std::string_view name, std::string_view from, std::string_view to,
-                    std::string_view key, const std::set<std::string>& ignored, std::vector<Package>& ignoredOut) {
+    void addPending(
+        Source& source, std::string_view name, std::string_view from, std::string_view to, std::string_view key,
+        const std::set<std::string>& ignored, std::vector<Package>& ignoredOut
+    ) {
       Package pkg{std::string(name), std::string(from), std::string(to), std::string(key)};
       if (ignored.contains(pkg.name)) {
         pkg.source = "settings";
@@ -146,8 +148,10 @@ polkit.addRule(function(action, subject) {
     }
 
     // Comando de shell en un hilo; el resultado vuelve al hilo principal.
-    void runShell(const std::string& command, std::chrono::milliseconds timeout,
-                  std::function<void(const process::RunResult&)> done) {
+    void runShell(
+        const std::string& command, std::chrono::milliseconds timeout,
+        std::function<void(const process::RunResult&)> done
+    ) {
       auto shared = std::make_shared<std::function<void(const process::RunResult&)>>(std::move(done));
       process::RunCallbacks callbacks;
       callbacks.onExit = [shared](process::RunResult result) {
@@ -215,7 +219,8 @@ polkit.addRule(function(action, subject) {
       const std::string prefix = name + "-" + version + "-";
       const auto matches = [&prefix](const std::filesystem::path& file) {
         const std::string fn = file.filename().string();
-        return fn.starts_with(prefix) && (fn.ends_with(".pkg.tar.zst") || fn.ends_with(".pkg.tar.xz"))
+        return fn.starts_with(prefix)
+            && (fn.ends_with(".pkg.tar.zst") || fn.ends_with(".pkg.tar.xz"))
             // "foo-1.0-1-x86_64.pkg.tar.zst": tras el prefijo solo quedan pkgrel y arquitectura.
             && std::ranges::count(fn.substr(prefix.size()), '-') == 1;
       };
@@ -256,13 +261,20 @@ polkit.addRule(function(action, subject) {
 
   bool validVersion(std::string_view version) {
     return !version.empty() && std::ranges::all_of(version, [](char c) {
-      return std::isalnum(static_cast<unsigned char>(c)) != 0 || c == ':' || c == '.' || c == '_' || c == '+'
-          || c == '~' || c == '-';
+      return std::isalnum(static_cast<unsigned char>(c)) != 0
+          || c == ':'
+          || c == '.'
+          || c == '_'
+          || c == '+'
+          || c == '~'
+          || c == '-';
     });
   }
 
-  Source parseVersionLines(std::string_view output, std::string_view source, const std::set<std::string>& ignored,
-                           std::vector<Package>& ignoredOut) {
+  Source parseVersionLines(
+      std::string_view output, std::string_view source, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  ) {
     Source out;
     for (const auto line : splitLines(output)) {
       const auto w = words(line);
@@ -278,8 +290,10 @@ polkit.addRule(function(action, subject) {
     return out;
   }
 
-  Source parseTabLines(std::string_view output, std::string_view source, const std::set<std::string>& ignored,
-                       std::vector<Package>& ignoredOut) {
+  Source parseTabLines(
+      std::string_view output, std::string_view source, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  ) {
     Source out;
     for (const auto line : splitLines(output)) {
       const auto f = fields(line, '\t');
@@ -287,14 +301,17 @@ polkit.addRule(function(action, subject) {
       if (name.empty()) {
         continue;
       }
-      addPending(out, name, f.size() > 1 ? trim(f[1]) : "", f.size() > 2 ? trim(f[2]) : "", source, ignored,
-                 ignoredOut);
+      addPending(
+          out, name, f.size() > 1 ? trim(f[1]) : "", f.size() > 2 ? trim(f[2]) : "", source, ignored, ignoredOut
+      );
     }
     return out;
   }
 
-  Source parseSnap(std::string_view listOutput, std::string_view refreshOutput, const std::set<std::string>& ignored,
-                   std::vector<Package>& ignoredOut) {
+  Source parseSnap(
+      std::string_view listOutput, std::string_view refreshOutput, const std::set<std::string>& ignored,
+      std::vector<Package>& ignoredOut
+  ) {
     std::map<std::string, std::string, std::less<>> installed;
     const auto listLines = splitLines(listOutput);
     for (std::size_t i = 1; i < listLines.size(); ++i) {
@@ -311,8 +328,9 @@ polkit.addRule(function(action, subject) {
         continue;
       }
       const auto it = installed.find(w[0]);
-      addPending(out, w[0], it != installed.end() ? std::string_view(it->second) : "", w[1], "snap", ignored,
-                 ignoredOut);
+      addPending(
+          out, w[0], it != installed.end() ? std::string_view(it->second) : "", w[1], "snap", ignored, ignoredOut
+      );
     }
     return out;
   }
@@ -368,8 +386,8 @@ polkit.addRule(function(action, subject) {
     return out + "'";
   }
 
-  std::string updateCommand(const UpdatesConfig& config, bool background, bool aurHelperFound,
-                            std::string_view aurHelper) {
+  std::string
+  updateCommand(const UpdatesConfig& config, bool background, bool aurHelperFound, std::string_view aurHelper) {
     std::string cmd = "okaru-update";
     if (background) {
       cmd += " --noconfirm"; // pkexec pide la contraseña; el resto se responde solo
@@ -438,8 +456,7 @@ polkit.addRule(function(action, subject) {
       }
     };
     add(i18n::tr("okaru.updates.source.pacman"), engine.pacman().count);
-    add(engine.aurHelper().empty() ? i18n::tr("okaru.updates.source.aur")
-                                   : std::format("AUR ({})", engine.aurHelper()),
+    add(engine.aurHelper().empty() ? i18n::tr("okaru.updates.source.aur") : std::format("AUR ({})", engine.aurHelper()),
         engine.aur().count);
     add(i18n::tr("okaru.updates.source.flatpak"), engine.flatpak().count);
     add(i18n::tr("okaru.updates.source.snap"), engine.snap().count);
@@ -459,16 +476,17 @@ polkit.addRule(function(action, subject) {
     case Phase::Ready:
       return i18n::trp("okaru.updates.pending", engine.total());
     case Phase::Running:
-      return i18n::tr(engine.runIsRollback() ? "okaru.updates.status-rolling-back"
-                      : engine.runInTerminal() ? "okaru.updates.status-running-terminal"
-                                               : "okaru.updates.status-running");
+      return i18n::tr(
+          engine.runIsRollback()       ? "okaru.updates.status-rolling-back"
+              : engine.runInTerminal() ? "okaru.updates.status-running-terminal"
+                                       : "okaru.updates.status-running"
+      );
     case Phase::Error:
     case Phase::Missing:
       return engine.error().empty() ? i18n::tr("okaru.updates.status-error") : engine.error();
     }
     return {};
   }
-
 
   // ── Motor ──
 
@@ -526,9 +544,7 @@ polkit.addRule(function(action, subject) {
 
   int Engine::total() const noexcept { return m_pacman.count + m_aur.count + m_flatpak.count + m_snap.count; }
 
-  std::set<std::string> Engine::ignoredSet() const {
-    return {m_settings.ignore.begin(), m_settings.ignore.end()};
-  }
+  std::set<std::string> Engine::ignoredSet() const { return {m_settings.ignore.begin(), m_settings.ignore.end()}; }
 
   std::vector<Package> Engine::pendingPackages() const {
     std::vector<Package> out;
@@ -544,7 +560,7 @@ polkit.addRule(function(action, subject) {
 
   namespace {
     // Auto: yay y luego paru. Una elección explícita que no está instalada no cae en otro ayudante.
-    std::string resolveAurHelper(UpdatesAurHelper choice) {
+    std::string_view resolveAurHelper(UpdatesAurHelper choice) {
       switch (choice) {
       case UpdatesAurHelper::Off:
         return {};
@@ -582,23 +598,25 @@ polkit.addRule(function(action, subject) {
     m_step = "pacman";
     notifyListeners();
     // checkupdates sale con 2 cuando no hay nada (no es un error). LC_ALL=C: pacman traduce la marca "[ignored]".
-    runShell(R"(LC_ALL=C checkupdates 2>/dev/null; c=$?; [ "$c" -eq 2 ] && exit 0; exit "$c")", kCheckTimeout,
-             [this](const process::RunResult& r) {
-               if (m_phase != Phase::Checking) {
-                 return;
-               }
-               if (r.timedOut) {
-                 failCheck(i18n::tr("okaru.updates.err-timeout"));
-                 return;
-               }
-               if (r.exitCode != 0) {
-                 kLog.warn("checkupdates falló ({}): {}", r.exitCode, r.err);
-                 failCheck(i18n::tr("okaru.updates.err-check"));
-                 return;
-               }
-               m_pacman = parseVersionLines(r.out, "pacman", ignoredSet(), m_ignoredPending);
-               checkAur();
-             });
+    runShell(
+        R"(LC_ALL=C checkupdates 2>/dev/null; c=$?; [ "$c" -eq 2 ] && exit 0; exit "$c")", kCheckTimeout,
+        [this](const process::RunResult& r) {
+          if (m_phase != Phase::Checking) {
+            return;
+          }
+          if (r.timedOut) {
+            failCheck(i18n::tr("okaru.updates.err-timeout"));
+            return;
+          }
+          if (r.exitCode != 0) {
+            kLog.warn("checkupdates falló ({}): {}", r.exitCode, r.err);
+            failCheck(i18n::tr("okaru.updates.err-check"));
+            return;
+          }
+          m_pacman = parseVersionLines(r.out, "pacman", ignoredSet(), m_ignoredPending);
+          checkAur();
+        }
+    );
   }
 
   void Engine::checkAur() {
@@ -635,7 +653,8 @@ polkit.addRule(function(action, subject) {
     notifyListeners();
     // Flatpak sigue commits: si la versión no cambia, se muestran los commits cortos. Cada salida se captura antes
     // del awk para que un fallo real (sin remoto, sin red) no pase como lista vacía.
-    runShell(R"(
+    runShell(
+        R"(
 listOut=$(flatpak list --columns=application,version,active 2>/dev/null) || exit 1
 updOut=$(flatpak remote-ls --updates --columns=application,version,commit 2>/dev/null) || exit 1
 { printf '%s\n' "$listOut" | sed 's/^/L /'
@@ -646,19 +665,20 @@ tag=="L" { v[app]=$2; c[app]=$3 }
 tag=="R" && app!="" { from=v[app]; to=$2
            if (from=="" || to=="" || from==to) { from=substr(c[app],1,7); to=substr($3,1,7) }
            print app"\t"from"\t"to }')",
-             kCheckTimeout, [this](const process::RunResult& r) {
-               if (m_phase != Phase::Checking) {
-                 return;
-               }
-               if (!r.timedOut && r.exitCode != 0) {
-                 failCheck(i18n::tr("okaru.updates.err-flatpak"));
-                 return;
-               }
-               if (!r.timedOut) {
-                 m_flatpak = parseTabLines(r.out, "flatpak", ignoredSet(), m_ignoredPending);
-               }
-               checkSnap();
-             });
+        kCheckTimeout, [this](const process::RunResult& r) {
+          if (m_phase != Phase::Checking) {
+            return;
+          }
+          if (!r.timedOut && r.exitCode != 0) {
+            failCheck(i18n::tr("okaru.updates.err-flatpak"));
+            return;
+          }
+          if (!r.timedOut) {
+            m_flatpak = parseTabLines(r.out, "flatpak", ignoredSet(), m_ignoredPending);
+          }
+          checkSnap();
+        }
+    );
   }
 
   void Engine::checkSnap() {
@@ -668,30 +688,34 @@ tag=="R" && app!="" { from=v[app]; to=$2
     }
     m_step = "snap";
     notifyListeners();
-    runShell(R"(l=$(LC_ALL=C snap list 2>/dev/null) || exit 1
+    runShell(
+        R"(l=$(LC_ALL=C snap list 2>/dev/null) || exit 1
 u=$(LC_ALL=C snap refresh --list 2>/dev/null) || exit 1
 printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
-             kCheckTimeout, [this](const process::RunResult& r) {
-               if (m_phase != Phase::Checking) {
-                 return;
-               }
-               if (!r.timedOut && r.exitCode != 0) {
-                 failCheck(i18n::tr("okaru.updates.err-snap"));
-                 return;
-               }
-               if (!r.timedOut) {
-                 const std::string_view out = r.out;
-                 const auto split = out.find("::REFRESH::");
-                 if (split != std::string_view::npos) {
-                   m_snap = parseSnap(out.substr(0, split), out.substr(split + 11), ignoredSet(), m_ignoredPending);
-                 }
-               }
-               checkSize();
-             });
+        kCheckTimeout, [this](const process::RunResult& r) {
+          if (m_phase != Phase::Checking) {
+            return;
+          }
+          if (!r.timedOut && r.exitCode != 0) {
+            failCheck(i18n::tr("okaru.updates.err-snap"));
+            return;
+          }
+          if (!r.timedOut) {
+            const std::string_view out = r.out;
+            const auto split = out.find("::REFRESH::");
+            if (split != std::string_view::npos) {
+              m_snap = parseSnap(out.substr(0, split), out.substr(split + 11), ignoredSet(), m_ignoredPending);
+            }
+          }
+          checkSize();
+        }
+    );
   }
 
   void Engine::checkSize() {
-    if (!m_settings.showDownloadSize || m_pacman.items.empty() || m_pacman.items.size() < static_cast<std::size_t>(m_pacman.count)) {
+    if (!m_settings.showDownloadSize
+        || m_pacman.items.empty()
+        || m_pacman.items.size() < static_cast<std::size_t>(m_pacman.count)) {
       finishCheck(); // con más pendientes que nombres guardados el tamaño saldría corto: mejor no mostrarlo
       return;
     }
@@ -712,8 +736,8 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     std::error_code ec;
     // Al actualizar el kernel desaparece /usr/lib/modules/<versión en uso>: hace falta reiniciar.
     const std::string release = uname();
-    m_reboot = m_settings.checkReboot && !release.empty()
-        && !std::filesystem::exists("/usr/lib/modules/" + release, ec);
+    m_reboot =
+        m_settings.checkReboot && !release.empty() && !std::filesystem::exists("/usr/lib/modules/" + release, ec);
     m_step.clear();
     m_phase = total() > 0 ? Phase::Ready : Phase::Clean;
     const std::time_t t = std::time(nullptr);
@@ -756,22 +780,29 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
       failCheck(i18n::tr("okaru.updates.err-no-pkexec"));
       return;
     }
-    const std::string helper = resolveAurHelper(m_settings.aurHelper);
+    const std::string helper(resolveAurHelper(m_settings.aurHelper));
     startRun(updateCommand(m_settings, !terminal, !helper.empty(), helper), false, terminal, pendingPackages());
   }
 
   void Engine::startRun(const std::string& body, bool rollback, bool terminal, std::vector<Package> packages) {
     const std::string log = shellQuote(logPath());
     // El pid primero: así se nota una terminal cerrada o un run muerto, que nunca escriben ::EXIT.
-    const std::string start = "echo $$ > " + shellQuote(pidPath()) + "; printf '::START %s\\n' \"$(date +%s)\" > " + log;
+    const std::string start =
+        "echo $$ > " + shellQuote(pidPath()) + "; printf '::START %s\\n' \"$(date +%s)\" > " + log;
     bool launched = false;
     if (terminal) {
       // `script` da una pty real para que pacman dibuje su barra de progreso aunque la salida pase por tee.
       const std::string inner = process::commandExists("script")
           ? "SHELL=/bin/sh script -q -f -e -c " + shellQuote(body) + " /dev/null"
           : body;
-      const std::string wrapped = start + "; { " + inner + "; printf '\\n::EXIT %s\\n' \"$?\"; } 2>&1 | tee -a " + log
-          + "; echo; printf '%s' " + shellQuote(i18n::tr("okaru.updates.press-enter")) + "; read -r _";
+      const std::string wrapped = start
+          + "; { "
+          + inner
+          + R"(; printf '\n::EXIT %s\n' "$?"; } 2>&1 | tee -a )"
+          + log
+          + "; echo; printf '%s' "
+          + shellQuote(i18n::tr("okaru.updates.press-enter"))
+          + "; read -r _";
       launched = terminal_launch::launch(wrapped);
       if (!launched) {
         failCheck(i18n::tr("okaru.updates.err-no-terminal"));
@@ -779,16 +810,18 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
       }
     } else {
       // LC_ALL=C: la barra de progreso cuenta las líneas en inglés de pacman y Flatpak.
-      launched = process::runAsync(start + "; { export LC_ALL=C; " + body + " ; } >> " + log
-                                   + " 2>&1; printf '::EXIT %s\\n' \"$?\" >> " + log);
+      launched = process::runAsync(
+          start + "; { export LC_ALL=C; " + body + " ; } >> " + log + R"( 2>&1; printf '::EXIT %s\n' "$?" >> )" + log
+      );
       if (!launched) {
         failCheck(i18n::tr("okaru.updates.err-spawn"));
         return;
       }
     }
     const int expected = rollback ? static_cast<int>(packages.size()) : total();
-    nlohmann::json meta = {{"rollback", rollback}, {"terminal", terminal}, {"total", expected},
-                           {"packages", nlohmann::json::array()}};
+    nlohmann::json meta = {
+        {"rollback", rollback}, {"terminal", terminal}, {"total", expected}, {"packages", nlohmann::json::array()}
+    };
     for (const auto& p : packages) {
       meta["packages"].push_back(packageToJson(p));
     }
@@ -891,8 +924,10 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     if (!rollback) {
       m_lastUpdateAt = now();
     }
-    notify::info("OKARU", i18n::tr("okaru.updates.title"),
-                 i18n::tr(rollback ? "okaru.updates.rollback-ok" : "okaru.updates.run-ok"));
+    notify::info(
+        "OKARU", i18n::tr("okaru.updates.title"),
+        i18n::tr(rollback ? "okaru.updates.rollback-ok" : "okaru.updates.run-ok")
+    );
     if (rollback && m_settings.rollbackAutoIgnore) {
       for (const auto& p : packages) {
         ignore(p.name);
@@ -912,27 +947,29 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
       check();
       return;
     }
-    runShell("LC_ALL=C pacman -Q" + names + " 2>/dev/null", kFastTimeout,
-             [this, rollback, packages = std::move(packages)](const process::RunResult& r) mutable {
-               if (!r.timedOut) {
-                 std::map<std::string, std::string, std::less<>> installed;
-                 for (const auto line : splitLines(r.out)) {
-                   const auto w = words(line);
-                   if (w.size() == 2) {
-                     installed.emplace(std::string(w[0]), std::string(w[1]));
-                   }
-                 }
-                 std::erase_if(packages, [&installed](const Package& p) {
-                   if (!rollbackable(p)) {
-                     return false;
-                   }
-                   const auto it = installed.find(p.name);
-                   return it == installed.end() || it->second == p.from;
-                 });
-               }
-               recordRun(rollback, std::move(packages));
-               check();
-             });
+    runShell(
+        "LC_ALL=C pacman -Q" + names + " 2>/dev/null", kFastTimeout,
+        [this, rollback, packages = std::move(packages)](const process::RunResult& r) mutable {
+          if (!r.timedOut) {
+            std::map<std::string, std::string, std::less<>> installed;
+            for (const auto line : splitLines(r.out)) {
+              const auto w = words(line);
+              if (w.size() == 2) {
+                installed.emplace(std::string(w[0]), std::string(w[1]));
+              }
+            }
+            std::erase_if(packages, [&installed](const Package& p) {
+              if (!rollbackable(p)) {
+                return false;
+              }
+              const auto it = installed.find(p.name);
+              return it == installed.end() || it->second == p.from;
+            });
+          }
+          recordRun(rollback, std::move(packages));
+          check();
+        }
+    );
   }
 
   void Engine::recordRun(bool rollback, std::vector<Package> packages) {
@@ -953,7 +990,7 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
   // Un run que sobrevivió al reinicio de la shell (se lanza separado): log con ::START reciente y sin ::EXIT.
   void Engine::resumeRun() {
     const auto text = readText(logPath());
-    if (!text || !text->starts_with("::START ") || text->find("\n::EXIT ") != std::string::npos) {
+    if (!text || !text->starts_with("::START ") || text->contains("\n::EXIT ")) {
       return;
     }
     std::int64_t started = 0;
@@ -971,16 +1008,17 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     std::error_code ec;
     const auto mtime = std::filesystem::last_write_time(logPath(), ec);
     if (!terminal && !ec) {
-      const auto age = std::chrono::duration_cast<std::chrono::seconds>(
-          std::filesystem::file_time_type::clock::now() - mtime
-      );
+      const auto age =
+          std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::file_time_type::clock::now() - mtime);
       if (age.count() > kStaleLimitSeconds) {
         std::filesystem::remove(metaPath(), ec);
         return;
       }
     }
-    beginRun(meta->value("rollback", false), terminal, meta->value("total", 0),
-             packagesFromJson(meta->value("packages", nlohmann::json::array())));
+    beginRun(
+        meta->value("rollback", false), terminal, meta->value("total", 0),
+        packagesFromJson(meta->value("packages", nlohmann::json::array()))
+    );
     m_runStartedAt = started;
   }
 
@@ -1030,22 +1068,26 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     if (target == it->packages.end() || !rollbackable(*target)) {
       return;
     }
-    runShell("pactree -l " + shellQuote(name) + " 2>/dev/null", kFastTimeout,
-             [this, run = *it, pkg = *target](const process::RunResult& r) {
-               std::vector<Package> targets{pkg};
-               if (!r.timedOut && r.exitCode == 0) {
-                 for (const auto line : splitLines(r.out)) {
-                   // pactree -l escribe dependencias con versión ("libelf=0.196"): solo cuenta el nombre.
-                   const auto dep = trim(line.substr(0, line.find_first_of("<>=")));
-                   const auto mate = std::ranges::find(run.packages, dep, &Package::name);
-                   if (mate != run.packages.end() && mate->name != pkg.name && rollbackable(*mate)
-                       && std::ranges::find(targets, mate->name, &Package::name) == targets.end()) {
-                     targets.push_back(*mate);
-                   }
-                 }
-               }
-               runRollback(targets);
-             });
+    runShell(
+        "pactree -l " + shellQuote(name) + " 2>/dev/null", kFastTimeout,
+        [this, run = *it, pkg = *target](const process::RunResult& r) {
+          std::vector<Package> targets{pkg};
+          if (!r.timedOut && r.exitCode == 0) {
+            for (const auto line : splitLines(r.out)) {
+              // pactree -l escribe dependencias con versión ("libelf=0.196"): solo cuenta el nombre.
+              const auto dep = trim(line.substr(0, line.find_first_of("<>=")));
+              const auto mate = std::ranges::find(run.packages, dep, &Package::name);
+              if (mate != run.packages.end()
+                  && mate->name != pkg.name
+                  && rollbackable(*mate)
+                  && std::ranges::find(targets, mate->name, &Package::name) == targets.end()) {
+                targets.push_back(*mate);
+              }
+            }
+          }
+          runRollback(targets);
+        }
+    );
   }
 
   // ── Ignorados, varios ──
@@ -1116,19 +1158,27 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
   void Engine::installPolkitRule() {
     const std::string staged = statePath("49-okaru-updater-pacman.rules");
     std::ofstream(staged) << kPolkitRule;
-    runShell("pkexec sh -c "
-                 + shellQuote("install -Dm644 -o root -g root " + shellQuote(staged) + " " + kPolkitPath + " && rm -f "
-                              + kPolkitOldPath),
-             std::chrono::minutes(2), [this](const process::RunResult& r) {
-               if (r.exitCode == 0) {
-                 std::ofstream(polkitMarkerPath()) << "1";
-                 m_polkitInstalled = true;
-                 notifyListeners();
-                 notify::info("OKARU", i18n::tr("okaru.updates.title"), i18n::tr("okaru.updates.polkit-ok"));
-               } else if (r.exitCode != 126) { // 126: se cerró el diálogo de polkit
-                 notify::error("OKARU", i18n::tr("okaru.updates.title"), i18n::tr("okaru.updates.err-polkit"));
-               }
-             });
+    runShell(
+        "pkexec sh -c "
+            + shellQuote(
+                "install -Dm644 -o root -g root "
+                + shellQuote(staged)
+                + " "
+                + kPolkitPath
+                + " && rm -f "
+                + kPolkitOldPath
+            ),
+        std::chrono::minutes(2), [this](const process::RunResult& r) {
+          if (r.exitCode == 0) {
+            std::ofstream(polkitMarkerPath()) << "1";
+            m_polkitInstalled = true;
+            notifyListeners();
+            notify::info("OKARU", i18n::tr("okaru.updates.title"), i18n::tr("okaru.updates.polkit-ok"));
+          } else if (r.exitCode != 126) { // 126: se cerró el diálogo de polkit
+            notify::error("OKARU", i18n::tr("okaru.updates.title"), i18n::tr("okaru.updates.err-polkit"));
+          }
+        }
+    );
   }
 
   // ── Persistencia: <estado>/updates.json; la primera vez se importa lo del módulo Luau ──
@@ -1156,11 +1206,12 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
           imported["lastUpdateAt"] = history->value("lastUpdateAt", 0);
         }
         // La lista de ignorados del panel pasa a [updates].ignore.
-        if (const auto ignore = readJson(dir + legacy + "/ignore.json"); ignore && ignore->is_object()
-            && m_config != nullptr) {
+        if (const auto ignore = readJson(dir + legacy + "/ignore.json");
+            ignore && ignore->is_object() && m_config != nullptr) {
           auto list = m_settings.ignore;
           for (const auto& name : ignore->value("packages", nlohmann::json::array())) {
-            if (name.is_string() && validName(name.get<std::string>())
+            if (name.is_string()
+                && validName(name.get<std::string>())
                 && !std::ranges::contains(list, name.get<std::string>())) {
               list.push_back(name.get<std::string>());
             }
@@ -1179,13 +1230,17 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
     }
     for (const auto& run : json->value("runs", nlohmann::json::array())) {
       if (run.is_object()) {
-        m_runs.push_back({run.value("at", std::int64_t{0}), run.value("rollback", false),
-                          packagesFromJson(run.value("packages", nlohmann::json::array()))});
+        m_runs.push_back(
+            {run.value("at", std::int64_t{0}), run.value("rollback", false),
+             packagesFromJson(run.value("packages", nlohmann::json::array()))}
+        );
       }
     }
     for (const auto& point : json->value("activity", nlohmann::json::array())) {
       if (point.is_object()) {
-        m_activity.push_back({point.value("n", 0), point.value("at", std::int64_t{0}), point.value("afterUpdate", false)});
+        m_activity.push_back(
+            {point.value("n", 0), point.value("at", std::int64_t{0}), point.value("afterUpdate", false)}
+        );
       }
     }
     m_lastUpdateAt = json->value("lastUpdateAt", std::int64_t{0});
@@ -1195,8 +1250,9 @@ printf '%s\n::REFRESH::\n%s\n' "$l" "$u")",
   }
 
   void Engine::save() const {
-    nlohmann::json json = {{"runs", nlohmann::json::array()}, {"activity", nlohmann::json::array()},
-                           {"lastUpdateAt", m_lastUpdateAt}};
+    nlohmann::json json = {
+        {"runs", nlohmann::json::array()}, {"activity", nlohmann::json::array()}, {"lastUpdateAt", m_lastUpdateAt}
+    };
     for (const auto& run : m_runs) {
       nlohmann::json packages = nlohmann::json::array();
       for (const auto& p : run.packages) {

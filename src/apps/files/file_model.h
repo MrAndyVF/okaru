@@ -13,7 +13,7 @@
 #include <string_view>
 #include <vector>
 
-typedef struct _GFileMonitor GFileMonitor;
+using GFileMonitor = struct _GFileMonitor;
 
 namespace okaru::files {
 
@@ -61,8 +61,10 @@ namespace okaru::files {
   [[nodiscard]] FileEntry entryFromInfo(void* parentGFile, void* gfileInfo);
   // Lista una carpeta de forma síncrona (para hilos). Devuelve false y deja el motivo en `error`.
   // `code`: GIOErrorEnum del fallo (p. ej. G_IO_ERROR_NOT_MOUNTED), si se pide.
-  [[nodiscard]] bool listDirectory(const std::string& uri, std::vector<FileEntry>& out, std::string& error,
-                                   const std::atomic<bool>* cancel = nullptr, int* code = nullptr);
+  [[nodiscard]] bool listDirectory(
+      const std::string& uri, std::vector<FileEntry>& out, std::string& error,
+      const std::atomic<bool>* cancel = nullptr, int* code = nullptr
+  );
 
   void sortEntries(std::vector<FileEntry>& entries, const ViewOptions& options);
   // Coincidencia sin distinguir mayúsculas ni tildes; `needle` ya normalizada con normalizeForMatch.

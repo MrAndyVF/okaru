@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-typedef struct _GVolumeMonitor GVolumeMonitor;
+using GVolumeMonitor = struct _GVolumeMonitor;
 
 namespace okaru::files {
 

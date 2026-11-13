@@ -16,7 +16,6 @@
 using okaru::updates::Engine;
 using okaru::updates::Phase;
 
-
 OkaruUpdatesWidget::OkaruUpdatesWidget(wl_output* /*output*/, Options options) : m_options(options) {}
 
 OkaruUpdatesWidget::~OkaruUpdatesWidget() {
@@ -28,12 +27,18 @@ OkaruUpdatesWidget::~OkaruUpdatesWidget() {
 void OkaruUpdatesWidget::create() {
   const float scale = m_contentScale;
   auto area = ui::inputArea({});
-  area->addChild(ui::row(
-      {.align = FlexAlign::Center, .gap = Style::spaceXs * scale},
-      ui::glyph({.out = &m_glyph, .glyph = "package", .glyphSize = Style::baseGlyphSize * scale}),
-      ui::label({.out = &m_label, .fontSize = Style::fontSizeBody * fontScale(), .fontWeight = labelFontWeight(),
-                 .fontFamily = labelFontFamily()})
-  ));
+  area->addChild(
+      ui::row(
+          {.align = FlexAlign::Center, .gap = Style::spaceXs * scale},
+          ui::glyph({.out = &m_glyph, .glyph = "package", .glyphSize = Style::baseGlyphSize * scale}),
+          ui::label(
+              {.out = &m_label,
+               .fontSize = Style::fontSizeBody * fontScale(),
+               .fontWeight = labelFontWeight(),
+               .fontFamily = labelFontFamily()}
+          )
+      )
+  );
   area->setOnClick([this](const InputArea::PointerData& data) {
     if (data.button == BTN_LEFT) {
       requestPanelToggle("okaru-updates");
@@ -63,24 +68,32 @@ void OkaruUpdatesWidget::sync() {
     text = std::to_string(total);
   }
   const std::string status = okaru::updates::statusText(engine);
-  const std::string key = std::format("{}|{}|{}|{}|{}|{}", static_cast<int>(phase), text, reboot, status,
-                                      okaru::updates::breakdown(engine), engine.checkedAt());
+  const std::string key = std::format(
+      "{}|{}|{}|{}|{}|{}", static_cast<int>(phase), text, reboot, status, okaru::updates::breakdown(engine),
+      engine.checkedAt()
+  );
   if (key == m_lastKey) {
     return;
   }
   m_lastKey = key;
 
-  const bool visible = !(m_options.hideWhenEmpty && total == 0 && !reboot && phase != Phase::Running
-                         && phase != Phase::Error && phase != Phase::Missing);
+  const bool visible = !m_options.hideWhenEmpty
+      || total != 0
+      || reboot
+      || phase == Phase::Running
+      || phase == Phase::Error
+      || phase == Phase::Missing;
   area->setVisible(visible);
   area->setParticipatesInLayout(visible);
 
-  const ColorRole role = phase == Phase::Error || phase == Phase::Missing          ? ColorRole::Error
-      : phase == Phase::Checking || phase == Phase::Running                        ? ColorRole::Secondary
-      : reboot                                                                     ? ColorRole::Tertiary
-      : total > 0                                                                  ? ColorRole::Primary
-                                                                                   : ColorRole::OnSurface;
-  m_glyph->setColor(role == ColorRole::OnSurface ? widgetIconColorOr(colorSpecFromRole(role)) : colorSpecFromRole(role));
+  const ColorRole role = phase == Phase::Error || phase == Phase::Missing ? ColorRole::Error
+      : phase == Phase::Checking || phase == Phase::Running               ? ColorRole::Secondary
+      : reboot                                                            ? ColorRole::Tertiary
+      : total > 0                                                         ? ColorRole::Primary
+                                                                          : ColorRole::OnSurface;
+  m_glyph->setColor(
+      role == ColorRole::OnSurface ? widgetIconColorOr(colorSpecFromRole(role)) : colorSpecFromRole(role)
+  );
   m_glyph->setGlyph(reboot && phase != Phase::Running ? "refresh-alert" : "package");
   m_label->setText(text);
   m_label->setVisible(!text.empty());

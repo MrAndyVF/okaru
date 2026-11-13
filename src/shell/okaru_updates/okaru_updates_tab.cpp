@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <ctime>
 #include <format>
+#include <ranges>
 
 using namespace control_center;
 using okaru::updates::Engine;
@@ -36,10 +37,16 @@ namespace {
     });
   }
 
-  std::unique_ptr<Button> iconButton(float scale, const char* glyph, std::string tooltip, std::function<void()> onClick,
-                                     bool enabled = true) {
-    return ui::button({.glyph = glyph, .glyphSize = Style::fontSizeBody * scale, .enabled = enabled,
-                       .variant = ButtonVariant::Ghost, .tooltip = std::move(tooltip), .onClick = std::move(onClick)});
+  std::unique_ptr<Button>
+  iconButton(float scale, const char* glyph, std::string tooltip, std::function<void()> onClick, bool enabled = true) {
+    return ui::button(
+        {.glyph = glyph,
+         .glyphSize = Style::fontSizeBody * scale,
+         .enabled = enabled,
+         .variant = ButtonVariant::Ghost,
+         .tooltip = std::move(tooltip),
+         .onClick = std::move(onClick)}
+    );
   }
 
   std::unique_ptr<Label> caption(float scale, const std::string& text, ColorRole role = ColorRole::OnSurfaceVariant) {
@@ -194,10 +201,11 @@ void OkaruUpdatesTab::requestRebuild() {
 
 std::string OkaruUpdatesTab::stateKey() const {
   const auto& e = Engine::instance();
-  std::string key = std::format("{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}", static_cast<int>(e.phase()), e.step(),
-                                e.error(), e.total(), e.checkedAt(), e.rebootRecommended(), e.progressDone(),
-                                e.runs().size(), e.activity().size(), e.polkitRuleInstalled(), m_openRun, m_armed,
-                                e.ignoredPending().size(), e.config().ignore.size());
+  std::string key = std::format(
+      "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}", static_cast<int>(e.phase()), e.step(), e.error(), e.total(),
+      e.checkedAt(), e.rebootRecommended(), e.progressDone(), e.runs().size(), e.activity().size(),
+      e.polkitRuleInstalled(), m_openRun, m_armed, e.ignoredPending().size(), e.config().ignore.size()
+  );
   for (const auto& source : m_expanded) {
     key += "|" + source;
   }
@@ -243,14 +251,20 @@ void OkaruUpdatesTab::addStatus(Flex& parent) {
       : phase == Phase::Ready                                             ? ColorRole::Primary
       : phase == Phase::Clean                                             ? ColorRole::Tertiary
                                                                           : ColorRole::Secondary;
-  const char* glyph = phase == Phase::Clean ? "circle-check"
+  const char* glyph = phase == Phase::Clean              ? "circle-check"
       : phase == Phase::Error || phase == Phase::Missing ? "alert-triangle"
                                                          : "package";
   auto top = ui::row({.align = FlexAlign::Center, .gap = Style::spaceMd * scale});
   top->addChild(ui::glyph({.glyph = glyph, .glyphSize = 32.0F * scale, .color = colorSpecFromRole(role)}));
   auto text = ui::column({.align = FlexAlign::Start, .gap = 2.0F * scale, .flexGrow = 1.0F});
-  text->addChild(ui::label({.text = okaru::updates::statusText(e), .fontSize = Style::fontSizeTitle * scale,
-                            .fontWeight = FontWeight::Bold, .maxLines = 3}));
+  text->addChild(
+      ui::label(
+          {.text = okaru::updates::statusText(e),
+           .fontSize = Style::fontSizeTitle * scale,
+           .fontWeight = FontWeight::Bold,
+           .maxLines = 3}
+      )
+  );
   std::string detail;
   if (!e.checkedAt().empty()) {
     detail = i18n::tr("okaru.updates.checked-at", "time", e.checkedAt());
@@ -267,45 +281,65 @@ void OkaruUpdatesTab::addStatus(Flex& parent) {
   c->addChild(std::move(top));
 
   if (e.rebootRecommended()) {
-    c->addChild(ui::row(
-        {.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingV = Style::spaceXs * scale,
-         .paddingH = Style::spaceSm * scale, .fill = colorSpecFromRole(ColorRole::Tertiary, 0.12F),
-         .radius = Style::radiusSm * scale},
-        ui::glyph({.glyph = "refresh-alert", .glyphSize = Style::fontSizeBody * scale,
-                   .color = colorSpecFromRole(ColorRole::Tertiary)}),
-        ui::label({.text = i18n::tr("okaru.updates.reboot"), .fontSize = Style::fontSizeCaption * scale,
-                   .color = colorSpecFromRole(ColorRole::Tertiary), .maxLines = 2, .flexGrow = 1.0F})
-    ));
+    c->addChild(
+        ui::row(
+            {.align = FlexAlign::Center,
+             .gap = Style::spaceSm * scale,
+             .paddingV = Style::spaceXs * scale,
+             .paddingH = Style::spaceSm * scale,
+             .fill = colorSpecFromRole(ColorRole::Tertiary, 0.12F),
+             .radius = Style::radiusSm * scale},
+            ui::glyph(
+                {.glyph = "refresh-alert",
+                 .glyphSize = Style::fontSizeBody * scale,
+                 .color = colorSpecFromRole(ColorRole::Tertiary)}
+            ),
+            ui::label(
+                {.text = i18n::tr("okaru.updates.reboot"),
+                 .fontSize = Style::fontSizeCaption * scale,
+                 .color = colorSpecFromRole(ColorRole::Tertiary),
+                 .maxLines = 2,
+                 .flexGrow = 1.0F}
+            )
+        )
+    );
   }
 
   const bool background = e.config().mode == UpdatesMode::Background;
   auto actions = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
   if (phase == Phase::Ready) {
-    actions->addChild(ui::button({
-        .text = i18n::tr("okaru.updates.update"),
-        .glyph = background ? "download" : "terminal-2",
-        .variant = ButtonVariant::Primary,
-        .tooltip = i18n::tr(background ? "okaru.updates.update-background-tip" : "okaru.updates.update-terminal-tip"),
-        .flexGrow = 1.0F,
-        .onClick = [] { Engine::instance().update(); },
-    }));
+    actions->addChild(
+        ui::button({
+            .text = i18n::tr("okaru.updates.update"),
+            .glyph = background ? "download" : "terminal-2",
+            .variant = ButtonVariant::Primary,
+            .tooltip =
+                i18n::tr(background ? "okaru.updates.update-background-tip" : "okaru.updates.update-terminal-tip"),
+            .flexGrow = 1.0F,
+            .onClick = [] { Engine::instance().update(); },
+        })
+    );
     actions->addChild(iconButton(scale, "x", i18n::tr("okaru.updates.dismiss"), [] { Engine::instance().dismiss(); }));
   } else if (phase == Phase::Error && e.lastExit().has_value() && !e.runIsRollback()) {
-    actions->addChild(ui::button({
-        .text = i18n::tr("okaru.updates.retry-terminal"),
-        .glyph = "terminal-2",
-        .variant = ButtonVariant::Primary,
-        .flexGrow = 1.0F,
-        .onClick = [] { Engine::instance().update(true); },
-    }));
+    actions->addChild(
+        ui::button({
+            .text = i18n::tr("okaru.updates.retry-terminal"),
+            .glyph = "terminal-2",
+            .variant = ButtonVariant::Primary,
+            .flexGrow = 1.0F,
+            .onClick = [] { Engine::instance().update(true); },
+        })
+    );
   } else if (phase != Phase::Checking && phase != Phase::Running) {
-    actions->addChild(ui::button({
-        .text = i18n::tr("okaru.updates.check"),
-        .glyph = "refresh",
-        .variant = ButtonVariant::Secondary,
-        .flexGrow = 1.0F,
-        .onClick = [] { Engine::instance().check(); },
-    }));
+    actions->addChild(
+        ui::button({
+            .text = i18n::tr("okaru.updates.check"),
+            .glyph = "refresh",
+            .variant = ButtonVariant::Secondary,
+            .flexGrow = 1.0F,
+            .onClick = [] { Engine::instance().check(); },
+        })
+    );
   }
   if (!actions->children().empty()) {
     c->addChild(std::move(actions));
@@ -314,14 +348,30 @@ void OkaruUpdatesTab::addStatus(Flex& parent) {
   // En segundo plano, pkexec pide la contraseña en cada transacción hasta que se instala la regla de polkit.
   if (background && !e.polkitRuleInstalled()) {
     auto hint = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
-    hint->addChild(ui::glyph({.glyph = "key", .glyphSize = Style::fontSizeBody * scale,
-                              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
-    hint->addChild(ui::label({.text = i18n::tr("okaru.updates.polkit-hint"), .fontSize = Style::fontSizeCaption * scale,
-                              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 2,
-                              .flexGrow = 1.0F}));
-    hint->addChild(ui::button({.text = i18n::tr("okaru.updates.polkit-install"), .variant = ButtonVariant::Outline,
-                               .tooltip = i18n::tr("okaru.updates.polkit-install-tip"),
-                               .onClick = [] { Engine::instance().installPolkitRule(); }}));
+    hint->addChild(
+        ui::glyph(
+            {.glyph = "key",
+             .glyphSize = Style::fontSizeBody * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+        )
+    );
+    hint->addChild(
+        ui::label(
+            {.text = i18n::tr("okaru.updates.polkit-hint"),
+             .fontSize = Style::fontSizeCaption * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+             .maxLines = 2,
+             .flexGrow = 1.0F}
+        )
+    );
+    hint->addChild(
+        ui::button(
+            {.text = i18n::tr("okaru.updates.polkit-install"),
+             .variant = ButtonVariant::Outline,
+             .tooltip = i18n::tr("okaru.updates.polkit-install-tip"),
+             .onClick = [] { Engine::instance().installPolkitRule(); }}
+        )
+    );
     c->addChild(std::move(hint));
   }
   parent.addChild(std::move(c));
@@ -332,19 +382,29 @@ void OkaruUpdatesTab::addRun(Flex& parent) {
   const auto& e = Engine::instance();
   auto c = card(scale, panelCardOpacity());
   auto header = makeCardHeaderRow(i18n::tr("okaru.updates.log-title"), scale);
-  header->addChild(iconButton(scale, "external-link", i18n::tr("okaru.updates.open-log"),
-                              [] { Engine::instance().openLog(); }));
+  header->addChild(iconButton(scale, "external-link", i18n::tr("okaru.updates.open-log"), [] {
+    Engine::instance().openLog();
+  }));
   c->addChild(std::move(header));
   if (e.phase() == Phase::Running && e.progressTotal() > 0) {
     const float progress = std::min(1.0F, static_cast<float>(e.progressDone()) / static_cast<float>(e.progressTotal()));
     c->addChild(ui::progressBar({.progress = progress, .height = 6.0F * scale}));
   }
   if (e.logTail().empty()) {
-    c->addChild(caption(scale, i18n::tr(e.runInTerminal() ? "okaru.updates.log-terminal" : "okaru.updates.log-waiting")));
+    c->addChild(
+        caption(scale, i18n::tr(e.runInTerminal() ? "okaru.updates.log-terminal" : "okaru.updates.log-waiting"))
+    );
   }
   for (const auto& line : e.logTail()) {
-    c->addChild(ui::label({.text = line, .fontSize = Style::fontSizeCaption * scale, .fontFamily = "monospace",
-                           .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
+    c->addChild(
+        ui::label(
+            {.text = line,
+             .fontSize = Style::fontSizeCaption * scale,
+             .fontFamily = "monospace",
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+             .maxLines = 1}
+        )
+    );
   }
   parent.addChild(std::move(c));
 }
@@ -374,48 +434,75 @@ void OkaruUpdatesTab::addSources(Flex& parent) {
     const bool open = m_expanded.contains(entry.key);
     auto header = ui::button({
         .variant = ButtonVariant::Ghost,
-        .onClick =
-            [this, key = std::string(entry.key), open] {
-              if (open) {
-                m_expanded.erase(key);
-              } else {
-                m_expanded.insert(key);
-              }
-              requestRebuild();
-            },
+        .onClick = [this, key = std::string(entry.key), open] {
+          if (open) {
+            m_expanded.erase(key);
+          } else {
+            m_expanded.insert(key);
+          }
+          requestRebuild();
+        },
     });
     header->setDirection(FlexDirection::Horizontal);
     header->setAlign(FlexAlign::Center);
     header->setGap(Style::spaceSm * scale);
-    header->addChild(ui::glyph({.glyph = sourceGlyph(entry.key), .glyphSize = Style::fontSizeBody * scale,
-                                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+    header->addChild(
+        ui::glyph(
+            {.glyph = sourceGlyph(entry.key),
+             .glyphSize = Style::fontSizeBody * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+        )
+    );
     header->addChild(ui::label({.text = entry.label, .fontSize = Style::fontSizeBody * scale, .flexGrow = 1.0F}));
-    header->addChild(ui::label({.text = std::to_string(entry.source->count), .fontSize = Style::fontSizeBody * scale,
-                                .fontWeight = FontWeight::Bold, .color = colorSpecFromRole(ColorRole::Primary)}));
-    header->addChild(ui::glyph({.glyph = open ? "chevron-up" : "chevron-down", .glyphSize = Style::fontSizeBody * scale,
-                                .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+    header->addChild(
+        ui::label(
+            {.text = std::to_string(entry.source->count),
+             .fontSize = Style::fontSizeBody * scale,
+             .fontWeight = FontWeight::Bold,
+             .color = colorSpecFromRole(ColorRole::Primary)}
+        )
+    );
+    header->addChild(
+        ui::glyph(
+            {.glyph = open ? "chevron-up" : "chevron-down",
+             .glyphSize = Style::fontSizeBody * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+        )
+    );
     c->addChild(std::move(header));
     if (!open) {
       continue;
     }
     for (const auto& pkg : entry.source->items) {
-      auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingH = Style::spaceMd * scale});
+      auto row =
+          ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingH = Style::spaceMd * scale});
       auto names = ui::column({.align = FlexAlign::Start, .gap = 0.0F, .flexGrow = 1.0F});
       names->addChild(ui::label({.text = pkg.name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1}));
       if (const std::string v = versions(pkg); !v.empty()) {
-        names->addChild(ui::label({.text = v, .fontSize = Style::fontSizeCaption * scale, .fontFamily = "monospace",
-                                   .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
+        names->addChild(
+            ui::label(
+                {.text = v,
+                 .fontSize = Style::fontSizeCaption * scale,
+                 .fontFamily = "monospace",
+                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+                 .maxLines = 1}
+            )
+        );
       }
       row->addChild(std::move(names));
-      row->addChild(iconButton(scale, "external-link", i18n::tr("okaru.updates.open-page"),
-                               [pkg] { openPackagePage(pkg); }));
-      row->addChild(iconButton(scale, "eye-off", i18n::tr("okaru.updates.ignore-tip"),
-                               [name = pkg.name] { Engine::instance().ignore(name); }));
+      row->addChild(iconButton(scale, "external-link", i18n::tr("okaru.updates.open-page"), [pkg] {
+        openPackagePage(pkg);
+      }));
+      row->addChild(iconButton(scale, "eye-off", i18n::tr("okaru.updates.ignore-tip"), [name = pkg.name] {
+        Engine::instance().ignore(name);
+      }));
       c->addChild(std::move(row));
     }
     if (entry.source->count > static_cast<int>(entry.source->items.size())) {
-      c->addChild(caption(scale, i18n::tr("okaru.updates.more", "count",
-                                          entry.source->count - static_cast<int>(entry.source->items.size()))));
+      c->addChild(caption(
+          scale,
+          i18n::tr("okaru.updates.more", "count", entry.source->count - static_cast<int>(entry.source->items.size()))
+      ));
     }
   }
   parent.addChild(std::move(c));
@@ -443,8 +530,9 @@ void OkaruUpdatesTab::addIgnored(Flex& parent) {
     auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
     row->addChild(ui::label({.text = name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1, .flexGrow = 1.0F}));
     if (editable) {
-      row->addChild(iconButton(scale, "eye", i18n::tr("okaru.updates.unignore-tip"),
-                               [name] { Engine::instance().unignore(name); }));
+      row->addChild(iconButton(scale, "eye", i18n::tr("okaru.updates.unignore-tip"), [name] {
+        Engine::instance().unignore(name);
+      }));
     } else {
       row->addChild(caption(scale, "pacman.conf"));
     }
@@ -461,8 +549,11 @@ void OkaruUpdatesTab::addActivity(Flex& parent) {
   }
   auto c = card(scale, panelCardOpacity());
   auto header = makeCardHeaderRow(i18n::tr("okaru.updates.activity"), scale);
-  header->addChild(caption(scale, e.lastUpdateAt() > 0 ? i18n::tr("okaru.updates.updated-ago", "when", ago(e.lastUpdateAt()))
-                                                       : i18n::tr("okaru.updates.never-updated")));
+  header->addChild(caption(
+      scale,
+      e.lastUpdateAt() > 0 ? i18n::tr("okaru.updates.updated-ago", "when", ago(e.lastUpdateAt()))
+                           : i18n::tr("okaru.updates.never-updated")
+  ));
   c->addChild(std::move(header));
   int peak = 1;
   for (const auto& point : e.activity()) {
@@ -471,16 +562,24 @@ void OkaruUpdatesTab::addActivity(Flex& parent) {
   // Una barra por revisión; las que siguieron a una actualización van en otro color.
   auto bars = ui::row({.align = FlexAlign::End, .gap = Style::spaceXs * scale, .height = kActivityHeight * scale});
   for (const auto& point : e.activity()) {
-    const float h = std::max(2.0F, kActivityHeight * scale * static_cast<float>(point.count) / static_cast<float>(peak));
-    auto bar = ui::box({.fill = colorSpecFromRole(point.afterUpdate ? ColorRole::Tertiary : ColorRole::Primary,
-                                                  point.count == 0 ? 0.35F : 1.0F),
-                        .radius = 2.0F * scale, .height = h, .flexGrow = 1.0F});
-    auto holder = ui::column({.align = FlexAlign::Stretch, .justify = FlexJustify::End,
-                              .height = kActivityHeight * scale, .flexGrow = 1.0F});
+    const float h =
+        std::max(2.0F, kActivityHeight * scale * static_cast<float>(point.count) / static_cast<float>(peak));
+    auto bar = ui::box(
+        {.fill = colorSpecFromRole(
+             point.afterUpdate ? ColorRole::Tertiary : ColorRole::Primary, point.count == 0 ? 0.35F : 1.0F
+         ),
+         .radius = 2.0F * scale,
+         .height = h,
+         .flexGrow = 1.0F}
+    );
+    auto holder = ui::column(
+        {.align = FlexAlign::Stretch, .justify = FlexJustify::End, .height = kActivityHeight * scale, .flexGrow = 1.0F}
+    );
     holder->addChild(std::move(bar));
-    auto area = ui::inputArea({.tooltip = std::format("{} · {}", formatDate(point.at),
-                                                      i18n::trp("okaru.updates.pending", point.count)),
-                               .flexGrow = 1.0F});
+    auto area = ui::inputArea(
+        {.tooltip = std::format("{} · {}", formatDate(point.at), i18n::trp("okaru.updates.pending", point.count)),
+         .flexGrow = 1.0F}
+    );
     area->addChild(std::move(holder));
     bars->addChild(std::move(area));
   }
@@ -496,22 +595,35 @@ void OkaruUpdatesTab::addHistory(Flex& parent) {
   }
   auto c = card(scale, panelCardOpacity());
   c->addChild(makeCardHeaderRow(i18n::tr("okaru.updates.history"), scale));
-  for (auto it = runs.rbegin(); it != runs.rend(); ++it) {
-    auto row = ui::button({.variant = ButtonVariant::Ghost, .tooltip = i18n::tr("okaru.updates.history-tip"),
-                           .onClick = [this, at = it->at] {
-                             m_openRun = at;
-                             m_armed.clear();
-                             requestRebuild();
-                           }});
+  for (const auto& run : std::views::reverse(runs)) {
+    auto row = ui::button(
+        {.variant = ButtonVariant::Ghost,
+         .tooltip = i18n::tr("okaru.updates.history-tip"),
+         .onClick = [this, at = run.at] {
+           m_openRun = at;
+           m_armed.clear();
+           requestRebuild();
+         }}
+    );
     row->setDirection(FlexDirection::Horizontal);
     row->setAlign(FlexAlign::Center);
     row->setGap(Style::spaceSm * scale);
-    row->addChild(ui::glyph({.glyph = it->rollback ? "arrow-back-up" : "package", .glyphSize = Style::fontSizeBody * scale,
-                             .color = colorSpecFromRole(it->rollback ? ColorRole::Tertiary : ColorRole::OnSurfaceVariant)}));
-    row->addChild(ui::label({.text = formatDate(it->at), .fontSize = Style::fontSizeBody * scale, .flexGrow = 1.0F}));
-    row->addChild(caption(scale, i18n::trp("okaru.updates.packages", static_cast<long>(it->packages.size()))));
-    row->addChild(ui::glyph({.glyph = "chevron-right", .glyphSize = Style::fontSizeBody * scale,
-                             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+    row->addChild(
+        ui::glyph(
+            {.glyph = run.rollback ? "arrow-back-up" : "package",
+             .glyphSize = Style::fontSizeBody * scale,
+             .color = colorSpecFromRole(run.rollback ? ColorRole::Tertiary : ColorRole::OnSurfaceVariant)}
+        )
+    );
+    row->addChild(ui::label({.text = formatDate(run.at), .fontSize = Style::fontSizeBody * scale, .flexGrow = 1.0F}));
+    row->addChild(caption(scale, i18n::trp("okaru.updates.packages", static_cast<long>(run.packages.size()))));
+    row->addChild(
+        ui::glyph(
+            {.glyph = "chevron-right",
+             .glyphSize = Style::fontSizeBody * scale,
+             .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+        )
+    );
     c->addChild(std::move(row));
   }
   parent.addChild(std::move(c));
@@ -535,24 +647,28 @@ void OkaruUpdatesTab::addRunView(Flex& parent) {
     m_armed.clear();
     requestRebuild();
   }));
-  header->addChild(ui::label({.text = formatDate(run->at)
-                                  + (run->rollback ? " · " + i18n::tr("okaru.updates.rollback-tag") : std::string{}),
-                              .fontSize = Style::fontSizeBody * scale, .fontWeight = FontWeight::Bold,
-                              .flexGrow = 1.0F}));
-  const bool anyRollbackable = std::ranges::any_of(run->packages, [](const Package& p) {
-    return p.source != "flatpak" && p.source != "snap";
-  });
+  header->addChild(
+      ui::label(
+          {.text =
+               formatDate(run->at) + (run->rollback ? " · " + i18n::tr("okaru.updates.rollback-tag") : std::string{}),
+           .fontSize = Style::fontSizeBody * scale,
+           .fontWeight = FontWeight::Bold,
+           .flexGrow = 1.0F}
+      )
+  );
+  const bool anyRollbackable =
+      std::ranges::any_of(run->packages, [](const Package& p) { return p.source != "flatpak" && p.source != "snap"; });
   if (anyRollbackable && !run->rollback) {
     const std::string armKey = std::format("all-{}", run->at);
     const bool armed = m_armed == armKey;
-    header->addChild(ui::button({
-        .text = i18n::tr(armed ? "okaru.updates.confirm" : "okaru.updates.rollback-all"),
-        .glyph = "arrow-back-up",
-        .enabled = !busy,
-        .variant = armed ? ButtonVariant::Destructive : ButtonVariant::Outline,
-        .tooltip = i18n::tr("okaru.updates.rollback-all-tip"),
-        .onClick =
-            [this, armKey, armed, at = run->at] {
+    header->addChild(
+        ui::button({
+            .text = i18n::tr(armed ? "okaru.updates.confirm" : "okaru.updates.rollback-all"),
+            .glyph = "arrow-back-up",
+            .enabled = !busy,
+            .variant = armed ? ButtonVariant::Destructive : ButtonVariant::Outline,
+            .tooltip = i18n::tr("okaru.updates.rollback-all-tip"),
+            .onClick = [this, armKey, armed, at = run->at] {
               if (armed) {
                 m_armed.clear();
                 m_openRun = 0;
@@ -562,7 +678,8 @@ void OkaruUpdatesTab::addRunView(Flex& parent) {
               }
               requestRebuild();
             },
-    }));
+        })
+    );
   }
   c->addChild(std::move(header));
 
@@ -570,22 +687,27 @@ void OkaruUpdatesTab::addRunView(Flex& parent) {
     auto row = ui::row({.align = FlexAlign::Center, .gap = Style::spaceSm * scale});
     if (pkg.source == "flatpak" || pkg.source == "snap") {
       // Flatpak y Snap no pasan por la caché de pacman: no se revierten desde aquí.
-      row->addChild(ui::glyph({.glyph = sourceGlyph(pkg.source), .glyphSize = Style::fontSizeBody * scale,
-                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+      row->addChild(
+          ui::glyph(
+              {.glyph = sourceGlyph(pkg.source),
+               .glyphSize = Style::fontSizeBody * scale,
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}
+          )
+      );
     } else if (!e.cached(pkg)) {
       row->addChild(iconButton(scale, "arrow-back-up", i18n::tr("okaru.updates.rollback-missing"), [] {}, false));
     } else {
       const std::string armKey = std::format("{}-{}", run->at, pkg.name);
       const bool armed = m_armed == armKey;
-      row->addChild(ui::button({
-          .glyph = armed ? "check" : "arrow-back-up",
-          .glyphSize = Style::fontSizeBody * scale,
-          .enabled = !busy,
-          .variant = armed ? ButtonVariant::Destructive : ButtonVariant::Ghost,
-          .tooltip = armed ? i18n::tr("okaru.updates.confirm")
-                           : i18n::tr("okaru.updates.rollback-tip", "version", pkg.from),
-          .onClick =
-              [this, armKey, armed, at = run->at, name = pkg.name] {
+      row->addChild(
+          ui::button({
+              .glyph = armed ? "check" : "arrow-back-up",
+              .glyphSize = Style::fontSizeBody * scale,
+              .enabled = !busy,
+              .variant = armed ? ButtonVariant::Destructive : ButtonVariant::Ghost,
+              .tooltip = armed ? i18n::tr("okaru.updates.confirm")
+                               : i18n::tr("okaru.updates.rollback-tip", "version", pkg.from),
+              .onClick = [this, armKey, armed, at = run->at, name = pkg.name] {
                 if (armed) {
                   m_armed.clear();
                   m_openRun = 0;
@@ -595,13 +717,21 @@ void OkaruUpdatesTab::addRunView(Flex& parent) {
                 }
                 requestRebuild();
               },
-      }));
+          })
+      );
     }
     auto names = ui::column({.align = FlexAlign::Start, .gap = 0.0F, .flexGrow = 1.0F});
     names->addChild(ui::label({.text = pkg.name, .fontSize = Style::fontSizeBody * scale, .maxLines = 1}));
     if (const std::string v = versions(pkg); !v.empty()) {
-      names->addChild(ui::label({.text = v, .fontSize = Style::fontSizeCaption * scale, .fontFamily = "monospace",
-                                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 1}));
+      names->addChild(
+          ui::label(
+              {.text = v,
+               .fontSize = Style::fontSizeCaption * scale,
+               .fontFamily = "monospace",
+               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+               .maxLines = 1}
+          )
+      );
     }
     row->addChild(std::move(names));
     c->addChild(std::move(row));

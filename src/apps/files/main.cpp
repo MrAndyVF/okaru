@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     }
   } else {
     for (const auto& arg : args) {
-      if (!arg.starts_with("-")) {
+      if (!arg.starts_with('-')) {
         locations.push_back(okaru::files::pathToUri(arg));
       }
     }

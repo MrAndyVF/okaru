@@ -83,8 +83,8 @@ namespace okaru::files {
     e.mountable = type == G_FILE_TYPE_MOUNTABLE || type == G_FILE_TYPE_SHORTCUT;
     e.directory = type == G_FILE_TYPE_DIRECTORY || e.mountable;
     e.symlink = g_file_info_get_is_symlink(info) != FALSE;
-    e.hidden = g_file_info_get_is_hidden(info) != FALSE || g_file_info_get_is_backup(info) != FALSE
-        || e.name.starts_with('.');
+    e.hidden =
+        g_file_info_get_is_hidden(info) != FALSE || g_file_info_get_is_backup(info) != FALSE || e.name.starts_with('.');
     if (g_file_info_has_attribute(info, G_FILE_ATTRIBUTE_STANDARD_SIZE)) {
       e.size = static_cast<std::uint64_t>(g_file_info_get_size(info));
     }
@@ -136,8 +136,7 @@ namespace okaru::files {
     if (e.icons.empty() && !e.contentType.empty()) {
       GIcon* typeIcon = g_content_type_get_icon(e.contentType.c_str());
       if (typeIcon != nullptr && G_IS_THEMED_ICON(typeIcon)) {
-        for (const char* const* names = g_themed_icon_get_names(G_THEMED_ICON(typeIcon)); *names != nullptr;
-             ++names) {
+        for (const char* const* names = g_themed_icon_get_names(G_THEMED_ICON(typeIcon)); *names != nullptr; ++names) {
           e.icons.emplace_back(*names);
         }
       }
@@ -150,8 +149,10 @@ namespace okaru::files {
     return e;
   }
 
-  bool listDirectory(const std::string& uri, std::vector<FileEntry>& out, std::string& error,
-                     const std::atomic<bool>* cancel, int* code) {
+  bool listDirectory(
+      const std::string& uri, std::vector<FileEntry>& out, std::string& error, const std::atomic<bool>* cancel,
+      int* code
+  ) {
     GFile* dir = g_file_new_for_uri(uri.c_str());
     GError* gerror = nullptr;
     GFileEnumerator* it = g_file_enumerate_children(dir, kQueryAttributes, G_FILE_QUERY_INFO_NONE, nullptr, &gerror);
@@ -369,7 +370,7 @@ namespace okaru::files {
         return;
       }
       DeferredCall::callLater([this, alive, generation, code, entries = std::move(entries),
-                               error = std::move(error)]() mutable {
+                               error = std::move(error)] mutable {
         if (alive.expired() || generation != m_generation) {
           return;
         }
@@ -428,7 +429,7 @@ namespace okaru::files {
       std::vector<FileEntry> batch;
       std::size_t found = 0;
       const auto flush = [&](bool done) {
-        DeferredCall::callLater([this, alive, cancel, batch = std::move(batch), done]() mutable {
+        DeferredCall::callLater([this, alive, cancel, batch = std::move(batch), done] mutable {
           if (alive.expired() || cancel->load()) {
             return;
           }
@@ -478,7 +479,8 @@ namespace okaru::files {
     m_visible.clear();
     m_visible.reserve(source.size());
     for (const auto& e : source) {
-      if ((m_options.showHidden || !e.hidden) && matchesFilter(e, needle)
+      if ((m_options.showHidden || !e.hidden)
+          && matchesFilter(e, needle)
           && (e.directory || !m_pickFilter || m_pickFilter(e))) {
         m_visible.push_back(e);
       }
@@ -508,8 +510,8 @@ namespace okaru::files {
     }
   }
 
-  void DirectoryModel::onMonitorEvent(GFileMonitor* /*monitor*/, void* /*file*/, void* /*other*/, int event,
-                                      void* self) {
+  void
+  DirectoryModel::onMonitorEvent(GFileMonitor* /*monitor*/, void* /*file*/, void* /*other*/, int event, void* self) {
     if (event == G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT) {
       return;
     }

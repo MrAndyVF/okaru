@@ -147,7 +147,7 @@ namespace okaru::files {
     // Navegación.
     [[nodiscard]] Tab& tab() { return *m_tabs[m_active]; }
     [[nodiscard]] Mode mode() const;
-    void setMode(Mode mode);
+    void setMode(Mode next);
     void toggleSplit();
     void focusPane(std::size_t tabIndex);
     [[nodiscard]] bool split() const noexcept { return m_split && m_second < m_tabs.size() && m_second != m_active; }
@@ -155,7 +155,7 @@ namespace okaru::files {
     void openTab(const std::string& uri, bool activate = true);
     void closeTab(std::size_t index);
     void activateTab(std::size_t index);
-    void navigate(const std::string& uri, bool record = true, const std::string& reveal = {});
+    void navigate(const std::string& requested, bool record = true, const std::string& reveal = {});
     void goBack();
     void goForward();
     void goUp();
@@ -206,7 +206,7 @@ namespace okaru::files {
     void toggleBookmark(const std::string& uri);
     void drop(const DropRequest& request);
     void dropExternal(const std::vector<std::string>& paths);
-    void dropAt(std::vector<std::string> paths, float x, float y, bool own);
+    void dropAt(const std::vector<std::string>& paths, float x, float y, bool own);
     [[nodiscard]] std::string highlightPlaceAt(float sceneX, float sceneY);
     [[nodiscard]] ViewOptions optionsFor(const std::string& uri) const;
     void changeSort(const std::function<void(ViewOptions&)>& change);
@@ -291,8 +291,8 @@ namespace okaru::files {
     bool m_phonesAgain = false;
     std::vector<std::unique_ptr<Tab>> m_tabs;
     std::size_t m_active = 0;
-    bool m_split = false;      // dos paneles (F3)
-    std::size_t m_second = 0;  // pestaña del panel que no tiene el foco
+    bool m_split = false;     // dos paneles (F3)
+    std::size_t m_second = 0; // pestaña del panel que no tiene el foco
     FileView* m_otherView = nullptr;
 
     // Preferencias (files.toml). De m_options solo cuenta showHidden (global); el orden va por carpeta.
