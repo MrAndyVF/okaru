@@ -117,14 +117,7 @@ window-rule {
     opacity 1.0
 }
 
-// Nautilus y LocalSend
-window-rule {
-    match app-id="^org\\.gnome\\.Nautilus$"
-    open-floating true
-    default-column-width { fixed 1300; }
-    default-window-height { fixed 800; }
-}
-
+// LocalSend
 window-rule {
     match app-id="^org\\.localsend\\.localsend_app$"
     open-floating true
@@ -207,7 +200,7 @@ binds {
 
     // Apps
     Mod+Return hotkey-overlay-title="Terminal" { spawn "kitty"; }
-    Mod+E hotkey-overlay-title="Files" { spawn "nautilus" "--new-window"; }
+    Mod+E hotkey-overlay-title="Files" { spawn "okaru-files"; }
 
     // OKARU
     Mod+Space hotkey-overlay-title="Launcher" { spawn "okaru" "msg" "panel-toggle" "launcher"; }
