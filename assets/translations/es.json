@@ -468,6 +468,18 @@
         "grey": "Gris",
         "black": "Negro",
         "white": "Blanco"
+      },
+      "preview": {
+        "failed": "No se pudo abrir este archivo",
+        "locked": "Este PDF tiene contraseña",
+        "office-failed": "LibreOffice no pudo convertir este documento",
+        "converting": "Preparando la vista previa con LibreOffice…",
+        "previous": "Página anterior",
+        "next": "Página siguiente",
+        "zoom-out": "Alejar",
+        "zoom-in": "Acercar",
+        "fit": "Ajustar",
+        "open": "Abrir"
       }
     },
     "pdf": {

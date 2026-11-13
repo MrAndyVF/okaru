@@ -468,6 +468,18 @@
         "grey": "Grey",
         "black": "Black",
         "white": "White"
+      },
+      "preview": {
+        "failed": "Could not open this file",
+        "locked": "This PDF is password protected",
+        "office-failed": "LibreOffice could not convert this document",
+        "converting": "Preparing the preview with LibreOffice…",
+        "previous": "Previous page",
+        "next": "Next page",
+        "zoom-out": "Zoom out",
+        "zoom-in": "Zoom in",
+        "fit": "Fit",
+        "open": "Open"
       }
     },
     "pdf": {

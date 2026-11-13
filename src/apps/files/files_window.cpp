@@ -4,6 +4,7 @@
 #include "apps/common/okaru_app.h"
 #include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
+#include "apps/pdf/pdf_view.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
 #include "core/input/key_symbols.h"
@@ -161,6 +162,41 @@ namespace okaru::files {
       updateDetails();
       m_app.invalidate();
     });
+    // Con el contexto GL activo: soltar previsualizaciones viejas y subir la foto recién decodificada.
+    m_app.setBeforeRender([this](Renderer& renderer) {
+      for (auto& handle : m_retiredTextures) {
+        renderer.textureManager().unload(handle);
+      }
+      m_retiredTextures.clear();
+      for (auto& tab : m_retiredPdfs) {
+        for (auto* slots : {&tab->pages, &tab->thumbs}) {
+          for (auto& slot : *slots) {
+            if (slot.handle.valid()) {
+              renderer.textureManager().unload(slot.handle);
+            }
+          }
+        }
+      }
+      m_retiredPdfs.clear();
+      if (!m_preview.pending.rgba.empty()) {
+        m_preview.texture =
+            renderer.textureManager().loadFromRgba(m_preview.pending.rgba.data(), m_preview.pending.width, m_preview.pending.height);
+        m_preview.width = m_preview.pending.width;
+        m_preview.height = m_preview.pending.height;
+        m_preview.pending = {};
+        if (m_imagePreview != nullptr) {
+          m_imagePreview->setTexture(m_preview.texture, m_preview.width, m_preview.height);
+          updatePreviewLabels();
+        }
+        // Este cuadro ya se maquetó y su marca se borra al pintar: se vuelve a marcar fuera del cuadro.
+        DeferredCall::callLater([this] {
+          if (m_imagePreview != nullptr) {
+            m_imagePreview->markLayoutDirty();
+          }
+          m_app.invalidate();
+        });
+      }
+    });
     m_ops.setOnProgress([this](const OpProgress& progress) {
       m_progress = progress;
       updateStatus();
@@ -201,6 +237,21 @@ namespace okaru::files {
           renderer->textureManager().unload(thumb.handle);
         }
         m_thumbTextures.clear();
+        startPreview(nullptr);
+        for (auto& handle : m_retiredTextures) {
+          renderer->textureManager().unload(handle);
+        }
+        for (auto& tab : m_retiredPdfs) {
+          for (auto* slots : {&tab->pages, &tab->thumbs}) {
+            for (auto& slot : *slots) {
+              if (slot.handle.valid()) {
+                renderer->textureManager().unload(slot.handle);
+              }
+            }
+          }
+        }
+        m_retiredTextures.clear();
+        m_retiredPdfs.clear();
       }
       m_tabs.clear();
     });
@@ -1349,7 +1400,11 @@ namespace okaru::files {
     m_dialogInput = nullptr;
     m_statusLabel = nullptr;
     m_menuControl = nullptr;
-    m_detailsIcon = nullptr;
+    m_previewHost = nullptr;
+    m_imagePreview = nullptr;
+    m_pdfPreview = nullptr;
+    m_previewZoom = nullptr;
+    m_previewPage = nullptr;
     m_detailsName = nullptr;
     m_detailsInfo = nullptr;
     m_progressLabel = nullptr;
@@ -1908,22 +1963,23 @@ namespace okaru::files {
   }
 
   std::unique_ptr<Node> FilesWindow::buildDetails(float scale) {
+    // Previsualización arriba (cambia en el sitio, sin reconstruir la escena) y los datos del archivo abajo.
     auto pane = ui::column({
-        .align = FlexAlign::Center,
-        .justify = FlexJustify::Center,
+        .align = FlexAlign::Stretch,
         .gap = Style::spaceSm * scale,
-        .padding = Style::spaceLg * scale,
+        .padding = Style::spaceMd * scale,
         .flexGrow = 1.0F,
     });
-    pane->addChild(ui::image({.out = &m_detailsIcon, .fit = ImageFit::Contain, .width = 128.0F * scale,
-                              .height = 128.0F * scale}));
+    pane->addChild(ui::column({.out = &m_previewHost, .align = FlexAlign::Stretch, .gap = Style::spaceSm * scale,
+                               .clipChildren = true, .flexGrow = 1.0F}));
     pane->addChild(ui::label({.out = &m_detailsName, .text = " ", .fontSize = Style::fontSizeTitle * scale,
-                              .fontWeight = FontWeight::SemiBold, .maxWidth = 360.0F * scale, .maxLines = 3,
-                              .textAlign = TextAlign::Center, .ellipsize = TextEllipsize::Middle}));
+                              .fontWeight = FontWeight::SemiBold, .maxLines = 2, .textAlign = TextAlign::Center,
+                              .ellipsize = TextEllipsize::Middle}));
     pane->addChild(ui::label({.out = &m_detailsInfo, .text = " ", .fontSize = Style::fontSizeCaption * scale,
-                              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxWidth = 360.0F * scale,
-                              .maxLines = 6, .textAlign = TextAlign::Center}));
+                              .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 6,
+                              .textAlign = TextAlign::Center}));
     m_detailsScale = scale;
+    fillPreviewHost();
     return pane;
   }
 
@@ -1933,28 +1989,306 @@ namespace okaru::files {
     }
     const auto items = selection();
     const bool show = items.size() == 1;
-    m_detailsIcon->setVisible(show);
     m_detailsName->setVisible(show);
     m_detailsInfo->setVisible(show);
+    // Previsualizar el elegido; con una pequeña espera para no cargar cada archivo al pasar con las flechas.
+    const FileEntry* chosen = show && !items.front()->directory ? items.front() : nullptr;
+    const std::string wanted = chosen != nullptr ? chosen->uri + "#" + std::to_string(chosen->modified) : std::string();
+    if (wanted != m_previewWanted) {
+      m_previewWanted = wanted;
+      if (chosen == nullptr) {
+        startPreview(nullptr);
+      } else {
+        const FileEntry copy = *chosen;
+        m_previewTimer.start(std::chrono::milliseconds(140), [this, copy] { startPreview(&copy); });
+      }
+    }
     if (!show) {
       return;
     }
     const FileEntry& e = *items.front();
-    if (Renderer* renderer = m_app.renderer(); renderer != nullptr) {
-      if (const TextureHandle t = iconFor(*renderer, e, static_cast<int>(128 * m_detailsScale)); t.valid()) {
-        m_detailsIcon->setExternalTexture(*renderer, t);
-      }
-    }
     m_detailsName->setText(e.display);
     std::string info = e.typeName;
     if (!e.directory) {
-      info += "\n" + formatSize(e.size);
+      info += " · " + formatSize(e.size);
+    }
+    if (m_preview.uri == e.uri && m_preview.originalWidth > 0) {
+      info += std::format(" · {}×{}", m_preview.originalWidth, m_preview.originalHeight);
     }
     info += "\n" + tr("apps.files.prop.modified") + ": " + formatDate(e.modified);
     if (e.mode != 0) {
-      info += "\n" + formatPermissions(e.mode);
+      info += "  ·  " + formatPermissions(e.mode);
     }
     m_detailsInfo->setText(info);
+    // Carpeta elegida: su icono grande en el lugar de la previsualización.
+    if (m_preview.uri.empty()) {
+      fillPreviewHost();
+    }
+  }
+
+  void FilesWindow::startPreview(const FileEntry* entry) {
+    // Lo anterior se suelta en el próximo cuadro (con el contexto GL activo).
+    if (m_preview.texture.valid()) {
+      m_retiredTextures.push_back(m_preview.texture);
+    }
+    if (m_preview.pdf != nullptr) {
+      m_retiredPdfs.push_back(std::move(m_preview.pdf));
+    }
+    const std::uint64_t generation = m_preview.generation + 1;
+    m_preview = {};
+    m_preview.generation = generation;
+    if (entry != nullptr && !entry->path.empty()) {
+      m_preview.uri = entry->uri;
+      m_preview.modified = entry->modified;
+      m_preview.kind = previewKindFor(entry->contentType);
+    }
+    std::weak_ptr<int> alive = m_alive;
+    switch (m_preview.kind) {
+    case PreviewKind::Image:
+      m_preview.loading = true;
+      std::thread([this, alive, generation, path = entry->path] {
+        auto decoded = decodeImage(path, 3072);
+        DeferredCall::callLater([this, alive, generation, decoded = std::move(decoded)]() mutable {
+          if (alive.expired() || generation != m_preview.generation) {
+            return;
+          }
+          m_preview.loading = false;
+          m_preview.originalWidth = decoded.originalWidth;
+          m_preview.originalHeight = decoded.originalHeight;
+          if (decoded.rgba.empty()) {
+            m_preview.error = tr("apps.files.preview.failed");
+          }
+          m_preview.pending = std::move(decoded);
+          fillPreviewHost();
+          updateDetails();
+          m_app.requestFrame();
+        });
+      }).detach();
+      break;
+    case PreviewKind::Pdf:
+      openPreviewPdf(entry->path);
+      break;
+    case PreviewKind::Office: {
+      const std::string cached = officePreviewPath(entry->uri, entry->modified);
+      if (g_file_test(cached.c_str(), G_FILE_TEST_EXISTS)) {
+        openPreviewPdf(cached);
+        break;
+      }
+      m_preview.loading = true;
+      std::thread([this, alive, generation, path = entry->path, cached] {
+        std::string error;
+        const bool ok = convertOfficeToPdf(path, cached, error);
+        DeferredCall::callLater([this, alive, generation, ok, cached, error] {
+          if (alive.expired() || generation != m_preview.generation) {
+            return;
+          }
+          m_preview.loading = false;
+          if (ok) {
+            openPreviewPdf(cached);
+          } else {
+            m_preview.error = tr("apps.files.preview.office-failed");
+          }
+          fillPreviewHost();
+        });
+      }).detach();
+      break;
+    }
+    case PreviewKind::None:
+      break;
+    }
+    fillPreviewHost();
+  }
+
+  void FilesWindow::openPreviewPdf(const std::string& path) {
+    auto opened = pdf::Document::open(path);
+    if (!opened) {
+      m_preview.error = tr(opened.error() == pdf::OpenError::Damaged ? "apps.files.preview.failed"
+                                                                      : "apps.files.preview.locked");
+      return;
+    }
+    auto tab = std::make_unique<pdf::PdfTab>();
+    tab->path = path;
+    tab->doc = std::move(*opened);
+    const int pages = tab->doc->pageCount();
+    for (int i = 0; i < pages; ++i) {
+      tab->sizes.push_back(tab->doc->pageSize(i));
+    }
+    tab->pages.resize(static_cast<std::size_t>(pages));
+    tab->thumbs.resize(static_cast<std::size_t>(pages));
+    tab->fit = pdf::Fit::Width;
+    pdf::PdfTab* raw = tab.get();
+    tab->worker = std::make_unique<pdf::RenderWorker>(path, std::string(), [this, raw](const pdf::RenderJob& job, pdf::RenderedPage page) {
+      if (m_preview.pdf.get() != raw) {
+        return; // previsualización ya cambiada
+      }
+      raw->arrived.emplace_back(job, std::move(page));
+      if (m_pdfPreview != nullptr) {
+        m_pdfPreview->markLayoutDirty();
+      }
+      m_app.invalidate();
+    });
+    m_preview.pdf = std::move(tab);
+  }
+
+  void FilesWindow::fillPreviewHost() {
+    if (m_previewHost == nullptr) {
+      return;
+    }
+    while (!m_previewHost->children().empty()) {
+      (void)m_previewHost->removeChild(m_previewHost->children().back().get());
+    }
+    m_imagePreview = nullptr;
+    m_pdfPreview = nullptr;
+    m_previewZoom = nullptr;
+    m_previewPage = nullptr;
+    const float scale = m_detailsScale;
+    const auto message = [&](std::string text, bool spinner) {
+      auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .gap = Style::spaceMd * scale,
+                             .flexGrow = 1.0F});
+      if (spinner) {
+        box->addChild(ui::glyph({.glyph = "loader-2", .glyphSize = 28.0F * scale,
+                                 .color = colorSpecFromRole(ColorRole::Primary)}));
+      }
+      box->addChild(ui::label({.text = std::move(text), .fontSize = Style::fontSizeBody * scale,
+                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .maxLines = 4,
+                               .textAlign = TextAlign::Center}));
+      m_previewHost->addChild(std::move(box));
+    };
+    const auto ghost = [&](const char* glyph, std::string tooltip, std::function<void()> onClick) {
+      return ui::button({.glyph = glyph, .glyphSize = 16.0F * scale, .controlHeight = 30.0F * scale,
+                         .variant = ButtonVariant::Ghost, .tooltip = std::move(tooltip), .onClick = std::move(onClick)});
+    };
+    const auto toolbar = [&](bool pages) {
+      auto bar = ui::row({.align = FlexAlign::Center, .justify = FlexJustify::Center, .gap = Style::spaceXs * scale,
+                          .paddingH = Style::spaceSm * scale, .fill = colorSpecFromRole(ColorRole::SurfaceContainerHigh),
+                          .radius = Style::radiusLg * scale, .height = 38.0F * scale});
+      if (pages) {
+        bar->addChild(ghost("chevron-up", tr("apps.files.preview.previous"), [this] {
+          if (m_pdfPreview != nullptr && m_preview.pdf != nullptr) {
+            m_pdfPreview->goToPage(m_preview.pdf->currentPage - 1);
+            m_app.invalidate();
+          }
+        }));
+        bar->addChild(ui::label({.out = &m_previewPage, .text = " ", .fontSize = Style::fontSizeCaption * scale,
+                                 .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .minWidth = 64.0F * scale,
+                                 .textAlign = TextAlign::Center}));
+        bar->addChild(ghost("chevron-down", tr("apps.files.preview.next"), [this] {
+          if (m_pdfPreview != nullptr && m_preview.pdf != nullptr) {
+            m_pdfPreview->goToPage(m_preview.pdf->currentPage + 1);
+            m_app.invalidate();
+          }
+        }));
+        bar->addChild(ui::separator({.orientation = SeparatorOrientation::VerticalRule}));
+      }
+      const auto zoom = [this](float factor) {
+        if (m_imagePreview != nullptr) {
+          m_imagePreview->zoomBy(factor);
+        } else if (m_pdfPreview != nullptr) {
+          m_pdfPreview->setZoom(std::clamp(m_pdfPreview->effectiveZoom() * factor, 0.1, 8.0));
+        }
+        updatePreviewLabels();
+        m_app.invalidate();
+      };
+      bar->addChild(ghost("zoom-out", tr("apps.files.preview.zoom-out"), [zoom] { zoom(1.0F / 1.25F); }));
+      bar->addChild(ui::label({.out = &m_previewZoom, .text = " ", .fontSize = Style::fontSizeCaption * scale,
+                               .color = colorSpecFromRole(ColorRole::OnSurfaceVariant), .minWidth = 48.0F * scale,
+                               .textAlign = TextAlign::Center}));
+      bar->addChild(ghost("zoom-in", tr("apps.files.preview.zoom-in"), [zoom] { zoom(1.25F); }));
+      bar->addChild(ghost("arrows-maximize", tr("apps.files.preview.fit"), [this] {
+        if (m_imagePreview != nullptr) {
+          m_imagePreview->fit();
+        } else if (m_pdfPreview != nullptr) {
+          m_pdfPreview->setFit(pdf::Fit::Width);
+        }
+        updatePreviewLabels();
+        m_app.invalidate();
+      }));
+      bar->addChild(ui::separator({.orientation = SeparatorOrientation::VerticalRule}));
+      bar->addChild(ui::button({
+          .text = tr("apps.files.preview.open"),
+          .glyph = "external-link",
+          .fontSize = Style::fontSizeCaption * scale,
+          .glyphSize = 14.0F * scale,
+          .controlHeight = 30.0F * scale,
+          .variant = ButtonVariant::Ghost,
+          .onClick = [this] { openSelection(); },
+      }));
+      m_previewHost->addChild(std::move(bar));
+    };
+
+    if (m_preview.uri.empty()) {
+      // Sin archivo (carpeta o nada): el icono grande del elegido.
+      const auto items = selection();
+      if (items.size() == 1) {
+        auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .flexGrow = 1.0F});
+        Image* icon = nullptr;
+        box->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 128.0F * scale, .height = 128.0F * scale}));
+        if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
+          if (const TextureHandle t = iconFor(*renderer, *items.front(), static_cast<int>(128 * scale)); t.valid()) {
+            icon->setExternalTexture(*renderer, t);
+          }
+        }
+        m_previewHost->addChild(std::move(box));
+      }
+    } else if (!m_preview.error.empty()) {
+      message(m_preview.error, false);
+    } else if (m_preview.loading) {
+      message(tr(m_preview.kind == PreviewKind::Office ? "apps.files.preview.converting" : "apps.files.loading"), true);
+    } else if (m_preview.kind == PreviewKind::Image) {
+      auto view = std::make_unique<ImagePreview>();
+      view->setFlexGrow(1.0F);
+      view->setOnZoomChanged([this] { updatePreviewLabels(); });
+      if (m_preview.texture.valid()) {
+        view->setTexture(m_preview.texture, m_preview.width, m_preview.height);
+      }
+      m_imagePreview = view.get();
+      m_previewHost->addChild(std::move(view));
+      toolbar(false);
+    } else if (m_preview.pdf != nullptr) {
+      auto view = std::make_unique<pdf::PdfView>();
+      view->setFlexGrow(1.0F);
+      view->setBufferScale(m_app.bufferScale());
+      view->setTab(m_preview.pdf.get());
+      view->setOnPageChanged([this] { updatePreviewLabels(); });
+      view->setOnZoomChanged([this] { updatePreviewLabels(); });
+      view->setOnOpenUri([](const std::string& uri) {
+        if (uri.starts_with("http://") || uri.starts_with("https://") || uri.starts_with("mailto:")) {
+          (void)process::runAsync({"xdg-open", uri.c_str()});
+        }
+      });
+      m_pdfPreview = view.get();
+      m_previewHost->addChild(std::move(view));
+      toolbar(true);
+    } else {
+      // Tipo sin previsualización: el icono (o la miniatura) en grande.
+      const auto items = selection();
+      if (items.size() == 1) {
+        auto box = ui::column({.align = FlexAlign::Center, .justify = FlexJustify::Center, .flexGrow = 1.0F});
+        Image* icon = nullptr;
+        box->addChild(ui::image({.out = &icon, .fit = ImageFit::Contain, .width = 192.0F * scale, .height = 192.0F * scale}));
+        if (Renderer* renderer = m_app.renderer(); renderer != nullptr && icon != nullptr) {
+          if (const TextureHandle t = iconFor(*renderer, *items.front(), static_cast<int>(256 * scale)); t.valid()) {
+            icon->setExternalTexture(*renderer, t);
+          }
+        }
+        m_previewHost->addChild(std::move(box));
+      }
+    }
+    m_previewHost->markLayoutDirty();
+    updatePreviewLabels();
+    m_app.invalidate();
+  }
+
+  void FilesWindow::updatePreviewLabels() {
+    if (m_previewZoom != nullptr) {
+      const float percent = m_imagePreview != nullptr ? m_imagePreview->zoomPercent()
+          : m_pdfPreview != nullptr                   ? static_cast<float>(m_pdfPreview->effectiveZoom() * 100.0)
+                                                      : 0.0F;
+      m_previewZoom->setText(std::format("{}%", static_cast<int>(std::lround(percent))));
+    }
+    if (m_previewPage != nullptr && m_preview.pdf != nullptr) {
+      m_previewPage->setText(std::format("{} / {}", m_preview.pdf->currentPage + 1, m_preview.pdf->sizes.size()));
+    }
   }
 
   std::unique_ptr<Node> FilesWindow::buildStatus(float width, float scale) {

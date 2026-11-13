@@ -9,6 +9,7 @@
 #include "apps/files/file_view.h"
 #include "apps/files/icon_cache.h"
 #include "apps/files/places.h"
+#include "apps/files/preview.h"
 #include "apps/files/share.h"
 #include "apps/files/thumbnails.h"
 #include "core/timer_manager.h"
@@ -24,6 +25,7 @@
 #include <vector>
 
 class Box;
+class Flex;
 class Renderer;
 class Image;
 class Input;
@@ -37,6 +39,11 @@ namespace okaru::apps {
   class PortalFileChooser;
   class GlibPollSource;
 } // namespace okaru::apps
+
+namespace okaru::pdf {
+  struct PdfTab;
+  class PdfView;
+} // namespace okaru::pdf
 
 namespace okaru::files {
 
@@ -113,6 +120,10 @@ namespace okaru::files {
     [[nodiscard]] std::unique_ptr<Node> buildStatus(float width, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildDetails(float scale);
     void updateDetails();
+    void startPreview(const FileEntry* entry);
+    void openPreviewPdf(const std::string& path);
+    void fillPreviewHost();
+    void updatePreviewLabels();
     [[nodiscard]] std::unique_ptr<Node> buildOverlay(float width, float height, float scale);
     [[nodiscard]] std::unique_ptr<Node> buildMenu(float width, float height, float scale);
     [[nodiscard]] bool onKey(const KeyboardEvent& event);
@@ -262,10 +273,36 @@ namespace okaru::files {
     Input* m_dialogInput = nullptr;
     Label* m_statusLabel = nullptr;
     ContextMenuControl* m_menuControl = nullptr;
-    Image* m_detailsIcon = nullptr;
     Label* m_detailsName = nullptr;
     Label* m_detailsInfo = nullptr;
     float m_detailsScale = 1.0F;
+
+    // Previsualización de la vista en columnas (sobrevive a las reconstrucciones).
+    struct PreviewState {
+      std::string uri;
+      std::int64_t modified = -1;
+      PreviewKind kind = PreviewKind::None;
+      bool loading = false;
+      std::string error;
+      DecodedImage pending; // foto decodificada esperando subir a la GPU
+      TextureHandle texture;
+      int width = 0;
+      int height = 0;
+      int originalWidth = 0;
+      int originalHeight = 0;
+      std::unique_ptr<pdf::PdfTab> pdf;
+      std::uint64_t generation = 0;
+    };
+    PreviewState m_preview;
+    std::vector<std::unique_ptr<pdf::PdfTab>> m_retiredPdfs; // se sueltan con el contexto GL activo
+    std::vector<TextureHandle> m_retiredTextures;
+    Timer m_previewTimer;
+    std::string m_previewWanted; // uri#mtime pedido (con espera para no cargar al pasar con las flechas)
+    Flex* m_previewHost = nullptr;
+    ImagePreview* m_imagePreview = nullptr;
+    pdf::PdfView* m_pdfPreview = nullptr;
+    Label* m_previewZoom = nullptr;
+    Label* m_previewPage = nullptr;
     Label* m_progressLabel = nullptr;
     ProgressBar* m_progressBar = nullptr;
     ScrollViewState m_sidebarScroll;
