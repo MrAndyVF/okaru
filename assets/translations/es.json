@@ -1071,6 +1071,8 @@
         "yesterday": "Ayer"
       },
       "filter-empty-body": "Ninguna notificación coincide con este filtro.",
+      "group-collapse": "Agrupar las notificaciones de esta app",
+      "group-expand": "Ver todas las notificaciones de esta app",
       "filter-empty-title": "No hay nada aquí",
       "untitled": "Notificación sin título"
     },

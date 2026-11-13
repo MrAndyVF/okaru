@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -41,6 +42,9 @@ private:
   void removeNotificationEntry(uint32_t id, bool wasActive);
   void toggleDoNotDisturb();
   void toggleNotificationExpanded(uint32_t id);
+  void toggleGroup(uint32_t headId);
+  [[nodiscard]] std::size_t groupCount(uint32_t id) const;
+  [[nodiscard]] bool groupOpen(const NotificationHistoryEntry& entry) const;
   void invokeNotificationAction(uint32_t id, const std::string& actionKey);
   bool refreshDataSnapshot();
   void syncDndButton();
@@ -71,6 +75,10 @@ private:
   Segmented* m_filter = nullptr;
   std::size_t m_filterIndex = 0;
   std::unordered_set<uint32_t> m_expandedIds;
+  // OKARU: id de la notificación más reciente de cada app con más de una → ids del grupo (la cabeza primero).
+  std::unordered_map<uint32_t, std::vector<uint32_t>> m_groups;
+  std::unordered_set<std::string> m_openGroups; // apps desplegadas
+
   std::uint64_t m_lastSerial = 0;
   /// Wall-clock coarse slot so relative times (e.g. "2 min ago") refresh without churning every frame.
   std::int64_t m_lastRelativeTimeSlot = -1;

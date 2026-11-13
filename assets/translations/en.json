@@ -1128,6 +1128,8 @@
         "yesterday": "Yesterday"
       },
       "filter-empty-body": "No notifications match this filter.",
+      "group-collapse": "Collapse this app's notifications",
+      "group-expand": "Show all of this app's notifications",
       "filter-empty-title": "Nothing here",
       "untitled": "Untitled notification"
     },

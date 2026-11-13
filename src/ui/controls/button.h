@@ -168,5 +168,6 @@ wrapButtonsIntoRows(Renderer& renderer, std::vector<std::unique_ptr<Button>>& bu
 // Populates a container column with row sub-containers, applying layout alignment,
 // gaps, setFlexGrow(1.0F), and setMaxWidth for single-button rows.
 void populateRowContainer(
-    Flex& container, std::vector<std::vector<std::unique_ptr<Button>>> rows, float maxWidth, float gap
+    Flex& container, std::vector<std::vector<std::unique_ptr<Button>>> rows, float maxWidth, float gap,
+    FlexJustify justify = FlexJustify::Center
 );
