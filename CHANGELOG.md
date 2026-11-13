@@ -10,6 +10,104 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.2.1] - 2026-11-13
+
+### English
+
+#### Features
+- New app: **Files** (`okaru-files`), OKARU's own file manager built on GIO/gvfs, with the shell's look:
+  - List (sortable columns), icons and columns views; tabs; two panes (F3); filter and search in subfolders;
+    breadcrumbs and an editable path bar; per-folder view and sort (alphabetical, folders first by default).
+  - Sidebar with places (including Projects from `XDG_PROJECTS_DIR`), GTK bookmarks shared with Nautilus and
+    the file chooser, drives with free space, mount, unmount and eject, network and trash.
+  - Copy, move, link, trash, restore and delete with progress, conflict dialog (replace, skip, keep both,
+    merge) and undo/redo; clipboard compatible with other file managers; drag and drop to and from any app.
+  - Thumbnails from the shared freedesktop cache (images, PDF, video, audio, Office and more), folder colors
+    (Papirus variants or recolored icons, OKARU accent included) and custom icons.
+  - Preview in the columns view and Quick Look (Space): photos with zoom and pan, PDF, Word/Excel/PowerPoint
+    and OpenDocument files (through LibreOffice) and text.
+  - Phone storage through KDE Connect, Connect to server (SMB, SFTP, FTP, WebDAV, NFS) with passwords kept in
+    the keyring, encrypted drives, and Send to (LocalSend, KDE Connect, Bluetooth, Telegram, email).
+  - Batch rename, compress and extract (zip, tar, 7z, rar, iso…), Open with, properties, open a terminal
+    here (kitty-floating with your login shell).
+  - System file chooser: an xdg-desktop-portal backend (`FileChooser=okaru` in `<desktop>-portals.conf`).
+- Native updates (the arch-updater plugin is now part of OKARU): the `updates` bar widget (reload icon, with
+  an alert when a reboot is needed), the updates panel and `/arch` in the launcher. Checks pacman, AUR (yay or
+  paru), Flatpak and Snap; updates with `okaru-update` in a terminal or in the background with a live log;
+  history with rollback from the package cache, download size and an activity graph. Options in Settings →
+  Services.
+
+- Notification history grouped by app: one card per app with its count (`App · N`); the stack button shows the
+  rest below it, and the trash on a closed group clears the whole group.
+
+#### Fixes
+- Notification action buttons are smaller and no longer cut their labels (they used to stretch evenly): in the
+  popup they line up with the text, in the history they are centered.
+- Installer: on Niri the stock templates are Niri's instead of Hyprland/Hyprtoolkit.
+- Installer: the greeter logs into Hyprland with uwsm by default.
+
+#### Changes
+- Default file associations now include the media player (video and audio) and Files (folders).
+- Files replaces Nautilus out of the box: the installer no longer installs Nautilus, Super+E opens Files,
+  the dock pins it, folders open with it and it is the system file chooser.
+- The arch-updater widget, panels, settings and history move to the native ones automatically (config
+  migration 24).
+- Default Hyprland and Niri rules float Files (1300×800) and its file chooser (1000×680).
+- Optional dependencies for Files: gvfs and its backends (smb, nfs, mtp, wsdd), ffmpegthumbnailer and
+  LibreOffice.
+- Apps: dragging files out of an app is now possible (shared drop code), and windows accept a literal title.
+
+### Español
+
+#### Novedades
+- App nueva: **Archivos** (`okaru-files`), el explorador de archivos propio de OKARU sobre GIO/gvfs, con la
+  estética de la shell:
+  - Vistas de lista (columnas ordenables), iconos y columnas; pestañas; dos paneles (F3); filtro y búsqueda
+    en subcarpetas; migas y ruta editable; vista y orden por carpeta (de fábrica alfabético, carpetas
+    primero).
+  - Panel lateral con lugares (incluida Proyectos de `XDG_PROJECTS_DIR`), marcadores de GTK compartidos con
+    Nautilus y el selector, unidades con espacio libre, montar, desmontar y expulsar, red y papelera.
+  - Copiar, mover, enlazar, papelera, restaurar y borrar con progreso, diálogo de conflictos (reemplazar,
+    omitir, conservar ambos, combinar) y deshacer/rehacer; portapapeles compatible con otros exploradores;
+    arrastrar y soltar hacia y desde cualquier app.
+  - Miniaturas de la caché compartida de freedesktop (imágenes, PDF, video, audio, Office y más), colores de
+    carpeta (variantes de Papirus o iconos recoloreados, incluido el acento de OKARU) e iconos propios.
+  - Previsualización en la vista de columnas y vista rápida (Espacio): fotos con zoom y arrastre, PDF,
+    Word/Excel/PowerPoint y OpenDocument (con LibreOffice) y texto.
+  - Almacenamiento del teléfono por KDE Connect, Conectar a servidor (SMB, SFTP, FTP, WebDAV, NFS) con
+    contraseñas en el llavero, unidades cifradas y Enviar a (LocalSend, KDE Connect, Bluetooth, Telegram,
+    correo).
+  - Renombrado en lote, comprimir y extraer (zip, tar, 7z, rar, iso…), Abrir con, propiedades y abrir una
+    terminal aquí (kitty-floating con tu shell).
+  - Selector de archivos del sistema: un backend de xdg-desktop-portal (`FileChooser=okaru` en
+    `<escritorio>-portals.conf`).
+- Actualizaciones nativas (el plugin arch-updater pasa a ser parte de OKARU): el widget `updates` de la barra
+  (icono de recarga, con aviso cuando hace falta reiniciar), el panel de actualizaciones y `/arch` en el
+  lanzador. Revisa pacman, AUR (yay o paru), Flatpak y Snap; actualiza con `okaru-update` en una terminal o en
+  segundo plano con registro en vivo; historial con reversión desde la caché de paquetes, tamaño de descarga y
+  gráfico de actividad. Opciones en Ajustes → Servicios.
+
+- Historial de notificaciones agrupado por app: una tarjeta por app con su número (`App · N`); el botón de pila
+  muestra el resto debajo y la papelera de un grupo cerrado lo borra entero.
+
+#### Correcciones
+- Los botones de acción de las notificaciones son más pequeños y ya no cortan su texto (antes se estiraban a
+  partes iguales): en el aviso se alinean con el texto y en el historial van centrados.
+- Instalador: en Niri las plantillas de fábrica son las de Niri en vez de Hyprland/Hyprtoolkit.
+- Instalador: el greeter entra por defecto a Hyprland con uwsm.
+
+#### Cambios
+- Las asociaciones de fábrica incluyen ahora el reproductor (video y audio) y Archivos (carpetas).
+- Archivos reemplaza a Nautilus de fábrica: el instalador ya no instala Nautilus, Super+E abre Archivos, el
+  dock lo fija, las carpetas se abren con él y es el selector de archivos del sistema.
+- El widget, los paneles, los ajustes y el historial de arch-updater pasan solos a los nativos (migración 24
+  de la configuración).
+- Las reglas de fábrica de Hyprland y Niri dejan flotante a Archivos (1300×800) y a su selector (1000×680).
+- Dependencias opcionales de Archivos: gvfs y sus backends (smb, nfs, mtp, wsdd), ffmpegthumbnailer y
+  LibreOffice.
+- Apps: ya se pueden arrastrar archivos fuera de una app (código común de soltar) y las ventanas aceptan un
+  título literal.
+
 ## [1.2.0] - 2026-11-10
 
 ### English

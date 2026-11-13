@@ -450,6 +450,7 @@ _okaru_sources = files(
   'src/apps/calculator/calc_engine.cpp',
   'src/apps/calculator/calc_state.cpp',
   'src/apps/common/file_drop.cpp',
+  'src/apps/common/glib_poll_source.cpp',
   'src/apps/common/okaru_app.cpp',
   'src/apps/common/portal_file_chooser.cpp',
   'src/apps/common/tab_strip.cpp',
@@ -1029,8 +1030,13 @@ _okaru_sources = files(
   'src/shell/bar/widgets/okaru_cat_widget_definition.cpp',
   'src/shell/bar/widgets/okaru_ports_widget.cpp',
   'src/shell/bar/widgets/okaru_ports_widget_definition.cpp',
+  'src/shell/bar/widgets/okaru_updates_widget.cpp',
+  'src/shell/bar/widgets/okaru_updates_widget_definition.cpp',
+  'src/shell/okaru_updates/okaru_updates_tab.cpp',
+  'src/launcher/updates_provider.cpp',
   'src/shell/okaru_panels/okaru_ports_tab.cpp',
   'src/system/okaru_ports.cpp',
+  'src/system/okaru_updates.cpp',
   'src/system/okaru_autostart.cpp',
   'src/system/okaru_uwsm_env.cpp',
   'src/system/okaru_system_info.cpp',
@@ -1286,7 +1292,42 @@ okaru_pdf_exe = executable('okaru-pdf',
   dependencies: _pdf_dependencies,
   install: true,
 )
+_files_core_sources = files(
+  'src/apps/files/file_model.cpp',
+  'src/apps/files/file_ops.cpp',
+)
+# Selector de archivos del sistema: backend de xdg-desktop-portal (se elige en <escritorio>-portals.conf).
+install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
+install_data('assets/org.freedesktop.impl.portal.desktop.okaru.service',
+  install_dir: get_option('datadir') / 'dbus-1' / 'services')
+okaru_files_exe = executable('okaru-files',
+  sources: files(
+    'src/apps/files/archive.cpp',
+    'src/apps/files/file_view.cpp',
+    'src/apps/files/files_window.cpp',
+    'src/apps/files/icon_cache.cpp',
+    'src/apps/files/main.cpp',
+    'src/apps/files/phones.cpp',
+    'src/apps/files/places.cpp',
+    'src/apps/files/portal.cpp',
+    'src/apps/files/share.cpp',
+    'src/apps/files/thumbnails.cpp',
+    'src/apps/files/preview.cpp',
+    'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_view.cpp',
+    'src/apps/pdf/render_worker.cpp',
+  ) + _files_core_sources + _protocol_headers,
+  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+  install: true,
+)
 if build_tests
+  test('okaru_files', executable('okaru_files_test',
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/icon_cache.cpp',
+                   'src/apps/files/portal.cpp', 'src/apps/files/share.cpp',
+                   'src/apps/files/thumbnails.cpp') + _files_core_sources,
+    dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_pdf', executable('okaru_pdf_test',
     sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
     dependencies: _pdf_dependencies,
@@ -1331,6 +1372,7 @@ install_subdir('assets',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
     'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
+    'dev.okaru.Files.desktop',
   ],
 )
 
@@ -1342,6 +1384,7 @@ install_data(
   'assets/dev.okaru.Player.desktop',
   'assets/dev.okaru.Editor.desktop',
   'assets/dev.okaru.Pdf.desktop',
+  'assets/dev.okaru.Files.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 
@@ -1357,6 +1400,12 @@ install_data('data/libexec/okaru-askpass',
 )
 install_data('data/libexec/shim/sudo',
   install_dir: get_option('libdir') / 'okaru' / 'shim',
+  install_mode: 'rwxr-xr-x',
+)
+
+# OKARU: actualizador de pacman/AUR, Flatpak y Snap (lo usan el widget y el panel de Actualizaciones; sirve suelto en la terminal).
+install_data('data/bin/okaru-update',
+  install_dir: get_option('bindir'),
   install_mode: 'rwxr-xr-x',
 )
 
@@ -1404,6 +1453,7 @@ if build_tests
     'okaru_google_oauth',
     'okaru_cat_widget',
     'okaru_ports',
+    'okaru_updates',
     'annotation_document',
     'annotation_raster',
     'animation_manager',
@@ -1736,6 +1786,11 @@ if build_tests
     bash_program,
     args: ['tests/install_place_test.sh', meson.current_source_dir() / 'install.sh',
       meson.current_source_dir() / 'packaging/defaults/okaru/config.toml'],
+    workdir: meson.current_source_dir(),
+  )
+  test('okaru_update',
+    bash_program,
+    args: ['tests/okaru_update_test.sh', meson.current_source_dir() / 'data/bin/okaru-update'],
     workdir: meson.current_source_dir(),
   )
   test('okaru_mimeapps',

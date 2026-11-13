@@ -54,9 +54,9 @@ local function move(dir)
 	end
 end
 
--- === Aplicaciones de fábrica (install.sh instala kitty y Nautilus) ===
+-- === Aplicaciones de fábrica (kitty de install.sh y okaru-files de OKARU) ===
 hl.bind("SUPER + Return", hl.dsp.exec_cmd("kitty"))
-hl.bind("SUPER + E", hl.dsp.exec_cmd("nautilus --new-window"))
+hl.bind("SUPER + E", hl.dsp.exec_cmd("okaru-files"))
 
 -- === OKARU ===
 hl.bind("SUPER + space", hl.dsp.exec_cmd(ipc .. "panel-toggle launcher"))

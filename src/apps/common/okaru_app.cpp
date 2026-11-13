@@ -169,7 +169,7 @@ namespace okaru::apps {
         .height = static_cast<std::uint32_t>(std::lround(m_options.height * s)),
         .minWidth = static_cast<std::uint32_t>(std::lround(m_options.minWidth * s)),
         .minHeight = static_cast<std::uint32_t>(std::lround(m_options.minHeight * s)),
-        .title = i18n::tr(m_options.titleKey),
+        .title = m_options.title.empty() ? i18n::tr(m_options.titleKey) : m_options.title,
         .appId = m_options.appId,
     };
     if (!m_surface->initialize(nullptr, surfaceConfig)) {
@@ -201,6 +201,7 @@ namespace okaru::apps {
           if (m_sessionBusSource != nullptr) {
             sources.push_back(m_sessionBusSource.get());
           }
+          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
           return sources;
         }
     );
@@ -209,6 +210,10 @@ namespace okaru::apps {
   }
 
   void OkaruApp::quit() { m_stop = true; }
+
+  bool OkaruApp::startDrag(std::vector<std::string> uris, unsigned serial) {
+    return m_surface != nullptr && m_drop.startDrag(m_surface->wlSurface(), serial, std::move(uris));
+  }
 
   void OkaruApp::setFullscreen(bool fullscreen) {
     m_fullscreen = fullscreen;

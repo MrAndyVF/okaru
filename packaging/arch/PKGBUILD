@@ -1,6 +1,6 @@
 # Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
 pkgname=okaru
-pkgver=1.2.0
+pkgver=1.2.1
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)
@@ -19,12 +19,13 @@ optdepends=('ddcutil: brillo de monitores externos'
             'slurp: grabar una región (widget Captura)'
             'networkmanager: red y VPN (vpn-manager)'
             'nm-connection-editor: editar conexiones VPN con ventana (vpn-manager)'
-            'pacman-contrib: buscar actualizaciones y pacdiff (arch-updater)'
-            'flatpak: actualizaciones Flatpak (arch-updater) y cursor en apps Flatpak (cursor)'
-            'paru: actualizaciones de AUR (arch-updater)'
-            'yay: actualizaciones de AUR (arch-updater)'
-            'kdeconnect: conectar el teléfono (panel Teléfono)'
-            'sshfs: explorar los archivos del teléfono (panel Teléfono)'
+            'pacman-contrib: buscar actualizaciones (Actualizaciones)'
+            'flatpak: actualizaciones Flatpak (Actualizaciones) y cursor en apps Flatpak (cursor)'
+            'paru: actualizaciones de AUR (Actualizaciones)'
+            'yay: actualizaciones de AUR (Actualizaciones)'
+            'snapd: actualizaciones Snap (Actualizaciones, AUR)'
+            'kdeconnect: conectar el teléfono (panel Teléfono y okaru-files)'
+            'sshfs: explorar los archivos del teléfono (panel Teléfono y okaru-files)'
             'android-tools: portapapeles automático del teléfono a la PC (adb, una vez)'
             'claude-code: uso de Claude Code (claudecode, AUR o repo de CachyOS)'
             'jq: uso de Claude Code (claudecode)'
@@ -33,7 +34,14 @@ optdepends=('ddcutil: brillo de monitores externos'
             'imagemagick: convertir cursores de Windows (cursor)'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
             'zenity: diálogos de archivos (cursor, icons, vpn-manager)'
-            'cups: imprimir desde el visor de documentos (okaru-pdf)')
+            'cups: imprimir desde el visor de documentos (okaru-pdf)'
+            'gvfs: papelera, recientes, red y unidades extraíbles (okaru-files)'
+            'gvfs-smb: carpetas compartidas de Windows y Samba (okaru-files)'
+            'gvfs-nfs: carpetas compartidas NFS (okaru-files)'
+            'gvfs-mtp: teléfonos y cámaras por cable USB (okaru-files)'
+            'gvfs-wsdd: ver los equipos Windows de la red (okaru-files)'
+            'ffmpegthumbnailer: miniaturas de video (okaru-files)'
+            'libreoffice-fresh: vista previa de documentos de oficina (okaru-files)')
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
 sha256sums=(SKIP)
 

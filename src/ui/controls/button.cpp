@@ -896,21 +896,19 @@ wrapButtonsIntoRows(Renderer& renderer, std::vector<std::unique_ptr<Button>>& bu
 }
 
 void populateRowContainer(
-    Flex& container, std::vector<std::vector<std::unique_ptr<Button>>> rows, float maxWidth, float gap
+    Flex& container, std::vector<std::vector<std::unique_ptr<Button>>> rows, float maxWidth, float gap,
+    FlexJustify justify
 ) {
   for (auto& rowButtons : rows) {
     auto row = std::make_unique<Flex>();
     row->setDirection(FlexDirection::Horizontal);
     row->setAlign(FlexAlign::Center);
+    // OKARU: ancho natural; estirarlos a partes iguales cortaba etiquetas.
+    row->setJustify(justify);
     row->setGap(gap);
     row->setFillWidth(true);
     for (auto& btn : rowButtons) {
-      if (rowButtons.size() == 1) {
-        btn->setMaxWidth(maxWidth);
-      } else {
-        btn->setMaxWidth(0.0F);
-      }
-      btn->setFlexGrow(1.0F);
+      btn->setMaxWidth(maxWidth); // solo una etiqueta más ancha que la fila se recorta
       row->addChild(std::move(btn));
     }
     container.addChild(std::move(row));

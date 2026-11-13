@@ -43,7 +43,7 @@ Optional runtime tools used by the built-in modules and widgets. Each one is che
 |---|---|
 | Capture widget (screen recording) | `gpu-screen-recorder`, `slurp` (region) |
 | vpn-manager | `networkmanager`; `nm-connection-editor` to edit connections in a window (falls back to `nmtui-edit`) |
-| arch-updater | `pacman-contrib` (checkupdates, pacdiff); `flatpak`; `paru` or `yay` for AUR |
+| updates (widget and panel) | `pacman-contrib` (checkupdates); `flatpak`; `snapd`; `paru` or `yay` for AUR |
 | Phone panel (native) | `kdeconnect`, `sshfs`; `android-tools` once, for phone-to-PC clipboard |
 | claudecode | `claude-code`, `jq`, `curl` |
 | cursor | `python`, `python-wand`, `imagemagick`, `win2xcur` (AUR); `flatpak` for Flatpak apps |

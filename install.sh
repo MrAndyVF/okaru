@@ -13,7 +13,7 @@ readonly KEY_URL="https://raw.githubusercontent.com/MrAndyVF/okaru/main/packagin
 # Huella de la llave que firma los paquetes; debe coincidir con packaging/keys/okaru.asc.
 readonly KEY_FPR="1043639C3CDC77859031AAADBDE4201B61FDE527"
 readonly DEFAULTS_ROOT="/usr/share/okaru/defaults"
-readonly COMMON_PACKAGES=(kitty nautilus xdg-desktop-portal-gtk noto-fonts ttf-jetbrains-mono-nerd fastfetch starship
+readonly COMMON_PACKAGES=(kitty xdg-desktop-portal-gtk noto-fonts ttf-jetbrains-mono-nerd fastfetch starship
   firefox localsend gpu-screen-recorder slurp) # localsend viene de Chaotic-AUR; los dos últimos, para el widget Captura
 # Chaotic-AUR (https://aur.chaotic.cx): llave y paquetes de su llavero y lista de espejos.
 readonly CHAOTIC_KEY="3056513887B78AEB"
@@ -199,7 +199,7 @@ welcome() {
   if $ES; then
     "$GUM" style --foreground "$C_TEXT" \
       "  • OKARU Shell: barra, panel de control, lanzador, notificaciones y ajustes" \
-      "  • Hyprland (con uwsm) o Niri, kitty como terminal y Nautilus como gestor de archivos" \
+      "  • Hyprland (con uwsm) o Niri, kitty como terminal y okaru-files como gestor de archivos" \
       "  • Firefox, LocalSend y el repositorio Chaotic-AUR" \
       "  • Tema, barra, reglas de ventana (Steam, Heroic, Faugus…) y atajos de OKARU" \
       "  • kitty, fastfetch y starship con el estilo de OKARU" \
@@ -208,7 +208,7 @@ welcome() {
   else
     "$GUM" style --foreground "$C_TEXT" \
       "  • OKARU Shell: bar, control center, launcher, notifications and settings" \
-      "  • Hyprland (with uwsm) or Niri, kitty as terminal and Nautilus as file manager" \
+      "  • Hyprland (with uwsm) or Niri, kitty as terminal and okaru-files as file manager" \
       "  • Firefox, LocalSend and the Chaotic-AUR repository" \
       "  • OKARU's theme, bar, window rules (Steam, Heroic, Faugus…) and shortcuts" \
       "  • kitty, fastfetch and starship in OKARU's style" \
@@ -420,11 +420,29 @@ factory_config() {
   [[ $CONFIG_ACTION == replace && -e $settings ]] && backup "$settings"
   # Sin KDE Connect, el widget del teléfono solo mostraría que falta (solo toca la línea de fábrica, no una propia).
   $WANT_PHONE || sed -i 's/^end = \[ "tray", "cat", "phone", /end = [ "tray", "cat", /' "$okaru"
+  # En Niri, la plantilla de Hyprland avisaría que falta hyprland.conf: se cambia por la de Niri.
+  [[ $COMPOSITOR == niri ]] && sed -i 's/"hyprland", "hyprtoolkit", /"niri", /' "$okaru"
   return 0
 }
 
 default_apps() {
-  xdg-mime default org.gnome.Nautilus.desktop inode/directory
+  xdg-mime default dev.okaru.Files.desktop inode/directory
+  # Selector de archivos del sistema: el de okaru-files. La copia de usuario reemplaza entera a la del paquete,
+  # así que parte de esa (o de lo mínimo) y solo cambia FileChooser.
+  local portals="${XDG_CONFIG_HOME:-$HOME/.config}/xdg-desktop-portal/$COMPOSITOR-portals.conf"
+  if [[ ! -e $portals ]]; then
+    mkdir -p "$(dirname "$portals")"
+    local base
+    [[ $COMPOSITOR == niri ]] && base="gnome;gtk;" || base="hyprland;gtk;"
+    cp "/usr/share/xdg-desktop-portal/$COMPOSITOR-portals.conf" "$portals" 2>/dev/null ||
+      printf '[preferred]\ndefault=%s\n' "$base" >"$portals"
+  fi
+  if grep -q '^org.freedesktop.impl.portal.FileChooser=' "$portals"; then
+    sed -i 's/^org.freedesktop.impl.portal.FileChooser=.*/org.freedesktop.impl.portal.FileChooser=okaru;/' "$portals"
+  else
+    [[ -z $(tail -c1 "$portals") ]] || echo >>"$portals" # el del paquete de Hyprland no termina en salto de línea
+    echo 'org.freedesktop.impl.portal.FileChooser=okaru;' >>"$portals"
+  fi
   # En Niri, TERMINAL va en el bloque environment de config.kdl.
   if [[ $COMPOSITOR == hyprland ]]; then
     local env="${XDG_CONFIG_HOME:-$HOME/.config}/uwsm/env"
@@ -496,6 +514,14 @@ greeter() {
   printf '[terminal]\nvt = 1\n\n[default_session]\ncommand = "/usr/bin/okaru-greeter-session"\nuser = "greeter"\n' \
     | sudo tee "$conf"
   sudo /usr/share/okaru-greeter/setup_greetd_pam.sh
+  # En Hyprland, el greeter entra siempre a la sesión con uwsm (greeter.toml gana sobre la última elegida).
+  if [[ $COMPOSITOR == hyprland ]]; then
+    local gconf=/var/lib/okaru-greeter/greeter.toml
+    sudo install -d -o greeter -g greeter -m 0750 /var/lib/okaru-greeter
+    sudo grep -q '^\[session\]' "$gconf" 2>/dev/null \
+      || printf '\n[session]\ndefault = "hyprland-uwsm"\n' | sudo tee -a "$gconf" >/dev/null
+    sudo chown greeter:greeter "$gconf" && sudo chmod 0644 "$gconf"
+  fi
   [[ $SWITCH_DM == keep ]] && { t "greetd queda instalado pero sin activar" "greetd is installed but not enabled"; echo; return 0; }
   [[ -n $SWITCH_DM ]] && sudo systemctl disable "$SWITCH_DM"
   sudo systemctl enable greetd.service
@@ -517,7 +543,7 @@ finish() {
     "$(t "El idioma del sistema ($SYSTEM_LOCALE) se aplica al volver a entrar." "The system language ($SYSTEM_LOCALE) applies on your next login.")" "" \
     "$(t "Super + Espacio   lanzador" "Super + Space     launcher")" \
     "Super + Enter     terminal (kitty)" \
-    "$(t "Super + E         archivos (Nautilus)" "Super + E         files (Nautilus)")" \
+    "$(t "Super + E         archivos (okaru-files)" "Super + E         files (okaru-files)")" \
     "$(t "Super + ,         ajustes de OKARU" "Super + ,         OKARU settings")" "" \
     "$custom"
   note "$(t Registro Log): $LOG"

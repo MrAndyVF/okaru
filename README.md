@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | ba
 ```
 
 Agrega el repositorio pacman `[okaru]` (paquetes firmados, se actualizan con `pacman -Syu`), te deja elegir
-el compositor (Hyprland con uwsm, o Niri) e instala la shell con él, kitty y Nautilus, y deja su
+el compositor (Hyprland con uwsm, o Niri) e instala la shell con él, kitty y okaru-files como gestor de archivos, y deja su
 configuración de fábrica (reglas y atajos estándar; en Hyprland tus atajos propios van en
 `~/.config/hypr/oka/user-binds.lua`, en Niri en `~/.config/niri/config.kdl`). Pregunta antes de reemplazar
 una configuración existente y si quieres el greeter, el teléfono (KDE Connect) y las dependencias opcionales.
@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/MrAndyVF/okaru/main/install.sh | ba
 ```
 
 Adds the signed `[okaru]` pacman repository, lets you pick the compositor (Hyprland with uwsm, or Niri),
-installs the shell with it, kitty and Nautilus, and sets up its stock config (standard rules and keybindings;
+installs the shell with it, kitty and okaru-files as file manager, and sets up its stock config (standard rules and keybindings;
 on Hyprland your own go in `~/.config/hypr/oka/user-binds.lua`, on Niri in `~/.config/niri/config.kdl`).
 
 ### Build

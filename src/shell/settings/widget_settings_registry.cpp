@@ -19,6 +19,7 @@
 #include "shell/bar/widgets/okaru_cat_widget_definition.h"
 #include "shell/bar/widgets/okaru_ports_widget_definition.h"
 #include "shell/bar/widgets/okaru_phone_widget_definition.h"
+#include "shell/bar/widgets/okaru_updates_widget_definition.h"
 #include "shell/bar/widgets/okaru_hypr_layout_widget_definition.h"
 #include "shell/bar/widgets/custom_button_widget_definition.h"
 #include "shell/bar/widgets/keyboard_layout_widget_definition.h"
@@ -155,6 +156,7 @@ namespace settings {
         projectWidgetDefinition<okaruCatWidgetDefinition>(),     // OKARU
         projectWidgetDefinition<okaruPortsWidgetDefinition>(),   // OKARU
         projectWidgetDefinition<okaruPhoneWidgetDefinition>(),   // OKARU
+        projectWidgetDefinition<okaruUpdatesWidgetDefinition>(), // OKARU
         projectWidgetDefinition<okaruHyprLayoutWidgetDefinition>(), // OKARU
         projectWidgetDefinition<customButtonWidgetDefinition>(),
         projectWidgetDefinition<keyboardLayoutWidgetDefinition>(),
@@ -251,6 +253,7 @@ namespace settings {
         {.type = "cat", .labelKey = "settings.widgets.types.cat", .glyph = "paw"},             // OKARU
         {.type = "ports", .labelKey = "settings.widgets.types.ports", .glyph = "plug-connected"}, // OKARU
         {.type = "phone", .labelKey = "settings.widgets.types.phone", .glyph = "device-mobile"}, // OKARU
+        {.type = "updates", .labelKey = "settings.widgets.types.updates", .glyph = "package"}, // OKARU
         {.type = "hypr_layout", .labelKey = "settings.widgets.types.hypr-layout", .glyph = "layout-board-split"}, // OKARU
         {.type = "keyboard_layout", .labelKey = "settings.widgets.types.keyboard-layout", .glyph = "keyboard"},
         {.type = "launcher", .labelKey = "settings.widgets.types.launcher", .glyph = "search"},

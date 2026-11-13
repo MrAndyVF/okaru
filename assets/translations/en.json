@@ -216,6 +216,341 @@
         "csv": "CSV"
       }
     },
+    "files": {
+      "title": "Files",
+      "back": "Back (Alt+Left)",
+      "forward": "Forward (Alt+Right)",
+      "up": "Parent folder (Alt+Up)",
+      "sidebar": "Sidebar (F9)",
+      "close": "Close",
+      "close-tab": "Close tab (Ctrl+W)",
+      "cancel": "Cancel",
+      "loading": "Loading…",
+      "searching": "Searching…",
+      "no-results": "No matches",
+      "empty-folder": "This folder is empty",
+      "link-name": "Link to {name}",
+      "path": {
+        "edit": "Type a location (Ctrl+L)"
+      },
+      "view": {
+        "list": "List (Ctrl+1)",
+        "grid": "Icons (Ctrl+2)",
+        "columns": "Columns (Ctrl+3)"
+      },
+      "find": {
+        "title": "Filter or search (Ctrl+F)",
+        "filter-placeholder": "Filter this folder…",
+        "search-placeholder": "Search this folder and its subfolders…",
+        "recursive": "Subfolders",
+        "recursive-hint": "Also search inside subfolders"
+      },
+      "column": {
+        "name": "Name",
+        "location": "Location",
+        "size": "Size",
+        "modified": "Modified",
+        "type": "Type"
+      },
+      "sort": {
+        "name": "Sort by name",
+        "size": "Sort by size",
+        "modified": "Sort by date modified",
+        "type": "Sort by type"
+      },
+      "section": {
+        "places": "PLACES",
+        "bookmarks": "BOOKMARKS",
+        "devices": "DEVICES",
+        "network": "NETWORK"
+      },
+      "places": {
+        "home": "Home",
+        "recent": "Recent",
+        "trash": "Trash",
+        "computer": "Computer",
+        "network": "Browse network",
+        "connect": "Connect to server…"
+      },
+      "status": {
+        "items": "{count} item",
+        "items-plural": "{count} items",
+        "selected": "{count} selected",
+        "selected-plural": "{count} selected"
+      },
+      "clipboard": {
+        "copied": "Copied {count} item",
+        "copied-plural": "Copied {count} items",
+        "cut": "Cut {count} item",
+        "cut-plural": "Cut {count} items",
+        "path": "Path copied",
+        "empty": "There are no files to paste"
+      },
+      "bookmark": {
+        "added": "Added to bookmarks",
+        "removed": "Removed from bookmarks"
+      },
+      "hidden": {
+        "shown": "Showing hidden files",
+        "hidden": "Hiding hidden files"
+      },
+      "mount": {
+        "failed": "Could not mount {name}"
+      },
+      "unmount": {
+        "done": "{name} can be removed safely",
+        "failed": "Could not unmount {name}"
+      },
+      "menu": {
+        "title": "Menu",
+        "open": "Open",
+        "open-tab": "Open in new tab",
+        "open-window": "Open in new window",
+        "open-with": "Open with…",
+        "open-location": "Open file location",
+        "new-tab": "New tab (Ctrl+T)",
+        "new-window": "New window (Ctrl+N)",
+        "new-folder": "New folder (Ctrl+Shift+N)",
+        "new-file": "New empty file",
+        "cut": "Cut (Ctrl+X)",
+        "copy": "Copy (Ctrl+C)",
+        "paste": "Paste (Ctrl+V)",
+        "paste-into": "Paste into folder",
+        "copy-path": "Copy path (Ctrl+Shift+C)",
+        "rename": "Rename (F2)",
+        "link": "Create link (Ctrl+M)",
+        "bookmark-add": "Add to bookmarks",
+        "bookmark-remove": "Remove from bookmarks",
+        "bookmark-toggle": "Bookmark this folder (Ctrl+D)",
+        "terminal": "Open terminal here (F4)",
+        "trash": "Move to trash (Delete)",
+        "delete": "Delete permanently (Shift+Delete)",
+        "restore": "Restore",
+        "empty-trash": "Empty trash",
+        "properties": "Properties (Alt+Enter)",
+        "select-all": "Select all (Ctrl+A)",
+        "show-hidden": "Show hidden files (Ctrl+H)",
+        "folders-first": "Folders first",
+        "sidebar": "Sidebar (F9)",
+        "undo": "Undo (Ctrl+Z)",
+        "redo": "Redo (Ctrl+Shift+Z)",
+        "unmount": "Unmount",
+        "eject": "Eject",
+        "send": "Send to…",
+        "folder-color": "Folder color…",
+        "folder-color-all": "Color of all folders…",
+        "custom-icon": "Custom icon…",
+        "custom-icon-clear": "Remove custom icon",
+        "thumbnails": "Show thumbnails",
+        "connect": "Connect to server…",
+        "rename-many": "Rename… (F2)",
+        "compress": "Compress…",
+        "extract": "Extract here",
+        "split": "Two panes (F3)",
+        "copy-other": "Copy to the other pane",
+        "move-other": "Move to the other pane"
+      },
+      "rename": {
+        "title": "Rename",
+        "action": "Rename"
+      },
+      "new": {
+        "folder-title": "New folder",
+        "file-title": "New empty file",
+        "folder-default": "New folder",
+        "file-default": "New file.txt",
+        "action": "Create"
+      },
+      "conflict": {
+        "title": "“{name}” already exists",
+        "folder-title": "The folder “{name}” already exists",
+        "body": "There is already an item with this name in {folder}.",
+        "existing": "Existing",
+        "incoming": "New",
+        "all": "Apply to all conflicts",
+        "skip": "Skip",
+        "keep-both": "Keep both",
+        "replace": "Replace",
+        "merge": "Merge"
+      },
+      "delete": {
+        "title": "Permanently delete “{name}”?",
+        "title-plural": "Permanently delete {count} items?",
+        "body": "This cannot be undone.",
+        "no-trash": "This location has no trash. Delete permanently instead? This cannot be undone.",
+        "action": "Delete"
+      },
+      "empty-trash": {
+        "title": "Empty the trash?",
+        "body": "Everything in the trash will be deleted permanently.",
+        "action": "Empty trash"
+      },
+      "error": {
+        "into-itself": "Cannot copy “{name}” into itself",
+        "not-in-trash": "“{name}” is no longer in the trash"
+      },
+      "errors": {
+        "title": "Some items could not be processed",
+        "more": "…and {count} more",
+        "more-plural": "…and {count} more"
+      },
+      "op": {
+        "copy": "Copying {name}",
+        "move": "Moving {name}",
+        "link": "Linking {name}",
+        "trash": "Moving {name} to trash",
+        "delete": "Deleting {name}",
+        "restore": "Restoring {name}",
+        "rename": "Renaming",
+        "new": "Creating",
+        "queued": "(+{count} queued)",
+        "queued-plural": "(+{count} queued)",
+        "cancel": "Cancel operation",
+        "cancelled": "Operation cancelled",
+        "trashed": "Moved {count} item to trash (Ctrl+Z to undo)",
+        "trashed-plural": "Moved {count} items to trash (Ctrl+Z to undo)"
+      },
+      "open-with": {
+        "title": "Open with",
+        "default": "Always use for this file type"
+      },
+      "prop": {
+        "type": "Type",
+        "location": "Location",
+        "origin": "Original location",
+        "target": "Points to",
+        "size": "Size",
+        "counting": "Calculating…",
+        "contents": "{count} file, {folders} folders",
+        "contents-plural": "{count} files, {folders} folders",
+        "many": "{count} item",
+        "many-plural": "{count} items",
+        "modified": "Modified",
+        "permissions": "Permissions",
+        "free": "Free space",
+        "free-value": "{free} free of {total}"
+      },
+      "share": {
+        "title": "Send “{name}”",
+        "title-plural": "Send {count} items",
+        "searching": "Looking for devices and apps…",
+        "none": "Nothing to send to: install LocalSend, pair a phone with KDE Connect or a Bluetooth device.",
+        "kdeconnect": "{name} (KDE Connect)",
+        "bluetooth": "{name} (Bluetooth)",
+        "email": "Email ({app})",
+        "bluetooth-rejected": "the device rejected the transfer or did not answer",
+        "sending": "Sending to {name}…",
+        "opening": "Opening {name}…",
+        "sent": "Sent to {name}",
+        "failed": "Could not send to {name}",
+        "no-folders": "{name} only accepts files, not folders",
+        "no-local": "Only local files can be sent"
+      },
+      "metadata": {
+        "failed": "Could not save the change (this location does not support it)"
+      },
+      "icon": {
+        "choose": "Choose an icon",
+        "filter": "Images"
+      },
+      "color": {
+        "title": "Color of “{name}”",
+        "title-plural": "Color of {count} folders",
+        "title-all": "Color of all folders",
+        "body-all": "Folders with their own color keep it.",
+        "theme": "Icon theme",
+        "accent": "OKARU accent",
+        "red": "Red",
+        "deeporange": "Deep orange",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "teal": "Teal",
+        "cyan": "Cyan",
+        "blue": "Blue",
+        "indigo": "Indigo",
+        "violet": "Violet",
+        "magenta": "Magenta",
+        "pink": "Pink",
+        "brown": "Brown",
+        "grey": "Grey",
+        "black": "Black",
+        "white": "White"
+      },
+      "preview": {
+        "failed": "Could not open this file",
+        "locked": "This PDF is password protected",
+        "office-failed": "LibreOffice could not convert this document",
+        "converting": "Preparing the preview with LibreOffice…",
+        "previous": "Previous page",
+        "next": "Next page",
+        "zoom-out": "Zoom out",
+        "zoom-in": "Zoom in",
+        "fit": "Fit",
+        "open": "Open"
+      },
+      "phone": {
+        "mounting": "Opening {name}… (unlock the phone if it asks)",
+        "failed": "Could not open {name}"
+      },
+      "connect": {
+        "title": "Connect to server",
+        "available": "Available here: {schemes}",
+        "recent": "RECENT SERVERS",
+        "no-scheme": "Type the address with its protocol, e.g. smb://server/folder",
+        "missing": "{scheme}:// is not available: install the {package} package",
+        "connecting": "Connecting to {address}…"
+      },
+      "auth": {
+        "user": "User",
+        "domain": "Domain",
+        "password": "Password",
+        "passphrase": "Passphrase",
+        "anonymous": "Connect anonymously",
+        "save-never": "Forget",
+        "save-session": "Until logout",
+        "save-forever": "Remember (keyring)",
+        "connect": "Connect"
+      },
+      "bulk": {
+        "title": "Rename {count} item",
+        "title-plural": "Rename {count} items",
+        "replace": "Replace text",
+        "number": "Number",
+        "affix": "Add text",
+        "find": "Find",
+        "with": "Replace with",
+        "base": "Name (e.g. Holidays → Holidays 01.jpg)",
+        "start": "Start at",
+        "prefix": "Before the name",
+        "suffix": "After the name (before the extension)",
+        "invalid": "A name is empty or contains “/”",
+        "duplicate": "“{name}” would be repeated"
+      },
+      "archive": {
+        "title": "Compress {count} item",
+        "title-plural": "Compress {count} items",
+        "name": "Archive name",
+        "hint": ".zip opens everywhere; .tar.xz and .7z compress the most.",
+        "action": "Compress",
+        "compressing": "Compressing {name}…",
+        "compressed": "Created {name}",
+        "failed": "Could not compress",
+        "extracting": "Extracting {count} archive…",
+        "extracting-plural": "Extracting {count} archives…",
+        "extracted": "Extracted",
+        "extract-failed": "Could not extract {detail}"
+      },
+      "pick": {
+        "title": "Choose a file",
+        "name": "Name",
+        "save": "Save",
+        "open": "Open",
+        "choose-folder": "Choose this folder",
+        "replace-title": "Replace “{name}”?",
+        "replace-body": "A file with that name already exists in this folder."
+      }
+    },
     "pdf": {
       "title": "Document Viewer",
       "open": "Open…",
@@ -793,6 +1128,8 @@
         "yesterday": "Yesterday"
       },
       "filter-empty-body": "No notifications match this filter.",
+      "group-collapse": "Collapse this app's notifications",
+      "group-expand": "Show all of this app's notifications",
       "filter-empty-title": "Nothing here",
       "untitled": "Untitled notification"
     },
@@ -1550,6 +1887,93 @@
       "scope-workspace": "this workspace",
       "scope-global": "whole system",
       "hint": "Left click: next · Right click: previous"
+    },
+    "updates": {
+      "title": "Updates",
+      "status-idle": "Not checked yet",
+      "status-checking": "Checking for updates…",
+      "status-checking-step": "Checking {step}…",
+      "status-clean": "System is up to date",
+      "status-running": "Updating in the background…",
+      "status-running-terminal": "Updating in a terminal window…",
+      "status-rolling-back": "Rolling back…",
+      "status-error": "Update check failed",
+      "pending": "1 package to update",
+      "pending-plural": "{count} packages to update",
+      "err-no-checkupdates": "checkupdates not found, install pacman-contrib",
+      "err-timeout": "Timed out while checking for updates",
+      "err-check": "checkupdates failed, see the system log",
+      "err-aur": "AUR check failed, see the system log",
+      "err-flatpak": "Flatpak check failed",
+      "err-snap": "Snap check failed (is snapd running?)",
+      "err-no-okaru-update": "okaru-update not found, reinstall OKARU",
+      "err-no-pkexec": "pkexec not found, install polkit to update in the background",
+      "err-no-terminal": "No terminal emulator found, set $TERMINAL",
+      "err-spawn": "Could not start the update",
+      "err-terminal-closed": "The terminal closed before the update finished",
+      "err-run": "Update failed (exit {code}), check the log or retry in a terminal",
+      "err-polkit": "Could not install the polkit rule",
+      "press-enter": "Press Enter to close",
+      "run-ok": "Update finished successfully",
+      "rollback-ok": "Rollback finished successfully",
+      "polkit-ok": "Polkit rule installed: one password per update from now on",
+      "rollback-missing-named": "The old version of {name} is no longer in the cache",
+      "tooltip-status": "Status",
+      "tooltip-pending": "Pending",
+      "tooltip-reboot": "Reboot",
+      "tooltip-reboot-value": "recommended",
+      "tooltip-checked": "Checked",
+      "tooltip-hints": "click: panel · right: check now",
+      "minutes-ago": "1 minute ago",
+      "minutes-ago-plural": "{count} minutes ago",
+      "hours-ago": "1 hour ago",
+      "hours-ago-plural": "{count} hours ago",
+      "days-ago": "1 day ago",
+      "days-ago-plural": "{count} days ago",
+      "open-log": "Open full log",
+      "check": "Check for updates",
+      "checked-at": "checked at {time}",
+      "size-gib": "≈ {value} GiB to download",
+      "size-mib": "≈ {value} MiB to download",
+      "reboot": "Reboot recommended: the running kernel is no longer installed",
+      "update": "Update",
+      "update-background-tip": "Update in the background: polkit asks for your password, the rest is automatic",
+      "update-terminal-tip": "Update in a terminal window: prompts and the PKGBUILD review work as usual",
+      "dismiss": "Dismiss",
+      "retry-terminal": "Retry in terminal",
+      "polkit-hint": "Polkit asks for the password several times per update",
+      "polkit-install": "Ask once",
+      "polkit-install-tip": "Install a polkit rule so each update asks for the password only once",
+      "log-title": "Update log",
+      "log-terminal": "The update is running in a terminal window",
+      "log-waiting": "Waiting for the polkit password and the first output…",
+      "open-page": "Open package page",
+      "ignore-tip": "Ignore: hide it from the count and skip it when updating",
+      "more": "+{count} more",
+      "ignored": "Ignored",
+      "unignore-tip": "Stop ignoring",
+      "activity": "Activity",
+      "updated-ago": "updated {when}",
+      "never-updated": "never updated",
+      "history": "Update history",
+      "history-tip": "See the packages of this update",
+      "packages": "1 package",
+      "packages-plural": "{count} packages",
+      "back": "Back",
+      "rollback-tag": "rollback",
+      "confirm": "Sure?",
+      "rollback-all": "Roll back all",
+      "rollback-all-tip": "Downgrade every package of this update in one transaction",
+      "rollback-missing": "The old version is no longer in the pacman/AUR cache",
+      "rollback-tip": "Roll back to {version}, with its dependencies from this update. pacman refuses if it would break other packages.",
+      "launcher-check": "Check pacman, AUR, Flatpak and Snap",
+      "launcher-panel": "Open the updates panel",
+      "source": {
+        "pacman": "Pacman",
+        "aur": "AUR",
+        "flatpak": "Flatpak",
+        "snap": "Snap"
+      }
     }
   },
   "osd": {
@@ -2004,7 +2428,8 @@
         "google": "Google",
         "cursor": "Cursor",
         "icons": "Icons",
-        "phone": "Phone"
+        "phone": "Phone",
+        "updates": "Updates"
       },
       "modules": {
         "advanced": "Advanced",
@@ -2960,6 +3385,18 @@
         "unit": {
           "imperial": "Imperial",
           "metric": "Metric"
+        }
+      },
+      "updates": {
+        "aur-helper": {
+          "auto": "Auto-detect (yay, then paru)",
+          "yay": "yay",
+          "paru": "paru",
+          "off": "Off, pacman only"
+        },
+        "mode": {
+          "terminal": "In a terminal window",
+          "background": "In the background (no questions)"
         }
       }
     },
@@ -4380,6 +4817,50 @@
         "phone-recent-images-count": {
           "label": "Number of recent images",
           "description": "How many screenshots the phone panel shows"
+        },
+        "updates-mode": {
+          "label": "Update mode",
+          "description": "How the Update button runs: in a terminal window (prompts and PKGBUILD review as usual) or in the background (no questions, live log in the panel)."
+        },
+        "updates-aur-helper": {
+          "label": "AUR helper",
+          "description": "Which helper checks and updates AUR packages. Auto-detect tries yay, then paru."
+        },
+        "updates-flatpak": {
+          "label": "Include Flatpak",
+          "description": "Also check and update Flatpak apps. Skipped when flatpak is not installed."
+        },
+        "updates-snap": {
+          "label": "Include Snap",
+          "description": "Also check and update snaps. Skipped when snap is not installed."
+        },
+        "updates-auto-check-hours": {
+          "label": "Check every (hours)",
+          "description": "Check for updates automatically every N hours. 0 only checks by hand."
+        },
+        "updates-notify": {
+          "label": "Notify when updates are found",
+          "description": "Send a notification when a check finds packages to update."
+        },
+        "updates-ignore": {
+          "label": "Ignored packages",
+          "description": "Packages, Flatpak apps or snaps left out of the count and skipped when updating, besides IgnorePkg in pacman.conf."
+        },
+        "updates-download-size": {
+          "label": "Show download size",
+          "description": "Estimate the download size of the pending pacman packages. AUR, Flatpak and Snap are not included."
+        },
+        "updates-check-reboot": {
+          "label": "Check if a reboot is needed",
+          "description": "Warn when the running kernel is no longer installed."
+        },
+        "updates-activity-graph": {
+          "label": "Show activity graph",
+          "description": "Record pending updates in recent checks and show them as a small graph in the panel."
+        },
+        "updates-rollback-auto-ignore": {
+          "label": "Ignore packages after a rollback",
+          "description": "After a rollback, ignore the rolled-back packages so the next check does not offer them again."
         }
       },
       "shared": {
@@ -5820,7 +6301,8 @@
         "hide-when-empty": {
           "description": "Hide workspace pills when there are no open windows",
           "label": "Hide When Empty",
-          "workspaces-description": "Hide workspace pills that have no open windows"
+          "workspaces-description": "Hide workspace pills that have no open windows",
+          "updates-description": "Hide the widget when there is nothing to update and no reboot is needed"
         },
         "hide-when-full": {
           "description": "Hide the battery widget when fully charged",
@@ -6293,6 +6775,10 @@
         "show-battery": {
           "label": "Show battery",
           "description": "Show the phone battery next to the icon"
+        },
+        "show-count": {
+          "label": "Show count",
+          "description": "Show the number of pending updates next to the icon"
         }
       },
       "types": {
@@ -6334,7 +6820,8 @@
         "cat": "Cat",
         "ports": "Network & ports",
         "phone": "Phone",
-        "hypr-layout": "Window layout"
+        "hypr-layout": "Window layout",
+        "updates": "Updates"
       }
     },
     "window": {

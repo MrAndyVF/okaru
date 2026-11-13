@@ -23,7 +23,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
+class PollSource;
 class Renderer;
 class SessionBus;
 class SessionBusPollSource;
@@ -44,6 +46,7 @@ namespace okaru::apps {
   struct AppOptions {
     const char* appId = "dev.okaru.App";
     std::string titleKey; // clave i18n del título; se traduce al abrir, con el idioma de la config
+    std::string title;    // título literal (gana sobre titleKey), p. ej. el que pide una app al selector
     float width = 400.0F; // tamaño lógico, antes de accessibility.ui_scale
     float height = 600.0F;
     float minWidth = 320.0F;
@@ -93,11 +96,16 @@ namespace okaru::apps {
     void setDragNode(Node* node) { m_dragNode = node; }
     // Archivos soltados sobre la ventana (rutas locales o URL).
     void setDropCallback(FileDrop::DropFn callback) { m_drop.setOnDrop(std::move(callback)); }
+    [[nodiscard]] FileDrop& fileDrop() noexcept { return m_drop; }
+    // Arrastrar archivos hacia afuera (u otra parte de la misma ventana); `serial` del clic que lo empezó.
+    bool startDrag(std::vector<std::string> uris, unsigned serial);
 
     void setFullscreen(bool fullscreen);
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
     void setCloseRequestCallback(std::function<bool()> callback) { m_closeRequest = std::move(callback); }
     [[nodiscard]] FileWatcher& fileWatcher() noexcept { return m_fileWatcher; }
+    // Fuente extra del bucle (no se adueña; debe vivir hasta que run() termine), p. ej. el contexto de GLib.
+    void addPollSource(PollSource* source) { m_extraSources.push_back(source); }
     [[nodiscard]] bool fullscreen() const noexcept { return m_fullscreen; }
     // Hay un desplegable de un Select abierto (es otra superficie: el puntero "sale" de la ventana al usarlo).
     [[nodiscard]] bool popupOpen() const { return m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen(); }
@@ -136,6 +144,7 @@ namespace okaru::apps {
     std::unique_ptr<SessionBus> m_sessionBus;
     std::unique_ptr<SessionBusPollSource> m_sessionBusSource;
     std::unique_ptr<Node> m_root;
+    std::vector<PollSource*> m_extraSources;
     Node* m_dragNode = nullptr;
     BuildFn m_build;
     KeyFn m_keyHandler;

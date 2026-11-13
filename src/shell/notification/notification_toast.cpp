@@ -330,8 +330,10 @@ namespace {
   std::unique_ptr<Button> makeNotificationActionButton(std::string_view label, float scale) {
     return ui::button({
         .text = std::string(label),
-        .fontSize = Style::fontSizeCaption * scale,
+        .fontSize = Style::fontSizeMini * scale,
+        .controlHeight = (Style::controlHeightSm - Style::spaceXs) * scale,
         .variant = ButtonVariant::Default,
+        .paddingH = (Style::spaceSm - 2.0F) * scale,
     });
   }
 
@@ -379,8 +381,10 @@ namespace {
 
     const float maxRowWidth = notificationTextMaxWidth(scale, width, true);
 
+    // OKARU: sin relleno lateral, los botones empiezan donde el texto y usan todo su ancho sin cortarse.
+    container.setPadding(Style::spaceXs * scale, 0.0F);
     auto rows = wrapButtonsIntoRows(renderer, buttons, maxRowWidth, actionGap(scale));
-    populateRowContainer(container, std::move(rows), maxRowWidth, actionGap(scale));
+    populateRowContainer(container, std::move(rows), maxRowWidth, actionGap(scale), FlexJustify::Start);
 
     container.setSize(maxRowWidth, 0.0F);
     container.layout(renderer);

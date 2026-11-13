@@ -216,6 +216,341 @@
         "csv": "CSV"
       }
     },
+    "files": {
+      "title": "Archivos",
+      "back": "Atrás (Alt+Izquierda)",
+      "forward": "Adelante (Alt+Derecha)",
+      "up": "Carpeta superior (Alt+Arriba)",
+      "sidebar": "Panel lateral (F9)",
+      "close": "Cerrar",
+      "close-tab": "Cerrar pestaña (Ctrl+W)",
+      "cancel": "Cancelar",
+      "loading": "Cargando…",
+      "searching": "Buscando…",
+      "no-results": "Sin coincidencias",
+      "empty-folder": "Esta carpeta está vacía",
+      "link-name": "Enlace a {name}",
+      "path": {
+        "edit": "Escribir una ubicación (Ctrl+L)"
+      },
+      "view": {
+        "list": "Lista (Ctrl+1)",
+        "grid": "Iconos (Ctrl+2)",
+        "columns": "Columnas (Ctrl+3)"
+      },
+      "find": {
+        "title": "Filtrar o buscar (Ctrl+F)",
+        "filter-placeholder": "Filtrar esta carpeta…",
+        "search-placeholder": "Buscar aquí y en las subcarpetas…",
+        "recursive": "Subcarpetas",
+        "recursive-hint": "Buscar también dentro de las subcarpetas"
+      },
+      "column": {
+        "name": "Nombre",
+        "location": "Ubicación",
+        "size": "Tamaño",
+        "modified": "Modificado",
+        "type": "Tipo"
+      },
+      "sort": {
+        "name": "Ordenar por nombre",
+        "size": "Ordenar por tamaño",
+        "modified": "Ordenar por fecha de modificación",
+        "type": "Ordenar por tipo"
+      },
+      "section": {
+        "places": "LUGARES",
+        "bookmarks": "MARCADORES",
+        "devices": "DISPOSITIVOS",
+        "network": "RED"
+      },
+      "places": {
+        "home": "Carpeta personal",
+        "recent": "Recientes",
+        "trash": "Papelera",
+        "computer": "Equipo",
+        "network": "Explorar la red",
+        "connect": "Conectar a servidor…"
+      },
+      "status": {
+        "items": "{count} elemento",
+        "items-plural": "{count} elementos",
+        "selected": "{count} seleccionado",
+        "selected-plural": "{count} seleccionados"
+      },
+      "clipboard": {
+        "copied": "{count} elemento copiado",
+        "copied-plural": "{count} elementos copiados",
+        "cut": "{count} elemento cortado",
+        "cut-plural": "{count} elementos cortados",
+        "path": "Ruta copiada",
+        "empty": "No hay archivos para pegar"
+      },
+      "bookmark": {
+        "added": "Agregada a marcadores",
+        "removed": "Quitada de marcadores"
+      },
+      "hidden": {
+        "shown": "Mostrando archivos ocultos",
+        "hidden": "Ocultando archivos ocultos"
+      },
+      "mount": {
+        "failed": "No se pudo montar {name}"
+      },
+      "unmount": {
+        "done": "{name} ya se puede retirar",
+        "failed": "No se pudo desmontar {name}"
+      },
+      "menu": {
+        "title": "Menú",
+        "open": "Abrir",
+        "open-tab": "Abrir en una pestaña nueva",
+        "open-window": "Abrir en una ventana nueva",
+        "open-with": "Abrir con…",
+        "open-location": "Abrir la ubicación",
+        "new-tab": "Pestaña nueva (Ctrl+T)",
+        "new-window": "Ventana nueva (Ctrl+N)",
+        "new-folder": "Carpeta nueva (Ctrl+Mayús+N)",
+        "new-file": "Archivo vacío nuevo",
+        "cut": "Cortar (Ctrl+X)",
+        "copy": "Copiar (Ctrl+C)",
+        "paste": "Pegar (Ctrl+V)",
+        "paste-into": "Pegar en la carpeta",
+        "copy-path": "Copiar ruta (Ctrl+Mayús+C)",
+        "rename": "Renombrar (F2)",
+        "link": "Crear enlace (Ctrl+M)",
+        "bookmark-add": "Agregar a marcadores",
+        "bookmark-remove": "Quitar de marcadores",
+        "bookmark-toggle": "Marcador de esta carpeta (Ctrl+D)",
+        "terminal": "Abrir terminal aquí (F4)",
+        "trash": "Mover a la papelera (Supr)",
+        "delete": "Borrar para siempre (Mayús+Supr)",
+        "restore": "Restaurar",
+        "empty-trash": "Vaciar la papelera",
+        "properties": "Propiedades (Alt+Intro)",
+        "select-all": "Seleccionar todo (Ctrl+A)",
+        "show-hidden": "Mostrar archivos ocultos (Ctrl+H)",
+        "folders-first": "Carpetas primero",
+        "sidebar": "Panel lateral (F9)",
+        "undo": "Deshacer (Ctrl+Z)",
+        "redo": "Rehacer (Ctrl+Mayús+Z)",
+        "unmount": "Desmontar",
+        "eject": "Expulsar",
+        "send": "Enviar a…",
+        "folder-color": "Color de carpeta…",
+        "folder-color-all": "Color de todas las carpetas…",
+        "custom-icon": "Icono personalizado…",
+        "custom-icon-clear": "Quitar icono personalizado",
+        "thumbnails": "Mostrar miniaturas",
+        "connect": "Conectar a servidor…",
+        "rename-many": "Renombrar… (F2)",
+        "compress": "Comprimir…",
+        "extract": "Extraer aquí",
+        "split": "Dos paneles (F3)",
+        "copy-other": "Copiar al otro panel",
+        "move-other": "Mover al otro panel"
+      },
+      "rename": {
+        "title": "Renombrar",
+        "action": "Renombrar"
+      },
+      "new": {
+        "folder-title": "Carpeta nueva",
+        "file-title": "Archivo vacío nuevo",
+        "folder-default": "Carpeta nueva",
+        "file-default": "Archivo nuevo.txt",
+        "action": "Crear"
+      },
+      "conflict": {
+        "title": "«{name}» ya existe",
+        "folder-title": "La carpeta «{name}» ya existe",
+        "body": "Ya hay un elemento con ese nombre en {folder}.",
+        "existing": "Existente",
+        "incoming": "Nuevo",
+        "all": "Aplicar a todos los conflictos",
+        "skip": "Omitir",
+        "keep-both": "Conservar ambos",
+        "replace": "Reemplazar",
+        "merge": "Combinar"
+      },
+      "delete": {
+        "title": "¿Borrar «{name}» para siempre?",
+        "title-plural": "¿Borrar {count} elementos para siempre?",
+        "body": "No se podrá deshacer.",
+        "no-trash": "Esta ubicación no tiene papelera. ¿Borrar para siempre? No se podrá deshacer.",
+        "action": "Borrar"
+      },
+      "empty-trash": {
+        "title": "¿Vaciar la papelera?",
+        "body": "Todo lo que hay en la papelera se borrará para siempre.",
+        "action": "Vaciar"
+      },
+      "error": {
+        "into-itself": "No se puede copiar «{name}» dentro de sí mismo",
+        "not-in-trash": "«{name}» ya no está en la papelera"
+      },
+      "errors": {
+        "title": "Algunos elementos no se pudieron procesar",
+        "more": "…y {count} más",
+        "more-plural": "…y {count} más"
+      },
+      "op": {
+        "copy": "Copiando {name}",
+        "move": "Moviendo {name}",
+        "link": "Enlazando {name}",
+        "trash": "Moviendo {name} a la papelera",
+        "delete": "Borrando {name}",
+        "restore": "Restaurando {name}",
+        "rename": "Renombrando",
+        "new": "Creando",
+        "queued": "(+{count} en cola)",
+        "queued-plural": "(+{count} en cola)",
+        "cancel": "Cancelar la operación",
+        "cancelled": "Operación cancelada",
+        "trashed": "{count} elemento a la papelera (Ctrl+Z para deshacer)",
+        "trashed-plural": "{count} elementos a la papelera (Ctrl+Z para deshacer)"
+      },
+      "open-with": {
+        "title": "Abrir con",
+        "default": "Usar siempre para este tipo de archivo"
+      },
+      "prop": {
+        "type": "Tipo",
+        "location": "Ubicación",
+        "origin": "Ubicación original",
+        "target": "Apunta a",
+        "size": "Tamaño",
+        "counting": "Calculando…",
+        "contents": "{count} archivo, {folders} carpetas",
+        "contents-plural": "{count} archivos, {folders} carpetas",
+        "many": "{count} elemento",
+        "many-plural": "{count} elementos",
+        "modified": "Modificado",
+        "permissions": "Permisos",
+        "free": "Espacio libre",
+        "free-value": "{free} libres de {total}"
+      },
+      "share": {
+        "title": "Enviar «{name}»",
+        "title-plural": "Enviar {count} elementos",
+        "searching": "Buscando dispositivos y apps…",
+        "none": "No hay a dónde enviar: instala LocalSend o empareja un teléfono con KDE Connect o un dispositivo Bluetooth.",
+        "kdeconnect": "{name} (KDE Connect)",
+        "bluetooth": "{name} (Bluetooth)",
+        "email": "Correo ({app})",
+        "bluetooth-rejected": "el dispositivo rechazó la transferencia o no respondió",
+        "sending": "Enviando a {name}…",
+        "opening": "Abriendo {name}…",
+        "sent": "Enviado a {name}",
+        "failed": "No se pudo enviar a {name}",
+        "no-folders": "{name} solo acepta archivos, no carpetas",
+        "no-local": "Solo se pueden enviar archivos locales"
+      },
+      "metadata": {
+        "failed": "No se pudo guardar el cambio (esta ubicación no lo admite)"
+      },
+      "icon": {
+        "choose": "Elegir un icono",
+        "filter": "Imágenes"
+      },
+      "color": {
+        "title": "Color de «{name}»",
+        "title-plural": "Color de {count} carpetas",
+        "title-all": "Color de todas las carpetas",
+        "body-all": "Las carpetas con color propio lo conservan.",
+        "theme": "Del tema de iconos",
+        "accent": "Acento de OKARU",
+        "red": "Rojo",
+        "deeporange": "Naranja intenso",
+        "orange": "Naranja",
+        "yellow": "Amarillo",
+        "green": "Verde",
+        "teal": "Verde azulado",
+        "cyan": "Cian",
+        "blue": "Azul",
+        "indigo": "Índigo",
+        "violet": "Violeta",
+        "magenta": "Magenta",
+        "pink": "Rosa",
+        "brown": "Marrón",
+        "grey": "Gris",
+        "black": "Negro",
+        "white": "Blanco"
+      },
+      "preview": {
+        "failed": "No se pudo abrir este archivo",
+        "locked": "Este PDF tiene contraseña",
+        "office-failed": "LibreOffice no pudo convertir este documento",
+        "converting": "Preparando la vista previa con LibreOffice…",
+        "previous": "Página anterior",
+        "next": "Página siguiente",
+        "zoom-out": "Alejar",
+        "zoom-in": "Acercar",
+        "fit": "Ajustar",
+        "open": "Abrir"
+      },
+      "phone": {
+        "mounting": "Abriendo {name}… (desbloquea el teléfono si lo pide)",
+        "failed": "No se pudo abrir {name}"
+      },
+      "connect": {
+        "title": "Conectar a servidor",
+        "available": "Disponibles en este equipo: {schemes}",
+        "recent": "SERVIDORES RECIENTES",
+        "no-scheme": "Escribe la dirección con su protocolo, p. ej. smb://servidor/carpeta",
+        "missing": "{scheme}:// no está disponible: instala el paquete {package}",
+        "connecting": "Conectando con {address}…"
+      },
+      "auth": {
+        "user": "Usuario",
+        "domain": "Dominio",
+        "password": "Contraseña",
+        "passphrase": "Frase de paso",
+        "anonymous": "Conectar como anónimo",
+        "save-never": "Olvidar",
+        "save-session": "Hasta cerrar sesión",
+        "save-forever": "Recordar (llavero)",
+        "connect": "Conectar"
+      },
+      "bulk": {
+        "title": "Renombrar {count} elemento",
+        "title-plural": "Renombrar {count} elementos",
+        "replace": "Reemplazar texto",
+        "number": "Numerar",
+        "affix": "Agregar texto",
+        "find": "Buscar",
+        "with": "Reemplazar por",
+        "base": "Nombre (p. ej. Vacaciones → Vacaciones 01.jpg)",
+        "start": "Empezar en",
+        "prefix": "Antes del nombre",
+        "suffix": "Después del nombre (antes de la extensión)",
+        "invalid": "Algún nombre queda vacío o tiene «/»",
+        "duplicate": "«{name}» quedaría repetido"
+      },
+      "archive": {
+        "title": "Comprimir {count} elemento",
+        "title-plural": "Comprimir {count} elementos",
+        "name": "Nombre del comprimido",
+        "hint": ".zip se abre en cualquier equipo; .tar.xz y .7z comprimen más.",
+        "action": "Comprimir",
+        "compressing": "Comprimiendo {name}…",
+        "compressed": "Se creó {name}",
+        "failed": "No se pudo comprimir",
+        "extracting": "Extrayendo {count} comprimido…",
+        "extracting-plural": "Extrayendo {count} comprimidos…",
+        "extracted": "Extraído",
+        "extract-failed": "No se pudo extraer {detail}"
+      },
+      "pick": {
+        "title": "Elegir un archivo",
+        "name": "Nombre",
+        "save": "Guardar",
+        "open": "Abrir",
+        "choose-folder": "Elegir esta carpeta",
+        "replace-title": "¿Reemplazar «{name}»?",
+        "replace-body": "Ya hay un archivo con ese nombre en esta carpeta."
+      }
+    },
     "pdf": {
       "title": "Visor de documentos",
       "open": "Abrir…",
@@ -736,6 +1071,8 @@
         "yesterday": "Ayer"
       },
       "filter-empty-body": "Ninguna notificación coincide con este filtro.",
+      "group-collapse": "Agrupar las notificaciones de esta app",
+      "group-expand": "Ver todas las notificaciones de esta app",
       "filter-empty-title": "No hay nada aquí",
       "untitled": "Notificación sin título"
     },
@@ -1448,6 +1785,93 @@
       "scope-workspace": "este workspace",
       "scope-global": "todo el sistema",
       "hint": "Clic izquierdo: siguiente · Clic derecho: anterior"
+    },
+    "updates": {
+      "title": "Actualizaciones",
+      "status-idle": "Aún sin revisar",
+      "status-checking": "Buscando actualizaciones…",
+      "status-checking-step": "Revisando {step}…",
+      "status-clean": "El sistema está al día",
+      "status-running": "Actualizando en segundo plano…",
+      "status-running-terminal": "Actualizando en una terminal…",
+      "status-rolling-back": "Revirtiendo…",
+      "status-error": "Falló la búsqueda de actualizaciones",
+      "pending": "1 paquete por actualizar",
+      "pending-plural": "{count} paquetes por actualizar",
+      "err-no-checkupdates": "No se encontró checkupdates, instala pacman-contrib",
+      "err-timeout": "Se agotó el tiempo al buscar actualizaciones",
+      "err-check": "Falló checkupdates, mira el registro del sistema",
+      "err-aur": "Falló la revisión de AUR, mira el registro del sistema",
+      "err-flatpak": "Falló la revisión de Flatpak",
+      "err-snap": "Falló la revisión de Snap (¿está corriendo snapd?)",
+      "err-no-okaru-update": "No se encontró okaru-update, reinstala OKARU",
+      "err-no-pkexec": "No se encontró pkexec, instala polkit para actualizar en segundo plano",
+      "err-no-terminal": "No se encontró una terminal, configura $TERMINAL",
+      "err-spawn": "No se pudo iniciar la actualización",
+      "err-terminal-closed": "La terminal se cerró antes de terminar la actualización",
+      "err-run": "La actualización falló (salida {code}), revisa el registro o reintenta en una terminal",
+      "err-polkit": "No se pudo instalar la regla de polkit",
+      "press-enter": "Presiona Enter para cerrar",
+      "run-ok": "La actualización terminó correctamente",
+      "rollback-ok": "La reversión terminó correctamente",
+      "polkit-ok": "Regla de polkit instalada: desde ahora, una sola contraseña por actualización",
+      "rollback-missing-named": "La versión anterior de {name} ya no está en la caché",
+      "tooltip-status": "Estado",
+      "tooltip-pending": "Pendientes",
+      "tooltip-reboot": "Reinicio",
+      "tooltip-reboot-value": "recomendado",
+      "tooltip-checked": "Revisado",
+      "tooltip-hints": "clic: panel · derecho: revisar ahora",
+      "minutes-ago": "hace 1 minuto",
+      "minutes-ago-plural": "hace {count} minutos",
+      "hours-ago": "hace 1 hora",
+      "hours-ago-plural": "hace {count} horas",
+      "days-ago": "hace 1 día",
+      "days-ago-plural": "hace {count} días",
+      "open-log": "Abrir el registro completo",
+      "check": "Buscar actualizaciones",
+      "checked-at": "revisado a las {time}",
+      "size-gib": "≈ {value} GiB por descargar",
+      "size-mib": "≈ {value} MiB por descargar",
+      "reboot": "Se recomienda reiniciar: el kernel en uso ya no está instalado",
+      "update": "Actualizar",
+      "update-background-tip": "Actualizar en segundo plano: polkit pide tu contraseña y el resto es automático",
+      "update-terminal-tip": "Actualizar en una terminal: las preguntas y la revisión del PKGBUILD funcionan como siempre",
+      "dismiss": "Descartar",
+      "retry-terminal": "Reintentar en terminal",
+      "polkit-hint": "Polkit pide la contraseña varias veces por actualización",
+      "polkit-install": "Preguntar una vez",
+      "polkit-install-tip": "Instalar una regla de polkit para que cada actualización pida la contraseña una sola vez",
+      "log-title": "Registro de la actualización",
+      "log-terminal": "La actualización corre en una terminal",
+      "log-waiting": "Esperando la contraseña de polkit y la primera salida…",
+      "open-page": "Abrir la página del paquete",
+      "ignore-tip": "Ignorar: no se cuenta y se salta al actualizar",
+      "more": "+{count} más",
+      "ignored": "Ignorados",
+      "unignore-tip": "Dejar de ignorar",
+      "activity": "Actividad",
+      "updated-ago": "actualizado {when}",
+      "never-updated": "nunca actualizado",
+      "history": "Historial de actualizaciones",
+      "history-tip": "Ver los paquetes de esta actualización",
+      "packages": "1 paquete",
+      "packages-plural": "{count} paquetes",
+      "back": "Atrás",
+      "rollback-tag": "reversión",
+      "confirm": "¿Seguro?",
+      "rollback-all": "Revertir todo",
+      "rollback-all-tip": "Bajar de versión todos los paquetes de esta actualización en una sola transacción",
+      "rollback-missing": "La versión anterior ya no está en la caché de pacman/AUR",
+      "rollback-tip": "Volver a {version}, con sus dependencias de esta actualización. pacman se niega si rompería otros paquetes.",
+      "launcher-check": "Revisar pacman, AUR, Flatpak y Snap",
+      "launcher-panel": "Abrir el panel de actualizaciones",
+      "source": {
+        "pacman": "Pacman",
+        "aur": "AUR",
+        "flatpak": "Flatpak",
+        "snap": "Snap"
+      }
     }
   },
   "osd": {
@@ -1889,7 +2313,8 @@
         "google": "Google",
         "cursor": "Cursor",
         "icons": "Iconos",
-        "phone": "Teléfono"
+        "phone": "Teléfono",
+        "updates": "Actualizaciones"
       },
       "modules": {
         "advanced": "Avanzado",
@@ -2963,6 +3388,18 @@
         "unit": {
           "imperial": "Imperial",
           "metric": "Métrico"
+        }
+      },
+      "updates": {
+        "aur-helper": {
+          "auto": "Detectar (yay, luego paru)",
+          "yay": "yay",
+          "paru": "paru",
+          "off": "Apagado, solo pacman"
+        },
+        "mode": {
+          "terminal": "En una terminal",
+          "background": "En segundo plano (sin preguntas)"
         }
       }
     },
@@ -4264,6 +4701,50 @@
         "phone-recent-images-count": {
           "label": "Cantidad de imágenes recientes",
           "description": "Cuántas capturas muestra el panel del teléfono"
+        },
+        "updates-mode": {
+          "label": "Modo de actualización",
+          "description": "Cómo actualiza el botón Actualizar: en una terminal (preguntas y revisión del PKGBUILD como siempre) o en segundo plano (sin preguntas, con el registro en vivo en el panel)."
+        },
+        "updates-aur-helper": {
+          "label": "Ayudante de AUR",
+          "description": "Qué ayudante revisa y actualiza los paquetes de AUR. Detectar prueba yay y luego paru."
+        },
+        "updates-flatpak": {
+          "label": "Incluir Flatpak",
+          "description": "Revisar y actualizar también las apps Flatpak. Se salta si flatpak no está instalado."
+        },
+        "updates-snap": {
+          "label": "Incluir Snap",
+          "description": "Revisar y actualizar también los snaps. Se salta si snap no está instalado."
+        },
+        "updates-auto-check-hours": {
+          "label": "Revisar cada (horas)",
+          "description": "Buscar actualizaciones automáticamente cada N horas. 0 solo revisa a mano."
+        },
+        "updates-notify": {
+          "label": "Avisar cuando haya actualizaciones",
+          "description": "Enviar una notificación cuando una revisión encuentra paquetes por actualizar."
+        },
+        "updates-ignore": {
+          "label": "Paquetes ignorados",
+          "description": "Paquetes, apps Flatpak o snaps que no se cuentan y se saltan al actualizar, además del IgnorePkg de pacman.conf."
+        },
+        "updates-download-size": {
+          "label": "Mostrar tamaño de descarga",
+          "description": "Estimar el tamaño de descarga de los paquetes pendientes de pacman. No incluye AUR, Flatpak ni Snap."
+        },
+        "updates-check-reboot": {
+          "label": "Revisar si hace falta reiniciar",
+          "description": "Avisar cuando el kernel en uso ya no está instalado."
+        },
+        "updates-activity-graph": {
+          "label": "Mostrar gráfico de actividad",
+          "description": "Registrar las actualizaciones pendientes de las últimas revisiones y mostrarlas en un gráfico pequeño en el panel."
+        },
+        "updates-rollback-auto-ignore": {
+          "label": "Ignorar paquetes tras revertir",
+          "description": "Tras revertir, ignorar los paquetes revertidos para que la siguiente revisión no los vuelva a ofrecer."
         }
       },
       "shared": {
@@ -5641,7 +6122,8 @@
         "hide-when-empty": {
           "description": "Ocultar píldoras de espacio de trabajo cuando no haya ventanas abiertas",
           "label": "Ocultar cuando esté vacío",
-          "workspaces-description": "Ocultar píldoras de espacio de trabajo que no tengan ventanas abiertas"
+          "workspaces-description": "Ocultar píldoras de espacio de trabajo que no tengan ventanas abiertas",
+          "updates-description": "Oculta el widget cuando no hay nada que actualizar ni hace falta reiniciar"
         },
         "hide-when-full": {
           "description": "Ocultar el widget de batería cuando esté completamente cargada",
@@ -6086,6 +6568,10 @@
         "show-battery": {
           "label": "Mostrar batería",
           "description": "Muestra la batería del teléfono junto al icono"
+        },
+        "show-count": {
+          "label": "Mostrar el número",
+          "description": "Muestra el número de actualizaciones pendientes junto al icono"
         }
       },
       "types": {
@@ -6127,7 +6613,8 @@
         "cat": "Gato",
         "ports": "Red y puertos",
         "phone": "Teléfono",
-        "hypr-layout": "Layout de ventanas"
+        "hypr-layout": "Layout de ventanas",
+        "updates": "Actualizaciones"
       }
     },
     "window": {

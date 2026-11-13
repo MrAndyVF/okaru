@@ -423,6 +423,9 @@ namespace {
     if (section == "phone") {
       return schema::writeTable(cfg.phone, schema::phoneSchema());
     }
+    if (section == "updates") {
+      return schema::writeTable(cfg.updates, schema::updatesSchema());
+    }
     if (section == "brightness") {
       return schema::writeTable(cfg.brightness, schema::brightnessSchema());
     }
@@ -1148,7 +1151,7 @@ void SettingsWindow::rebuildSettingsContent() {
           if (const auto group = settings::moduleForSection(sections, *section)) {
             const std::string moduleLabel = i18n::tr(settings::settingsModuleLabelKey(*group->module));
             if (moduleLabel != where) {
-              where = moduleLabel + " › " + where;
+              where.insert(0, moduleLabel + " › ");
             }
           }
         }
