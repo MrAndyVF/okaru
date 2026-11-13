@@ -201,6 +201,7 @@ namespace okaru::apps {
           if (m_sessionBusSource != nullptr) {
             sources.push_back(m_sessionBusSource.get());
           }
+          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
           return sources;
         }
     );

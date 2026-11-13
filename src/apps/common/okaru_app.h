@@ -23,7 +23,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
+class PollSource;
 class Renderer;
 class SessionBus;
 class SessionBusPollSource;
@@ -98,6 +100,8 @@ namespace okaru::apps {
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
     void setCloseRequestCallback(std::function<bool()> callback) { m_closeRequest = std::move(callback); }
     [[nodiscard]] FileWatcher& fileWatcher() noexcept { return m_fileWatcher; }
+    // Fuente extra del bucle (no se adueña; debe vivir hasta que run() termine), p. ej. el contexto de GLib.
+    void addPollSource(PollSource* source) { m_extraSources.push_back(source); }
     [[nodiscard]] bool fullscreen() const noexcept { return m_fullscreen; }
     // Hay un desplegable de un Select abierto (es otra superficie: el puntero "sale" de la ventana al usarlo).
     [[nodiscard]] bool popupOpen() const { return m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen(); }
@@ -136,6 +140,7 @@ namespace okaru::apps {
     std::unique_ptr<SessionBus> m_sessionBus;
     std::unique_ptr<SessionBusPollSource> m_sessionBusSource;
     std::unique_ptr<Node> m_root;
+    std::vector<PollSource*> m_extraSources;
     Node* m_dragNode = nullptr;
     BuildFn m_build;
     KeyFn m_keyHandler;

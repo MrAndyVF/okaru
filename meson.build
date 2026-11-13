@@ -450,6 +450,7 @@ _okaru_sources = files(
   'src/apps/calculator/calc_engine.cpp',
   'src/apps/calculator/calc_state.cpp',
   'src/apps/common/file_drop.cpp',
+  'src/apps/common/glib_poll_source.cpp',
   'src/apps/common/okaru_app.cpp',
   'src/apps/common/portal_file_chooser.cpp',
   'src/apps/common/tab_strip.cpp',
@@ -1286,7 +1287,28 @@ okaru_pdf_exe = executable('okaru-pdf',
   dependencies: _pdf_dependencies,
   install: true,
 )
+_files_core_sources = files(
+  'src/apps/files/file_model.cpp',
+  'src/apps/files/file_ops.cpp',
+)
+okaru_files_exe = executable('okaru-files',
+  sources: files(
+    'src/apps/files/file_view.cpp',
+    'src/apps/files/files_window.cpp',
+    'src/apps/files/icon_cache.cpp',
+    'src/apps/files/main.cpp',
+    'src/apps/files/places.cpp',
+    'src/apps/files/share.cpp',
+  ) + _files_core_sources + _protocol_headers,
+  dependencies: okaru_core_dep,
+  install: true,
+)
 if build_tests
+  test('okaru_files', executable('okaru_files_test',
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/share.cpp') + _files_core_sources,
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_pdf', executable('okaru_pdf_test',
     sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
     dependencies: _pdf_dependencies,
@@ -1331,6 +1353,7 @@ install_subdir('assets',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
     'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
+    'dev.okaru.Files.desktop',
   ],
 )
 
@@ -1342,6 +1365,7 @@ install_data(
   'assets/dev.okaru.Player.desktop',
   'assets/dev.okaru.Editor.desktop',
   'assets/dev.okaru.Pdf.desktop',
+  'assets/dev.okaru.Files.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

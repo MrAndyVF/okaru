@@ -87,6 +87,13 @@ window-rule {
 }
 
 window-rule {
+    match app-id="^dev\\.okaru\\.Files$"
+    open-floating true
+    default-column-width { fixed 1300; }
+    default-window-height { fixed 800; }
+}
+
+window-rule {
     match app-id="^dev\\.okaru\\.Pdf$"
     open-floating true
     default-column-width { fixed 760; }
