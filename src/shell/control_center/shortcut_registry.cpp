@@ -1,5 +1,4 @@
 #include "shell/control_center/shortcut_registry.h"
-#include "shell/okaru_dashboard/okaru_dashboard_layout.h"
 
 #include "compositors/compositor_platform.h"
 #include "config/config_service.h"
@@ -7,6 +6,7 @@
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/inetwork_service.h"
 #include "dbus/network/network_display.h"
+#include "dbus/network/vpn_profiles.h"
 #include "dbus/power/power_profiles_service.h"
 #include "i18n/i18n.h"
 #include "idle/idle_inhibitor.h"
@@ -18,6 +18,7 @@
 #include "shell/control_center/plugin_shortcut.h"
 #include "shell/control_center/shortcut_services.h"
 #include "shell/keyboard_layout_label.h"
+#include "shell/okaru_dashboard/okaru_dashboard_layout.h"
 #include "shell/panel/panel_manager.h"
 #include "system/gamma_service.h"
 #include "system/weather_service.h"
@@ -75,6 +76,41 @@ namespace {
 
   private:
     INetworkService* m_svc;
+  };
+
+  // OKARU: VPN (antes okaru/vpn-manager:toggle). Clic: conectar o desconectar la VPN por defecto; derecho: pestaña.
+  class VpnShortcut final : public Shortcut {
+  public:
+    VpnShortcut(INetworkService* svc, ConfigService* config) : m_svc(svc), m_config(config) {}
+    std::string_view id() const override { return "vpn"; }
+    std::string defaultLabel() const override { return i18n::tr("control-center.shortcuts.vpn"); }
+    std::string displayLabel() const override {
+      if (m_svc != nullptr) {
+        for (const auto& v : m_svc->vpnConnections()) {
+          if (v.active) {
+            return v.name;
+          }
+        }
+      }
+      return defaultLabel();
+    }
+    std::string_view iconOn() const override { return "shield-check"; }
+    std::string_view iconOff() const override { return "shield-off"; }
+    bool isToggle() const override { return true; }
+    bool active() const override {
+      return m_svc != nullptr && std::ranges::any_of(m_svc->vpnConnections(), [](const auto& v) { return v.active; });
+    }
+    void onClick() override {
+      const std::string preferred = m_config != nullptr ? m_config->config().vpn.defaultConnection : std::string{};
+      if (m_svc == nullptr || !vpn::toggleDefault(*m_svc, preferred)) {
+        openTab("vpn");
+      }
+    }
+    void onRightClick() override { openTab("vpn"); }
+
+  private:
+    INetworkService* m_svc;
+    ConfigService* m_config;
   };
 
   class BluetoothShortcut final : public Shortcut {
@@ -478,6 +514,10 @@ namespace {
       builtinShortcut<WifiShortcut, &ShortcutServices::network>({
           .type = "wifi",
           .labelKey = "control-center.shortcuts.wifi",
+      }),
+      builtinShortcut<VpnShortcut, &ShortcutServices::network, &ShortcutServices::config>({
+          .type = "vpn",
+          .labelKey = "control-center.shortcuts.vpn",
       }),
       builtinShortcut<BluetoothShortcut, &ShortcutServices::bluetooth>({
           .type = "bluetooth",

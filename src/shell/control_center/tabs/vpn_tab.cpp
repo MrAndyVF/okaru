@@ -510,7 +510,7 @@ void VpnTab::startEdit(const VpnConnectionInfo& v) {
       if (std::ranges::any_of(known, [&](const vpn::VpnField& f) { return f.key == key; })) {
         m_fields[key] = value;
       } else {
-        m_advanced += key + "=" + value + "\n";
+        m_advanced.append(key).append("=").append(value).append("\n");
       }
     }
     m_message.clear();

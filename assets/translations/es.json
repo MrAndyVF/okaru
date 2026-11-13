@@ -1292,7 +1292,8 @@
       "system": "Sistema",
       "wallpaper": "Fondo de Pantalla",
       "weather": "Clima",
-      "wifi": "Wi-Fi"
+      "wifi": "Wi-Fi",
+      "vpn": "VPN"
     },
     "system": {
       "labels": {
@@ -2079,7 +2080,11 @@
         "dns": "DNS",
         "peer-key": "Clave pública del servidor",
         "allowed-ips": "IP permitidas"
-      }
+      },
+      "widget-off": "Desconectada",
+      "widget-hints": "Clic: abrir VPN · Clic derecho: conectar o desconectar la VPN por defecto",
+      "auto-connected": "Se conectó {name}: esta red no es de confianza",
+      "auto-disconnected": "Se desconectó {name}: volviste a una red de confianza"
     }
   },
   "osd": {
@@ -6801,6 +6806,10 @@
         "show-count": {
           "label": "Mostrar el número",
           "description": "Muestra el número de actualizaciones pendientes junto al icono"
+        },
+        "show-name": {
+          "label": "Mostrar el nombre",
+          "description": "Escribe el nombre de la VPN conectada junto al escudo."
         }
       },
       "types": {
@@ -6843,7 +6852,8 @@
         "ports": "Red y puertos",
         "phone": "Teléfono",
         "hypr-layout": "Layout de ventanas",
-        "updates": "Actualizaciones"
+        "updates": "Actualizaciones",
+        "vpn": "VPN"
       }
     },
     "window": {

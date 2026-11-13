@@ -1349,7 +1349,8 @@
       "system": "System",
       "wallpaper": "Wallpaper",
       "weather": "Weather",
-      "wifi": "Wi-Fi"
+      "wifi": "Wi-Fi",
+      "vpn": "VPN"
     },
     "system": {
       "labels": {
@@ -2181,7 +2182,11 @@
         "dns": "DNS",
         "peer-key": "Server public key",
         "allowed-ips": "Allowed IPs"
-      }
+      },
+      "widget-off": "Disconnected",
+      "widget-hints": "Click: open VPN · Right click: connect or disconnect the default VPN",
+      "auto-connected": "Connected {name}: this network is not trusted",
+      "auto-disconnected": "Disconnected {name}: back on a trusted network"
     }
   },
   "osd": {
@@ -7008,6 +7013,10 @@
         "show-count": {
           "label": "Show count",
           "description": "Show the number of pending updates next to the icon"
+        },
+        "show-name": {
+          "label": "Show the name",
+          "description": "Writes the connected VPN name next to the shield."
         }
       },
       "types": {
@@ -7050,7 +7059,8 @@
         "ports": "Network & ports",
         "phone": "Phone",
         "hypr-layout": "Window layout",
-        "updates": "Updates"
+        "updates": "Updates",
+        "vpn": "VPN"
       }
     },
     "window": {

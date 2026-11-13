@@ -1,4 +1,7 @@
 // OKARU: lo puro de los perfiles VPN (vpn.data de nmcli, salida -t, tipo para importar, configuración de WireGuard).
+#include "config/config_types.h"
+#include "dbus/network/network_types.h"
+#include "dbus/network/vpn_auto_connect.h"
 #include "dbus/network/vpn_profiles.h"
 
 #include <cstdlib>
@@ -59,5 +62,24 @@ int main() {
   expect(fieldsFor("desconocido").empty(), "sin campos para un tipo desconocido");
   const auto types = installedTypes();
   expect(!types.empty() && types.back().name != "", "WireGuard siempre entre los tipos");
+  {
+    // Autoconexión: qué cuenta como red de confianza.
+    VpnConfig config;
+    NetworkState state;
+    expect(VpnAutoConnect::trustOf(state, config) == -1, "sin red: nada que decidir");
+    state.connected = true;
+    state.kind = NetworkConnectivity::Wired;
+    state.interfaceName = "enp5s0";
+    expect(VpnAutoConnect::trustOf(state, config) == 1, "cable de confianza por defecto");
+    config.trustAllEthernet = false;
+    expect(VpnAutoConnect::trustOf(state, config) == 0, "cable sin confianza si se desactiva");
+    config.trusted = {"enp5s0", "Casa"};
+    expect(VpnAutoConnect::trustOf(state, config) == 1, "cable en la lista por su interfaz");
+    state.kind = NetworkConnectivity::Wireless;
+    state.ssid = "Cafe";
+    expect(VpnAutoConnect::trustOf(state, config) == 0, "Wi-Fi fuera de la lista");
+    state.ssid = "Casa";
+    expect(VpnAutoConnect::trustOf(state, config) == 1, "Wi-Fi de confianza");
+  }
   return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

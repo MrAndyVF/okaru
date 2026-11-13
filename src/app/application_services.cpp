@@ -1,8 +1,8 @@
-#include "compositors/hyprland/okaru_hypr_animations.h"
 #include "app/main_loop.h"
 #include "application.h"
 #include "application_internal.h"
 #include "compositors/compositor_detect.h"
+#include "compositors/hyprland/okaru_hypr_animations.h"
 #include "config/config_types.h"
 #include "core/deferred_call.h"
 #include "core/input/keybind_matcher.h"
@@ -12,15 +12,16 @@
 #include "dbus/bluetooth/bluetooth_agent.h"
 #include "dbus/bluetooth/bluetooth_service.h"
 #include "dbus/idle/screensaver_service.h"
+#include "dbus/kdeconnect/kdeconnect_service.h"
 #include "dbus/logind/logind_service.h"
 #include "dbus/modem/modem_manager_service.h"
-#include "dbus/kdeconnect/kdeconnect_service.h"
 #include "dbus/mpris/mpris_service.h"
 #include "dbus/network/inetwork_service.h"
 #include "dbus/network/iwd_secret_agent.h"
 #include "dbus/network/iwd_service.h"
 #include "dbus/network/network_manager_service.h"
 #include "dbus/network/network_secret_agent.h"
+#include "dbus/network/vpn_auto_connect.h"
 #include "dbus/network/wpa_supplicant_service.h"
 #include "dbus/notification/notification_dbus_host.h"
 #include "dbus/notification/notification_service.h"
@@ -71,8 +72,8 @@
 #include "system/brightness_service.h"
 #include "system/distro_info.h"
 #include "system/easyeffects_service.h"
-#include "system/okaru_updates.h"
 #include "system/keyboard_backlight_service.h"
+#include "system/okaru_updates.h"
 #include "system/system_monitor_service.h"
 #include "theme/apps_palette.h"
 #include "ui/app_icon_colorization.h"
@@ -988,7 +989,6 @@ void Application::initAuxServicesAndHooks() {
         fireWallpaperChangedHook(change.path, change.connector);
       }
     }
-
   });
 
   m_themeService.setChangeCallback([this] {
@@ -1305,6 +1305,9 @@ void Application::initSystemBusServices() {
               onNetworkStateChangedForEvents(state, origin);
             }
             m_externalIpService.onNetworkChanged();
+            if (m_vpnAutoConnect != nullptr) {
+              m_vpnAutoConnect->onNetworkChanged();
+            }
             m_bar.refresh();
             if (shouldRefreshControlCenter()) {
               m_panelManager.refresh();
@@ -1315,6 +1318,14 @@ void Application::initSystemBusServices() {
         m_prevWirelessEnabledForEvents = m_networkService->state().wirelessEnabled;
       }
       m_externalIpService.setNetworkService(m_networkService.get());
+      // OKARU: autoconexión de la VPN (apagada de fábrica) y, una vez, los datos del antiguo plugin vpn-manager.
+      m_vpnAutoConnect = std::make_unique<VpnAutoConnect>(m_networkService.get(), &m_configService);
+      m_vpnAutoConnect->importPluginData();
+      m_configService.addReloadCallback([this] {
+        if (m_vpnAutoConnect != nullptr) {
+          m_vpnAutoConnect->onNetworkChanged();
+        }
+      });
       m_externalIpService.setChangeCallback([this, shouldRefreshControlCenter] {
         m_bar.refresh();
         if (shouldRefreshControlCenter()) {
@@ -1597,7 +1608,6 @@ void Application::initSessionBusServices() {
     m_configService.addReloadCallback([this] { syncNotificationDaemon(); });
     installSecretServiceNameWatch();
     installSecretServiceCollectionWatch();
-
   }
 
   m_locationService.initialize();

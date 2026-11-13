@@ -12,6 +12,8 @@
 #include <string_view>
 #include <vector>
 
+class INetworkService;
+
 namespace vpn {
 
   // Un protocolo instalado (un plugin de NetworkManager, o WireGuard que viene con NetworkManager).
@@ -59,9 +61,13 @@ namespace vpn {
   // Salida de `nmcli -t -f …` (una línea "CAMPO:valor" por campo) → mapa campo → valor.
   [[nodiscard]] std::map<std::string, std::string> parseTerse(std::string_view text);
   // Protocolo para `nmcli connection import` según la extensión y el contenido; vacío si no se reconoce.
-  [[nodiscard]] std::string importTypeFor(std::string_view path, std::string_view contents);
+  [[nodiscard]] std::string_view importTypeFor(std::string_view path, std::string_view contents);
   // Configuración de wg-quick con los campos del formulario de WireGuard (para crear importándola).
   [[nodiscard]] std::string wireguardConfig(const std::map<std::string, std::string>& fields);
+
+  // Conectada alguna: las desconecta. Si no: conecta la de `preferredUuid` (o la única que haya). false si hay varias y
+  // ninguna por defecto (que el usuario elija).
+  bool toggleDefault(INetworkService& network, const std::string& preferredUuid);
 
   using Done = std::function<void(bool ok, std::string error)>;
   void load(const std::string& uuid, std::function<void(bool ok, VpnProfile profile)> done);

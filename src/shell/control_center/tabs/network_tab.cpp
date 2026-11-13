@@ -8,6 +8,7 @@
 #include "i18n/i18n.h"
 #include "render/core/renderer.h"
 #include "render/scene/input_area.h"
+#include "shell/okaru_dashboard/okaru_dashboard_layout.h"
 #include "shell/panel/panel_manager.h"
 #include "ui/builders.h"
 #include "ui/palette.h"
@@ -399,9 +400,7 @@ private:
   Signal<>::ScopedConnection m_paletteConn;
 };
 
-namespace {
-
-} // namespace
+namespace {} // namespace
 
 // Informational modem row: signal glyph, operator/modem name, and live status
 // detail. It has no actions of its own; the card header carries the enable toggle.
@@ -1304,8 +1303,7 @@ void NetworkTab::rebuildApList(Renderer& renderer) {
   } else {
     const float opacity = panelCardOpacity();
 
-    // OKARU: la gestión de VPN es el módulo integrado okaru/vpn-manager (importar, autoconexión por red de
-    // confianza…); aquí solo el estado y el acceso a él.
+    // OKARU: la gestión de VPN es la pestaña nativa okaru-vpn (crear, importar, autoconexión…); aquí el estado.
     {
       auto vpnCard = ui::column({
           .configure = [scale, opacity](Flex& card) { applySectionCardStyle(card, scale, opacity); },
@@ -1318,7 +1316,11 @@ void NetworkTab::rebuildApList(Renderer& renderer) {
               .fontSize = Style::fontSizeCaption * scale,
               .glyphSize = Style::fontSizeBody * scale,
               .variant = ButtonVariant::Default,
-              .onClick = [] { PanelManager::instance().togglePanel("okaru/vpn-manager:panel"); },
+              .onClick = [] {
+                if (!okaru::dashboard::openHostedDetail("okaru-vpn")) {
+                  PanelManager::instance().togglePanel("okaru-vpn");
+                }
+              },
           })
       );
       vpnCard->addChild(std::move(vpnHeader));
@@ -1328,12 +1330,14 @@ void NetworkTab::rebuildApList(Renderer& renderer) {
           active += active.empty() ? vpn.name : ", " + vpn.name;
         }
       }
-      vpnCard->addChild(ui::label({
-          .text = active.empty() ? i18n::tr("okaru.network.vpn-disconnected")
-                                 : i18n::tr("okaru.network.vpn-connected", "name", active),
-          .fontSize = Style::fontSizeBody * scale,
-          .color = colorSpecFromRole(active.empty() ? ColorRole::OnSurfaceVariant : ColorRole::Primary),
-      }));
+      vpnCard->addChild(
+          ui::label({
+              .text = active.empty() ? i18n::tr("okaru.network.vpn-disconnected")
+                                     : i18n::tr("okaru.network.vpn-connected", "name", active),
+              .fontSize = Style::fontSizeBody * scale,
+              .color = colorSpecFromRole(active.empty() ? ColorRole::OnSurfaceVariant : ColorRole::Primary),
+          })
+      );
       m_list->addChild(std::move(vpnCard));
     }
 

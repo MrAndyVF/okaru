@@ -2,6 +2,7 @@
 
 #include "core/deferred_call.h"
 #include "core/process/process.h"
+#include "dbus/network/inetwork_service.h"
 
 #include <algorithm>
 #include <fcntl.h>
@@ -265,7 +266,7 @@ namespace vpn {
     return fields;
   }
 
-  std::string importTypeFor(std::string_view path, std::string_view contents) {
+  std::string_view importTypeFor(std::string_view path, std::string_view contents) {
     const std::string name = lower(std::string(path));
     if (name.ends_with(".ovpn")) {
       return "openvpn";
@@ -300,6 +301,27 @@ namespace vpn {
         + (allowed.empty() ? "0.0.0.0/0, ::/0" : allowed)
         + "\nPersistentKeepalive = 25\n";
     return out;
+  }
+
+  bool toggleDefault(INetworkService& network, const std::string& preferredUuid) {
+    const auto vpns = network.vpnConnections();
+    bool any = false;
+    for (const auto& v : vpns) {
+      if (v.active) {
+        any = true;
+        (void)network.deactivateVpnConnection(v);
+      }
+    }
+    if (any || vpns.empty()) {
+      return true;
+    }
+    for (const auto& v : vpns) {
+      if (v.uuid == preferredUuid || (preferredUuid.empty() && vpns.size() == 1)) {
+        (void)network.activateVpnConnection(v);
+        return true;
+      }
+    }
+    return false;
   }
 
   void load(const std::string& uuid, std::function<void(bool ok, VpnProfile profile)> done) {
@@ -412,7 +434,7 @@ namespace vpn {
     std::ifstream in(path);
     std::stringstream contents;
     contents << in.rdbuf();
-    const std::string type = importTypeFor(path, contents.str());
+    const std::string type(importTypeFor(path, contents.str()));
     if (type.empty()) {
       done(false, "unknown-format");
       return;
