@@ -6,8 +6,11 @@
 #include <cairo.h>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <print>
+#include <string>
 #include <unistd.h>
+#include <vector>
 
 using namespace okaru::pdf;
 namespace fs = std::filesystem;
@@ -19,6 +22,45 @@ namespace {
       std::println(stderr, "okaru_pdf_test: {}", message);
       g_ok = false;
     }
+  }
+
+  // Formulario mínimo a mano: un campo de texto, una casilla y una línea de texto para resaltar. Las posiciones del
+  // xref se calculan al escribir.
+  void writeForm(const fs::path& path) {
+    const std::string content = "BT /F1 18 Tf 40 700 Td (Texto para resaltar) Tj ET";
+    const std::vector<std::string> objects = {
+        "<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [4 0 R 5 0 R] /NeedAppearances true "
+        "/DA (/Helv 12 Tf 0 g) /DR << /Font << /Helv 7 0 R >> >> >> >>",
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Annots [4 0 R 5 0 R] "
+        "/Resources << /Font << /F1 7 0 R >> >> >>",
+        "<< /Type /Annot /Subtype /Widget /FT /Tx /T (nombre) /V (viejo) /Rect [40 600 300 625] /P 3 0 R "
+        "/DA (/Helv 12 Tf 0 g) /F 4 >>",
+        "<< /Type /Annot /Subtype /Widget /FT /Btn /T (acepto) /V /Off /AS /Off /Rect [40 550 60 570] /P 3 0 R /F 4 "
+        "/AP << /N << /Yes 8 0 R /Off 8 0 R >> >> >>",
+        "<< /Length " + std::to_string(content.size()) + " >>\nstream\n" + content + "\nendstream",
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        "<< /Type /XObject /Subtype /Form /BBox [0 0 20 20] /Length 0 >>\nstream\n\nendstream",
+    };
+    std::string pdf = "%PDF-1.7\n";
+    std::vector<std::size_t> offsets;
+    for (std::size_t i = 0; i < objects.size(); ++i) {
+      offsets.push_back(pdf.size());
+      pdf += std::to_string(i + 1) + " 0 obj\n" + objects[i] + "\nendobj\n";
+    }
+    const std::size_t xref = pdf.size();
+    pdf += "xref\n0 " + std::to_string(objects.size() + 1) + "\n0000000000 65535 f \n";
+    for (const std::size_t offset : offsets) {
+      char line[24];
+      std::snprintf(line, sizeof(line), "%010zu 00000 n \n", offset);
+      pdf += line;
+    }
+    pdf += "trailer\n<< /Size "
+        + std::to_string(objects.size() + 1)
+        + " /Root 1 0 R >>\nstartxref\n"
+        + std::to_string(xref)
+        + "\n%%EOF\n";
+    std::ofstream(path, std::ios::binary) << pdf;
   }
 
   void writeSample(const fs::path& path) {
@@ -113,6 +155,45 @@ int main() {
       parsePageRange("0-2", 10).empty() && parsePageRange("a", 10).empty() && parsePageRange("5-11", 10).empty(),
       "rangos inválidos"
   );
+
+  {
+    // Formulario: rellenar, marcar, resaltar, guardar y volver a abrir.
+    writeForm(dir / "formulario.pdf");
+    auto form = Document::open(dir / "formulario.pdf");
+    expect(form.has_value(), "abre el formulario");
+    if (form) {
+      auto& doc = **form;
+      const auto fields = doc.formFields(0);
+      expect(fields.size() == 2, "dos campos");
+      const FormField* text = nullptr;
+      const FormField* check = nullptr;
+      for (const auto& f : fields) {
+        (f.kind == FormField::Kind::Text ? text : check) = &f;
+      }
+      expect(text != nullptr && text->text == "viejo", "campo de texto con su valor");
+      expect(text != nullptr && text->area.y0 > 160.0 && text->area.y1 < 195.0, "área con el origen arriba");
+      expect(check != nullptr && check->kind == FormField::Kind::Check && !check->checked, "casilla sin marcar");
+      if (text != nullptr && check != nullptr) {
+        expect(doc.apply({.kind = Edit::Kind::Text, .field = text->id, .text = "Kevin Andrés"}), "escribe el texto");
+        expect(doc.apply({.kind = Edit::Kind::Check, .field = check->id, .checked = true}), "marca la casilla");
+        expect(doc.apply({.kind = Edit::Kind::Highlight, .page = 0, .rects = {{40, 75, 250, 95}}}), "resalta");
+        std::string error;
+        expect(doc.save(dir / "formulario.pdf", error), "guarda encima del abierto");
+        auto again = Document::open(dir / "formulario.pdf");
+        expect(again.has_value(), "vuelve a abrir lo guardado");
+        if (again) {
+          bool textOk = false;
+          bool checkOk = false;
+          for (const auto& f : (*again)->formFields(0)) {
+            textOk = textOk || (f.kind == FormField::Kind::Text && f.text == "Kevin Andrés");
+            checkOk = checkOk || (f.kind == FormField::Kind::Check && f.checked);
+          }
+          expect(textOk, "el texto quedó guardado");
+          expect(checkOk, "la casilla quedó marcada");
+        }
+      }
+    }
+  }
 
   fs::remove_all(dir);
   return g_ok ? EXIT_SUCCESS : EXIT_FAILURE;

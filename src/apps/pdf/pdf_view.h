@@ -19,6 +19,7 @@
 
 class Box;
 class Image;
+class Input;
 class InputArea;
 class Renderer;
 class Scrollbar;
@@ -68,10 +69,24 @@ namespace okaru::pdf {
     std::size_t selectionTo = 0;
     std::map<int, TextLayout> textCache;
     std::map<int, std::vector<Link>> linkCache;
+    std::map<int, std::vector<FormField>> fieldCache;
+
+    // Cambios (formularios, resaltados): la revisión hace que se vuelvan a dibujar las páginas.
+    std::uint32_t revision = 0;
+    bool modified = false;
+    // Campo de texto que se está escribiendo encima de la página.
+    int editPage = -1;
+    int editField = -1;
+    std::string editText;
 
     [[nodiscard]] const TextLayout& text(int page);
     [[nodiscard]] const std::vector<Link>& links(int page);
+    [[nodiscard]] const std::vector<FormField>& fields(int page);
     [[nodiscard]] std::string selectedText();
+    // Rectángulos por línea de la selección actual (para resaltar o subrayar).
+    [[nodiscard]] std::vector<Rect> selectionLines();
+    // Aplica el cambio al documento y al hilo que dibuja.
+    void applyEdit(const Edit& edit);
   };
 
   class PdfView : public Node {
@@ -104,6 +119,14 @@ namespace okaru::pdf {
     void setOnSelectionChanged(std::function<void()> callback) { m_onSelectionChanged = std::move(callback); }
     // Presentación: clic avanza.
     void setOnAdvance(std::function<void(int)> callback) { m_onAdvance = std::move(callback); }
+    // Clic en un campo de formulario que no es de texto (casilla, opción, lista): la ventana decide.
+    void setOnFieldPressed(std::function<void(int page, const FormField&, float x, float y)> callback) {
+      m_onFieldPressed = std::move(callback);
+    }
+    // El cuadro de escritura de un campo de texto pide el foco.
+    void setOnFocusRequest(std::function<void(InputArea*)> callback) { m_onFocusRequest = std::move(callback); }
+    // Terminar de escribir en el campo (guarda lo escrito si cambió).
+    void commitField();
 
     void setSize(float width, float height) override;
 
@@ -135,6 +158,8 @@ namespace okaru::pdf {
     void onDrag(float x, float y);
     void onRelease(float x, float y);
     void onMotion(float x, float y);
+    // Cuadro de escritura sobre el campo de texto activo (o lo esconde).
+    void placeEditor();
 
     PdfTab* m_tab = nullptr;
     bool m_presentation = false;
@@ -156,12 +181,17 @@ namespace okaru::pdf {
     bool m_selecting = false;
     bool m_pressedOnLink = false;
     std::optional<std::size_t> m_anchorChar;
+    Input* m_editor = nullptr;
+    int m_editorPage = -1;
+    int m_editorField = -1;
 
     std::function<void()> m_onPageChanged;
     std::function<void(const std::string&)> m_onOpenUri;
     std::function<void()> m_onZoomChanged;
     std::function<void()> m_onSelectionChanged;
     std::function<void(int)> m_onAdvance;
+    std::function<void(int, const FormField&, float, float)> m_onFieldPressed;
+    std::function<void(InputArea*)> m_onFocusRequest;
   };
 
   // Zoom real de una página para ajustarla al ancho o al alto disponibles.

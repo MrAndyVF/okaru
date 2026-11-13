@@ -767,7 +767,22 @@
         "failed": "No se pudo imprimir: revisa la impresora en CUPS",
         "no-printers": "No hay impresoras configuradas. Agrega una en la configuración de impresoras del sistema (CUPS)."
       },
-      "recent-clear": "Borrar historial"
+      "recent-clear": "Borrar historial",
+      "highlight": "Resaltar la selección",
+      "underline": "Subrayar la selección",
+      "save": "Guardar",
+      "save-as": "Guardar como",
+      "saved": "Guardado {file}",
+      "save-failed": "No se pudo guardar: {detail}",
+      "markup-select": "Selecciona texto en la página para resaltarlo o subrayarlo",
+      "form": {
+        "choose": "Elige una opción"
+      },
+      "unsaved": {
+        "title": "¿Guardar los cambios?",
+        "body": "El documento tiene campos rellenados o anotaciones sin guardar.",
+        "discard": "No guardar"
+      }
     },
     "play": {
       "title": "Reproductor multimedia",

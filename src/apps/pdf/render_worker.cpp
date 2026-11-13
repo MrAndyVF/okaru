@@ -43,6 +43,14 @@ namespace okaru::pdf {
     m_wake.notify_all();
   }
 
+  void RenderWorker::edit(Edit change) {
+    {
+      std::scoped_lock lock(m_mutex);
+      m_edits.push_back(std::move(change));
+    }
+    m_wake.notify_all();
+  }
+
   void RenderWorker::cancelSearch() {
     std::scoped_lock lock(m_mutex);
     ++m_searchGeneration;
@@ -63,12 +71,16 @@ namespace okaru::pdf {
     while (true) {
       RenderJob job;
       bool haveJob = false;
+      std::vector<Edit> edits;
       {
         std::unique_lock lock(m_mutex);
-        m_wake.wait(lock, [&] { return m_stop || !m_jobs.empty() || m_search.has_value() || search.has_value(); });
+        m_wake.wait(lock, [&] {
+          return m_stop || !m_jobs.empty() || !m_edits.empty() || m_search.has_value() || search.has_value();
+        });
         if (m_stop) {
           return;
         }
+        edits.swap(m_edits);
         if (m_search.has_value()) {
           search = std::move(m_search);
           m_search.reset();
@@ -83,6 +95,9 @@ namespace okaru::pdf {
           haveJob = true;
           m_current = job;
         }
+      }
+      for (const Edit& change : edits) {
+        (void)doc->apply(change);
       }
       if (haveJob) {
         RenderedPage page = doc->render(job.page, job.scale, job.rotation, job.invert);
