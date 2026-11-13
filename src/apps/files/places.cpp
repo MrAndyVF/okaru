@@ -183,6 +183,19 @@ namespace okaru::files {
       m_places.push_back(std::move(root));
     }
 
+    // Teléfonos de KDE Connect: sin montar se montan al hacer clic; montados van directo al almacenamiento interno.
+    for (const Phone& phone : m_phones) {
+      m_places.push_back({
+          .section = PlaceSection::Devices,
+          .name = phone.name,
+          .uri = phone.mounted && !phone.storages.empty() ? pathToUri(phone.storages.front().first) : std::string(),
+          .glyph = "device-mobile",
+          .id = "kdeconnect:" + phone.id,
+          .mounted = phone.mounted && !phone.storages.empty(),
+          .canUnmount = phone.mounted,
+      });
+    }
+
     // Montajes (USB, discos, teléfonos, red) y volúmenes sin montar.
     GList* mounts = g_volume_monitor_get_mounts(m_monitor);
     for (GList* l = mounts; l != nullptr; l = l->next) {
@@ -244,6 +257,7 @@ namespace okaru::files {
     g_list_free_full(volumes, g_object_unref);
 
     add(PlaceSection::Network, tr("apps.files.places.network"), "network:///", "network");
+    add(PlaceSection::Network, tr("apps.files.places.connect"), "okaru:connect", "plug");
 
     if (m_onChanged) {
       m_onChanged();
@@ -311,7 +325,12 @@ namespace okaru::files {
 
   // ── Montar y desmontar ─────────────────────────────────────────────────────────────────────────────
 
-  void Places::mount(const std::string& id, DoneFn done) {
+  void Places::setPhones(std::vector<Phone> phones) {
+    m_phones = std::move(phones);
+    refresh();
+  }
+
+  void Places::mount(const std::string& id, void* operationRaw, DoneFn done) {
     GList* volumes = g_volume_monitor_get_volumes(m_monitor);
     GVolume* target = nullptr;
     for (GList* l = volumes; l != nullptr; l = l->next) {
@@ -324,8 +343,7 @@ namespace okaru::files {
       done(false, {});
       return;
     }
-    // shortcut: sin GMountOperation con diálogo propio; los volúmenes cifrados se piden en la fase de red.
-    GMountOperation* operation = g_mount_operation_new();
+    auto* operation = static_cast<GMountOperation*>(operationRaw);
     g_volume_mount(
         target, G_MOUNT_MOUNT_NONE, operation, nullptr,
         [](GObject* source, GAsyncResult* result, gpointer data) {
@@ -348,17 +366,16 @@ namespace okaru::files {
         },
         new MountCall{std::move(done)}
     );
-    g_object_unref(operation);
     g_object_unref(target);
   }
 
-  void Places::unmount(const std::string& id, bool eject, DoneFn done) {
+  void Places::unmount(const std::string& id, bool eject, void* operationRaw, DoneFn done) {
     GMount* mount = findMount(m_monitor, id);
     if (mount == nullptr) {
       done(false, {});
       return;
     }
-    GMountOperation* operation = g_mount_operation_new();
+    auto* operation = static_cast<GMountOperation*>(operationRaw);
     const auto finishUnmount = [](GObject* source, GAsyncResult* result, gpointer data) {
       std::unique_ptr<MountCall> call(static_cast<MountCall*>(data));
       GError* error = nullptr;
@@ -382,7 +399,6 @@ namespace okaru::files {
           mount, G_MOUNT_UNMOUNT_NONE, operation, nullptr, finishUnmount, new MountCall{std::move(done)}
       );
     }
-    g_object_unref(operation);
     g_object_unref(mount);
   }
 

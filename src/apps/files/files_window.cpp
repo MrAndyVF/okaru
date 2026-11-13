@@ -256,6 +256,25 @@ namespace okaru::files {
       m_tabs.clear();
     });
 
+    // KDE Connect avisa por D-Bus al aparecer, desaparecer, montar o desmontar un teléfono.
+    if (GDBusConnection* bus = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr); bus != nullptr) {
+      m_dbus = bus;
+      m_dbusSubscription = g_dbus_connection_signal_subscribe(
+          bus, "org.kde.kdeconnect", nullptr, nullptr, nullptr, nullptr, G_DBUS_SIGNAL_FLAGS_NONE,
+          [](GDBusConnection*, const gchar*, const gchar*, const gchar* interface, const gchar*, GVariant*, gpointer self) {
+            const std::string_view name = interface != nullptr ? interface : "";
+            // Batería, notificaciones y demás no cambian la lista de teléfonos.
+            if (name == "org.kde.kdeconnect.daemon" || name == "org.kde.kdeconnect.device"
+                || name == "org.kde.kdeconnect.device.sftp") {
+              auto* window = static_cast<FilesWindow*>(self);
+              window->m_phonesTimer.start(std::chrono::milliseconds(700), [window] { window->refreshPhones(); });
+            }
+          },
+          this, nullptr
+      );
+    }
+    refreshPhones();
+
     for (const auto& location : locations) {
       openTab(location, false);
     }
@@ -265,7 +284,16 @@ namespace okaru::files {
     m_active = 0;
   }
 
-  FilesWindow::~FilesWindow() = default;
+  FilesWindow::~FilesWindow() {
+    if (m_dbus != nullptr) {
+      g_dbus_connection_signal_unsubscribe(static_cast<GDBusConnection*>(m_dbus), m_dbusSubscription);
+      g_object_unref(m_dbus);
+    }
+    if (m_mountOp != nullptr) {
+      g_mount_operation_reply(G_MOUNT_OPERATION(m_mountOp), G_MOUNT_OPERATION_ABORTED);
+      g_object_unref(m_mountOp);
+    }
+  }
 
   // ── Pestañas y navegación ──────────────────────────────────────────────────────────────────────────
 
@@ -436,10 +464,11 @@ namespace okaru::files {
     }
     Tab& t = tab();
     // Sin montar (smb://, sftp://…): montar el volumen y volver a listar.
-    if (!t.model->loading() && t.model->errorCode() == G_IO_ERROR_NOT_MOUNTED) {
+    if (!t.model->loading() && t.model->errorCode() == G_IO_ERROR_NOT_MOUNTED && m_mountingUri != t.model->uri()) {
       const std::string uri = t.model->uri();
+      m_mountingUri = uri;
       GFile* file = g_file_new_for_uri(uri.c_str());
-      GMountOperation* operation = g_mount_operation_new();
+      auto* operation = static_cast<GMountOperation*>(newMountOperation());
       std::weak_ptr<int> alive = m_alive;
       auto* data = new std::pair<FilesWindow*, std::weak_ptr<int>>(this, alive);
       g_file_mount_enclosing_volume(
@@ -454,8 +483,11 @@ namespace okaru::files {
               g_clear_error(&error);
               return;
             }
+            ctx->first->m_mountingUri.clear();
             if (ok || g_error_matches(error, G_IO_ERROR, G_IO_ERROR_ALREADY_MOUNTED)) {
               ctx->first->tab().model->reload();
+            } else if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_FAILED_HANDLED)) {
+              // Cancelado en el diálogo: nada que avisar.
             } else {
               ctx->first->setMessage(error != nullptr ? error->message : "?", true);
             }
@@ -1170,10 +1202,39 @@ namespace okaru::files {
   }
 
   void FilesWindow::activatePlace(const Place& place, bool newTab) {
+    if (place.uri == "okaru:connect") {
+      connectDialog();
+      return;
+    }
+    if (place.id.starts_with("kdeconnect:") && !place.mounted) {
+      // El teléfono tiene que estar desbloqueado; KDE Connect espera hasta 30 s.
+      setMessage(tr("apps.files.phone.mounting", "name", place.name));
+      std::weak_ptr<int> alive = m_alive;
+      std::thread([this, alive, newTab, id = place.id.substr(11), name = place.name] {
+        std::string root;
+        std::string error;
+        const bool ok = mountPhone(id, root, error);
+        DeferredCall::callLater([this, alive, newTab, ok, root, error, name] {
+          if (alive.expired()) {
+            return;
+          }
+          if (ok) {
+            m_message.clear();
+            updateStatus();
+            newTab ? openTab(pathToUri(root)) : navigate(pathToUri(root));
+          } else {
+            setMessage(tr("apps.files.phone.failed", "name", name) + (error.empty() ? "" : ": " + error), true);
+          }
+          refreshPhones();
+        });
+      }).detach();
+      return;
+    }
     if (!place.mounted) {
       const std::string name = place.name;
       std::weak_ptr<int> alive = m_alive;
-      m_places.mount(place.id, [this, alive, newTab, name](bool ok, std::string result) {
+      auto* operation = static_cast<GMountOperation*>(newMountOperation());
+      m_places.mount(place.id, operation, [this, alive, newTab, name](bool ok, std::string result) {
         if (alive.expired()) {
           return;
         }
@@ -1183,9 +1244,254 @@ namespace okaru::files {
           newTab ? openTab(result) : navigate(result);
         }
       });
+      g_object_unref(operation);
       return;
     }
     newTab ? openTab(place.uri) : navigate(place.uri);
+  }
+
+  void FilesWindow::unmountPlace(const Place& place, bool eject) {
+    // Si la pestaña está dentro de lo que se desmonta, vuelve a la carpeta personal.
+    const auto leave = [this](const std::string& prefix) {
+      for (auto& t : m_tabs) {
+        if (!prefix.empty() && t->model->uri().starts_with(prefix)) {
+          Tab& current = tab();
+          if (&current == t.get()) {
+            navigate(homeUri());
+          }
+        }
+      }
+    };
+    std::weak_ptr<int> alive = m_alive;
+    const std::string name = place.name;
+    if (place.id.starts_with("kdeconnect:")) {
+      const std::string id = place.id.substr(11);
+      leave(pathToUri(std::string(g_get_user_runtime_dir()) + "/" + id));
+      std::thread([this, alive, id, name] {
+        unmountPhone(id);
+        DeferredCall::callLater([this, alive, name] {
+          if (!alive.expired()) {
+            setMessage(tr("apps.files.unmount.done", "name", name));
+            refreshPhones();
+          }
+        });
+      }).detach();
+      return;
+    }
+    leave(place.uri);
+    auto* operation = static_cast<GMountOperation*>(newMountOperation());
+    m_places.unmount(place.id, eject, operation, [this, alive, name](bool ok, std::string error) {
+      if (!alive.expired()) {
+        setMessage(ok ? tr("apps.files.unmount.done", "name", name)
+                      : tr("apps.files.unmount.failed", "name", name) + (error.empty() ? "" : ": " + error),
+                   !ok);
+      }
+    });
+    g_object_unref(operation);
+  }
+
+  void FilesWindow::refreshPhones() {
+    if (m_phonesBusy) {
+      m_phonesAgain = true;
+      return;
+    }
+    m_phonesBusy = true;
+    std::weak_ptr<int> alive = m_alive;
+    std::thread([this, alive] {
+      auto phones = listPhones();
+      DeferredCall::callLater([this, alive, phones = std::move(phones)]() mutable {
+        if (alive.expired()) {
+          return;
+        }
+        m_phonesBusy = false;
+        m_places.setPhones(std::move(phones));
+        if (m_phonesAgain) {
+          m_phonesAgain = false;
+          refreshPhones();
+        }
+      });
+    }).detach();
+  }
+
+  // ── Credenciales y servidores ──────────────────────────────────────────────────────────────────────
+
+  void* FilesWindow::newMountOperation() {
+    GMountOperation* op = g_mount_operation_new();
+    g_signal_connect(op, "ask-password",
+                     G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar* user, const gchar* domain,
+                                    GAskPasswordFlags flags, gpointer self) {
+                       static_cast<FilesWindow*>(self)->onAskPassword(o, message, user, domain, flags);
+                     }),
+                     this);
+    g_signal_connect(op, "ask-question",
+                     G_CALLBACK(+[](GMountOperation* o, const gchar* message, const gchar** choices, gpointer self) {
+                       static_cast<FilesWindow*>(self)->onAskQuestion(o, message, choices);
+                     }),
+                     this);
+    g_signal_connect(op, "aborted", G_CALLBACK(+[](GMountOperation* o, gpointer self) {
+                       static_cast<FilesWindow*>(self)->onMountAborted(o);
+                     }),
+                     this);
+    return op;
+  }
+
+  void FilesWindow::onAskPassword(void* operation, const char* message, const char* user, const char* domain,
+                                  unsigned flags) {
+    if (m_mountOp != nullptr) {
+      g_mount_operation_reply(G_MOUNT_OPERATION(m_mountOp), G_MOUNT_OPERATION_ABORTED);
+      g_object_unref(m_mountOp);
+    }
+    m_mountOp = g_object_ref(operation);
+    m_authMessage = message != nullptr ? message : "";
+    m_authUser = user != nullptr && *user != '\0' ? user : g_get_user_name();
+    m_authDomain = domain != nullptr ? domain : "";
+    m_authPassword.clear();
+    m_authFlags = flags;
+    m_authAnonymous = false;
+    m_menu.clear();
+    m_overlay = Overlay::Password;
+    m_focusDialog = true;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::onAskQuestion(void* operation, const char* message, const char* const* choices) {
+    if (m_mountOp != nullptr) {
+      g_mount_operation_reply(G_MOUNT_OPERATION(m_mountOp), G_MOUNT_OPERATION_ABORTED);
+      g_object_unref(m_mountOp);
+    }
+    m_mountOp = g_object_ref(operation);
+    m_authMessage = message != nullptr ? message : "";
+    m_questionChoices.clear();
+    for (const char* const* c = choices; c != nullptr && *c != nullptr; ++c) {
+      m_questionChoices.emplace_back(*c);
+    }
+    m_menu.clear();
+    m_overlay = Overlay::Question;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::onMountAborted(void* operation) {
+    if (operation == m_mountOp) {
+      g_object_unref(m_mountOp);
+      m_mountOp = nullptr;
+      if (m_overlay == Overlay::Password || m_overlay == Overlay::Question) {
+        m_overlay = Overlay::None;
+        m_app.requestRebuild();
+      }
+    }
+  }
+
+  void FilesWindow::replyPassword(bool accept) {
+    if (m_mountOp == nullptr) {
+      return;
+    }
+    auto* op = G_MOUNT_OPERATION(m_mountOp);
+    m_mountOp = nullptr;
+    if (accept) {
+      if (m_authAnonymous && (m_authFlags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED) != 0) {
+        g_mount_operation_set_anonymous(op, TRUE);
+      } else {
+        g_mount_operation_set_username(op, m_authUser.c_str());
+        g_mount_operation_set_domain(op, m_authDomain.c_str());
+        g_mount_operation_set_password(op, m_authPassword.c_str());
+      }
+      // "Recordar siempre" lo guarda gvfs en el llavero (libsecret).
+      g_mount_operation_set_password_save(op, m_authSave == 2   ? G_PASSWORD_SAVE_PERMANENTLY
+                                                : m_authSave == 1 ? G_PASSWORD_SAVE_FOR_SESSION
+                                                                  : G_PASSWORD_SAVE_NEVER);
+    }
+    g_mount_operation_reply(op, accept ? G_MOUNT_OPERATION_HANDLED : G_MOUNT_OPERATION_ABORTED);
+    g_object_unref(op);
+    std::fill(m_authPassword.begin(), m_authPassword.end(), '\0');
+    m_authPassword.clear();
+    m_overlay = Overlay::None;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::replyQuestion(int choice) {
+    if (m_mountOp == nullptr) {
+      return;
+    }
+    auto* op = G_MOUNT_OPERATION(m_mountOp);
+    m_mountOp = nullptr;
+    if (choice >= 0) {
+      g_mount_operation_set_choice(op, choice);
+    }
+    g_mount_operation_reply(op, choice >= 0 ? G_MOUNT_OPERATION_HANDLED : G_MOUNT_OPERATION_ABORTED);
+    g_object_unref(op);
+    m_overlay = Overlay::None;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::connectDialog() {
+    m_connectText.clear();
+    m_overlay = Overlay::Connect;
+    m_focusDialog = true;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::connectToServer(std::string address) {
+    address = trimmed(address);
+    if (address.empty()) {
+      return;
+    }
+    const auto scheme = address.find("://");
+    if (scheme == std::string::npos) {
+      setMessage(tr("apps.files.connect.no-scheme"), true);
+      return;
+    }
+    // ¿Hay backend de gvfs para ese protocolo? Si no, decir qué paquete falta.
+    const std::string protocol = address.substr(0, scheme);
+    bool supported = false;
+    for (const gchar* const* s = g_vfs_get_supported_uri_schemes(g_vfs_get_default()); s != nullptr && *s != nullptr; ++s) {
+      supported = supported || protocol == *s;
+    }
+    if (!supported) {
+      const std::string package = protocol == "smb" ? "gvfs-smb" : protocol == "nfs" ? "gvfs-nfs"
+          : protocol == "mtp" ? "gvfs-mtp" : protocol == "afc" ? "gvfs-afc" : "gvfs";
+      setMessage(tr("apps.files.connect.missing", "scheme", protocol, "package", package), true);
+      return;
+    }
+    m_overlay = Overlay::None;
+    m_app.requestRebuild();
+    std::erase(m_recentServers, address);
+    m_recentServers.insert(m_recentServers.begin(), address);
+    if (m_recentServers.size() > 10) {
+      m_recentServers.resize(10);
+    }
+    saveState();
+    setMessage(tr("apps.files.connect.connecting", "address", address));
+    GFile* file = g_file_new_for_uri(address.c_str());
+    auto* operation = static_cast<GMountOperation*>(newMountOperation());
+    auto* ctx = new std::pair<FilesWindow*, std::weak_ptr<int>>(this, m_alive);
+    g_file_mount_enclosing_volume(
+        file, G_MOUNT_MOUNT_NONE, operation, nullptr,
+        [](GObject* source, GAsyncResult* result, gpointer raw) {
+          std::unique_ptr<std::pair<FilesWindow*, std::weak_ptr<int>>> c(
+              static_cast<std::pair<FilesWindow*, std::weak_ptr<int>>*>(raw)
+          );
+          GError* error = nullptr;
+          const bool ok = g_file_mount_enclosing_volume_finish(G_FILE(source), result, &error) != FALSE;
+          if (!c->second.expired()) {
+            FilesWindow* window = c->first;
+            if (ok || g_error_matches(error, G_IO_ERROR, G_IO_ERROR_ALREADY_MOUNTED)) {
+              char* uri = g_file_get_uri(G_FILE(source));
+              window->m_message.clear();
+              window->navigate(uri);
+              g_free(uri);
+            } else if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_FAILED_HANDLED)) {
+              window->setMessage(error != nullptr ? error->message : "?", true);
+            } else {
+              window->m_message.clear();
+              window->updateStatus();
+            }
+          }
+          g_clear_error(&error);
+        },
+        ctx
+    );
+    g_object_unref(operation);
+    g_object_unref(file);
   }
 
   void FilesWindow::setMessage(std::string message, bool error) {
@@ -1337,16 +1643,7 @@ namespace okaru::files {
     }
     if (place.canUnmount || place.canEject) {
       menu.push_back({.separator = true});
-      const auto act = [this, id = place.id, name = place.name](bool eject) {
-        std::weak_ptr<int> alive = m_alive;
-        m_places.unmount(id, eject, [this, alive, name](bool ok, std::string error) {
-          if (!alive.expired()) {
-            setMessage(ok ? tr("apps.files.unmount.done", "name", name)
-                          : tr("apps.files.unmount.failed", "name", name) + (error.empty() ? "" : ": " + error),
-                       !ok);
-          }
-        });
-      };
+      const auto act = [this, copy](bool eject) { unmountPlace(copy, eject); };
       if (place.canUnmount) {
         menu.push_back({tr("apps.files.menu.unmount"), [act] { act(false); }});
       }
@@ -1362,6 +1659,7 @@ namespace okaru::files {
     const std::string here = tab().model->uri();
     menu.push_back({tr("apps.files.menu.new-tab"), [this, here] { openTab(here); }});
     menu.push_back({tr("apps.files.menu.new-window"), [this, here] { newWindow(here); }});
+    menu.push_back({tr("apps.files.menu.connect"), [this] { connectDialog(); }});
     menu.push_back({.separator = true});
     menu.push_back({tr("apps.files.menu.new-folder"), [this] { startNew(true); }, canWriteHere()});
     menu.push_back({tr("apps.files.menu.new-file"), [this] { startNew(false); }, canWriteHere()});
@@ -1783,25 +2081,15 @@ namespace okaru::files {
       }
       content->addChild(std::move(texts));
       if (place.canEject || place.canUnmount) {
-        const std::string id = place.id;
-        const std::string name = place.name;
         const bool eject = place.canEject;
+        const Place target = place;
         content->addChild(ui::button({
             .glyph = "player-eject",
             .glyphSize = 14.0F * scale,
             .controlHeight = 24.0F * scale,
             .variant = ButtonVariant::Ghost,
             .tooltip = tr(eject ? "apps.files.menu.eject" : "apps.files.menu.unmount"),
-            .onClick = [this, id, name, eject] {
-              std::weak_ptr<int> alive = m_alive;
-              m_places.unmount(id, eject, [this, alive, name](bool ok, std::string error) {
-                if (!alive.expired()) {
-                  setMessage(ok ? tr("apps.files.unmount.done", "name", name)
-                                : tr("apps.files.unmount.failed", "name", name) + (error.empty() ? "" : ": " + error),
-                             !ok);
-                }
-              });
-            },
+            .onClick = [this, target, eject] { DeferredCall::callLater([this, target, eject] { unmountPlace(target, eject); }); },
         }));
       }
       row->addChild(std::move(content));
@@ -2797,6 +3085,149 @@ namespace okaru::files {
       buttons(cancelButton());
       break;
     }
+    case Overlay::Password: {
+      // Primera línea del mensaje de gvfs como título; el resto (equipo, recurso) debajo.
+      const auto newline = m_authMessage.find('\n');
+      heading(newline == std::string::npos ? m_authMessage : m_authMessage.substr(0, newline));
+      if (newline != std::string::npos) {
+        body(m_authMessage.substr(newline + 1));
+      }
+      const auto submit = [this] { DeferredCall::callLater([this] { replyPassword(true); }); };
+      const auto escape = [this](std::uint32_t sym, std::uint32_t) -> bool {
+        if (sym == XKB_KEY_Escape) {
+          DeferredCall::callLater([this] { replyPassword(false); });
+          return true;
+        }
+        return false;
+      };
+      const bool anonymous = m_authAnonymous && (m_authFlags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED) != 0;
+      if ((m_authFlags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED) != 0) {
+        card->addChild(ui::row(
+            {.align = FlexAlign::Center, .gap = Style::spaceSm * scale},
+            ui::checkbox({.checked = m_authAnonymous, .scale = scale, .onChange = [this](bool value) {
+                            m_authAnonymous = value;
+                            m_app.requestRebuild();
+                          }}),
+            ui::label({.text = tr("apps.files.auth.anonymous"), .fontSize = Style::fontSizeBody * scale})
+        ));
+      }
+      Input** first = &m_dialogInput;
+      const auto field = [&](std::string placeholder, std::string& value, bool password) {
+        Input* created = nullptr;
+        card->addChild(ui::input({
+            .out = &created,
+            .value = value,
+            .placeholder = std::move(placeholder),
+            .fontSize = Style::fontSizeBody * scale,
+            .passwordMode = password,
+            .onChange = [&value](const std::string& v) { value = v; },
+            .onSubmit = [submit](const std::string&) { submit(); },
+            .onKeyEvent = escape,
+        }));
+        if (*first == nullptr) {
+          *first = created;
+        }
+        if (password) {
+          m_authPasswordInput = created;
+        }
+      };
+      m_authPasswordInput = nullptr;
+      if (!anonymous) {
+        if ((m_authFlags & G_ASK_PASSWORD_NEED_USERNAME) != 0) {
+          field(tr("apps.files.auth.user"), m_authUser, false);
+        }
+        if ((m_authFlags & G_ASK_PASSWORD_NEED_DOMAIN) != 0) {
+          field(tr("apps.files.auth.domain"), m_authDomain, false);
+        }
+        if ((m_authFlags & G_ASK_PASSWORD_NEED_PASSWORD) != 0) {
+          field(tr((m_authFlags & G_ASK_PASSWORD_TCRYPT) != 0 ? "apps.files.auth.passphrase" : "apps.files.auth.password"),
+                m_authPassword, true);
+        }
+        // Con el usuario ya puesto, el cursor va directo a la contraseña.
+        if (m_authPasswordInput != nullptr && !m_authUser.empty()) {
+          m_dialogInput = m_authPasswordInput;
+        }
+        if ((m_authFlags & G_ASK_PASSWORD_SAVING_SUPPORTED) != 0) {
+          card->addChild(ui::segmented({
+              .options = std::vector<ui::SegmentedOption>{
+                  {.label = tr("apps.files.auth.save-never")},
+                  {.label = tr("apps.files.auth.save-session")},
+                  {.label = tr("apps.files.auth.save-forever")},
+              },
+              .selectedIndex = m_authSave,
+              .fontSize = Style::fontSizeCaption * scale,
+              .scale = scale,
+              .onChange = [this](std::size_t index) { m_authSave = index; },
+          }));
+        }
+      }
+      buttons(ui::button({.text = tr("apps.files.cancel"), .variant = ButtonVariant::Ghost,
+                          .onClick = [this] { DeferredCall::callLater([this] { replyPassword(false); }); }}),
+              ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit}));
+      break;
+    }
+    case Overlay::Question: {
+      const auto newline = m_authMessage.find('\n');
+      heading(newline == std::string::npos ? m_authMessage : m_authMessage.substr(0, newline));
+      if (newline != std::string::npos) {
+        body(m_authMessage.substr(newline + 1));
+      }
+      auto row = ui::row({.align = FlexAlign::Center, .justify = FlexJustify::End, .wrap = true, .gap = Style::spaceSm * scale});
+      for (std::size_t i = 0; i < m_questionChoices.size(); ++i) {
+        row->addChild(ui::button({
+            .text = m_questionChoices[i],
+            .variant = i + 1 == m_questionChoices.size() ? ButtonVariant::Primary : ButtonVariant::Ghost,
+            .onClick = [this, i] { DeferredCall::callLater([this, i] { replyQuestion(static_cast<int>(i)); }); },
+        }));
+      }
+      card->addChild(std::move(row));
+      break;
+    }
+    case Overlay::Connect: {
+      heading(tr("apps.files.connect.title"));
+      const auto submit = [this] { DeferredCall::callLater([this] { connectToServer(m_connectText); }); };
+      card->addChild(ui::input({
+          .out = &m_dialogInput,
+          .value = m_connectText,
+          .placeholder = "smb://servidor/carpeta · sftp://usuario@equipo",
+          .fontSize = Style::fontSizeBody * scale,
+          .onChange = [this](const std::string& value) { m_connectText = value; },
+          .onSubmit = [submit](const std::string&) { submit(); },
+          .onKeyEvent = [close](std::uint32_t sym, std::uint32_t) -> bool {
+            if (sym == XKB_KEY_Escape) {
+              close();
+              return true;
+            }
+            return false;
+          },
+      }));
+      // Protocolos que hay en este equipo (backends de gvfs).
+      std::string schemes;
+      for (const char* wanted : {"smb", "sftp", "ftp", "davs", "dav", "nfs", "afp"}) {
+        for (const gchar* const* sc = g_vfs_get_supported_uri_schemes(g_vfs_get_default()); sc != nullptr && *sc != nullptr; ++sc) {
+          if (std::string_view(*sc) == wanted) {
+            schemes += (schemes.empty() ? "" : ", ") + std::string(wanted) + "://";
+          }
+        }
+      }
+      body(tr("apps.files.connect.available", "schemes", schemes));
+      if (!m_recentServers.empty()) {
+        card->addChild(ui::label({.text = tr("apps.files.connect.recent"), .fontSize = Style::fontSizeCaption * scale,
+                                  .fontWeight = FontWeight::SemiBold, .color = colorSpecFromRole(ColorRole::OnSurfaceVariant)}));
+        for (const auto& server : m_recentServers) {
+          card->addChild(ui::button({
+              .text = server,
+              .glyph = "server-2",
+              .fontSize = Style::fontSizeCaption * scale,
+              .contentAlign = ButtonContentAlign::Start,
+              .variant = ButtonVariant::Ghost,
+              .onClick = [this, server] { DeferredCall::callLater([this, server] { connectToServer(server); }); },
+          }));
+        }
+      }
+      buttons(cancelButton(), ui::button({.text = tr("apps.files.auth.connect"), .variant = ButtonVariant::Primary, .onClick = submit}));
+      break;
+    }
     case Overlay::Share: {
       heading(trp("apps.files.share.title", static_cast<long>(m_sharePaths.size()), "name",
                   m_sharePaths.empty() ? std::string() : fs::path(m_sharePaths.front()).filename().string()));
@@ -2898,6 +3329,14 @@ namespace okaru::files {
         if (m_overlay == Overlay::Conflict && m_conflictReply) {
           m_conflictReply({ConflictChoice::Cancel, true});
           m_conflictReply = nullptr;
+        }
+        if (m_overlay == Overlay::Password) {
+          replyPassword(false);
+          return true;
+        }
+        if (m_overlay == Overlay::Question) {
+          replyQuestion(-1);
+          return true;
         }
         m_overlay = Overlay::None;
         m_app.requestRebuild();
@@ -3139,6 +3578,13 @@ namespace okaru::files {
           m_folderModes[std::string(key.str())] = modeOf(value.value_or(std::string("list")));
         }
       }
+      if (const auto* recent = table["servers"]["recent"].as_array(); recent != nullptr) {
+        for (const auto& server : *recent) {
+          if (const auto value = server.value<std::string>()) {
+            m_recentServers.push_back(*value);
+          }
+        }
+      }
       if (const auto* sorts = table["sort"].as_table(); sorts != nullptr) {
         for (const auto& [key, value] : *sorts) {
           if (const auto* entry = value.as_table(); entry != nullptr) {
@@ -3174,7 +3620,11 @@ namespace okaru::files {
       sorts.insert(uri, toml::table{{"by", sortId(options.sort)}, {"descending", options.descending},
                                     {"folders_first", options.foldersFirst}});
     }
-    toml::table root{{"view", view}, {"folders", folders}, {"sort", sorts}};
+    toml::array servers;
+    for (const auto& server : m_recentServers) {
+      servers.push_back(server);
+    }
+    toml::table root{{"view", view}, {"folders", folders}, {"sort", sorts}, {"servers", toml::table{{"recent", servers}}}};
     std::error_code ec;
     fs::create_directories(statePath().parent_path(), ec);
     std::ofstream out(statePath(), std::ios::trunc);

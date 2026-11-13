@@ -80,6 +80,9 @@ namespace okaru::files {
       OpenWith,
       Share,
       FolderColor,
+      Password,
+      Question,
+      Connect,
       Errors,
     };
     enum class Mode : std::uint8_t { List, Grid, Columns };
@@ -189,6 +192,17 @@ namespace okaru::files {
     void openMainMenu(float x, float y);
     void showMenu(std::vector<MenuEntry> entries, float x, float y);
     void activatePlace(const Place& place, bool newTab = false);
+    void unmountPlace(const Place& place, bool eject);
+    void refreshPhones();
+    // GMountOperation conectada a los diálogos de contraseña y preguntas (el que la pide la suelta con g_object_unref).
+    [[nodiscard]] void* newMountOperation();
+    void onAskPassword(void* operation, const char* message, const char* user, const char* domain, unsigned flags);
+    void onAskQuestion(void* operation, const char* message, const char* const* choices);
+    void onMountAborted(void* operation);
+    void replyPassword(bool accept);
+    void replyQuestion(int choice);
+    void connectDialog();
+    void connectToServer(std::string address);
     void setMessage(std::string message, bool error = false);
     void onOperationDone(OpResult result);
     void submit(OpRequest request);
@@ -211,6 +225,28 @@ namespace okaru::files {
     bool m_iconsDirty = false;
     std::unique_ptr<apps::PortalFileChooser> m_chooser;
     std::vector<std::string> m_colorTargets; // carpetas a pintar; vacío = color de todas
+
+    // Montajes: diálogo de credenciales (GMountOperation en espera de respuesta).
+    void* m_mountOp = nullptr;
+    std::string m_authMessage;
+    std::string m_authUser;
+    std::string m_authDomain;
+    std::string m_authPassword;
+    unsigned m_authFlags = 0;
+    bool m_authAnonymous = false;
+    std::size_t m_authSave = 0; // 0 olvidar, 1 hasta cerrar sesión, 2 siempre (llavero)
+    std::vector<std::string> m_questionChoices;
+    std::string m_mountingUri; // montaje automático en curso (no repetirlo)
+    std::string m_connectText;
+    std::vector<std::string> m_recentServers;
+    Input* m_authPasswordInput = nullptr;
+
+    // Teléfonos de KDE Connect: se consultan en un hilo al cambiar algo en su D-Bus.
+    void* m_dbus = nullptr; // GDBusConnection*
+    unsigned m_dbusSubscription = 0;
+    Timer m_phonesTimer;
+    bool m_phonesBusy = false;
+    bool m_phonesAgain = false;
     std::vector<std::unique_ptr<Tab>> m_tabs;
     std::size_t m_active = 0;
 

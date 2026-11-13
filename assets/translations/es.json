@@ -269,7 +269,8 @@
         "recent": "Recientes",
         "trash": "Papelera",
         "computer": "Equipo",
-        "network": "Explorar la red"
+        "network": "Explorar la red",
+        "connect": "Conectar a servidor…"
       },
       "status": {
         "items": "{count} elemento",
@@ -340,7 +341,8 @@
         "folder-color-all": "Color de todas las carpetas…",
         "custom-icon": "Icono personalizado…",
         "custom-icon-clear": "Quitar icono personalizado",
-        "thumbnails": "Mostrar miniaturas"
+        "thumbnails": "Mostrar miniaturas",
+        "connect": "Conectar a servidor…"
       },
       "rename": {
         "title": "Renombrar",
@@ -480,6 +482,29 @@
         "zoom-in": "Acercar",
         "fit": "Ajustar",
         "open": "Abrir"
+      },
+      "phone": {
+        "mounting": "Abriendo {name}… (desbloquea el teléfono si lo pide)",
+        "failed": "No se pudo abrir {name}"
+      },
+      "connect": {
+        "title": "Conectar a servidor",
+        "available": "Disponibles en este equipo: {schemes}",
+        "recent": "SERVIDORES RECIENTES",
+        "no-scheme": "Escribe la dirección con su protocolo, p. ej. smb://servidor/carpeta",
+        "missing": "{scheme}:// no está disponible: instala el paquete {package}",
+        "connecting": "Conectando con {address}…"
+      },
+      "auth": {
+        "user": "Usuario",
+        "domain": "Dominio",
+        "password": "Contraseña",
+        "passphrase": "Frase de paso",
+        "anonymous": "Conectar como anónimo",
+        "save-never": "Olvidar",
+        "save-session": "Hasta cerrar sesión",
+        "save-forever": "Recordar (llavero)",
+        "connect": "Conectar"
       }
     },
     "pdf": {

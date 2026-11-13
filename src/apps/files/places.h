@@ -3,6 +3,8 @@
 // OKARU: lugares del panel lateral de okaru-files: carpetas XDG, marcadores (los de GTK, compartidos con Nautilus y
 // el selector de archivos), unidades y montajes de GVolumeMonitor (USB, discos, MTP, red de gvfs), papelera y red.
 
+#include "apps/files/phones.h"
+
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -48,9 +50,13 @@ namespace okaru::files {
     void removeBookmark(const std::string& uri);
     void renameBookmark(const std::string& uri, const std::string& name);
 
-    // Monta un volumen (`id` de Place) y devuelve la URI de su raíz.
-    void mount(const std::string& id, DoneFn done);
-    void unmount(const std::string& id, bool eject, DoneFn done);
+    // Teléfonos de KDE Connect (se consultan en un hilo; aquí solo se guardan).
+    void setPhones(std::vector<Phone> phones);
+
+    // Monta un volumen (`id` de Place) y devuelve la URI de su raíz. `operation` (GMountOperation*) pide
+    // contraseñas o frases de paso (LUKS) con el diálogo de la ventana.
+    void mount(const std::string& id, void* operation, DoneFn done);
+    void unmount(const std::string& id, bool eject, void* operation, DoneFn done);
 
   private:
     struct Bookmark {
@@ -63,6 +69,7 @@ namespace okaru::files {
 
     GVolumeMonitor* m_monitor = nullptr;
     std::vector<Place> m_places;
+    std::vector<Phone> m_phones;
     ChangedFn m_onChanged;
   };
 

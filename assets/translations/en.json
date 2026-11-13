@@ -269,7 +269,8 @@
         "recent": "Recent",
         "trash": "Trash",
         "computer": "Computer",
-        "network": "Browse network"
+        "network": "Browse network",
+        "connect": "Connect to server…"
       },
       "status": {
         "items": "{count} item",
@@ -340,7 +341,8 @@
         "folder-color-all": "Color of all folders…",
         "custom-icon": "Custom icon…",
         "custom-icon-clear": "Remove custom icon",
-        "thumbnails": "Show thumbnails"
+        "thumbnails": "Show thumbnails",
+        "connect": "Connect to server…"
       },
       "rename": {
         "title": "Rename",
@@ -480,6 +482,29 @@
         "zoom-in": "Zoom in",
         "fit": "Fit",
         "open": "Open"
+      },
+      "phone": {
+        "mounting": "Opening {name}… (unlock the phone if it asks)",
+        "failed": "Could not open {name}"
+      },
+      "connect": {
+        "title": "Connect to server",
+        "available": "Available here: {schemes}",
+        "recent": "RECENT SERVERS",
+        "no-scheme": "Type the address with its protocol, e.g. smb://server/folder",
+        "missing": "{scheme}:// is not available: install the {package} package",
+        "connecting": "Connecting to {address}…"
+      },
+      "auth": {
+        "user": "User",
+        "domain": "Domain",
+        "password": "Password",
+        "passphrase": "Passphrase",
+        "anonymous": "Connect anonymously",
+        "save-never": "Forget",
+        "save-session": "Until logout",
+        "save-forever": "Remember (keyring)",
+        "connect": "Connect"
       }
     },
     "pdf": {
