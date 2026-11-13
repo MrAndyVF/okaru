@@ -24,6 +24,7 @@ namespace okaru::config::schema {
   const Schema<BluetoothConfig>& bluetoothSchema();
   const Schema<PhoneConfig>& phoneSchema(); // OKARU
   const Schema<UpdatesConfig>& updatesSchema(); // OKARU
+  const Schema<VpnConfig>& vpnSchema();         // OKARU
   const Schema<ControlCenterConfig>& controlCenterSchema();
   const Schema<PluginsConfig>& pluginsSchema();
   const Schema<HotCornersConfig>& hotCornersSchema();

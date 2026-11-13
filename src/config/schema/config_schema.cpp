@@ -537,6 +537,18 @@ namespace okaru::config::schema {
     return s;
   }
 
+  const Schema<VpnConfig>& vpnSchema() {
+    static const Schema<VpnConfig> s = {
+        field(&VpnConfig::autoConnect, "auto_connect"),
+        field(&VpnConfig::autoDisconnectOnTrusted, "auto_disconnect_on_trusted"),
+        field(&VpnConfig::trustAllEthernet, "trust_all_ethernet"),
+        field(&VpnConfig::notify, "notify"),
+        field(&VpnConfig::defaultConnection, "default"),
+        field(&VpnConfig::trusted, "trusted"),
+    };
+    return s;
+  }
+
   namespace {
     const Schema<ControlCenterCardConfig>& cardSchema() {
       static const Schema<ControlCenterCardConfig> s = {

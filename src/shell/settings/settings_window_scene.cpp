@@ -426,6 +426,9 @@ namespace {
     if (section == "updates") {
       return schema::writeTable(cfg.updates, schema::updatesSchema());
     }
+    if (section == "vpn") {
+      return schema::writeTable(cfg.vpn, schema::vpnSchema());
+    }
     if (section == "brightness") {
       return schema::writeTable(cfg.brightness, schema::brightnessSchema());
     }

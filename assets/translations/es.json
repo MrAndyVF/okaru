@@ -2460,7 +2460,8 @@
         "cursor": "Cursor",
         "icons": "Iconos",
         "phone": "Teléfono",
-        "updates": "Actualizaciones"
+        "updates": "Actualizaciones",
+        "vpn": "VPN"
       },
       "modules": {
         "advanced": "Avanzado",
@@ -4891,6 +4892,26 @@
         "updates-rollback-auto-ignore": {
           "label": "Ignorar paquetes tras revertir",
           "description": "Tras revertir, ignorar los paquetes revertidos para que la siguiente revisión no los vuelva a ofrecer."
+        },
+        "vpn-auto-connect": {
+          "label": "Conectar la VPN en redes que no son de confianza",
+          "description": "Conecta sola la VPN por defecto (la de la estrella en la pestaña VPN) al entrar a una red que no está en tu lista de confianza."
+        },
+        "vpn-auto-disconnect": {
+          "label": "Desconectarla en redes de confianza",
+          "description": "Al volver a una red de confianza, desconecta la VPN si la conectó OKARU (una que conectaste tú no se toca)."
+        },
+        "vpn-trust-ethernet": {
+          "label": "Cualquier red por cable es de confianza",
+          "description": "Las conexiones por cable cuentan como de confianza aunque no estén en la lista."
+        },
+        "vpn-notify": {
+          "label": "Avisar al conectar o desconectar sola",
+          "description": "Muestra una notificación cuando la autoconexión cambia el estado de la VPN."
+        },
+        "vpn-trusted": {
+          "label": "Redes de confianza",
+          "description": "Nombres de Wi-Fi (SSID) o de conexiones donde la VPN no hace falta."
         }
       },
       "shared": {

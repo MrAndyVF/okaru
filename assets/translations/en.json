@@ -2575,7 +2575,8 @@
         "cursor": "Cursor",
         "icons": "Icons",
         "phone": "Phone",
-        "updates": "Updates"
+        "updates": "Updates",
+        "vpn": "VPN"
       },
       "modules": {
         "advanced": "Advanced",
@@ -5007,6 +5008,26 @@
         "updates-rollback-auto-ignore": {
           "label": "Ignore packages after a rollback",
           "description": "After a rollback, ignore the rolled-back packages so the next check does not offer them again."
+        },
+        "vpn-auto-connect": {
+          "label": "Connect the VPN on untrusted networks",
+          "description": "Connects the default VPN (the starred one in the VPN tab) when you join a network that is not on your trusted list."
+        },
+        "vpn-auto-disconnect": {
+          "label": "Disconnect it on trusted networks",
+          "description": "Back on a trusted network, disconnects the VPN if OKARU connected it (one you connected yourself is left alone)."
+        },
+        "vpn-trust-ethernet": {
+          "label": "Any wired network is trusted",
+          "description": "Wired connections count as trusted even if they are not on the list."
+        },
+        "vpn-notify": {
+          "label": "Notify on automatic connect or disconnect",
+          "description": "Shows a notification when auto-connect changes the VPN state."
+        },
+        "vpn-trusted": {
+          "label": "Trusted networks",
+          "description": "Wi-Fi names (SSID) or connection names where the VPN is not needed."
         }
       },
       "shared": {

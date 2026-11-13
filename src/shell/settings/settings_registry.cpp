@@ -3204,6 +3204,31 @@ namespace settings {
         ToggleSetting{cfg.updates.rollbackAutoIgnore}, "updates actualizaciones pacman aur flatpak snap rollback downgrade ignore"
     ));
     entries.push_back(makeEntry(
+        SettingsSection::Services, "vpn", tr("settings.schema.services.vpn-auto-connect.label"),
+        tr("settings.schema.services.vpn-auto-connect.description"), {"vpn", "auto_connect"},
+        ToggleSetting{cfg.vpn.autoConnect}, "vpn autoconnect auto connect untrusted trusted network wifi"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "vpn", tr("settings.schema.services.vpn-auto-disconnect.label"),
+        tr("settings.schema.services.vpn-auto-disconnect.description"), {"vpn", "auto_disconnect_on_trusted"},
+        ToggleSetting{cfg.vpn.autoDisconnectOnTrusted}, "vpn auto disconnect trusted network"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "vpn", tr("settings.schema.services.vpn-trust-ethernet.label"),
+        tr("settings.schema.services.vpn-trust-ethernet.description"), {"vpn", "trust_all_ethernet"},
+        ToggleSetting{cfg.vpn.trustAllEthernet}, "vpn trusted ethernet wired cable"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "vpn", tr("settings.schema.services.vpn-notify.label"),
+        tr("settings.schema.services.vpn-notify.description"), {"vpn", "notify"},
+        ToggleSetting{cfg.vpn.notify}, "vpn notify notification autoconnect"
+    ));
+    entries.push_back(makeEntry(
+        SettingsSection::Services, "vpn", tr("settings.schema.services.vpn-trusted.label"),
+        tr("settings.schema.services.vpn-trusted.description"), {"vpn", "trusted"},
+        ListSetting{.items = cfg.vpn.trusted}, "vpn trusted networks wifi ssid list"
+    ));
+    entries.push_back(makeEntry(
         SettingsSection::Services, "media", tr("settings.schema.services.mpris-blacklist.label"),
         tr("settings.schema.services.mpris-blacklist.description"), {"shell", "mpris", "blacklist"},
         ListSetting{.items = cfg.shell.mpris.blacklist}, "mpris media player dbus session blacklist"
