@@ -348,7 +348,8 @@
         "extract": "Extraer aquí",
         "split": "Dos paneles (F3)",
         "copy-other": "Copiar al otro panel",
-        "move-other": "Mover al otro panel"
+        "move-other": "Mover al otro panel",
+        "clear-recent": "Borrar historial de recientes"
       },
       "rename": {
         "title": "Renombrar",
@@ -549,7 +550,9 @@
         "choose-folder": "Elegir esta carpeta",
         "replace-title": "¿Reemplazar «{name}»?",
         "replace-body": "Ya hay un archivo con ese nombre en esta carpeta."
-      }
+      },
+      "recent-cleared": "Historial de recientes borrado",
+      "recent-clear-failed": "No se pudo borrar el historial de recientes"
     },
     "pdf": {
       "title": "Visor de documentos",
@@ -636,7 +639,8 @@
         "sent": "Se envió {file} a la impresora",
         "failed": "No se pudo imprimir: revisa la impresora en CUPS",
         "no-printers": "No hay impresoras configuradas. Agrega una en la configuración de impresoras del sistema (CUPS)."
-      }
+      },
+      "recent-clear": "Borrar historial"
     },
     "play": {
       "title": "Reproductor multimedia",
