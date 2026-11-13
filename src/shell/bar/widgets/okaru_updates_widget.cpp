@@ -30,7 +30,7 @@ void OkaruUpdatesWidget::create() {
   area->addChild(
       ui::row(
           {.align = FlexAlign::Center, .gap = Style::spaceXs * scale},
-          ui::glyph({.out = &m_glyph, .glyph = "package", .glyphSize = Style::baseGlyphSize * scale}),
+          ui::glyph({.out = &m_glyph, .glyph = "reload", .glyphSize = Style::baseGlyphSize * scale}),
           ui::label(
               {.out = &m_label,
                .fontSize = Style::fontSizeBody * fontScale(),
@@ -94,7 +94,7 @@ void OkaruUpdatesWidget::sync() {
   m_glyph->setColor(
       role == ColorRole::OnSurface ? widgetIconColorOr(colorSpecFromRole(role)) : colorSpecFromRole(role)
   );
-  m_glyph->setGlyph(reboot && phase != Phase::Running ? "refresh-alert" : "package");
+  m_glyph->setGlyph(reboot && phase != Phase::Running ? "refresh-alert" : "reload");
   m_label->setText(text);
   m_label->setVisible(!text.empty());
   m_label->setColor(widgetForegroundOr(colorSpecFromRole(ColorRole::OnSurface)));
