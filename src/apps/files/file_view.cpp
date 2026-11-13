@@ -85,7 +85,7 @@ namespace okaru::files {
     input->setAcceptedButtons(InputArea::buttonMask({BTN_LEFT, BTN_RIGHT, BTN_MIDDLE, BTN_SIDE, BTN_EXTRA}));
     input->setOnPress([this](const InputArea::PointerData& d) {
       if (d.pressed) {
-        onPress(d.localX, d.localY, d.sceneX, d.sceneY, d.button, d.time);
+        onPress(d.localX, d.localY, d.sceneX, d.sceneY, d.button, d.time, d.serial);
       } else if (d.button == BTN_LEFT) {
         onRelease(d.localX, d.localY, d.sceneX, d.sceneY);
       }
@@ -435,7 +435,8 @@ namespace okaru::files {
 
   // ── Puntero ────────────────────────────────────────────────────────────────────────────────────────
 
-  void FileView::onPress(float x, float y, float sceneX, float sceneY, std::uint32_t button, std::uint32_t time) {
+  void FileView::onPress(float x, float y, float sceneX, float sceneY, std::uint32_t button, std::uint32_t time,
+                         std::uint32_t serial) {
     if (m_entries == nullptr || m_state == nullptr) {
       return;
     }
@@ -502,6 +503,7 @@ namespace okaru::files {
     m_dragging = false;
     m_pressIndex = index;
     m_pressModifiers = modifiers;
+    m_pressSerial = serial;
     m_pressX = x;
     m_pressY = y - headerHeight() + m_state->scrollY;
     m_pointerX = x;
@@ -544,10 +546,22 @@ namespace okaru::files {
     const float dx = x - m_pressX;
     const float dy = (y - headerHeight() + m_state->scrollY) - m_pressY;
     if (!m_dragging && m_pressIndex && std::hypot(dx, dy) > Style::dragStartThreshold * m_scale) {
-      m_dragging = true;
       if (!m_state->selected.contains((*m_entries)[*m_pressIndex].uri)) {
         applyPressSelection(*m_pressIndex, 0);
       }
+      // Arrastre de Wayland: el compositor se queda con el puntero (se puede soltar en otras apps).
+      if (m_onDragStart) {
+        std::vector<std::string> uris;
+        for (const std::size_t i : selectedIndices()) {
+          uris.push_back((*m_entries)[i].uri);
+        }
+        if (m_onDragStart(std::move(uris), m_pressSerial)) {
+          m_pressed = false;
+          m_lastClickIndex.reset();
+          return;
+        }
+      }
+      m_dragging = true;
     }
     if (m_dragging) {
       std::optional<std::size_t> target;
@@ -600,6 +614,35 @@ namespace okaru::files {
     if (m_pressIndex && m_pressModifiers == 0 && m_onSingleClick) {
       m_onSingleClick(*m_pressIndex);
     }
+  }
+
+  bool FileView::containsScene(float sceneX, float sceneY) const {
+    float x = 0.0F;
+    float y = 0.0F;
+    Node::absolutePosition(this, x, y);
+    return sceneX >= x && sceneY >= y && sceneX < x + width() && sceneY < y + height();
+  }
+
+  std::string FileView::dropTargetAt(float sceneX, float sceneY, bool own) {
+    std::optional<std::size_t> target;
+    if (m_entries != nullptr && m_state != nullptr && sceneX >= 0.0F && containsScene(sceneX, sceneY)) {
+      float x = 0.0F;
+      float y = 0.0F;
+      Node::absolutePosition(this, x, y);
+      if (const auto i = indexAt(sceneX - x, sceneY - y);
+          i && (*m_entries)[*i].directory && !(own && m_state->selected.contains((*m_entries)[*i].uri))) {
+        target = i;
+      }
+    }
+    if (target != m_dropIndex) {
+      m_dropIndex = target;
+      markLayoutDirty();
+    }
+    if (!target) {
+      return {};
+    }
+    const FileEntry& e = (*m_entries)[*target];
+    return e.target.empty() ? e.uri : e.target;
   }
 
   void FileView::updateRubberBand() {

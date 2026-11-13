@@ -194,6 +194,8 @@ namespace okaru::files {
     void toggleBookmark(const std::string& uri);
     void drop(const DropRequest& request);
     void dropExternal(const std::vector<std::string>& paths);
+    void dropAt(std::vector<std::string> paths, float x, float y, bool own);
+    [[nodiscard]] std::string highlightPlaceAt(float sceneX, float sceneY);
     [[nodiscard]] ViewOptions optionsFor(const std::string& uri) const;
     void changeSort(const std::function<void(ViewOptions&)>& change);
     void setSort(SortKey key);

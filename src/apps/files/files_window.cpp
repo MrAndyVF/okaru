@@ -213,7 +213,17 @@ namespace okaru::files {
 
     m_app.setBuild([this](float w, float h, float s) { return build(w, h, s); });
     m_app.setKeyHandler([this](const KeyboardEvent& event) { return onKey(event); });
-    m_app.setDropCallback([this](std::vector<std::string> paths) { dropExternal(paths); });
+    // Arrastres de Wayland (de otras apps o de esta misma): resaltar al pasar y decidir al soltar.
+    m_app.fileDrop().setOnMotion([this](float x, float y) {
+      if (m_view != nullptr) {
+        (void)m_view->dropTargetAt(x, y, m_app.fileDrop().dragging());
+      }
+      (void)highlightPlaceAt(x, y);
+      m_app.invalidate();
+    });
+    m_app.fileDrop().setOnDropAt([this](std::vector<std::string> paths, float x, float y, bool own) {
+      dropAt(std::move(paths), x, y, own);
+    });
     m_app.setAfterBuild([this] {
       if (m_overlay != Overlay::None && m_dialogInput != nullptr) {
         if (m_focusDialog) {
@@ -1284,6 +1294,68 @@ namespace okaru::files {
     submit({.kind = kind, .sources = request.uris, .destination = target});
   }
 
+  std::string FilesWindow::highlightPlaceAt(float sceneX, float sceneY) {
+    std::string hovered;
+    for (const auto& row : m_placeRows) {
+      float x = 0.0F;
+      float y = 0.0F;
+      Node::absolutePosition(row.node, x, y);
+      if (!row.uri.empty() && !row.uri.starts_with("okaru:") && sceneX >= x && sceneX < x + row.node->width()
+          && sceneY >= y && sceneY < y + row.node->height()) {
+        hovered = row.uri;
+      }
+    }
+    if (hovered != m_dropPlace) {
+      m_dropPlace = hovered;
+      for (auto& row : m_placeRows) {
+        row.background->setFill(
+            row.uri == hovered && !hovered.empty() ? colorSpecFromRole(ColorRole::Primary, 0.32F)
+            : row.active                            ? colorSpecFromRole(ColorRole::Primary, 0.16F)
+                                                    : clearColorSpec()
+        );
+      }
+      m_app.invalidate();
+    }
+    return hovered;
+  }
+
+  void FilesWindow::dropAt(std::vector<std::string> paths, float x, float y, bool own) {
+    // Destino: la carpeta bajo el puntero, una fila del panel lateral o la carpeta que se está viendo.
+    std::string target = m_view != nullptr ? m_view->dropTargetAt(x, y, own) : std::string();
+    if (target.empty()) {
+      target = highlightPlaceAt(x, y);
+    }
+    const bool overView = m_view != nullptr && m_view->containsScene(x, y);
+    if (target.empty() && overView && !own) {
+      target = tab().model->uri();
+    }
+    if (m_view != nullptr) {
+      (void)m_view->dropTargetAt(-1.0F, -1.0F, own);
+    }
+    (void)highlightPlaceAt(-1.0F, -1.0F);
+    std::vector<std::string> uris;
+    for (const auto& p : paths) {
+      uris.push_back(p.find("://") != std::string::npos ? p : pathToUri(p));
+    }
+    if (target.empty() || uris.empty()) {
+      return;
+    }
+    const std::uint32_t modifiers = apps::keyboardModifiers();
+    if (own) {
+      drop({.uris = std::move(uris), .targetUri = target, .modifiers = modifiers});
+      return;
+    }
+    // De otra app: copiar (Mayús mueve, Ctrl+Mayús enlaza), salvo a la papelera.
+    if (target.starts_with("trash:")) {
+      submit({.kind = OpKind::Trash, .sources = std::move(uris)});
+      return;
+    }
+    const bool ctrl = (modifiers & KeyMod::Ctrl) != 0;
+    const bool shift = (modifiers & KeyMod::Shift) != 0;
+    submit({.kind = ctrl && shift ? OpKind::Link : shift ? OpKind::Move : OpKind::Copy, .sources = std::move(uris),
+            .destination = target});
+  }
+
   void FilesWindow::dropExternal(const std::vector<std::string>& paths) {
     if (!canWriteHere()) {
       return;
@@ -2311,28 +2383,9 @@ namespace okaru::files {
     });
     view->setOnZoom([this](int direction) { zoom(direction); });
     view->setOnBack([this](bool forward) { forward ? goForward() : goBack(); });
-    view->setOnDragMotion([this](float sceneX, float sceneY) {
-      std::string hovered;
-      for (const auto& row : m_placeRows) {
-        float x = 0.0F;
-        float y = 0.0F;
-        Node::absolutePosition(row.node, x, y);
-        if (!row.uri.empty() && sceneX >= x && sceneX < x + row.node->width() && sceneY >= y
-            && sceneY < y + row.node->height()) {
-          hovered = row.uri;
-        }
-      }
-      if (hovered != m_dropPlace) {
-        m_dropPlace = hovered;
-        for (auto& row : m_placeRows) {
-          row.background->setFill(
-              row.uri == hovered && !hovered.empty() ? colorSpecFromRole(ColorRole::Primary, 0.32F)
-              : row.active                            ? colorSpecFromRole(ColorRole::Primary, 0.16F)
-                                                      : clearColorSpec()
-          );
-        }
-        m_app.invalidate();
-      }
+    view->setOnDragMotion([this](float sceneX, float sceneY) { (void)highlightPlaceAt(sceneX, sceneY); });
+    view->setOnDragStart([this](std::vector<std::string> uris, std::uint32_t serial) {
+      return m_app.startDrag(std::move(uris), serial);
     });
     view->setOnDrop([this](const DropRequest& request) { drop(request); });
     view->setDimmed(m_clipCut ? std::set<std::string>(m_clipUris.begin(), m_clipUris.end()) : std::set<std::string>{});

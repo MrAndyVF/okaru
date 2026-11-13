@@ -211,6 +211,10 @@ namespace okaru::apps {
 
   void OkaruApp::quit() { m_stop = true; }
 
+  bool OkaruApp::startDrag(std::vector<std::string> uris, unsigned serial) {
+    return m_surface != nullptr && m_drop.startDrag(m_surface->wlSurface(), serial, std::move(uris));
+  }
+
   void OkaruApp::setFullscreen(bool fullscreen) {
     m_fullscreen = fullscreen;
     if (m_surface != nullptr) {

@@ -82,6 +82,15 @@ namespace okaru::files {
     void setOnDrop(std::function<void(const DropRequest&)> callback) { m_onDrop = std::move(callback); }
     // Durante un arrastre: posición en la escena (para resaltar destinos fuera de la vista).
     void setOnDragMotion(std::function<void(float, float)> callback) { m_onDragMotion = std::move(callback); }
+    // Arrastre de Wayland (hacia otras apps o ventanas): URIs elegidas y serial del clic. true = lo tomó.
+    void setOnDragStart(std::function<bool(std::vector<std::string>, std::uint32_t)> callback) {
+      m_onDragStart = std::move(callback);
+    }
+    // Llega un arrastre: resalta la carpeta bajo (sceneX, sceneY) y devuelve su URI (vacía si no hay o si es
+    // uno de los arrastrados por esta misma vista). (-1, -1) quita el resaltado.
+    [[nodiscard]] std::string dropTargetAt(float sceneX, float sceneY, bool own);
+    // ¿El punto de la escena cae dentro de esta vista?
+    [[nodiscard]] bool containsScene(float sceneX, float sceneY) const;
     // Clic simple sin teclas sobre un elemento (la vista en columnas entra en carpetas así).
     void setOnSingleClick(std::function<void(std::size_t)> callback) { m_onSingleClick = std::move(callback); }
     void setOnMiddleClick(std::function<void(std::size_t)> callback) { m_onMiddleClick = std::move(callback); }
@@ -123,7 +132,8 @@ namespace okaru::files {
     void typeAhead(std::uint32_t codepoint);
     void notifySelection();
 
-    void onPress(float x, float y, float sceneX, float sceneY, std::uint32_t button, std::uint32_t time);
+    void onPress(float x, float y, float sceneX, float sceneY, std::uint32_t button, std::uint32_t time,
+                 std::uint32_t serial);
     void onMotion(float x, float y, float sceneX, float sceneY);
     void onRelease(float x, float y, float sceneX, float sceneY);
 
@@ -161,6 +171,7 @@ namespace okaru::files {
     float m_pointerX = 0.0F;
     float m_pointerY = 0.0F;
     std::uint32_t m_pressModifiers = 0;
+    std::uint32_t m_pressSerial = 0;
     std::set<std::string> m_bandBase; // selección antes del rectángulo (Ctrl lo suma)
     std::optional<std::size_t> m_dropIndex;
     std::uint32_t m_lastClickTime = 0;
@@ -178,6 +189,7 @@ namespace okaru::files {
     std::function<void(float, float)> m_onDragMotion;
     std::function<void(std::size_t)> m_onMiddleClick;
     std::function<void(std::size_t)> m_onSingleClick;
+    std::function<bool(std::vector<std::string>, std::uint32_t)> m_onDragStart;
     std::function<void(bool)> m_onBack;
     std::function<void(int)> m_onZoom;
   };
