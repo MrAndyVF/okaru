@@ -1,7 +1,8 @@
 # OKARU: apps por defecto del escritorio (Hyprland y Niri). Se instala como hyprland-mimeapps.list y
 # niri-mimeapps.list en /usr/share/applications; lo que elija el usuario en ~/.config/mimeapps.list manda.
-# Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes), dev.okaru.Editor.desktop (texto)
-# y dev.okaru.Pdf.desktop (PDF); lo verifica tests/okaru_mimeapps_test.sh.
+# Los tipos salen del MimeType de assets/dev.okaru.Viewer.desktop (imágenes), dev.okaru.Editor.desktop (texto),
+# dev.okaru.Pdf.desktop (PDF), dev.okaru.Player.desktop (video y audio) y dev.okaru.Files.desktop (carpetas);
+# lo verifica tests/okaru_mimeapps_test.sh.
 [Default Applications]
 image/png=dev.okaru.Viewer.desktop
 image/apng=dev.okaru.Viewer.desktop
@@ -96,3 +97,35 @@ application/x-shellscript=dev.okaru.Editor.desktop
 text/x-systemd-unit=dev.okaru.Editor.desktop
 application/pdf=dev.okaru.Pdf.desktop
 application/x-pdf=dev.okaru.Pdf.desktop
+video/mp4=dev.okaru.Player.desktop
+video/x-m4v=dev.okaru.Player.desktop
+video/x-matroska=dev.okaru.Player.desktop
+video/webm=dev.okaru.Player.desktop
+video/x-msvideo=dev.okaru.Player.desktop
+video/quicktime=dev.okaru.Player.desktop
+video/x-ms-wmv=dev.okaru.Player.desktop
+video/x-flv=dev.okaru.Player.desktop
+video/mpeg=dev.okaru.Player.desktop
+video/mp2t=dev.okaru.Player.desktop
+video/ogg=dev.okaru.Player.desktop
+video/3gpp=dev.okaru.Player.desktop
+video/x-ms-asf=dev.okaru.Player.desktop
+video/vnd.rn-realvideo=dev.okaru.Player.desktop
+audio/mpeg=dev.okaru.Player.desktop
+audio/flac=dev.okaru.Player.desktop
+audio/x-flac=dev.okaru.Player.desktop
+audio/ogg=dev.okaru.Player.desktop
+audio/opus=dev.okaru.Player.desktop
+audio/mp4=dev.okaru.Player.desktop
+audio/x-m4a=dev.okaru.Player.desktop
+audio/aac=dev.okaru.Player.desktop
+audio/wav=dev.okaru.Player.desktop
+audio/x-wav=dev.okaru.Player.desktop
+audio/x-ms-wma=dev.okaru.Player.desktop
+audio/aiff=dev.okaru.Player.desktop
+audio/x-aiff=dev.okaru.Player.desktop
+audio/x-ape=dev.okaru.Player.desktop
+audio/x-wavpack=dev.okaru.Player.desktop
+audio/x-matroska=dev.okaru.Player.desktop
+audio/ac3=dev.okaru.Player.desktop
+inode/directory=dev.okaru.Files.desktop
