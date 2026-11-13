@@ -57,6 +57,10 @@ namespace okaru::apps {
     request("OpenFile", title, std::move(options), std::move(done));
   }
 
+  void PortalFileChooser::openFolder(const std::string& title, Done done) {
+    request("OpenFile", title, {{"directory", sdbus::Variant(true)}}, std::move(done));
+  }
+
   void
   PortalFileChooser::save(const std::string& title, const std::string& name, const std::string& folder, Done done) {
     std::map<std::string, sdbus::Variant> options{{"current_name", sdbus::Variant(name)}};

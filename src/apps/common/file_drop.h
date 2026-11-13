@@ -56,7 +56,11 @@ namespace okaru::apps {
     // Mientras se arrastra encima (para resaltar destinos); (-1, -1) al salir.
     void setOnMotion(MotionFn callback) { m_onMotion = std::move(callback); }
     // Empieza a arrastrar `uris` (file://…) desde `origin`; `serial` es el del clic que lo inició.
-    bool startDrag(wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon = {});
+    // `prepare` corre una vez, cuando el destino pide los datos (al soltar): p. ej. extraer lo que se arrastra.
+    bool startDrag(
+        wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon = {},
+        std::function<void()> prepare = nullptr
+    );
     [[nodiscard]] bool dragging() const noexcept { return m_source != nullptr; }
     void onSourceSend(const char* mime, int fd);
     void onSourceDone();
@@ -90,6 +94,7 @@ namespace okaru::apps {
     float m_lastY = -1.0F;
     wl_data_source* m_source = nullptr;
     std::vector<std::string> m_dragUris;
+    std::function<void()> m_prepare;
     wl_compositor* m_compositor = nullptr;
     wl_shm* m_shm = nullptr;
     wl_surface* m_iconSurface = nullptr;
