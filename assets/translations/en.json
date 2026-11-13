@@ -345,7 +345,10 @@
         "connect": "Connect to server…",
         "rename-many": "Rename… (F2)",
         "compress": "Compress…",
-        "extract": "Extract here"
+        "extract": "Extract here",
+        "split": "Two panes (F3)",
+        "copy-other": "Copy to the other pane",
+        "move-other": "Move to the other pane"
       },
       "rename": {
         "title": "Rename",

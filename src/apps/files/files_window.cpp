@@ -218,6 +218,9 @@ namespace okaru::files {
       if (m_view != nullptr) {
         (void)m_view->dropTargetAt(x, y, m_app.fileDrop().dragging());
       }
+      if (m_otherView != nullptr) {
+        (void)m_otherView->dropTargetAt(x, y, false);
+      }
       (void)highlightPlaceAt(x, y);
       m_app.invalidate();
     });
@@ -353,11 +356,49 @@ namespace okaru::files {
     if (m_active >= m_tabs.size() || m_active > index) {
       m_active = m_active == 0 ? 0 : m_active - 1;
     }
+    // El otro panel pierde su pestaña: un solo panel.
+    if (m_second == index || m_tabs.size() < 2) {
+      m_split = false;
+    } else if (m_second > index) {
+      --m_second;
+    }
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::toggleSplit() {
+    if (split()) {
+      m_split = false;
+      m_app.requestRebuild();
+      return;
+    }
+    // El otro panel abre la misma carpeta en una pestaña nueva (o la siguiente pestaña si ya hay varias).
+    if (m_tabs.size() < 2) {
+      const std::size_t keep = m_active;
+      openTab(tab().model->uri(), false);
+      m_active = keep;
+      m_second = m_tabs.size() - 1;
+    } else {
+      m_second = (m_active + 1) % m_tabs.size();
+    }
+    m_split = true;
+    m_app.requestRebuild();
+  }
+
+  void FilesWindow::focusPane(std::size_t tabIndex) {
+    if (!split() || tabIndex == m_active) {
+      return;
+    }
+    m_second = m_active;
+    m_active = tabIndex;
+    m_findOpen = false;
     m_app.requestRebuild();
   }
 
   void FilesWindow::activateTab(std::size_t index) {
     if (index < m_tabs.size()) {
+      if (split() && index == m_second) {
+        m_second = m_active; // elegir la pestaña del otro panel = cambiar de panel
+      }
       m_active = index;
       m_findOpen = !tab().model->filter().empty() || tab().model->searching();
       m_app.requestRebuild();
@@ -518,6 +559,9 @@ namespace okaru::files {
                                            : tr("apps.files.empty-folder")
       );
       m_view->setEntries(&t.model->entries(), &t.view);
+    }
+    if (m_otherView != nullptr && split()) {
+      m_otherView->setEntries(&m_tabs[m_second]->model->entries(), &m_tabs[m_second]->view);
     }
     for (const auto& [view, pane] : m_columnViews) {
       if (pane < t.columns.size() && t.columns[pane].model != nullptr) {
@@ -1322,6 +1366,14 @@ namespace okaru::files {
   void FilesWindow::dropAt(std::vector<std::string> paths, float x, float y, bool own) {
     // Destino: la carpeta bajo el puntero, una fila del panel lateral o la carpeta que se está viendo.
     std::string target = m_view != nullptr ? m_view->dropTargetAt(x, y, own) : std::string();
+    if (target.empty() && m_otherView != nullptr && split()) {
+      // Sobre el otro panel: una carpeta suya o, si no, la carpeta que muestra.
+      target = m_otherView->dropTargetAt(x, y, false);
+      if (target.empty() && m_otherView->containsScene(x, y)) {
+        target = m_tabs[m_second]->model->uri();
+      }
+      (void)m_otherView->dropTargetAt(-1.0F, -1.0F, false);
+    }
     if (target.empty()) {
       target = highlightPlaceAt(x, y);
     }
@@ -1820,6 +1872,15 @@ namespace okaru::files {
       menu.push_back({tr("apps.files.menu.paste-into"), [this, dest] { paste(dest); }});
     }
     menu.push_back({tr("apps.files.menu.copy-path"), [this] { copyPaths(); }});
+    if (split()) {
+      const std::string other = m_tabs[m_second]->model->uri();
+      menu.push_back({tr("apps.files.menu.copy-other"), [this, other] {
+                        submit({.kind = OpKind::Copy, .sources = selectedUris(), .destination = other});
+                      }});
+      menu.push_back({tr("apps.files.menu.move-other"), [this, other] {
+                        submit({.kind = OpKind::Move, .sources = selectedUris(), .destination = other});
+                      }, writable});
+    }
     menu.push_back({tr("apps.files.menu.send"), [this] { shareDialog(); }, !first.path.empty()});
     sep();
     menu.push_back({tr(single ? "apps.files.menu.rename" : "apps.files.menu.rename-many"), [this] { startRename(); }, writable});
@@ -1896,6 +1957,8 @@ namespace okaru::files {
     menu.push_back({tr("apps.files.menu.new-tab"), [this, here] { openTab(here); }});
     menu.push_back({tr("apps.files.menu.new-window"), [this, here] { newWindow(here); }});
     menu.push_back({tr("apps.files.menu.connect"), [this] { connectDialog(); }});
+    menu.push_back({.label = tr("apps.files.menu.split"), .action = [this] { toggleSplit(); }, .checked = split(),
+                    .check = true});
     menu.push_back({.separator = true});
     menu.push_back({tr("apps.files.menu.new-folder"), [this] { startNew(true); }, canWriteHere()});
     menu.push_back({tr("apps.files.menu.new-file"), [this] { startNew(false); }, canWriteHere()});
@@ -2392,10 +2455,62 @@ namespace okaru::files {
     return view;
   }
 
+  std::unique_ptr<Node> FilesWindow::buildPane(std::size_t tabIndex, float scale) {
+    Tab& t = *m_tabs[tabIndex];
+    const bool active = tabIndex == m_active;
+    auto pane = ui::column({.align = FlexAlign::Stretch, .gap = 0.0F, .flexGrow = 1.0F});
+    // Encabezado del panel: su carpeta; el activo, resaltado.
+    pane->addChild(ui::row(
+        {.align = FlexAlign::Center, .gap = Style::spaceSm * scale, .paddingH = Style::spaceMd * scale,
+         .fill = active ? colorSpecFromRole(ColorRole::Primary, 0.14F) : colorSpecFromRole(ColorRole::SurfaceContainerLow),
+         .height = 28.0F * scale},
+        ui::glyph({.glyph = "folder", .glyphSize = 14.0F * scale,
+                   .color = colorSpecFromRole(active ? ColorRole::Primary : ColorRole::OnSurfaceVariant)}),
+        ui::label({.text = uriToPath(t.model->uri()), .fontSize = Style::fontSizeCaption * scale,
+                   .fontWeight = active ? FontWeight::SemiBold : FontWeight::Normal,
+                   .color = colorSpecFromRole(active ? ColorRole::OnSurface : ColorRole::OnSurfaceVariant),
+                   .maxLines = 1, .ellipsize = TextEllipsize::Start, .flexGrow = 1.0F})
+    ));
+    auto view = makeView(scale);
+    view->setMode(t.mode == ViewMode::Compact ? ViewMode::List : t.mode);
+    view->setShowLocation(t.model->searching());
+    view->setFlexGrow(1.0F);
+    view->setActive(active);
+    view->setEntries(&t.model->entries(), &t.view);
+    if (active) {
+      view->setOnActivate([this](std::size_t) { openSelection(); });
+      view->setOnSelectionChanged([this] { updateStatus(); });
+      view->setOnContextMenu([this](std::optional<std::size_t> index, float x, float y) { openContextMenu(index, x, y); });
+      view->setOnSortChanged([this](SortKey key) { setSort(key); });
+      m_view = view.get();
+    } else {
+      // Panel sin foco: cualquier clic lo activa (el clic siguiente ya actúa).
+      view->setOnSelectionChanged([this, tabIndex] { DeferredCall::callLater([this, tabIndex] { focusPane(tabIndex); }); });
+      view->setOnContextMenu([this, tabIndex](std::optional<std::size_t>, float, float) {
+        DeferredCall::callLater([this, tabIndex] { focusPane(tabIndex); });
+      });
+      m_otherView = view.get();
+    }
+    pane->addChild(std::move(view));
+    return pane;
+  }
+
   std::unique_ptr<Node> FilesWindow::buildBody(float width, float height, float scale) {
     Tab& t = tab();
     auto body = ui::row({.align = FlexAlign::Stretch, .gap = 0.0F, .flexGrow = 1.0F});
     (void)height;
+    m_otherView = nullptr;
+
+    if (split()) {
+      // Dos paneles: la pestaña de menor número a la izquierda (no saltan al cambiar el foco).
+      const std::size_t left = std::min(m_active, m_second);
+      const std::size_t right = std::max(m_active, m_second);
+      body->addChild(buildPane(left, scale));
+      body->addChild(ui::separator({.orientation = SeparatorOrientation::VerticalRule}));
+      body->addChild(buildPane(right, scale));
+      (void)width;
+      return body;
+    }
 
     if (mode() == Mode::Columns) {
       // Columnas: antepasados a la izquierda, la carpeta actual y una columna de detalles del archivo elegido.
@@ -3981,6 +4096,14 @@ namespace okaru::files {
     if (key(XKB_KEY_F5, 0) || key(XKB_KEY_r, KeyMod::Ctrl)) {
       tab().model->reload();
       m_places.refresh();
+      return true;
+    }
+    if (key(XKB_KEY_F3, 0)) {
+      toggleSplit();
+      return true;
+    }
+    if (key(XKB_KEY_Tab, 0) && split()) {
+      focusPane(m_second);
       return true;
     }
     if (key(XKB_KEY_F9, 0)) {

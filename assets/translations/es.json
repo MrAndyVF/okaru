@@ -345,7 +345,10 @@
         "connect": "Conectar a servidor…",
         "rename-many": "Renombrar… (F2)",
         "compress": "Comprimir…",
-        "extract": "Extraer aquí"
+        "extract": "Extraer aquí",
+        "split": "Dos paneles (F3)",
+        "copy-other": "Copiar al otro panel",
+        "move-other": "Mover al otro panel"
       },
       "rename": {
         "title": "Renombrar",

@@ -144,6 +144,10 @@ namespace okaru::files {
     [[nodiscard]] Tab& tab() { return *m_tabs[m_active]; }
     [[nodiscard]] Mode mode() const;
     void setMode(Mode mode);
+    void toggleSplit();
+    void focusPane(std::size_t tabIndex);
+    [[nodiscard]] bool split() const noexcept { return m_split && m_second < m_tabs.size() && m_second != m_active; }
+    [[nodiscard]] std::unique_ptr<Node> buildPane(std::size_t tabIndex, float scale);
     void openTab(const std::string& uri, bool activate = true);
     void closeTab(std::size_t index);
     void activateTab(std::size_t index);
@@ -272,6 +276,9 @@ namespace okaru::files {
     bool m_phonesAgain = false;
     std::vector<std::unique_ptr<Tab>> m_tabs;
     std::size_t m_active = 0;
+    bool m_split = false;      // dos paneles (F3)
+    std::size_t m_second = 0;  // pestaña del panel que no tiene el foco
+    FileView* m_otherView = nullptr;
 
     // Preferencias (files.toml). De m_options solo cuenta showHidden (global); el orden va por carpeta.
     ViewOptions m_options;
