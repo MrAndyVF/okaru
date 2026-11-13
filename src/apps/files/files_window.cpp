@@ -5,6 +5,7 @@
 #include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
 #include "apps/files/archive.h"
+#include "apps/files/drag_icon.h"
 #include "apps/pdf/pdf_view.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
@@ -1282,6 +1283,19 @@ namespace okaru::files {
     if (items.empty() || !canWriteHere()) {
       return;
     }
+    // Con okaru-archive instalado, su diálogo (formato, nivel, contraseña, volúmenes); si no, el sencillo de aquí.
+    if (process::commandExists("okaru-archive")) {
+      std::vector<std::string> args{"okaru-archive", "--create"};
+      for (const FileEntry* entry : items) {
+        if (!entry->path.empty()) {
+          args.push_back(entry->path);
+        }
+      }
+      if (args.size() > 2) {
+        (void)process::runAsync(args);
+        return;
+      }
+    }
     m_dialogUris = selectedUris();
     // Un elemento: su nombre; varios: el de la carpeta.
     m_dialogText = items.size() == 1 ? archiveStem(items.front()->display) : displayNameOf(tab().model->uri());
@@ -1416,6 +1430,35 @@ namespace okaru::files {
   void FilesWindow::emptyTrash() {
     m_overlay = Overlay::ConfirmEmptyTrash;
     m_app.requestRebuild();
+  }
+
+  void FilesWindow::clearRecent() {
+    // Recientes (recent:///) lee el historial compartido de GTK: dejarlo vacío lo borra para todas las apps,
+    // como "Borrar historial" de Nautilus. Se escribe un temporal y se renombra (nunca queda a medias).
+    const char* data = std::getenv("XDG_DATA_HOME");
+    const char* home = std::getenv("HOME");
+    const fs::path file =
+        (data != nullptr && data[0] != '\0' ? fs::path(data) : fs::path(home != nullptr ? home : "") / ".local/share")
+        / "recently-used.xbel";
+    const fs::path temp = file.string() + ".okaru-tmp";
+    {
+      std::ofstream out(temp, std::ios::trunc);
+      out << R"(<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
+</xbel>
+)";
+    }
+    std::error_code ec;
+    fs::rename(temp, file, ec);
+    if (ec) {
+      fs::remove(temp, ec);
+      setMessage(tr("apps.files.recent-clear-failed"), true);
+      return;
+    }
+    setMessage(tr("apps.files.recent-cleared"));
+    if (tab().model->uri().starts_with("recent:")) {
+      tab().model->reload();
+    }
   }
 
   void FilesWindow::createLink() {
@@ -2060,6 +2103,10 @@ namespace okaru::files {
       // Fondo de la carpeta.
       if (inTrash()) {
         menu.push_back({tr("apps.files.menu.empty-trash"), [this] { emptyTrash(); }, !tab().model->entries().empty()});
+      } else if (here.starts_with("recent:")) {
+        menu.push_back(
+            {tr("apps.files.menu.clear-recent"), [this] { clearRecent(); }, !tab().model->entries().empty()}
+        );
       } else {
         menu.push_back({tr("apps.files.menu.new-folder"), [this] { startNew(true); }, writable});
         menu.push_back({tr("apps.files.menu.new-file"), [this] { startNew(false); }, writable});
@@ -2212,6 +2259,10 @@ namespace okaru::files {
     if (place.uri == "trash:///") {
       menu.push_back({.separator = true});
       menu.push_back({tr("apps.files.menu.empty-trash"), [this] { emptyTrash(); }});
+    }
+    if (place.uri.starts_with("recent:")) {
+      menu.push_back({.separator = true});
+      menu.push_back({tr("apps.files.menu.clear-recent"), [this] { clearRecent(); }});
     }
     if (place.canUnmount || place.canEject) {
       menu.push_back({.separator = true});
@@ -2801,8 +2852,26 @@ namespace okaru::files {
     view->setOnZoom([this](int direction) { zoom(direction); });
     view->setOnBack([this](bool forward) { forward ? goForward() : goBack(); });
     view->setOnDragMotion([this](float sceneX, float sceneY) { (void)highlightPlaceAt(sceneX, sceneY); });
-    view->setOnDragStart([this](std::vector<std::string> uris, std::uint32_t serial) {
-      return m_app.startDrag(std::move(uris), serial);
+    view->setOnDragStart([this, scale](std::vector<std::string> uris, std::uint32_t serial) {
+      // Lo que se ve al arrastrar: las miniaturas o iconos de los primeros archivos y cuántos son.
+      const int pixels = static_cast<int>(64.0F * scale);
+      std::vector<std::string> images;
+      for (const FileEntry* entry : selection()) {
+        if (images.size() == 3) {
+          break;
+        }
+        std::optional<std::string> thumb;
+        if (m_thumbnails && entry->customIcon.empty() && entry->customIconName.empty() && m_thumbs.supports(*entry)) {
+          thumb = m_thumbs.get(*entry, false);
+        }
+        if (std::string path = thumb ? *thumb : m_icons.pathFor(*entry, pixels); !path.empty()) {
+          images.push_back(std::move(path));
+        }
+      }
+      const apps::DragIcon icon = makeDragIcon(
+          images, uris.size(), colorForRole(ColorRole::Primary), colorForRole(ColorRole::OnPrimary), scale
+      );
+      return m_app.startDrag(std::move(uris), serial, icon);
     });
     view->setOnDrop([this](const DropRequest& request) { drop(request); });
     view->setDimmed(m_clipCut ? std::set<std::string>(m_clipUris.begin(), m_clipUris.end()) : std::set<std::string>{});

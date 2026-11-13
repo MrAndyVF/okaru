@@ -3,13 +3,17 @@
 // OKARU: arrastrar y soltar archivos con wl_data_device. Recibe text/uri-list (rutas locales o URL tal cual) y, en
 // okaru-files, también arrastra hacia afuera: un wl_data_source con la lista de URIs que acepta cualquier app.
 
+#include <cstdint>
 #include <functional>
 #include <set>
 #include <string>
 #include <string_view>
 #include <vector>
 
+struct wl_buffer;
+struct wl_compositor;
 struct wl_data_device;
+struct wl_shm;
 struct wl_data_device_manager;
 struct wl_data_offer;
 struct wl_data_source;
@@ -21,6 +25,16 @@ namespace okaru::apps {
 
   // Líneas de un text/uri-list: file:// → ruta local, otros esquemas sin tocar; ignora comentarios y vacías.
   [[nodiscard]] std::vector<std::string> parseUriList(std::string_view list);
+
+  // Imagen que sigue al puntero mientras se arrastra: ARGB8888 premultiplicado; el puntero queda en (hotspotX,
+  // hotspotY).
+  struct DragIcon {
+    int width = 0;
+    int height = 0;
+    int hotspotX = 0;
+    int hotspotY = 0;
+    std::vector<std::uint32_t> pixels;
+  };
 
   class FileDrop {
   public:
@@ -42,13 +56,18 @@ namespace okaru::apps {
     // Mientras se arrastra encima (para resaltar destinos); (-1, -1) al salir.
     void setOnMotion(MotionFn callback) { m_onMotion = std::move(callback); }
     // Empieza a arrastrar `uris` (file://…) desde `origin`; `serial` es el del clic que lo inició.
-    bool startDrag(wl_surface* origin, unsigned serial, std::vector<std::string> uris);
+    // `prepare` corre una vez, cuando el destino pide los datos (al soltar): p. ej. extraer lo que se arrastra.
+    bool startDrag(
+        wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon = {},
+        std::function<void()> prepare = nullptr
+    );
     [[nodiscard]] bool dragging() const noexcept { return m_source != nullptr; }
     void onSourceSend(const char* mime, int fd);
     void onSourceDone();
 
     // Llamados desde los listeners de Wayland.
     void onBind(wl_data_device_manager* manager, unsigned version);
+    void onBindIconGlobals(wl_compositor* compositor, wl_shm* shm);
     void onOffer(wl_data_offer* offer);
     void onOfferMime(wl_data_offer* offer, const char* mime);
     void onEnter(unsigned serial, wl_data_offer* offer, float x, float y);
@@ -59,6 +78,8 @@ namespace okaru::apps {
 
   private:
     void dropOffer(wl_data_offer* offer);
+    [[nodiscard]] wl_surface* createIconSurface(const DragIcon& icon);
+    void destroyIconSurface();
 
     wl_display* m_display = nullptr;
     wl_data_device_manager* m_manager = nullptr;
@@ -73,6 +94,11 @@ namespace okaru::apps {
     float m_lastY = -1.0F;
     wl_data_source* m_source = nullptr;
     std::vector<std::string> m_dragUris;
+    std::function<void()> m_prepare;
+    wl_compositor* m_compositor = nullptr;
+    wl_shm* m_shm = nullptr;
+    wl_surface* m_iconSurface = nullptr;
+    wl_buffer* m_iconBuffer = nullptr;
   };
 
 } // namespace okaru::apps

@@ -15,6 +15,7 @@
 #include <mutex>
 #include <optional>
 #include <thread>
+#include <vector>
 
 namespace okaru::pdf {
 
@@ -24,6 +25,7 @@ namespace okaru::pdf {
     int rotation = 0;
     bool invert = false;
     bool thumbnail = false;
+    std::uint32_t revision = 0; // cambios aplicados al documento (formularios, resaltados) cuando se pidió
 
     bool operator==(const RenderJob&) const = default;
   };
@@ -50,6 +52,8 @@ namespace okaru::pdf {
     // Busca en todo el documento desde `firstPage`, dando la vuelta; cancela la búsqueda anterior.
     void search(std::string text, bool caseSensitive, bool wholeWords, int firstPage, SearchDone onResults);
     void cancelSearch();
+    // Aplica el cambio a su documento antes de lo siguiente que dibuje.
+    void edit(Edit change);
 
   private:
     void run();
@@ -60,6 +64,7 @@ namespace okaru::pdf {
     std::mutex m_mutex;
     std::condition_variable m_wake;
     std::deque<RenderJob> m_jobs;
+    std::vector<Edit> m_edits;
     std::optional<RenderJob> m_current; // el que se está dibujando: no se vuelve a encolar
     struct Search {
       std::string text;

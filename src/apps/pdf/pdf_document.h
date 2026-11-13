@@ -69,6 +69,34 @@ namespace okaru::pdf {
 
   enum class OpenError : std::uint8_t { NeedsPassword, WrongPassword, Damaged };
 
+  // Campo de un formulario (AcroForm) en una página.
+  struct FormField {
+    enum class Kind : std::uint8_t { Text, Check, Radio, Choice, Other };
+    int id = -1;
+    Kind kind = Kind::Other;
+    Rect area;
+    std::string text;       // texto (Text) o etiqueta
+    bool checked = false;   // Check/Radio
+    bool multiline = false; // Text
+    bool password = false;  // Text
+    bool readOnly = false;
+    int maxLength = -1;               // Text; -1 = sin tope
+    std::vector<std::string> choices; // Choice
+    int selected = -1;                // Choice
+  };
+
+  // Un cambio al documento; se aplica igual al de la ventana y al del hilo que dibuja.
+  struct Edit {
+    enum class Kind : std::uint8_t { Text, Check, Choice, Highlight, Underline };
+    Kind kind = Kind::Text;
+    int page = 0;
+    int field = -1;          // Text/Check/Choice
+    std::string text;        // Text
+    bool checked = false;    // Check
+    int choice = -1;         // Choice
+    std::vector<Rect> rects; // Highlight/Underline: rectángulos de línea (origen arriba)
+  };
+
   class Document {
   public:
     ~Document();
@@ -87,6 +115,10 @@ namespace okaru::pdf {
     [[nodiscard]] std::vector<Rect> find(int page, std::string_view text, bool caseSensitive, bool wholeWords) const;
     [[nodiscard]] TextLayout textLayout(int page) const;
     [[nodiscard]] Metadata metadata() const;
+    [[nodiscard]] std::vector<FormField> formFields(int page) const;
+    bool apply(const Edit& edit);
+    // Escribe el documento con sus cambios (a un temporal junto al destino, que luego lo reemplaza).
+    [[nodiscard]] bool save(const std::filesystem::path& path, std::string& error) const;
 
     // `scale` = píxeles por punto; `rotation` 0/90/180/270; `invert` = modo nocturno (colores invertidos).
     [[nodiscard]] RenderedPage render(int page, double scale, int rotation, bool invert) const;

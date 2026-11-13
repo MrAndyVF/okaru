@@ -199,6 +199,7 @@ namespace okaru::files {
     void deleteSelection();
     void restoreSelection();
     void emptyTrash();
+    void clearRecent();
     void createLink();
     void showProperties(std::vector<std::string> uris);
     void openTerminal(const std::string& uri);

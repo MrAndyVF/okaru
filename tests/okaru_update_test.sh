@@ -37,7 +37,7 @@ run --check --no-flatpak --no-snap --no-aur >/dev/null
 grep -qE '^(yay|flatpak|snap) ' "$calls" && fail "check: --no-* no se respetó"
 
 run >/dev/null
-grep -qx 'yay -Syu' "$calls" || fail "terminal: yay -Syu"
+grep -qx 'yay -Syu --answerupgrade None --answerdiff None --answerclean None --answeredit None' "$calls" || fail "terminal: yay sin menú de exclusión"
 grep -qx 'flatpak update -y --noninteractive' "$calls" || fail "terminal: flatpak update"
 grep -qx 'sudo snap refresh' "$calls" || fail "terminal: sudo snap refresh"
 

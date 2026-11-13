@@ -163,6 +163,153 @@ namespace okaru::pdf {
     return out;
   }
 
+  std::vector<FormField> Document::formFields(int page) const {
+    std::vector<FormField> out;
+    PopplerPage* p = poppler_document_get_page(m_doc, page);
+    if (p == nullptr) {
+      return out;
+    }
+    double width = 0.0;
+    double height = 0.0;
+    poppler_page_get_size(p, &width, &height);
+    GList* mapping = poppler_page_get_form_field_mapping(p);
+    for (GList* it = mapping; it != nullptr; it = it->next) {
+      const auto* item = static_cast<PopplerFormFieldMapping*>(it->data);
+      PopplerFormField* field = item->field;
+      FormField f{.id = poppler_form_field_get_id(field), .area = flipped(item->area, height)};
+      f.readOnly = poppler_form_field_is_read_only(field) != FALSE;
+      switch (poppler_form_field_get_field_type(field)) {
+      case POPPLER_FORM_FIELD_TEXT:
+        f.kind = FormField::Kind::Text;
+        f.text = takeString(poppler_form_field_text_get_text(field));
+        f.multiline = poppler_form_field_text_get_text_type(field) == POPPLER_FORM_TEXT_MULTILINE;
+        f.password = poppler_form_field_text_is_password(field) != FALSE;
+        f.maxLength = poppler_form_field_text_get_max_len(field);
+        if (f.maxLength <= 0) {
+          f.maxLength = -1;
+        }
+        break;
+      case POPPLER_FORM_FIELD_BUTTON: {
+        const PopplerFormButtonType type = poppler_form_field_button_get_button_type(field);
+        f.kind = type == POPPLER_FORM_BUTTON_CHECK ? FormField::Kind::Check
+            : type == POPPLER_FORM_BUTTON_RADIO    ? FormField::Kind::Radio
+                                                   : FormField::Kind::Other;
+        f.checked = poppler_form_field_button_get_state(field) != FALSE;
+        break;
+      }
+      case POPPLER_FORM_FIELD_CHOICE:
+        f.kind = FormField::Kind::Choice;
+        for (int i = 0; i < poppler_form_field_choice_get_n_items(field); ++i) {
+          f.choices.push_back(takeString(poppler_form_field_choice_get_item(field, i)));
+          if (poppler_form_field_choice_is_item_selected(field, i) != FALSE && f.selected < 0) {
+            f.selected = i;
+          }
+        }
+        break;
+      default:
+        break;
+      }
+      out.push_back(std::move(f));
+    }
+    poppler_page_free_form_field_mapping(mapping);
+    g_object_unref(p);
+    return out;
+  }
+
+  bool Document::apply(const Edit& edit) {
+    if (edit.kind == Edit::Kind::Highlight || edit.kind == Edit::Kind::Underline) {
+      PopplerPage* p = poppler_document_get_page(m_doc, edit.page);
+      if (p == nullptr || edit.rects.empty()) {
+        if (p != nullptr) {
+          g_object_unref(p);
+        }
+        return false;
+      }
+      double width = 0.0;
+      double height = 0.0;
+      poppler_page_get_size(p, &width, &height);
+      // poppler quiere el origen abajo: se voltea. Cada línea es un cuadrilátero; el rectángulo, el que los abarca.
+      GArray* quads =
+          g_array_sized_new(FALSE, FALSE, sizeof(PopplerQuadrilateral), static_cast<guint>(edit.rects.size()));
+      PopplerRectangle bounds{1e9, 1e9, -1e9, -1e9};
+      for (const Rect& r : edit.rects) {
+        const double top = height - r.y0;
+        const double bottom = height - r.y1;
+        PopplerQuadrilateral q{{r.x0, top}, {r.x1, top}, {r.x0, bottom}, {r.x1, bottom}};
+        g_array_append_val(quads, q);
+        bounds.x1 = std::min(bounds.x1, r.x0);
+        bounds.y1 = std::min(bounds.y1, bottom);
+        bounds.x2 = std::max(bounds.x2, r.x1);
+        bounds.y2 = std::max(bounds.y2, top);
+      }
+      PopplerAnnot* annot = edit.kind == Edit::Kind::Highlight
+          ? poppler_annot_text_markup_new_highlight(m_doc, &bounds, quads)
+          : poppler_annot_text_markup_new_underline(m_doc, &bounds, quads);
+      g_array_unref(quads);
+      // Amarillo de resaltador y rojo de corrección, como en los demás lectores.
+      PopplerColor color =
+          edit.kind == Edit::Kind::Highlight ? PopplerColor{65535, 59000, 0} : PopplerColor{56000, 8000, 8000};
+      poppler_annot_set_color(annot, &color);
+      poppler_page_add_annot(p, annot);
+      g_object_unref(annot);
+      g_object_unref(p);
+      return true;
+    }
+    PopplerFormField* field = poppler_document_get_form_field(m_doc, edit.field);
+    if (field == nullptr) {
+      return false;
+    }
+    bool ok = poppler_form_field_is_read_only(field) == FALSE;
+    if (ok) {
+      switch (edit.kind) {
+      case Edit::Kind::Text:
+        poppler_form_field_text_set_text(field, edit.text.c_str());
+        break;
+      case Edit::Kind::Check:
+        poppler_form_field_button_set_state(field, edit.checked ? TRUE : FALSE);
+        break;
+      case Edit::Kind::Choice:
+        poppler_form_field_choice_unselect_all(field);
+        if (edit.choice >= 0) {
+          poppler_form_field_choice_select_item(field, edit.choice);
+        }
+        break;
+      default:
+        ok = false;
+        break;
+      }
+    }
+    g_object_unref(field);
+    return ok;
+  }
+
+  bool Document::save(const std::filesystem::path& path, std::string& error) const {
+    // Nunca encima del archivo abierto: poppler lo sigue leyendo. Temporal y luego rename (el abierto sigue vivo).
+    const std::filesystem::path temp = path.parent_path() / ("." + path.filename().string() + ".okaru-save");
+    GError* gerror = nullptr;
+    gchar* uri = g_filename_to_uri(temp.c_str(), nullptr, &gerror);
+    const bool written = uri != nullptr && poppler_document_save(m_doc, uri, &gerror) != FALSE;
+    g_free(uri);
+    if (!written) {
+      error = gerror != nullptr ? gerror->message : "poppler";
+      g_clear_error(&gerror);
+      std::error_code ec;
+      std::filesystem::remove(temp, ec);
+      return false;
+    }
+    std::error_code ec;
+    if (std::filesystem::exists(path, ec)) {
+      std::filesystem::permissions(temp, std::filesystem::status(path, ec).permissions(), ec);
+    }
+    std::filesystem::rename(temp, path, ec);
+    if (ec) {
+      error = ec.message();
+      std::filesystem::remove(temp, ec);
+      return false;
+    }
+    return true;
+  }
+
   std::vector<Rect> Document::find(int page, std::string_view text, bool caseSensitive, bool wholeWords) const {
     std::vector<Rect> out;
     PopplerPage* p = poppler_document_get_page(m_doc, page);

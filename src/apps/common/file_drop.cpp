@@ -10,6 +10,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <poll.h>
+#include <sys/mman.h>
 #include <unistd.h>
 #include <wayland-client.h>
 
@@ -32,6 +33,18 @@ namespace okaru::apps {
             ),
             bindVersion
         );
+      } else if (std::strcmp(interface, wl_compositor_interface.name) == 0) {
+        // Versión 4 como mucho: desde la 5, attach con desplazamiento (el punto caliente del icono) es un error.
+        self(data)->onBindIconGlobals(
+            static_cast<wl_compositor*>(
+                wl_registry_bind(registry, name, &wl_compositor_interface, std::min<std::uint32_t>(version, 4))
+            ),
+            nullptr
+        );
+      } else if (std::strcmp(interface, wl_shm_interface.name) == 0) {
+        self(data)->onBindIconGlobals(
+            nullptr, static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1))
+        );
       }
     }
 
@@ -47,22 +60,28 @@ namespace okaru::apps {
 
     const wl_data_device_listener kDeviceListener = {
         .data_offer = [](void* data, wl_data_device*, wl_data_offer* offer) { self(data)->onOffer(offer); },
-        .enter = [](void* data, wl_data_device*, std::uint32_t serial, wl_surface*, wl_fixed_t x, wl_fixed_t y,
-                    wl_data_offer* offer) {
-          self(data)->onEnter(serial, offer, static_cast<float>(wl_fixed_to_double(x)),
-                              static_cast<float>(wl_fixed_to_double(y)));
-        },
+        .enter =
+            [](void* data, wl_data_device*, std::uint32_t serial, wl_surface*, wl_fixed_t x, wl_fixed_t y,
+               wl_data_offer* offer) {
+              self(data)->onEnter(
+                  serial, offer, static_cast<float>(wl_fixed_to_double(x)), static_cast<float>(wl_fixed_to_double(y))
+              );
+            },
         .leave = [](void* data, wl_data_device*) { self(data)->onLeave(); },
-        .motion = [](void* data, wl_data_device*, std::uint32_t, wl_fixed_t x, wl_fixed_t y) {
-          self(data)->onMotionAt(static_cast<float>(wl_fixed_to_double(x)), static_cast<float>(wl_fixed_to_double(y)));
-        },
+        .motion =
+            [](void* data, wl_data_device*, std::uint32_t, wl_fixed_t x, wl_fixed_t y) {
+              self(data)->onMotionAt(
+                  static_cast<float>(wl_fixed_to_double(x)), static_cast<float>(wl_fixed_to_double(y))
+              );
+            },
         .drop = [](void* data, wl_data_device*) { self(data)->onDrop(); },
         .selection = [](void* data, wl_data_device*, wl_data_offer* offer) { self(data)->onSelection(offer); },
     };
 
     const wl_data_source_listener kSourceListener = {
         .target = [](void*, wl_data_source*, const char*) {},
-        .send = [](void* data, wl_data_source*, const char* mime, std::int32_t fd) { self(data)->onSourceSend(mime, fd); },
+        .send = [](void* data, wl_data_source*, const char* mime,
+                   std::int32_t fd) { self(data)->onSourceSend(mime, fd); },
         .cancelled = [](void* data, wl_data_source*) { self(data)->onSourceDone(); },
         .dnd_drop_performed = [](void*, wl_data_source*) {},
         .dnd_finished = [](void* data, wl_data_source*) { self(data)->onSourceDone(); },
@@ -191,7 +210,10 @@ namespace okaru::apps {
     }
   }
 
-  bool FileDrop::startDrag(wl_surface* origin, unsigned serial, std::vector<std::string> uris) {
+  bool FileDrop::startDrag(
+      wl_surface* origin, unsigned serial, std::vector<std::string> uris, const DragIcon& icon,
+      std::function<void()> prepare
+  ) {
     if (m_manager == nullptr || m_device == nullptr || origin == nullptr || uris.empty()) {
       return false;
     }
@@ -199,26 +221,92 @@ namespace okaru::apps {
       wl_data_source_destroy(m_source);
     }
     m_dragUris = std::move(uris);
+    m_prepare = std::move(prepare);
     m_source = wl_data_device_manager_create_data_source(m_manager);
     wl_data_source_add_listener(m_source, &kSourceListener, this);
     wl_data_source_offer(m_source, kUriList);
     wl_data_source_offer(m_source, "text/plain;charset=utf-8"); // terminales y campos de texto: las rutas
     if (m_version >= 3) {
-      wl_data_source_set_actions(m_source, WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY | WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE);
+      wl_data_source_set_actions(
+          m_source, WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY | WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE
+      );
     }
-    wl_data_device_start_drag(m_device, m_source, origin, nullptr, serial);
+    destroyIconSurface();
+    wl_surface* iconSurface = createIconSurface(icon);
+    wl_data_device_start_drag(m_device, m_source, origin, iconSurface, serial);
+    if (iconSurface != nullptr) {
+      wl_surface_attach(iconSurface, m_iconBuffer, -icon.hotspotX, -icon.hotspotY);
+      wl_surface_damage(iconSurface, 0, 0, icon.width, icon.height);
+      wl_surface_commit(iconSurface);
+    }
     wl_display_flush(m_display);
     return true;
   }
 
+  void FileDrop::onBindIconGlobals(wl_compositor* compositor, wl_shm* shm) {
+    if (compositor != nullptr) {
+      m_compositor = compositor;
+    }
+    if (shm != nullptr) {
+      m_shm = shm;
+    }
+  }
+
+  wl_surface* FileDrop::createIconSurface(const DragIcon& icon) {
+    const std::size_t count = static_cast<std::size_t>(icon.width) * static_cast<std::size_t>(icon.height);
+    if (m_compositor == nullptr || m_shm == nullptr || count == 0 || icon.pixels.size() != count) {
+      return nullptr;
+    }
+    const std::size_t bytes = count * 4;
+    const int fd = ::memfd_create("okaru-drag-icon", MFD_CLOEXEC);
+    if (fd < 0) {
+      return nullptr;
+    }
+    void* data = MAP_FAILED;
+    if (::ftruncate(fd, static_cast<off_t>(bytes)) == 0) {
+      data = ::mmap(nullptr, bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    }
+    if (data == MAP_FAILED) {
+      ::close(fd);
+      return nullptr;
+    }
+    std::memcpy(data, icon.pixels.data(), bytes);
+    ::munmap(data, bytes);
+    wl_shm_pool* pool = wl_shm_create_pool(m_shm, fd, static_cast<std::int32_t>(bytes));
+    m_iconBuffer = wl_shm_pool_create_buffer(pool, 0, icon.width, icon.height, icon.width * 4, WL_SHM_FORMAT_ARGB8888);
+    wl_shm_pool_destroy(pool);
+    ::close(fd);
+    m_iconSurface = wl_compositor_create_surface(m_compositor);
+    return m_iconSurface;
+  }
+
+  void FileDrop::destroyIconSurface() {
+    if (m_iconSurface != nullptr) {
+      wl_surface_destroy(m_iconSurface);
+      m_iconSurface = nullptr;
+    }
+    if (m_iconBuffer != nullptr) {
+      wl_buffer_destroy(m_iconBuffer);
+      m_iconBuffer = nullptr;
+    }
+  }
+
   void FileDrop::onSourceSend(const char* mime, int fd) {
+    if (m_prepare) {
+      // shortcut: corre en el hilo de la interfaz (se congela mientras extrae); pasar a un hilo y escribir la
+      // tubería al terminar si se arrastran archivos enormes.
+      auto prepare = std::move(m_prepare);
+      m_prepare = nullptr;
+      prepare();
+    }
     std::string data;
     const bool plain = std::strcmp(mime, kUriList) != 0;
     for (const auto& uri : m_dragUris) {
       if (plain) {
         // Texto: rutas locales entre comillas simples si hace falta (pegar en una terminal).
         std::string path = uri.starts_with("file://") ? pathFromFileUri(uri) : uri;
-        data += (data.empty() ? "" : " ") + (path.find_first_of(" '\"()&;") != std::string::npos ? "'" + path + "'" : path);
+        data +=
+            (data.empty() ? "" : " ") + (path.find_first_of(" '\"()&;") != std::string::npos ? "'" + path + "'" : path);
       } else {
         data += uri + "\r\n";
       }
@@ -242,7 +330,9 @@ namespace okaru::apps {
       wl_data_source_destroy(m_source);
       m_source = nullptr;
     }
+    destroyIconSurface();
     m_dragUris.clear();
+    m_prepare = nullptr;
   }
 
   void FileDrop::onDrop() {

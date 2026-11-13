@@ -32,6 +32,8 @@ namespace okaru::apps {
 
     // `done` llega en el hilo principal; vacío si se canceló o el portal no está.
     void open(const std::string& title, const std::vector<FileFilter>& filters, bool multiple, Done done);
+    // Elegir una carpeta (OpenFile con directory=true).
+    void openFolder(const std::string& title, Done done);
     // "Guardar como": `name` propuesto y carpeta donde abrir; `done` recibe la ruta elegida (o nada).
     void save(const std::string& title, const std::string& name, const std::string& folder, Done done);
 

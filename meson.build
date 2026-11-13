@@ -1300,9 +1300,23 @@ _files_core_sources = files(
 install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
 install_data('assets/org.freedesktop.impl.portal.desktop.okaru.service',
   install_dir: get_option('datadir') / 'dbus-1' / 'services')
+okaru_archive_exe = executable('okaru-archive',
+  sources: files(
+    'src/apps/archive/archive_backend.cpp',
+    'src/apps/archive/archive_window.cpp',
+    'src/apps/archive/main.cpp',
+    'src/apps/files/drag_icon.cpp',
+    'src/apps/files/file_view.cpp',
+    'src/apps/files/icon_cache.cpp',
+  ) + _files_core_sources + _protocol_headers,
+  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('libarchive'), dependency('poppler-glib'),
+                 libsecret_dep],
+  install: true,
+)
 okaru_files_exe = executable('okaru-files',
   sources: files(
     'src/apps/files/archive.cpp',
+    'src/apps/files/drag_icon.cpp',
     'src/apps/files/file_view.cpp',
     'src/apps/files/files_window.cpp',
     'src/apps/files/icon_cache.cpp',
@@ -1321,8 +1335,15 @@ okaru_files_exe = executable('okaru-files',
   install: true,
 )
 if build_tests
+  test('okaru_archive', executable('okaru_archive_test',
+    sources: files('tests/okaru_archive_test.cpp', 'src/apps/archive/archive_backend.cpp'),
+    include_directories: include_directories('src'),
+    dependencies: [dependency('libarchive')],
+    override_options: ['b_ndebug=false'],
+  ))
   test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/icon_cache.cpp',
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/drag_icon.cpp',
+                   'src/apps/files/icon_cache.cpp',
                    'src/apps/files/portal.cpp', 'src/apps/files/share.cpp',
                    'src/apps/files/thumbnails.cpp') + _files_core_sources,
     dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
@@ -1372,7 +1393,7 @@ install_subdir('assets',
   exclude_files: [
     'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
     'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
-    'dev.okaru.Files.desktop',
+    'dev.okaru.Files.desktop', 'dev.okaru.Archive.desktop',
   ],
 )
 
@@ -1385,6 +1406,7 @@ install_data(
   'assets/dev.okaru.Editor.desktop',
   'assets/dev.okaru.Pdf.desktop',
   'assets/dev.okaru.Files.desktop',
+  'assets/dev.okaru.Archive.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 

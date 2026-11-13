@@ -38,6 +38,9 @@ namespace okaru::files {
     [[nodiscard]] TextureHandle named(Renderer& renderer, const std::vector<std::string>& names, int pixels);
     // Una imagen cualquiera (icono propio, miniatura) a ese tamaño.
     [[nodiscard]] TextureHandle file(Renderer& renderer, const std::string& path, int pixels);
+    // Ruta del icono que se ve (para el arrastre). shortcut: una carpeta con color recoloreado (no variante del
+    // tema) da el icono sin recolorear; dibujar el recoloreado si se nota al arrastrar.
+    [[nodiscard]] std::string pathFor(const FileEntry& entry, int pixels);
 
     // "" = el del tema, "accent" = primario de OKARU, o un id de folderColorOptions().
     void setDefaultFolderColor(std::string color) { m_defaultFolderColor = std::move(color); }
