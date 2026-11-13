@@ -55,6 +55,26 @@ namespace okaru::files {
       return remote ? "server-2" : "database";
     }
 
+    // XDG_PROJECTS_DIR (xdg-user-dirs 0.19+): GLib aún no la expone, se lee de user-dirs.dirs. Sin definir, ~/Projects.
+    std::string projectsDir() {
+      const std::string home = g_get_home_dir();
+      std::ifstream in(fs::path(g_get_user_config_dir()) / "user-dirs.dirs");
+      for (std::string line; std::getline(in, line);) {
+        if (!line.starts_with("XDG_PROJECTS_DIR=")) {
+          continue;
+        }
+        std::string value = line.substr(17);
+        if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
+          value = value.substr(1, value.size() - 2);
+        }
+        if (value.starts_with("$HOME")) {
+          value = home + value.substr(5);
+        }
+        return value == home ? std::string() : value; // apuntar a la personal = desactivada
+      }
+      return home + "/Projects";
+    }
+
     void fillSpace(Place& place, GFile* root) {
       GFileInfo* info = g_file_query_filesystem_info(root, "filesystem::size,filesystem::free", nullptr, nullptr);
       if (info != nullptr) {
@@ -137,6 +157,13 @@ namespace okaru::files {
       const char* path = g_get_user_special_dir(dir);
       if (path != nullptr && home != path && g_file_test(path, G_FILE_TEST_IS_DIR)) {
         add(PlaceSection::Places, displayNameOf(pathToUri(path)), pathToUri(path), glyph);
+      }
+      // Proyectos va justo después de Imágenes.
+      if (dir == G_USER_DIRECTORY_PICTURES) {
+        if (const std::string projects = projectsDir();
+            !projects.empty() && g_file_test(projects.c_str(), G_FILE_TEST_IS_DIR)) {
+          add(PlaceSection::Places, displayNameOf(pathToUri(projects)), pathToUri(projects), "code");
+        }
       }
     }
     add(PlaceSection::Places, tr("apps.files.places.trash"), "trash:///", "trash");
