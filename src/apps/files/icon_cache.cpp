@@ -24,8 +24,10 @@ namespace okaru::files {
     }
 
     constexpr Color rgb(int hex) {
-      return {static_cast<float>((hex >> 16) & 0xFF) / 255.0F, static_cast<float>((hex >> 8) & 0xFF) / 255.0F,
-              static_cast<float>(hex & 0xFF) / 255.0F, 1.0F};
+      return {
+          static_cast<float>((hex >> 16) & 0xFF) / 255.0F, static_cast<float>((hex >> 8) & 0xFF) / 255.0F,
+          static_cast<float>(hex & 0xFF) / 255.0F, 1.0F
+      };
     }
 
     struct Hsl {
@@ -79,14 +81,22 @@ namespace okaru::files {
   const std::vector<FolderColorOption>& folderColorOptions() {
     // Mismos nombres que las variantes de Papirus; el color sirve para la muestra y para otros temas.
     static const std::vector<FolderColorOption> options{
-        {"red", "apps.files.color.red", rgb(0xE25252)},       {"deeporange", "apps.files.color.deeporange", rgb(0xEB6637)},
-        {"orange", "apps.files.color.orange", rgb(0xEE923A)}, {"yellow", "apps.files.color.yellow", rgb(0xF9BD30)},
-        {"green", "apps.files.color.green", rgb(0x87B158)},   {"teal", "apps.files.color.teal", rgb(0x16A085)},
-        {"cyan", "apps.files.color.cyan", rgb(0x00BCD4)},     {"blue", "apps.files.color.blue", rgb(0x5294E2)},
-        {"indigo", "apps.files.color.indigo", rgb(0x5C6BC0)}, {"violet", "apps.files.color.violet", rgb(0x7E57C2)},
-        {"magenta", "apps.files.color.magenta", rgb(0xCA71DF)}, {"pink", "apps.files.color.pink", rgb(0xF06292)},
-        {"brown", "apps.files.color.brown", rgb(0xAE8E6C)},   {"grey", "apps.files.color.grey", rgb(0x8E8E8E)},
-        {"black", "apps.files.color.black", rgb(0x4F4F4F)},   {"white", "apps.files.color.white", rgb(0xE4E4E4)},
+        {"red", "apps.files.color.red", rgb(0xE25252)},
+        {"deeporange", "apps.files.color.deeporange", rgb(0xEB6637)},
+        {"orange", "apps.files.color.orange", rgb(0xEE923A)},
+        {"yellow", "apps.files.color.yellow", rgb(0xF9BD30)},
+        {"green", "apps.files.color.green", rgb(0x87B158)},
+        {"teal", "apps.files.color.teal", rgb(0x16A085)},
+        {"cyan", "apps.files.color.cyan", rgb(0x00BCD4)},
+        {"blue", "apps.files.color.blue", rgb(0x5294E2)},
+        {"indigo", "apps.files.color.indigo", rgb(0x5C6BC0)},
+        {"violet", "apps.files.color.violet", rgb(0x7E57C2)},
+        {"magenta", "apps.files.color.magenta", rgb(0xCA71DF)},
+        {"pink", "apps.files.color.pink", rgb(0xF06292)},
+        {"brown", "apps.files.color.brown", rgb(0xAE8E6C)},
+        {"grey", "apps.files.color.grey", rgb(0x8E8E8E)},
+        {"black", "apps.files.color.black", rgb(0x4F4F4F)},
+        {"white", "apps.files.color.white", rgb(0xE4E4E4)},
     };
     return options;
   }
@@ -229,8 +239,10 @@ namespace okaru::files {
       return {};
     }
     char suffix[32];
-    std::snprintf(suffix, sizeof(suffix), "@%d#%02x%02x%02x", size, static_cast<int>(target.r * 255),
-                  static_cast<int>(target.g * 255), static_cast<int>(target.b * 255));
+    std::snprintf(
+        suffix, sizeof(suffix), "@%d#%02x%02x%02x", size, static_cast<int>(target.r * 255),
+        static_cast<int>(target.g * 255), static_cast<int>(target.b * 255)
+    );
     const std::string key = base + suffix;
     if (const auto it = m_textures.find(key); it != m_textures.end()) {
       return it->second;
@@ -273,6 +285,28 @@ namespace okaru::files {
       }
     }
     return named(renderer, entry.icons, pixels);
+  }
+
+  std::string IconCache::pathFor(const FileEntry& entry, int pixels) {
+    if (!entry.customIcon.empty()) {
+      return entry.customIcon;
+    }
+    std::vector<std::string> names = entry.icons;
+    if (!entry.customIconName.empty()) {
+      names.insert(names.begin(), entry.customIconName);
+    } else if (entry.directory && !entry.mountable) {
+      const std::string& color = entry.folderColor.empty() ? m_defaultFolderColor : entry.folderColor;
+      if (!color.empty() && color != "accent" && !color.starts_with('#')) {
+        std::vector<std::string> variants;
+        for (const auto& icon : entry.icons) {
+          if (std::string variant = coloredFolderIconName(icon, color); !variant.empty()) {
+            variants.push_back(std::move(variant));
+          }
+        }
+        names.insert(names.begin(), variants.begin(), variants.end());
+      }
+    }
+    return resolvePath(names, pixels);
   }
 
   void IconCache::clear(Renderer& renderer) {

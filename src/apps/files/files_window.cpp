@@ -5,6 +5,7 @@
 #include "apps/common/portal_file_chooser.h"
 #include "apps/common/tab_strip.h"
 #include "apps/files/archive.h"
+#include "apps/files/drag_icon.h"
 #include "apps/pdf/pdf_view.h"
 #include "core/deferred_call.h"
 #include "core/input/key_modifiers.h"
@@ -2801,8 +2802,26 @@ namespace okaru::files {
     view->setOnZoom([this](int direction) { zoom(direction); });
     view->setOnBack([this](bool forward) { forward ? goForward() : goBack(); });
     view->setOnDragMotion([this](float sceneX, float sceneY) { (void)highlightPlaceAt(sceneX, sceneY); });
-    view->setOnDragStart([this](std::vector<std::string> uris, std::uint32_t serial) {
-      return m_app.startDrag(std::move(uris), serial);
+    view->setOnDragStart([this, scale](std::vector<std::string> uris, std::uint32_t serial) {
+      // Lo que se ve al arrastrar: las miniaturas o iconos de los primeros archivos y cuántos son.
+      const int pixels = static_cast<int>(64.0F * scale);
+      std::vector<std::string> images;
+      for (const FileEntry* entry : selection()) {
+        if (images.size() == 3) {
+          break;
+        }
+        std::optional<std::string> thumb;
+        if (m_thumbnails && entry->customIcon.empty() && entry->customIconName.empty() && m_thumbs.supports(*entry)) {
+          thumb = m_thumbs.get(*entry, false);
+        }
+        if (std::string path = thumb ? *thumb : m_icons.pathFor(*entry, pixels); !path.empty()) {
+          images.push_back(std::move(path));
+        }
+      }
+      const apps::DragIcon icon = makeDragIcon(
+          images, uris.size(), colorForRole(ColorRole::Primary), colorForRole(ColorRole::OnPrimary), scale
+      );
+      return m_app.startDrag(std::move(uris), serial, icon);
     });
     view->setOnDrop([this](const DropRequest& request) { drop(request); });
     view->setDimmed(m_clipCut ? std::set<std::string>(m_clipUris.begin(), m_clipUris.end()) : std::set<std::string>{});
