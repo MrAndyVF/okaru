@@ -23,7 +23,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - Each app ships its own translations (`/usr/share/okaru/apps/<app>/translations`); the core catalog keeps only
   what is shared.
 - Packages are built without LTO, and the CI caches compilation (ccache + mold): checks now take about 2 minutes
-  instead of 18–28.
+  instead of 18–28. The version and install paths moved from a compiler flag on every file to a generated header,
+  so bumping the version recompiles 5 files instead of the whole core.
 
 #### Fixes
 - Packaging: generating the shell completions failed to find the core library (it would have broken publishing).
@@ -40,7 +41,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - Cada app trae sus propias traducciones (`/usr/share/okaru/apps/<app>/translations`); el catálogo del núcleo solo
   conserva lo compartido.
 - Los paquetes se compilan sin LTO y la CI guarda lo compilado (ccache + mold): las verificaciones tardan unos
-  2 minutos en lugar de 18–28.
+  2 minutos en lugar de 18–28. La versión y las rutas de instalación pasaron de una opción del compilador en todos
+  los archivos a una cabecera generada: subir la versión recompila 5 archivos en lugar de todo el núcleo.
 
 #### Correcciones
 - Empaquetado: al generar el autocompletado de la terminal no se encontraba la biblioteca del núcleo (habría roto la

@@ -6,6 +6,7 @@
 #include "i18n/i18n.h"
 #include "net/uri.h"
 #include "notification/notification_manager.h"
+#include "okaru_build_config.h"
 #include "render/core/image_decoder.h"
 #include "util/file_utils.h"
 #include "util/string_utils.h"

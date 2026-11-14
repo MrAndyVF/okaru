@@ -1,6 +1,7 @@
 #include "core/build_info.h"
 
 #include "okaru_git_revision.h"
+#include "okaru_build_config.h"
 
 namespace okaru::build_info {
 

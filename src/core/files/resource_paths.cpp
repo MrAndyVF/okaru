@@ -1,6 +1,7 @@
 #include "core/files/resource_paths.h"
 
 #include "core/log.h"
+#include "okaru_build_config.h"
 
 #include <algorithm>
 #include <array>
