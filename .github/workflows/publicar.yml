@@ -25,7 +25,12 @@ jobs:
       KEY_ID: ${{ secrets.OKARU_GPG_KEY_ID }}
     steps:
       - name: Herramientas
-        run: pacman -Syu --noconfirm --needed git github-cli >/dev/null
+        run: |
+          pacman -Syu --noconfirm --needed git github-cli ccache mold >/dev/null
+          # makepkg con ccache y mold: lo que no cambió desde la última publicación no se recompila.
+          sed -i 's/!ccache/ccache/' /etc/makepkg.conf
+          echo 'LDFLAGS+=" -fuse-ld=mold"' >> /etc/makepkg.conf
+          echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           path: okaru
@@ -35,6 +40,12 @@ jobs:
           repository: MrAndyVF/okaru-greeter
           path: okaru-greeter
           fetch-depth: 0
+      - name: Caché de compilación
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-publicar-${{ github.sha }}
+          restore-keys: ccache-publicar-
       - name: Versión, etiqueta y changelog
         # Falla antes de compilar si VERSION no tiene su etiqueta o sus notas en CHANGELOG.md.
         run: |
@@ -52,6 +63,7 @@ jobs:
           fi
           useradd -m builder
           echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+          mkdir -p "$CCACHE_DIR"
           chown -R builder: "$GITHUB_WORKSPACE"
           printf '%s\n' "$GPG_PRIVATE_KEY" | sudo -u builder gpg --batch --import
       - name: Compilar y firmar los paquetes
@@ -64,10 +76,12 @@ jobs:
             sudo -u builder mkdir -p "$dir"
             sudo -u builder cp "$GITHUB_WORKSPACE/$pkg/packaging/arch/PKGBUILD" "$dir/"
             (cd "$dir" && sudo -u builder env \
+              CCACHE_DIR="$CCACHE_DIR" CCACHE_BASEDIR="$dir" CCACHE_COMPRESS=1 CCACHE_MAXSIZE=3G \
               OKARU_REPO="$GITHUB_WORKSPACE/okaru" OKARU_GREETER_REPO="$GITHUB_WORKSPACE/okaru-greeter" \
               PKGDEST="$GITHUB_WORKSPACE/out" GPGKEY="$KEY_ID" \
               makepkg --syncdeps --noconfirm --sign)
           done
+          sudo -u builder env CCACHE_DIR="$CCACHE_DIR" ccache -s
       - name: Base de datos del repositorio
         working-directory: out
         run: |
