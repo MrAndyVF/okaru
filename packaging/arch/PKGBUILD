@@ -1,4 +1,4 @@
-# Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
+# Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru-project/okaru (solo lo que está en commits).
 # Dos paquetes: okaru-core (bibliotecas privadas, cabeceras, pkg-config y recursos: con él se compilan las apps de
 # sus propios repos) y okaru (la shell). Las apps que traiga un paquete de app dependen de la versión exacta del núcleo.
 pkgbase=okaru
@@ -37,7 +37,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
             'zenity: diálogos de archivos (cursor, icons)')
 
-source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
+source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru-project/okaru}#branch=main")
 sha256sums=(SKIP)
 
 pkgver() {
