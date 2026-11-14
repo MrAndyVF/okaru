@@ -1,5 +1,8 @@
 # Paquete local de OKARU: compila la rama main del checkout de ~/Projects/okaru (solo lo que está en commits).
-pkgname=okaru
+# Dos paquetes: okaru-core (bibliotecas privadas, cabeceras, pkg-config y recursos: con él se compilan las apps de
+# sus propios repos) y okaru (la shell). Las apps que traiga un paquete de app dependen de la versión exacta del núcleo.
+pkgbase=okaru
+pkgname=(okaru-core okaru)
 pkgver=1.2.3
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
@@ -55,8 +58,30 @@ build() {
   meson compile -C build
 }
 
-package() {
-  meson install -C build --destdir "$pkgdir"
+# Una sola instalación que se reparte: okaru-core se lleva lo suyo y okaru, el resto.
+_stage() {
+  [[ -d "$srcdir/stage" ]] || meson install -C "$srcdir/build" --destdir "$srcdir/stage" --quiet
+}
+
+package_okaru-core() {
+  pkgdesc='OKARU (郁): núcleo compartido (bibliotecas, cabeceras y recursos) de la shell y sus apps'
+  rm -rf "$srcdir/stage" # el primer paquete parte de una instalación nueva (repetir makepkg no la encuentra a medias)
+  _stage
+  local item
+  for item in usr/lib/okaru/libokaru-core.so usr/lib/okaru/libokaru-apps.so usr/include/okaru \
+    usr/lib/pkgconfig/okaru-core.pc usr/lib/pkgconfig/okaru-apps.pc usr/share/okaru/assets; do
+    install -d "$pkgdir/$(dirname "$item")"
+    mv "$srcdir/stage/$item" "$pkgdir/$item"
+  done
+  install -Dm644 okaru/LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+}
+
+package_okaru() {
+  depends=("okaru-core=$pkgver-$pkgrel")
+  _stage
+  # Sin las carpetas que quedaron vacías tras llevarse okaru-core lo suyo.
+  find "$srcdir/stage" -mindepth 1 -type d -empty -delete
+  cp -a "$srcdir/stage/." "$pkgdir/"
   install -Dm644 okaru/LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
   # Servicio de la sesión (uwsm / niri-session → graphical-session.target) y configuración de fábrica de
   # Hyprland y de Niri, que install.sh copia a ~/.config/hypr o ~/.config/niri según el compositor elegido.
@@ -65,7 +90,9 @@ package() {
   cp -r okaru/packaging/defaults/{hypr,niri,okaru,kitty,fontconfig,fastfetch,starship.toml} "$pkgdir/usr/share/okaru/defaults/"
   local bin="$pkgdir/usr/bin/okaru"
   install -d "$pkgdir"/usr/share/{bash-completion/completions,fish/vendor_completions.d,zsh/site-functions}
-  "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"
-  "$bin" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/okaru.fish"
-  "$bin" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_okaru"
+  # El binario busca su núcleo en /usr/lib/okaru, que aquí todavía es el del paquete okaru-core.
+  local core="$srcdir/../pkg/okaru-core/usr/lib/okaru"
+  LD_LIBRARY_PATH="$core" "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"
+  LD_LIBRARY_PATH="$core" "$bin" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/okaru.fish"
+  LD_LIBRARY_PATH="$core" "$bin" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_okaru"
 }
