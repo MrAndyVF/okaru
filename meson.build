@@ -9,6 +9,8 @@ project('okaru', ['c', 'cpp'],
   ],
 )
 
+fs = import('fs')
+
 cc  = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
@@ -413,6 +415,8 @@ foreach _p : [
     input:   _xml,
     output:  _name + '-client-protocol.h',
     command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+    install: true,
+    install_dir: get_option('includedir') / 'okaru', # OKARU: para compilar apps fuera de este repo
   )
   _c = custom_target(_name + '-client-source',
     input:   _xml,
@@ -435,6 +439,8 @@ _wlr_ls_h = custom_target('wlr-layer-shell-unstable-v1-client-header',
     '"$1" client-header "$2" "$3" && sed -i s/namespace/name_space/g "$3"',
     '_', wayland_scanner.full_path(), '@INPUT@', '@OUTPUT@',
   ],
+  install: true,
+  install_dir: get_option('includedir') / 'okaru',
 )
 _wlr_ls_c = custom_target('wlr-layer-shell-unstable-v1-client-source',
   input:   _wlr_ls_xml,
@@ -1316,6 +1322,51 @@ okaru_apps_lib = shared_library('okaru-apps',
   install_rpath: _okaru_private_libdir,
 )
 okaru_apps_dep = declare_dependency(link_with: okaru_apps_lib, dependencies: _okaru_apps_dependencies)
+
+# OKARU: lo necesario para compilar una app en su propio repo contra el núcleo instalado: las cabeceras (sin las de
+# las apps que siguen aquí) en include/okaru y okaru-core.pc / okaru-apps.pc. Las apps de fuera ponen
+# install_rpath: '/usr/lib/okaru' (las bibliotecas son privadas, no van al ld.so.cache).
+_okaru_app_private_dirs = ['src/apps/calculator/', 'src/apps/viewer/', 'src/apps/player/', 'src/apps/editor/',
+                           'src/apps/archive/']
+_okaru_app_shared_headers = ['src/apps/files/drag_icon.h', 'src/apps/files/file_model.h', 'src/apps/files/file_ops.h',
+                             'src/apps/files/file_view.h', 'src/apps/files/icon_cache.h',
+                             'src/apps/pdf/pdf_document.h', 'src/apps/pdf/pdf_view.h', 'src/apps/pdf/render_worker.h']
+# shortcut: la lista sale de find al configurar; una cabecera nueva entra al reconfigurar (lo hace cualquier cambio de
+# meson.build). Pasar a una lista escrita si alguna vez se cuela una que no debe.
+foreach _header : run_command('find', 'src', '-name', '*.h', check: true).stdout().strip().split('\n')
+  _private = false
+  foreach _dir : _okaru_app_private_dirs + ['src/apps/files/', 'src/apps/pdf/']
+    if _header.startswith(_dir) and not _okaru_app_shared_headers.contains(_header)
+      _private = true
+    endif
+  endforeach
+  if not _private
+    install_headers(_header, subdir: 'okaru' / fs.parent(_header).replace('src', '').strip('/'))
+  endif
+endforeach
+
+_pkgconfig = import('pkgconfig')
+_okaru_pc_requires = []
+foreach _dep : _okaru_system_dependencies
+  if _dep.found() and _dep.type_name() == 'pkgconfig'
+    _okaru_pc_requires += _dep
+  endif
+endforeach
+_pkgconfig.generate(
+  name: 'okaru-core',
+  description: 'Núcleo de OKARU (biblioteca privada) para compilar sus apps',
+  version: meson.project_version(),
+  libraries: ['-L${libdir}/okaru', '-lokaru-core'],
+  requires: _okaru_pc_requires,
+  subdirs: 'okaru',
+)
+_pkgconfig.generate(
+  name: 'okaru-apps',
+  description: 'Lo que comparten las apps de OKARU (vista de archivos, lector PDF)',
+  version: meson.project_version(),
+  libraries: ['-L${libdir}/okaru', '-lokaru-apps'],
+  requires: ['okaru-core', dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+)
 _pdf_dependencies = [okaru_apps_dep]
 okaru_pdf_exe = executable('okaru-pdf',
   sources: files(
