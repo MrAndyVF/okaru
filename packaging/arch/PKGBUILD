@@ -3,7 +3,7 @@
 # sus propios repos) y okaru (la shell). Las apps que traiga un paquete de app dependen de la versión exacta del núcleo.
 pkgbase=okaru
 pkgname=(okaru-core okaru)
-pkgver=1.2.4
+pkgver=1.3.0
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)
@@ -35,15 +35,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'python-wand: convertir cursores de Windows (cursor)'
             'imagemagick: convertir cursores de Windows (cursor)'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
-            'zenity: diálogos de archivos (cursor, icons)'
-            # shortcut: opcionales de okaru-files; pasarlos a su PKGBUILD en su próxima versión (1.0.0 ya etiquetada).
-            'gvfs: papelera, recientes, red y unidades extraíbles (okaru-files)'
-            'gvfs-smb: carpetas compartidas de Windows y Samba (okaru-files)'
-            'gvfs-nfs: carpetas compartidas NFS (okaru-files)'
-            'gvfs-mtp: teléfonos y cámaras por cable USB (okaru-files)'
-            'gvfs-wsdd: ver los equipos Windows de la red (okaru-files)'
-            'ffmpegthumbnailer: miniaturas de video (okaru-files)'
-            'libreoffice-fresh: vista previa de documentos de oficina (okaru-files)')
+            'zenity: diálogos de archivos (cursor, icons)')
 
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
 sha256sums=(SKIP)

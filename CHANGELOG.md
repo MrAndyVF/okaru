@@ -10,6 +10,33 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.0] - 2026-11-14
+
+### English
+
+#### Changes
+- Each app now lives in its own repository and package: `okaru-calc`, `okaru-view`, `okaru-play`, `okaru-edit`,
+  `okaru-pdf`, `okaru-files` and `okaru-archive` (github.com/MrAndyVF/okaru-<app>). They build against `okaru-core`,
+  have their own versions and changelogs, and are published in the same `[okaru]` repository. `okaru` depends on all
+  of them, so `pacman -Syu` installs them automatically; nothing changes in how they look or work.
+- The publish workflow builds the core, the shell, the greeter and every app (each from the latest tag of its
+  repository) in one run.
+- `okaru-core` declares `nlohmann-json`, which its headers need to build apps.
+- The optional dependencies of the apps (7-Zip, CUPS, gvfs, video thumbnails, office previews) moved to their packages.
+
+### Español
+
+#### Cambios
+- Cada app vive ahora en su propio repositorio y paquete: `okaru-calc`, `okaru-view`, `okaru-play`, `okaru-edit`,
+  `okaru-pdf`, `okaru-files` y `okaru-archive` (github.com/MrAndyVF/okaru-<app>). Se compilan contra `okaru-core`,
+  tienen su propia versión y changelog, y se publican en el mismo repositorio `[okaru]`. `okaru` depende de todas, así
+  que `pacman -Syu` las instala solo; no cambia nada en cómo se ven ni cómo funcionan.
+- El flujo de publicación compila en una sola ejecución el núcleo, la shell, el greeter y todas las apps (cada una
+  desde la última etiqueta de su repositorio).
+- `okaru-core` declara `nlohmann-json`, que sus cabeceras necesitan para compilar apps.
+- Las dependencias opcionales de las apps (7-Zip, CUPS, gvfs, miniaturas de video, vista previa de oficina) pasaron a
+  sus paquetes.
+
 ## [1.2.4] - 2026-11-14
 
 ### English
