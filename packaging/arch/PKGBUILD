@@ -17,7 +17,6 @@ depends=(bash cairo curl exiv2 fontconfig freetype2 gdk-pixbuf2 git glib2 glibc 
 options=('!debug' '!lto') # sin LTO: enlazar la shell y las apps con LTO era la mitad del tiempo de publicar
 makedepends=(meson ninja cmake pkgconf wayland-protocols stb just nlohmann-json)
 optdepends=('ddcutil: brillo de monitores externos'
-            '7zip: comprimidos 7z/rar con contraseña, 7z cifrados y volúmenes (Comprimidos)'
             'upower: batería y dispositivos de energía'
             'gpu-screen-recorder: grabación de pantalla (widget Captura)'
             'slurp: grabar una región (widget Captura)'
@@ -37,7 +36,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'imagemagick: convertir cursores de Windows (cursor)'
             'win2xcur: convertir cursores de Windows (cursor, AUR)'
             'zenity: diálogos de archivos (cursor, icons)'
-            'cups: imprimir desde el visor de documentos (okaru-pdf)'
+            # shortcut: opcionales de okaru-files; pasarlos a su PKGBUILD en su próxima versión (1.0.0 ya etiquetada).
             'gvfs: papelera, recientes, red y unidades extraíbles (okaru-files)'
             'gvfs-smb: carpetas compartidas de Windows y Samba (okaru-files)'
             'gvfs-nfs: carpetas compartidas NFS (okaru-files)'
@@ -45,6 +44,7 @@ optdepends=('ddcutil: brillo de monitores externos'
             'gvfs-wsdd: ver los equipos Windows de la red (okaru-files)'
             'ffmpegthumbnailer: miniaturas de video (okaru-files)'
             'libreoffice-fresh: vista previa de documentos de oficina (okaru-files)')
+
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru}#branch=main")
 sha256sums=(SKIP)
 
@@ -77,7 +77,8 @@ package_okaru-core() {
 }
 
 package_okaru() {
-  depends=("okaru-core=$pkgver-$pkgrel")
+  # Las apps viven en sus repos (MrAndyVF/okaru-<app>) y se publican junto a la shell en [okaru].
+  depends=("okaru-core=$pkgver-$pkgrel" okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive)
   _stage
   # Sin las carpetas que quedaron vacías tras llevarse okaru-core lo suyo.
   find "$srcdir/stage" -mindepth 1 -type d -empty -delete

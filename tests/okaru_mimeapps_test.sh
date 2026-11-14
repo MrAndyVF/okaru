@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 # OKARU: la lista de apps por defecto asocia a cada app exactamente los tipos que declara su .desktop
 # (las imágenes al visor; todo el MimeType al editor, al lector PDF, al reproductor, al explorador y a Comprimidos).
+# Los .desktop vienen con cada app (repos okaru-<app>): se comparan los instalados; sin la app, se salta.
 set -euo pipefail
 list=packaging/defaults/okaru-mimeapps.list
+dir=${OKARU_DESKTOP_DIR:-/usr/share/applications}
+checked=0
 
 check() { # $1 = .desktop, $2 = filtro de tipos (regex)
-  local desktop=assets/$1 declared mapped
+  local desktop=$dir/$1 declared mapped
+  [[ -f "$desktop" ]] || { echo "okaru_mimeapps_test: sin $desktop, se salta" >&2; return 0; }
+  checked=$((checked + 1))
   declared=$(grep '^MimeType=' "$desktop" | cut -d= -f2 | tr ';' '\n' | grep -E "$2" | sort)
   mapped=$(grep "=${1//./\\.}\$" "$list" | cut -d= -f1 | sort)
   if [[ "$declared" != "$mapped" ]]; then
@@ -21,3 +26,4 @@ check dev.okaru.Player.desktop '.'
 check dev.okaru.Files.desktop '.'
 check dev.okaru.Archive.desktop '.'
 grep -q '^\[Default Applications\]$' "$list" || { echo "okaru_mimeapps_test: falta [Default Applications]" >&2; exit 1; }
+((checked)) || exit 77 # ninguna app instalada: prueba saltada

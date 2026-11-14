@@ -1,8 +1,10 @@
-# Publica el repositorio pacman [okaru] (okaru + okaru-greeter, firmados) en el release fijo "repo":
+# Publica el repositorio pacman [okaru] (okaru-core, okaru, okaru-greeter y las apps, firmados) en el release fijo "repo":
 #   Server = https://github.com/MrAndyVF/okaru/releases/download/repo
 # Secretos: OKARU_GPG_PRIVATE_KEY (llave privada en ASCII, sin frase) y OKARU_GPG_KEY_ID (huella).
 # Solo a mano y desde main (por seguridad): ni fusiones ni etiquetas lo disparan. Antes de lanzarlo, VERSION
-# debe tener su etiqueta vX.Y.Z subida y su sección en CHANGELOG.md.
+# debe tener su etiqueta vX.Y.Z subida y su sección en CHANGELOG.md. Cada app se compila desde la última etiqueta
+# vX.Y.Z de su repo (MrAndyVF/okaru-<app>): para publicar una app nueva, se etiqueta allí y se lanza este flujo.
+# Siempre se compila todo: las apps dependen de la versión exacta del núcleo y ccache hace barato lo que no cambió.
 name: publicar
 
 on:
@@ -23,6 +25,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       KEY_ID: ${{ secrets.OKARU_GPG_KEY_ID }}
+      OKARU_APPS: okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive
     steps:
       - name: Herramientas
         run: |
@@ -40,6 +43,16 @@ jobs:
           repository: MrAndyVF/okaru-greeter
           path: okaru-greeter
           fetch-depth: 0
+      - name: Apps en su última etiqueta
+        run: |
+          for app in $OKARU_APPS; do
+            git clone -q "https://github.com/MrAndyVF/$app" "$app"
+            tag=$(git -C "$app" tag -l 'v*' --sort=-v:refname | head -1)
+            [ -n "$tag" ] || { echo "::error::$app no tiene etiquetas vX.Y.Z."; exit 1; }
+            # El PKGBUILD de la app clona la rama main del checkout: main apunta a la etiqueta que se publica.
+            git -C "$app" checkout -q -B main "$tag"
+            echo "$app $tag"
+          done
       - name: Caché de compilación
         uses: actions/cache@v4
         with:
@@ -71,15 +84,24 @@ jobs:
           mkdir -p out && chown builder: out
           # El PKGBUILD clona la rama main del checkout; se asegura que exista y apunte al commit que se publica.
           sudo -u builder git -C "$GITHUB_WORKSPACE/okaru" checkout -q -B main
-          for pkg in okaru okaru-greeter; do
-            dir="$GITHUB_WORKSPACE/build-$pkg"
+          build() { # $1 = repo; su PKGBUILD lee la ruta del checkout de <REPO en mayúsculas>_REPO
+            local dir="$GITHUB_WORKSPACE/build-$1" var
+            var=$(echo "$1" | tr 'a-z-' 'A-Z_')_REPO
             sudo -u builder mkdir -p "$dir"
-            sudo -u builder cp "$GITHUB_WORKSPACE/$pkg/packaging/arch/PKGBUILD" "$dir/"
+            sudo -u builder cp "$GITHUB_WORKSPACE/$1/packaging/arch/PKGBUILD" "$dir/"
             (cd "$dir" && sudo -u builder env \
               CCACHE_DIR="$CCACHE_DIR" CCACHE_BASEDIR="$dir" CCACHE_COMPRESS=1 CCACHE_MAXSIZE=3G \
-              OKARU_REPO="$GITHUB_WORKSPACE/okaru" OKARU_GREETER_REPO="$GITHUB_WORKSPACE/okaru-greeter" \
+              "$var=$GITHUB_WORKSPACE/$1" \
               PKGDEST="$GITHUB_WORKSPACE/out" GPGKEY="$KEY_ID" \
               makepkg --syncdeps --noconfirm --sign)
+          }
+          build okaru
+          build okaru-greeter
+          # Las apps se compilan contra el núcleo recién hecho (y dependen de esa versión exacta).
+          pacman -U --noconfirm out/okaru-core-*.pkg.tar.zst >/dev/null
+          for app in $OKARU_APPS; do
+            chown -R builder: "$GITHUB_WORKSPACE/$app"
+            build "$app"
           done
           sudo -u builder env CCACHE_DIR="$CCACHE_DIR" ccache -s
       - name: Base de datos del repositorio

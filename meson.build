@@ -453,8 +453,6 @@ _protocol_headers += _wlr_ls_h
 
 # ── Main sources ──────────────────────────────────────────────────────────────
 _okaru_sources = files(
-  'src/apps/calculator/calc_engine.cpp',
-  'src/apps/calculator/calc_state.cpp',
   'src/apps/common/file_drop.cpp',
   'src/apps/common/glib_poll_source.cpp',
   'src/apps/common/okaru_app.cpp',
@@ -1250,60 +1248,8 @@ okaru_exe = executable('okaru',
   install: true,
 )
 
-# OKARU: apps propias. Cada una es un binario aparte que enlaza okaru_core (solo los objetos que usa).
-okaru_calc_exe = executable('okaru-calc',
-  sources: files(
-    'src/apps/calculator/calculator_window.cpp',
-    'src/apps/calculator/main.cpp',
-  ) + _protocol_headers,
-  dependencies: okaru_core_dep,
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
-
-_viewer_dependencies = [
-  okaru_core_dep,
-  dependency('exiv2'),
-  dependency('gdk-pixbuf-2.0'),
-  dependency('libraw'),
-  dependency('libturbojpeg'),
-]
-okaru_view_exe = executable('okaru-view',
-  sources: files(
-    'src/apps/viewer/main.cpp',
-    'src/apps/viewer/viewer_image.cpp',
-    'src/apps/viewer/viewer_window.cpp',
-  ) + _protocol_headers,
-  dependencies: _viewer_dependencies,
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
-okaru_play_exe = executable('okaru-play',
-  sources: files(
-    'src/apps/player/main.cpp',
-    'src/apps/player/mpris_server.cpp',
-    'src/apps/player/mpv_player.cpp',
-    'src/apps/player/player_window.cpp',
-  ) + _protocol_headers,
-  dependencies: [okaru_core_dep, dependency('mpv')],
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
-_editor_core_sources = files(
-  'src/apps/editor/formats.cpp',
-  'src/apps/editor/syntax.cpp',
-  'src/apps/editor/text_buffer.cpp',
-)
-okaru_edit_exe = executable('okaru-edit',
-  sources: files(
-    'src/apps/editor/editor_view.cpp',
-    'src/apps/editor/editor_window.cpp',
-    'src/apps/editor/main.cpp',
-  ) + _editor_core_sources + _protocol_headers,
-  dependencies: okaru_core_dep,
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
+# OKARU: las apps propias (calc, view, play, edit, pdf, files, archive) viven en sus repos (MrAndyVF/okaru-<app>) y se
+# compilan contra okaru-core; aquí queda lo que comparten.
 # OKARU: lo que comparten las apps (la vista de archivos, que usa Comprimidos, y el lector PDF, que usa Archivos para
 # la vista previa) en una biblioteca compartida privada: así ninguna app depende del código de otra.
 _files_core_sources = files(
@@ -1330,28 +1276,10 @@ okaru_apps_dep = declare_dependency(link_with: okaru_apps_lib, dependencies: _ok
 # OKARU: lo necesario para compilar una app en su propio repo contra el núcleo instalado: las cabeceras (sin las de
 # las apps que siguen aquí) en include/okaru y okaru-core.pc / okaru-apps.pc. Las apps de fuera ponen
 # install_rpath: '/usr/lib/okaru' (las bibliotecas son privadas, no van al ld.so.cache).
-_okaru_app_private_dirs = ['src/apps/calculator/', 'src/apps/viewer/', 'src/apps/player/', 'src/apps/editor/',
-                           'src/apps/archive/']
-_okaru_app_shared_headers = ['src/apps/files/drag_icon.h', 'src/apps/files/file_model.h', 'src/apps/files/file_ops.h',
-                             'src/apps/files/file_view.h', 'src/apps/files/icon_cache.h',
-                             'src/apps/pdf/pdf_document.h', 'src/apps/pdf/pdf_view.h', 'src/apps/pdf/render_worker.h']
 # shortcut: la lista sale de find al configurar; una cabecera nueva entra al reconfigurar (lo hace cualquier cambio de
 # meson.build). Pasar a una lista escrita si alguna vez se cuela una que no debe.
 foreach _header : run_command('find', 'src', '-name', '*.h', check: true).stdout().strip().split('\n')
-  _private = false
-  foreach _dir : _okaru_app_private_dirs + ['src/apps/files/', 'src/apps/pdf/']
-    if _header.startswith(_dir) and not _okaru_app_shared_headers.contains(_header)
-      _private = true
-    endif
-  endforeach
-  if not _private
-    install_headers(_header, subdir: 'okaru' / fs.parent(_header).replace('src', '').strip('/'))
-  endif
-endforeach
-
-# OKARU: los textos de cada app van con ella (/usr/share/okaru/apps/<app>/translations), no en el catálogo del núcleo.
-foreach _app : ['archive', 'calculator', 'editor', 'files', 'pdf', 'player', 'viewer']
-  install_subdir('apps' / _app / 'translations', install_dir: get_option('datadir') / 'okaru' / 'apps' / _app)
+  install_headers(_header, subdir: 'okaru' / fs.parent(_header).replace('src', '').strip('/'))
 endforeach
 
 _pkgconfig = import('pkgconfig')
@@ -1376,83 +1304,15 @@ _pkgconfig.generate(
   libraries: ['-L${libdir}/okaru', '-lokaru-apps'],
   requires: ['okaru-core', dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
 )
-_pdf_dependencies = [okaru_apps_dep]
-okaru_pdf_exe = executable('okaru-pdf',
-  sources: files(
-    'src/apps/pdf/main.cpp',
-    'src/apps/pdf/pdf_sidebar.cpp',
-    'src/apps/pdf/pdf_window.cpp',
-  ) + _protocol_headers,
-  dependencies: _pdf_dependencies,
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
-# Selector de archivos del sistema: backend de xdg-desktop-portal (se elige en <escritorio>-portals.conf).
-install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
-install_data('assets/org.freedesktop.impl.portal.desktop.okaru.service',
-  install_dir: get_option('datadir') / 'dbus-1' / 'services')
-okaru_archive_exe = executable('okaru-archive',
-  sources: files(
-    'src/apps/archive/archive_backend.cpp',
-    'src/apps/archive/archive_window.cpp',
-    'src/apps/archive/main.cpp',
-  ) + _protocol_headers,
-  dependencies: [okaru_apps_dep, dependency('libarchive'), libsecret_dep],
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
-okaru_files_exe = executable('okaru-files',
-  sources: files(
-    'src/apps/files/archive.cpp',
-    'src/apps/files/files_window.cpp',
-    'src/apps/files/main.cpp',
-    'src/apps/files/phones.cpp',
-    'src/apps/files/places.cpp',
-    'src/apps/files/portal.cpp',
-    'src/apps/files/share.cpp',
-    'src/apps/files/thumbnails.cpp',
-    'src/apps/files/preview.cpp',
-  ) + _protocol_headers,
-  dependencies: okaru_apps_dep,
-  install_rpath: _okaru_private_libdir,
-  install: true,
-)
 if build_tests
-  test('okaru_archive', executable('okaru_archive_test',
-    sources: files('tests/okaru_archive_test.cpp', 'src/apps/archive/archive_backend.cpp'),
-    include_directories: include_directories('src'),
-    dependencies: [dependency('libarchive')],
-    override_options: ['b_ndebug=false'],
-  ))
-  test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/portal.cpp',
-                   'src/apps/files/share.cpp', 'src/apps/files/thumbnails.cpp'),
-    dependencies: okaru_apps_dep,
-    override_options: ['b_ndebug=false'],
-  ))
   test('okaru_pdf', executable('okaru_pdf_test',
     sources: files('tests/okaru_pdf_test.cpp'),
-    dependencies: _pdf_dependencies,
+    dependencies: okaru_apps_dep,
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_file_drop', executable('okaru_file_drop_test',
     sources: files('tests/okaru_file_drop_test.cpp'),
     dependencies: okaru_core_dep,
-    override_options: ['b_ndebug=false'],
-  ))
-  test('okaru_editor', executable('okaru_editor_test',
-    sources: files('tests/okaru_editor_test.cpp') + _editor_core_sources,
-    dependencies: okaru_core_dep,
-    override_options: ['b_ndebug=false'],
-  ))
-  test('okaru_player', executable('okaru_player_test',
-    sources: files('tests/okaru_player_test.cpp', 'src/apps/player/mpv_player.cpp'),
-    dependencies: [okaru_core_dep, dependency('mpv')],
-    override_options: ['b_ndebug=false'],
-  ))
-  test('okaru_viewer_image', executable('okaru_viewer_image_test',
-    sources: files('tests/okaru_viewer_image_test.cpp', 'src/apps/viewer/viewer_image.cpp'),
-    dependencies: _viewer_dependencies,
     override_options: ['b_ndebug=false'],
   ))
 endif
@@ -1472,22 +1332,13 @@ install_symlink('niri-mimeapps.list',
 install_subdir('assets',
   install_dir: get_option('datadir') / 'okaru',
   exclude_files: [
-    'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop', 'dev.okaru.Calculator.desktop',
-    'dev.okaru.Viewer.desktop', 'dev.okaru.Player.desktop', 'dev.okaru.Editor.desktop', 'dev.okaru.Pdf.desktop',
-    'dev.okaru.Files.desktop', 'dev.okaru.Archive.desktop',
+    'dev.okaru.Okaru.desktop', 'dev.okaru.Okaru.Annotator.desktop',
   ],
 )
 
 install_data(
   'assets/dev.okaru.Okaru.desktop',
   'assets/dev.okaru.Okaru.Annotator.desktop',
-  'assets/dev.okaru.Calculator.desktop',
-  'assets/dev.okaru.Viewer.desktop',
-  'assets/dev.okaru.Player.desktop',
-  'assets/dev.okaru.Editor.desktop',
-  'assets/dev.okaru.Pdf.desktop',
-  'assets/dev.okaru.Files.desktop',
-  'assets/dev.okaru.Archive.desktop',
   install_dir: get_option('datadir') / 'applications',
 )
 
@@ -1545,7 +1396,6 @@ if build_tests
     'okaru_recorder',
     'okaru_hypr_workspaces',
     'okaru_apps_palette',
-    'okaru_calc_engine',
     'okaru_niri_config',
     'okaru_system_info',
     'okaru_settings_search',
