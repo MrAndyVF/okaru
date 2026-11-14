@@ -3,7 +3,7 @@
 # sus propios repos) y okaru (la shell). Las apps que traiga un paquete de app dependen de la versión exacta del núcleo.
 pkgbase=okaru
 pkgname=(okaru-core okaru)
-pkgver=1.2.3
+pkgver=1.2.4
 pkgrel=1
 pkgdesc='OKARU (郁): shell de escritorio Wayland'
 arch=(x86_64)

@@ -10,6 +10,42 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.2.4] - 2026-11-14
+
+### English
+
+#### Changes
+- The core is now a private shared library (`/usr/lib/okaru/libokaru-core.so`) used by the shell and every app,
+  instead of each binary carrying its own static copy; what the apps share with each other (the file view and the PDF
+  reader) lives in `libokaru-apps.so`. Binaries are much smaller and the apps no longer compile each other’s code.
+- New `okaru-core` package (libraries, headers, pkg-config files and shared resources); `okaru` depends on its exact
+  version. `pacman -Syu` installs it automatically. This prepares moving each app to its own repository.
+- Each app ships its own translations (`/usr/share/okaru/apps/<app>/translations`); the core catalog keeps only
+  what is shared.
+- Packages are built without LTO, and the CI caches compilation (ccache + mold): checks now take about 2 minutes
+  instead of 18–28.
+
+#### Fixes
+- Packaging: generating the shell completions failed to find the core library (it would have broken publishing).
+
+### Español
+
+#### Cambios
+- El núcleo es ahora una biblioteca compartida privada (`/usr/lib/okaru/libokaru-core.so`) que usan la shell y todas
+  las apps, en lugar de llevar cada binario su propia copia estática; lo que comparten las apps entre sí (la vista de
+  archivos y el lector PDF) va en `libokaru-apps.so`. Los binarios pesan mucho menos y ninguna app compila código de
+  otra.
+- Paquete nuevo `okaru-core` (bibliotecas, cabeceras, pkg-config y recursos compartidos); `okaru` depende de su
+  versión exacta. `pacman -Syu` lo instala solo. Prepara el paso de cada app a su propio repositorio.
+- Cada app trae sus propias traducciones (`/usr/share/okaru/apps/<app>/translations`); el catálogo del núcleo solo
+  conserva lo compartido.
+- Los paquetes se compilan sin LTO y la CI guarda lo compilado (ccache + mold): las verificaciones tardan unos
+  2 minutos en lugar de 18–28.
+
+#### Correcciones
+- Empaquetado: al generar el autocompletado de la terminal no se encontraba la biblioteca del núcleo (habría roto la
+  publicación).
+
 ## [1.2.3] - 2026-11-13
 
 ### English
