@@ -1294,23 +1294,38 @@ okaru_edit_exe = executable('okaru-edit',
   install_rpath: _okaru_private_libdir,
   install: true,
 )
-_pdf_dependencies = [okaru_core_dep, dependency('poppler-glib')]
+# OKARU: lo que comparten las apps (la vista de archivos, que usa Comprimidos, y el lector PDF, que usa Archivos para
+# la vista previa) en una biblioteca compartida privada: así ninguna app depende del código de otra.
+_files_core_sources = files(
+  'src/apps/files/file_model.cpp',
+  'src/apps/files/file_ops.cpp',
+)
+_okaru_apps_dependencies = [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')]
+okaru_apps_lib = shared_library('okaru-apps',
+  sources: files(
+    'src/apps/files/drag_icon.cpp',
+    'src/apps/files/file_view.cpp',
+    'src/apps/files/icon_cache.cpp',
+    'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_view.cpp',
+    'src/apps/pdf/render_worker.cpp',
+  ) + _files_core_sources + _protocol_headers,
+  dependencies: _okaru_apps_dependencies,
+  install: true,
+  install_dir: _okaru_private_libdir,
+  install_rpath: _okaru_private_libdir,
+)
+okaru_apps_dep = declare_dependency(link_with: okaru_apps_lib, dependencies: _okaru_apps_dependencies)
+_pdf_dependencies = [okaru_apps_dep]
 okaru_pdf_exe = executable('okaru-pdf',
   sources: files(
     'src/apps/pdf/main.cpp',
-    'src/apps/pdf/pdf_document.cpp',
     'src/apps/pdf/pdf_sidebar.cpp',
-    'src/apps/pdf/pdf_view.cpp',
     'src/apps/pdf/pdf_window.cpp',
-    'src/apps/pdf/render_worker.cpp',
   ) + _protocol_headers,
   dependencies: _pdf_dependencies,
   install_rpath: _okaru_private_libdir,
   install: true,
-)
-_files_core_sources = files(
-  'src/apps/files/file_model.cpp',
-  'src/apps/files/file_ops.cpp',
 )
 # Selector de archivos del sistema: backend de xdg-desktop-portal (se elige en <escritorio>-portals.conf).
 install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
@@ -1321,22 +1336,15 @@ okaru_archive_exe = executable('okaru-archive',
     'src/apps/archive/archive_backend.cpp',
     'src/apps/archive/archive_window.cpp',
     'src/apps/archive/main.cpp',
-    'src/apps/files/drag_icon.cpp',
-    'src/apps/files/file_view.cpp',
-    'src/apps/files/icon_cache.cpp',
-  ) + _files_core_sources + _protocol_headers,
-  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('libarchive'), dependency('poppler-glib'),
-                 libsecret_dep],
+  ) + _protocol_headers,
+  dependencies: [okaru_apps_dep, dependency('libarchive'), libsecret_dep],
   install_rpath: _okaru_private_libdir,
   install: true,
 )
 okaru_files_exe = executable('okaru-files',
   sources: files(
     'src/apps/files/archive.cpp',
-    'src/apps/files/drag_icon.cpp',
-    'src/apps/files/file_view.cpp',
     'src/apps/files/files_window.cpp',
-    'src/apps/files/icon_cache.cpp',
     'src/apps/files/main.cpp',
     'src/apps/files/phones.cpp',
     'src/apps/files/places.cpp',
@@ -1344,11 +1352,8 @@ okaru_files_exe = executable('okaru-files',
     'src/apps/files/share.cpp',
     'src/apps/files/thumbnails.cpp',
     'src/apps/files/preview.cpp',
-    'src/apps/pdf/pdf_document.cpp',
-    'src/apps/pdf/pdf_view.cpp',
-    'src/apps/pdf/render_worker.cpp',
-  ) + _files_core_sources + _protocol_headers,
-  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+  ) + _protocol_headers,
+  dependencies: okaru_apps_dep,
   install_rpath: _okaru_private_libdir,
   install: true,
 )
@@ -1360,15 +1365,13 @@ if build_tests
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/drag_icon.cpp',
-                   'src/apps/files/icon_cache.cpp',
-                   'src/apps/files/portal.cpp', 'src/apps/files/share.cpp',
-                   'src/apps/files/thumbnails.cpp') + _files_core_sources,
-    dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/portal.cpp',
+                   'src/apps/files/share.cpp', 'src/apps/files/thumbnails.cpp'),
+    dependencies: okaru_apps_dep,
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_pdf', executable('okaru_pdf_test',
-    sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
+    sources: files('tests/okaru_pdf_test.cpp'),
     dependencies: _pdf_dependencies,
     override_options: ['b_ndebug=false'],
   ))
