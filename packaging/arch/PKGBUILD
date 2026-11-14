@@ -11,7 +11,7 @@ url='https://github.com/MrAndyVF/okaru'
 license=(MIT)
 depends=(bash cairo curl exiv2 fontconfig freetype2 gdk-pixbuf2 git glib2 glibc harfbuzz gsfonts hicolor-icon-theme jemalloc libgcc
          libarchive libglvnd libical libjpeg-turbo libjxl libraw libpipewire libqalculate librsvg libsecret libsndfile libsodium libstdc++ libwebp libwireplumber
-         libxkbcommon libxml2 md4c mpv noto-fonts pam polkit pango poppler-glib sdbus-cpp tomlplusplus wl-clipboard
+         libxkbcommon libxml2 md4c mpv nlohmann-json noto-fonts pam polkit pango poppler-glib sdbus-cpp tomlplusplus wl-clipboard
          ttf-bigblueterminal-nerd ttf-jetbrains-mono-nerd wayland)  # BigBlueTermPlus: texto pixelado del bloqueo; JetBrainsMono: fuente de la shell
 # Sin paquete -debug: nadie lo instala y solo infla el repositorio.
 options=('!debug' '!lto') # sin LTO: enlazar la shell y las apps con LTO era la mitad del tiempo de publicar
