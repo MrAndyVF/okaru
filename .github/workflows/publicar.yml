@@ -98,6 +98,10 @@ jobs:
           build okaru
           build okaru-greeter
           # Las apps se compilan contra el núcleo recién hecho (y dependen de esa versión exacta).
+          # pacman verifica la firma (.sig junto al paquete): necesita la llave pública de [okaru] en su llavero.
+          pacman-key --init >/dev/null 2>&1
+          pacman-key --add okaru/packaging/keys/okaru.asc >/dev/null
+          pacman-key --lsign-key "$KEY_ID" >/dev/null
           pacman -U --noconfirm out/okaru-core-*.pkg.tar.zst >/dev/null
           for app in $OKARU_APPS; do
             chown -R builder: "$GITHUB_WORKSPACE/$app"
