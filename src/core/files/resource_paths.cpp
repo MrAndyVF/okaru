@@ -110,6 +110,11 @@ namespace paths {
   }
 
   std::filesystem::path appDataDir(std::string_view app) {
+    // Al desarrollar una app en su propio repo: OKARU_APPS_DIR=<repo>/.. (o donde estén sus datos) en vez de los
+    // instalados.
+    if (const char* env = std::getenv("OKARU_APPS_DIR"); env != nullptr && env[0] != '\0') {
+      return std::filesystem::path(env) / std::string(app);
+    }
     return assetsRoot().parent_path() / "apps" / std::string(app);
   }
 
