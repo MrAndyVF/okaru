@@ -9,6 +9,8 @@ project('okaru', ['c', 'cpp'],
   ],
 )
 
+fs = import('fs')
+
 cc  = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
 
@@ -413,11 +415,13 @@ foreach _p : [
     input:   _xml,
     output:  _name + '-client-protocol.h',
     command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+    install: true,
+    install_dir: get_option('includedir') / 'okaru', # OKARU: para compilar apps fuera de este repo
   )
   _c = custom_target(_name + '-client-source',
     input:   _xml,
     output:  _name + '-client-protocol.c',
-    command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
+    command: [wayland_scanner, 'public-code', '@INPUT@', '@OUTPUT@'], # OKARU: visibles desde libokaru-core.so
     depends: _h,  # ensure .h exists before this .c is compiled (it #includes it)
   )
   _protocol_sources += _c
@@ -425,7 +429,7 @@ foreach _p : [
 endforeach
 
 # wlr-layer-shell: 'namespace' is a C++ keyword; rename it in the generated
-# header only (private-code is compiled as C so it's fine as-is).
+# header only (the generated code is compiled as C so it is fine as-is).
 _wlr_ls_xml = 'protocols/wlr-layer-shell-unstable-v1.xml'
 _wlr_ls_h = custom_target('wlr-layer-shell-unstable-v1-client-header',
   input:   _wlr_ls_xml,
@@ -435,11 +439,13 @@ _wlr_ls_h = custom_target('wlr-layer-shell-unstable-v1-client-header',
     '"$1" client-header "$2" "$3" && sed -i s/namespace/name_space/g "$3"',
     '_', wayland_scanner.full_path(), '@INPUT@', '@OUTPUT@',
   ],
+  install: true,
+  install_dir: get_option('includedir') / 'okaru',
 )
 _wlr_ls_c = custom_target('wlr-layer-shell-unstable-v1-client-source',
   input:   _wlr_ls_xml,
   output:  'wlr-layer-shell-unstable-v1-client-protocol.c',
-  command: [wayland_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
+  command: [wayland_scanner, 'public-code', '@INPUT@', '@OUTPUT@'], # OKARU: visibles desde libokaru-core.so
   depends: _wlr_ls_h,
 )
 _protocol_sources += _wlr_ls_c
@@ -1191,10 +1197,13 @@ _okaru_dependencies = _okaru_system_dependencies + [
   luau_dep,
 ]
 
+# OKARU: fzy, Material Color Utilities y Luau ya van completos dentro de libokaru-core.so. Quien la usa (shell, apps,
+# pruebas) solo recibe sus cabeceras: enlazarlos otra vez duplica sus globales (Luau encadenaba dos veces su lista
+# de opciones y se quedaba en un bucle al arrancar).
 _okaru_test_dependencies = _okaru_system_dependencies + [
-  _fzy_selective_dep,
-  _mcu_selective_dep,
-  _luau_selective_dep,
+  _fzy_selective_dep.partial_dependency(compile_args: true, includes: true),
+  _mcu_selective_dep.partial_dependency(compile_args: true, includes: true),
+  _luau_selective_dep.partial_dependency(compile_args: true, includes: true),
 ]
 
 _okaru_compile_definitions = [
@@ -1207,14 +1216,17 @@ _okaru_cpp_args = [
   '-Wall', '-Wextra', '-Wno-missing-field-initializers', '-Wpedantic', '-Wconversion', '-Wshadow',
 ] + _okaru_compile_definitions
 
-# Production sources and generated protocols compile once. The shell links the
-# archive whole; tests link it normally so only the objects they exercise enter
-# each test executable.
-okaru_core_lib = static_library('okaru_core',
+# OKARU: el núcleo es una biblioteca compartida privada (/usr/lib/okaru/libokaru-core.so) que usan la shell, las
+# apps y las pruebas: compila una vez y cada binario ya no lleva su propia copia. Sin promesa de ABI: el núcleo y
+# lo que se compile contra él se publican juntos (la versión exacta va en las dependencias del paquete).
+_okaru_private_libdir = get_option('prefix') / get_option('libdir') / 'okaru'
+okaru_core_lib = shared_library('okaru-core',
   sources: _okaru_sources + _protocol_sources + _protocol_headers + [_git_revision_h],
   dependencies: _okaru_dependencies,
   include_directories: _okaru_inc,
   cpp_args: _okaru_cpp_args,
+  install: true,
+  install_dir: _okaru_private_libdir,
 )
 
 okaru_core_dep = declare_dependency(
@@ -1227,10 +1239,10 @@ okaru_core_dep = declare_dependency(
 
 okaru_exe = executable('okaru',
   sources: files('src/main.cpp') + _protocol_headers,
-  dependencies: _okaru_dependencies,
+  dependencies: okaru_core_dep,
   include_directories: _okaru_inc,
   cpp_args: _okaru_cpp_args,
-  objects: okaru_core_lib.extract_all_objects(recursive: false),
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 
@@ -1241,6 +1253,7 @@ okaru_calc_exe = executable('okaru-calc',
     'src/apps/calculator/main.cpp',
   ) + _protocol_headers,
   dependencies: okaru_core_dep,
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 
@@ -1258,6 +1271,7 @@ okaru_view_exe = executable('okaru-view',
     'src/apps/viewer/viewer_window.cpp',
   ) + _protocol_headers,
   dependencies: _viewer_dependencies,
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 okaru_play_exe = executable('okaru-play',
@@ -1268,6 +1282,7 @@ okaru_play_exe = executable('okaru-play',
     'src/apps/player/player_window.cpp',
   ) + _protocol_headers,
   dependencies: [okaru_core_dep, dependency('mpv')],
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 _editor_core_sources = files(
@@ -1282,24 +1297,86 @@ okaru_edit_exe = executable('okaru-edit',
     'src/apps/editor/main.cpp',
   ) + _editor_core_sources + _protocol_headers,
   dependencies: okaru_core_dep,
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
-_pdf_dependencies = [okaru_core_dep, dependency('poppler-glib')]
-okaru_pdf_exe = executable('okaru-pdf',
-  sources: files(
-    'src/apps/pdf/main.cpp',
-    'src/apps/pdf/pdf_document.cpp',
-    'src/apps/pdf/pdf_sidebar.cpp',
-    'src/apps/pdf/pdf_view.cpp',
-    'src/apps/pdf/pdf_window.cpp',
-    'src/apps/pdf/render_worker.cpp',
-  ) + _protocol_headers,
-  dependencies: _pdf_dependencies,
-  install: true,
-)
+# OKARU: lo que comparten las apps (la vista de archivos, que usa Comprimidos, y el lector PDF, que usa Archivos para
+# la vista previa) en una biblioteca compartida privada: así ninguna app depende del código de otra.
 _files_core_sources = files(
   'src/apps/files/file_model.cpp',
   'src/apps/files/file_ops.cpp',
+)
+_okaru_apps_dependencies = [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')]
+okaru_apps_lib = shared_library('okaru-apps',
+  sources: files(
+    'src/apps/files/drag_icon.cpp',
+    'src/apps/files/file_view.cpp',
+    'src/apps/files/icon_cache.cpp',
+    'src/apps/pdf/pdf_document.cpp',
+    'src/apps/pdf/pdf_view.cpp',
+    'src/apps/pdf/render_worker.cpp',
+  ) + _files_core_sources + _protocol_headers,
+  dependencies: _okaru_apps_dependencies,
+  install: true,
+  install_dir: _okaru_private_libdir,
+  install_rpath: _okaru_private_libdir,
+)
+okaru_apps_dep = declare_dependency(link_with: okaru_apps_lib, dependencies: _okaru_apps_dependencies)
+
+# OKARU: lo necesario para compilar una app en su propio repo contra el núcleo instalado: las cabeceras (sin las de
+# las apps que siguen aquí) en include/okaru y okaru-core.pc / okaru-apps.pc. Las apps de fuera ponen
+# install_rpath: '/usr/lib/okaru' (las bibliotecas son privadas, no van al ld.so.cache).
+_okaru_app_private_dirs = ['src/apps/calculator/', 'src/apps/viewer/', 'src/apps/player/', 'src/apps/editor/',
+                           'src/apps/archive/']
+_okaru_app_shared_headers = ['src/apps/files/drag_icon.h', 'src/apps/files/file_model.h', 'src/apps/files/file_ops.h',
+                             'src/apps/files/file_view.h', 'src/apps/files/icon_cache.h',
+                             'src/apps/pdf/pdf_document.h', 'src/apps/pdf/pdf_view.h', 'src/apps/pdf/render_worker.h']
+# shortcut: la lista sale de find al configurar; una cabecera nueva entra al reconfigurar (lo hace cualquier cambio de
+# meson.build). Pasar a una lista escrita si alguna vez se cuela una que no debe.
+foreach _header : run_command('find', 'src', '-name', '*.h', check: true).stdout().strip().split('\n')
+  _private = false
+  foreach _dir : _okaru_app_private_dirs + ['src/apps/files/', 'src/apps/pdf/']
+    if _header.startswith(_dir) and not _okaru_app_shared_headers.contains(_header)
+      _private = true
+    endif
+  endforeach
+  if not _private
+    install_headers(_header, subdir: 'okaru' / fs.parent(_header).replace('src', '').strip('/'))
+  endif
+endforeach
+
+_pkgconfig = import('pkgconfig')
+_okaru_pc_requires = []
+foreach _dep : _okaru_system_dependencies
+  if _dep.found() and _dep.type_name() == 'pkgconfig'
+    _okaru_pc_requires += _dep
+  endif
+endforeach
+_pkgconfig.generate(
+  name: 'okaru-core',
+  description: 'Núcleo de OKARU (biblioteca privada) para compilar sus apps',
+  version: meson.project_version(),
+  libraries: ['-L${libdir}/okaru', '-lokaru-core'],
+  requires: _okaru_pc_requires,
+  subdirs: 'okaru',
+)
+_pkgconfig.generate(
+  name: 'okaru-apps',
+  description: 'Lo que comparten las apps de OKARU (vista de archivos, lector PDF)',
+  version: meson.project_version(),
+  libraries: ['-L${libdir}/okaru', '-lokaru-apps'],
+  requires: ['okaru-core', dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+)
+_pdf_dependencies = [okaru_apps_dep]
+okaru_pdf_exe = executable('okaru-pdf',
+  sources: files(
+    'src/apps/pdf/main.cpp',
+    'src/apps/pdf/pdf_sidebar.cpp',
+    'src/apps/pdf/pdf_window.cpp',
+  ) + _protocol_headers,
+  dependencies: _pdf_dependencies,
+  install_rpath: _okaru_private_libdir,
+  install: true,
 )
 # Selector de archivos del sistema: backend de xdg-desktop-portal (se elige en <escritorio>-portals.conf).
 install_data('assets/okaru.portal', install_dir: get_option('datadir') / 'xdg-desktop-portal' / 'portals')
@@ -1310,21 +1387,15 @@ okaru_archive_exe = executable('okaru-archive',
     'src/apps/archive/archive_backend.cpp',
     'src/apps/archive/archive_window.cpp',
     'src/apps/archive/main.cpp',
-    'src/apps/files/drag_icon.cpp',
-    'src/apps/files/file_view.cpp',
-    'src/apps/files/icon_cache.cpp',
-  ) + _files_core_sources + _protocol_headers,
-  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('libarchive'), dependency('poppler-glib'),
-                 libsecret_dep],
+  ) + _protocol_headers,
+  dependencies: [okaru_apps_dep, dependency('libarchive'), libsecret_dep],
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 okaru_files_exe = executable('okaru-files',
   sources: files(
     'src/apps/files/archive.cpp',
-    'src/apps/files/drag_icon.cpp',
-    'src/apps/files/file_view.cpp',
     'src/apps/files/files_window.cpp',
-    'src/apps/files/icon_cache.cpp',
     'src/apps/files/main.cpp',
     'src/apps/files/phones.cpp',
     'src/apps/files/places.cpp',
@@ -1332,11 +1403,9 @@ okaru_files_exe = executable('okaru-files',
     'src/apps/files/share.cpp',
     'src/apps/files/thumbnails.cpp',
     'src/apps/files/preview.cpp',
-    'src/apps/pdf/pdf_document.cpp',
-    'src/apps/pdf/pdf_view.cpp',
-    'src/apps/pdf/render_worker.cpp',
-  ) + _files_core_sources + _protocol_headers,
-  dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+  ) + _protocol_headers,
+  dependencies: okaru_apps_dep,
+  install_rpath: _okaru_private_libdir,
   install: true,
 )
 if build_tests
@@ -1347,15 +1416,13 @@ if build_tests
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_files', executable('okaru_files_test',
-    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/drag_icon.cpp',
-                   'src/apps/files/icon_cache.cpp',
-                   'src/apps/files/portal.cpp', 'src/apps/files/share.cpp',
-                   'src/apps/files/thumbnails.cpp') + _files_core_sources,
-    dependencies: [okaru_core_dep, dependency('gdk-pixbuf-2.0'), dependency('poppler-glib')],
+    sources: files('tests/okaru_files_test.cpp', 'src/apps/files/archive.cpp', 'src/apps/files/portal.cpp',
+                   'src/apps/files/share.cpp', 'src/apps/files/thumbnails.cpp'),
+    dependencies: okaru_apps_dep,
     override_options: ['b_ndebug=false'],
   ))
   test('okaru_pdf', executable('okaru_pdf_test',
-    sources: files('tests/okaru_pdf_test.cpp', 'src/apps/pdf/pdf_document.cpp'),
+    sources: files('tests/okaru_pdf_test.cpp'),
     dependencies: _pdf_dependencies,
     override_options: ['b_ndebug=false'],
   ))
