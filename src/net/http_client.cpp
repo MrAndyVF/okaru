@@ -2,6 +2,7 @@
 
 #include "core/deferred_call.h"
 #include "core/log.h"
+#include "okaru_build_config.h"
 
 #include <cctype>
 #include <chrono>

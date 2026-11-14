@@ -1206,11 +1206,15 @@ _okaru_test_dependencies = _okaru_system_dependencies + [
   _luau_selective_dep.partial_dependency(compile_args: true, includes: true),
 ]
 
-_okaru_compile_definitions = [
-  '-DOKARU_INSTALL_PREFIX="' + get_option('prefix') + '"',
-  '-DOKARU_INSTALL_DATADIR="' + get_option('datadir') + '"',
-  '-DOKARU_VERSION="' + meson.project_version() + '"',
-] + jemalloc_cpp_args
+# OKARU: versión y rutas de instalación en una cabecera generada que incluyen solo los archivos que las usan. Como
+# -D en todas las órdenes de compilación, subir la versión cambiaba las 1019 y la caché (ccache) no servía.
+_okaru_build_config = configuration_data()
+_okaru_build_config.set_quoted('OKARU_INSTALL_PREFIX', get_option('prefix'))
+_okaru_build_config.set_quoted('OKARU_INSTALL_DATADIR', get_option('datadir'))
+_okaru_build_config.set_quoted('OKARU_VERSION', meson.project_version())
+_okaru_build_config_h = configure_file(output: 'okaru_build_config.h', configuration: _okaru_build_config)
+
+_okaru_compile_definitions = jemalloc_cpp_args
 
 _okaru_cpp_args = [
   '-Wall', '-Wextra', '-Wno-missing-field-initializers', '-Wpedantic', '-Wconversion', '-Wshadow',

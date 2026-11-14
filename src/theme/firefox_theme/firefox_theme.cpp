@@ -8,6 +8,7 @@
 #include "theme/firefox_theme/manifest.h"
 #include "theme/firefox_theme/native_messaging.h"
 #include "theme/firefox_theme/settings.h"
+#include "okaru_build_config.h"
 
 #include <array>
 #include <cerrno>
