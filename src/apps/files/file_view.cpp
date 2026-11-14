@@ -718,11 +718,11 @@ namespace okaru::files {
       m_headerHits[0]->setPosition(kPad * s, header - 1.0F);
       m_headerHits[0]->setSize(itemW, 1.0F);
       const std::array<std::pair<SortKey, const char*>, 5> keys{
-          {{SortKey::Name, "apps.files.column.name"},
-           {SortKey::Name, "apps.files.column.location"},
-           {SortKey::Size, "apps.files.column.size"},
-           {SortKey::Modified, "apps.files.column.modified"},
-           {SortKey::Type, "apps.files.column.type"}}
+          {{SortKey::Name, "apps.common.column.name"},
+           {SortKey::Name, "apps.common.column.location"},
+           {SortKey::Size, "apps.common.column.size"},
+           {SortKey::Modified, "apps.common.column.modified"},
+           {SortKey::Type, "apps.common.column.type"}}
       };
       const std::array<float, 5> widths{cols.name, cols.location, cols.size, cols.modified, cols.type};
       float x = kPad * s;

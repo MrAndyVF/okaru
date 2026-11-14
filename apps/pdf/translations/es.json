@@ -1,0 +1,107 @@
+{
+  "apps": {
+    "pdf": {
+      "title": "Visor de documentos",
+      "open": "Abrir…",
+      "filter": "Documentos PDF",
+      "close": "Cerrar",
+      "close-tab": "Cerrar documento",
+      "cancel": "Cancelar",
+      "recent": "Documentos recientes",
+      "empty": {
+        "title": "No hay documentos abiertos"
+      },
+      "error": {
+        "open": "No se pudo abrir {file}: el archivo está dañado o no es un PDF"
+      },
+      "page": "Página {page} de {total}",
+      "page-label": "Página {label} ({page} de {total})",
+      "sidebar": "Barra lateral (F9)",
+      "thumbnails": "Miniaturas",
+      "outline": "Índice",
+      "zoom": {
+        "in": "Acercar (Ctrl++)",
+        "out": "Alejar (Ctrl+-)",
+        "fit-page": "Ajustar a la página",
+        "fit-width": "Ajustar al ancho"
+      },
+      "rotate": "Girar (Ctrl+→)",
+      "dual": "Dos páginas",
+      "night": "Modo nocturno",
+      "presentation": "Presentación (F5)",
+      "copied": "Texto copiado",
+      "link-blocked": "No se abrió este enlace: {uri}",
+      "find": {
+        "title": "Buscar (Ctrl+F)",
+        "placeholder": "Buscar en el documento",
+        "previous": "Resultado anterior",
+        "next": "Resultado siguiente",
+        "case": "Distinguir mayúsculas",
+        "word": "Solo palabras completas",
+        "none": "Sin resultados",
+        "searching": "Buscando…",
+        "count": "{index} de {total}"
+      },
+      "goto": {
+        "title": "Ir a la página",
+        "placeholder": "1–{count} o el número impreso"
+      },
+      "password": {
+        "title": "Se necesita contraseña",
+        "body": "{file} está protegido con contraseña.",
+        "wrong": "Contraseña incorrecta. Inténtalo de nuevo.",
+        "placeholder": "Contraseña",
+        "unlock": "Desbloquear"
+      },
+      "properties": {
+        "title": "Propiedades",
+        "tooltip": "Propiedades (Alt+Enter)",
+        "file": "Archivo",
+        "doc-title": "Título",
+        "author": "Autor",
+        "subject": "Asunto",
+        "keywords": "Palabras clave",
+        "creator": "Creado con",
+        "producer": "Productor",
+        "created": "Creado",
+        "modified": "Modificado",
+        "pages": "Páginas",
+        "paper": "Tamaño del papel",
+        "version": "Formato",
+        "size": "Tamaño del archivo"
+      },
+      "print": {
+        "title": "Imprimir",
+        "tooltip": "Imprimir (Ctrl+P)",
+        "printer": "Impresora",
+        "copies": "Copias",
+        "pages": "Páginas",
+        "all": "Todas (p. ej. 1-3, 5)",
+        "sides": "Caras",
+        "one-sided": "Una cara",
+        "long-edge": "Doble cara, borde largo",
+        "short-edge": "Doble cara, borde corto",
+        "button": "Imprimir",
+        "sent": "Se envió {file} a la impresora",
+        "failed": "No se pudo imprimir: revisa la impresora en CUPS",
+        "no-printers": "No hay impresoras configuradas. Agrega una en la configuración de impresoras del sistema (CUPS)."
+      },
+      "recent-clear": "Borrar historial",
+      "highlight": "Resaltar la selección",
+      "underline": "Subrayar la selección",
+      "save": "Guardar",
+      "save-as": "Guardar como",
+      "saved": "Guardado {file}",
+      "save-failed": "No se pudo guardar: {detail}",
+      "markup-select": "Selecciona texto en la página para resaltarlo o subrayarlo",
+      "form": {
+        "choose": "Elige una opción"
+      },
+      "unsaved": {
+        "title": "¿Guardar los cambios?",
+        "body": "El documento tiene campos rellenados o anotaciones sin guardar.",
+        "discard": "No guardar"
+      }
+    }
+  }
+}

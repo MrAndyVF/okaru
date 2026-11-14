@@ -1,0 +1,126 @@
+{
+  "apps": {
+    "calc": {
+      "title": "Calculadora",
+      "back": "Volver",
+      "close": "Cerrar",
+      "copy": "Copiar",
+      "placeholder": "Escribe una expresión",
+      "history": {
+        "empty": "Sin cálculos todavía",
+        "insert": "Insertar este resultado"
+      },
+      "mode": {
+        "basic": "Básica",
+        "advanced": "Avanzada",
+        "financial": "Financiera",
+        "programming": "Programación",
+        "conversion": "Conversión"
+      },
+      "error": {
+        "variable": "«{name}» no se puede usar como variable"
+      },
+      "preferences": {
+        "title": "Preferencias",
+        "angle": {
+          "label": "Unidad de ángulo",
+          "degrees": "Grados",
+          "radians": "Radianes",
+          "gradians": "Gradianes"
+        },
+        "format": {
+          "label": "Formato de números",
+          "automatic": "Automático",
+          "fixed": "Fijo",
+          "scientific": "Científico",
+          "engineering": "Ingeniería"
+        },
+        "decimals": "Decimales",
+        "trailing-zeros": "Mostrar ceros finales",
+        "thousands": "Mostrar separador de miles",
+        "variables": {
+          "label": "Variables",
+          "empty": "Guarda una escribiendo nombre = valor",
+          "remove": "Quitar variable"
+        },
+        "clear-history": "Borrar historial"
+      },
+      "programming": {
+        "base": {
+          "binary": "Binario",
+          "octal": "Octal",
+          "decimal": "Decimal",
+          "hexadecimal": "Hexadecimal"
+        },
+        "bits": "{count} bits"
+      },
+      "financial": {
+        "calculate": "Calcular",
+        "field": {
+          "rate": "Tasa de interés por periodo",
+          "future-value": "Valor futuro",
+          "present-value": "Valor presente",
+          "cost": "Costo",
+          "life": "Vida útil (periodos)",
+          "period": "Periodo",
+          "payment": "Pago periódico",
+          "periods": "Número de periodos",
+          "margin": "Margen",
+          "principal": "Capital",
+          "salvage": "Valor residual"
+        },
+        "ctrm": {
+          "name": "Plazo de capitalización",
+          "description": "Periodos necesarios para que una inversión pase del valor presente al futuro."
+        },
+        "ddb": {
+          "name": "Depreciación doble decreciente",
+          "description": "Depreciación de un bien en un periodo, por saldo doble decreciente."
+        },
+        "fv": {
+          "name": "Valor futuro",
+          "description": "Valor futuro de pagos periódicos iguales a una tasa de interés fija."
+        },
+        "gpm": {
+          "name": "Margen de beneficio bruto",
+          "description": "Precio que da el margen buscado sobre un costo (margen en fracción, 0.2 = 20 %)."
+        },
+        "pmt": {
+          "name": "Pago periódico",
+          "description": "Pago por periodo para saldar un préstamo a una tasa de interés fija."
+        },
+        "pv": {
+          "name": "Valor presente",
+          "description": "Valor presente de pagos periódicos iguales a una tasa de interés fija."
+        },
+        "rate": {
+          "name": "Tasa de interés periódica",
+          "description": "Tasa de interés por periodo para pasar del valor presente al futuro."
+        },
+        "sln": {
+          "name": "Depreciación lineal",
+          "description": "Depreciación por periodo con el método de línea recta."
+        },
+        "syd": {
+          "name": "Depreciación por suma de dígitos",
+          "description": "Depreciación en un periodo con el método de suma de los dígitos de los años."
+        },
+        "term": {
+          "name": "Plazo de pagos",
+          "description": "Número de pagos necesarios para llegar a un valor futuro."
+        }
+      },
+      "conversion": {
+        "unavailable": "No hay unidades disponibles",
+        "value": "Cantidad",
+        "swap": "Intercambiar unidades",
+        "rates": {
+          "offline": "Modo sin conexión: se usan las tasas guardadas",
+          "updating": "Actualizando tasas de cambio…",
+          "hint": "Tasas de cambio del Banco Central Europeo y otras fuentes",
+          "refresh": "Actualizar tasas"
+        }
+      }
+    }
+  }
+}

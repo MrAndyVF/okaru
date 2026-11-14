@@ -1,0 +1,307 @@
+{
+  "apps": {
+    "files": {
+      "title": "Archivos",
+      "back": "Atrás (Alt+Izquierda)",
+      "forward": "Adelante (Alt+Derecha)",
+      "up": "Carpeta superior (Alt+Arriba)",
+      "sidebar": "Panel lateral (F9)",
+      "close": "Cerrar",
+      "close-tab": "Cerrar pestaña (Ctrl+W)",
+      "cancel": "Cancelar",
+      "loading": "Cargando…",
+      "searching": "Buscando…",
+      "no-results": "Sin coincidencias",
+      "empty-folder": "Esta carpeta está vacía",
+      "link-name": "Enlace a {name}",
+      "path": {
+        "edit": "Escribir una ubicación (Ctrl+L)"
+      },
+      "view": {
+        "list": "Lista (Ctrl+1)",
+        "grid": "Iconos (Ctrl+2)",
+        "columns": "Columnas (Ctrl+3)"
+      },
+      "find": {
+        "title": "Filtrar o buscar (Ctrl+F)",
+        "filter-placeholder": "Filtrar esta carpeta…",
+        "search-placeholder": "Buscar aquí y en las subcarpetas…",
+        "recursive": "Subcarpetas",
+        "recursive-hint": "Buscar también dentro de las subcarpetas"
+      },
+      "sort": {
+        "name": "Ordenar por nombre",
+        "size": "Ordenar por tamaño",
+        "modified": "Ordenar por fecha de modificación",
+        "type": "Ordenar por tipo"
+      },
+      "section": {
+        "places": "LUGARES",
+        "bookmarks": "MARCADORES",
+        "devices": "DISPOSITIVOS",
+        "network": "RED"
+      },
+      "places": {
+        "home": "Carpeta personal",
+        "recent": "Recientes",
+        "trash": "Papelera",
+        "computer": "Equipo",
+        "network": "Explorar la red",
+        "connect": "Conectar a servidor…"
+      },
+      "status": {
+        "items": "{count} elemento",
+        "items-plural": "{count} elementos",
+        "selected": "{count} seleccionado",
+        "selected-plural": "{count} seleccionados"
+      },
+      "clipboard": {
+        "copied": "{count} elemento copiado",
+        "copied-plural": "{count} elementos copiados",
+        "cut": "{count} elemento cortado",
+        "cut-plural": "{count} elementos cortados",
+        "path": "Ruta copiada",
+        "empty": "No hay archivos para pegar"
+      },
+      "bookmark": {
+        "added": "Agregada a marcadores",
+        "removed": "Quitada de marcadores"
+      },
+      "hidden": {
+        "shown": "Mostrando archivos ocultos",
+        "hidden": "Ocultando archivos ocultos"
+      },
+      "mount": {
+        "failed": "No se pudo montar {name}"
+      },
+      "unmount": {
+        "done": "{name} ya se puede retirar",
+        "failed": "No se pudo desmontar {name}"
+      },
+      "menu": {
+        "title": "Menú",
+        "open": "Abrir",
+        "open-tab": "Abrir en una pestaña nueva",
+        "open-window": "Abrir en una ventana nueva",
+        "open-with": "Abrir con…",
+        "open-location": "Abrir la ubicación",
+        "new-tab": "Pestaña nueva (Ctrl+T)",
+        "new-window": "Ventana nueva (Ctrl+N)",
+        "new-folder": "Carpeta nueva (Ctrl+Mayús+N)",
+        "new-file": "Archivo vacío nuevo",
+        "cut": "Cortar (Ctrl+X)",
+        "copy": "Copiar (Ctrl+C)",
+        "paste": "Pegar (Ctrl+V)",
+        "paste-into": "Pegar en la carpeta",
+        "copy-path": "Copiar ruta (Ctrl+Mayús+C)",
+        "rename": "Renombrar (F2)",
+        "link": "Crear enlace (Ctrl+M)",
+        "bookmark-add": "Agregar a marcadores",
+        "bookmark-remove": "Quitar de marcadores",
+        "bookmark-toggle": "Marcador de esta carpeta (Ctrl+D)",
+        "terminal": "Abrir terminal aquí (F4)",
+        "trash": "Mover a la papelera (Supr)",
+        "delete": "Borrar para siempre (Mayús+Supr)",
+        "restore": "Restaurar",
+        "empty-trash": "Vaciar la papelera",
+        "properties": "Propiedades (Alt+Intro)",
+        "select-all": "Seleccionar todo (Ctrl+A)",
+        "show-hidden": "Mostrar archivos ocultos (Ctrl+H)",
+        "folders-first": "Carpetas primero",
+        "sidebar": "Panel lateral (F9)",
+        "undo": "Deshacer (Ctrl+Z)",
+        "redo": "Rehacer (Ctrl+Mayús+Z)",
+        "unmount": "Desmontar",
+        "eject": "Expulsar",
+        "send": "Enviar a…",
+        "folder-color": "Color de carpeta…",
+        "folder-color-all": "Color de todas las carpetas…",
+        "custom-icon": "Icono personalizado…",
+        "custom-icon-clear": "Quitar icono personalizado",
+        "thumbnails": "Mostrar miniaturas",
+        "connect": "Conectar a servidor…",
+        "rename-many": "Renombrar… (F2)",
+        "compress": "Comprimir…",
+        "extract": "Extraer aquí",
+        "split": "Dos paneles (F3)",
+        "copy-other": "Copiar al otro panel",
+        "move-other": "Mover al otro panel",
+        "clear-recent": "Borrar historial de recientes"
+      },
+      "rename": {
+        "title": "Renombrar",
+        "action": "Renombrar"
+      },
+      "new": {
+        "folder-title": "Carpeta nueva",
+        "file-title": "Archivo vacío nuevo",
+        "folder-default": "Carpeta nueva",
+        "file-default": "Archivo nuevo.txt",
+        "action": "Crear"
+      },
+      "conflict": {
+        "title": "«{name}» ya existe",
+        "folder-title": "La carpeta «{name}» ya existe",
+        "body": "Ya hay un elemento con ese nombre en {folder}.",
+        "existing": "Existente",
+        "incoming": "Nuevo",
+        "all": "Aplicar a todos los conflictos",
+        "skip": "Omitir",
+        "keep-both": "Conservar ambos",
+        "replace": "Reemplazar",
+        "merge": "Combinar"
+      },
+      "delete": {
+        "title": "¿Borrar «{name}» para siempre?",
+        "title-plural": "¿Borrar {count} elementos para siempre?",
+        "body": "No se podrá deshacer.",
+        "no-trash": "Esta ubicación no tiene papelera. ¿Borrar para siempre? No se podrá deshacer.",
+        "action": "Borrar"
+      },
+      "empty-trash": {
+        "title": "¿Vaciar la papelera?",
+        "body": "Todo lo que hay en la papelera se borrará para siempre.",
+        "action": "Vaciar"
+      },
+      "errors": {
+        "title": "Algunos elementos no se pudieron procesar",
+        "more": "…y {count} más",
+        "more-plural": "…y {count} más"
+      },
+      "op": {
+        "copy": "Copiando {name}",
+        "move": "Moviendo {name}",
+        "link": "Enlazando {name}",
+        "trash": "Moviendo {name} a la papelera",
+        "delete": "Borrando {name}",
+        "restore": "Restaurando {name}",
+        "rename": "Renombrando",
+        "new": "Creando",
+        "queued": "(+{count} en cola)",
+        "queued-plural": "(+{count} en cola)",
+        "cancel": "Cancelar la operación",
+        "cancelled": "Operación cancelada",
+        "trashed": "{count} elemento a la papelera (Ctrl+Z para deshacer)",
+        "trashed-plural": "{count} elementos a la papelera (Ctrl+Z para deshacer)"
+      },
+      "open-with": {
+        "title": "Abrir con",
+        "default": "Usar siempre para este tipo de archivo"
+      },
+      "prop": {
+        "type": "Tipo",
+        "location": "Ubicación",
+        "origin": "Ubicación original",
+        "target": "Apunta a",
+        "size": "Tamaño",
+        "counting": "Calculando…",
+        "contents": "{count} archivo, {folders} carpetas",
+        "contents-plural": "{count} archivos, {folders} carpetas",
+        "many": "{count} elemento",
+        "many-plural": "{count} elementos",
+        "modified": "Modificado",
+        "permissions": "Permisos",
+        "free": "Espacio libre",
+        "free-value": "{free} libres de {total}"
+      },
+      "share": {
+        "title": "Enviar «{name}»",
+        "title-plural": "Enviar {count} elementos",
+        "searching": "Buscando dispositivos y apps…",
+        "none": "No hay a dónde enviar: instala LocalSend o empareja un teléfono con KDE Connect o un dispositivo Bluetooth.",
+        "kdeconnect": "{name} (KDE Connect)",
+        "bluetooth": "{name} (Bluetooth)",
+        "email": "Correo ({app})",
+        "bluetooth-rejected": "el dispositivo rechazó la transferencia o no respondió",
+        "sending": "Enviando a {name}…",
+        "opening": "Abriendo {name}…",
+        "sent": "Enviado a {name}",
+        "failed": "No se pudo enviar a {name}",
+        "no-folders": "{name} solo acepta archivos, no carpetas",
+        "no-local": "Solo se pueden enviar archivos locales"
+      },
+      "metadata": {
+        "failed": "No se pudo guardar el cambio (esta ubicación no lo admite)"
+      },
+      "icon": {
+        "choose": "Elegir un icono",
+        "filter": "Imágenes"
+      },
+      "preview": {
+        "failed": "No se pudo abrir este archivo",
+        "locked": "Este PDF tiene contraseña",
+        "office-failed": "LibreOffice no pudo convertir este documento",
+        "converting": "Preparando la vista previa con LibreOffice…",
+        "previous": "Página anterior",
+        "next": "Página siguiente",
+        "zoom-out": "Alejar",
+        "zoom-in": "Acercar",
+        "fit": "Ajustar",
+        "open": "Abrir"
+      },
+      "phone": {
+        "mounting": "Abriendo {name}… (desbloquea el teléfono si lo pide)",
+        "failed": "No se pudo abrir {name}"
+      },
+      "connect": {
+        "title": "Conectar a servidor",
+        "available": "Disponibles en este equipo: {schemes}",
+        "recent": "SERVIDORES RECIENTES",
+        "no-scheme": "Escribe la dirección con su protocolo, p. ej. smb://servidor/carpeta",
+        "missing": "{scheme}:// no está disponible: instala el paquete {package}",
+        "connecting": "Conectando con {address}…"
+      },
+      "auth": {
+        "user": "Usuario",
+        "domain": "Dominio",
+        "password": "Contraseña",
+        "passphrase": "Frase de paso",
+        "anonymous": "Conectar como anónimo",
+        "save-never": "Olvidar",
+        "save-session": "Hasta cerrar sesión",
+        "save-forever": "Recordar (llavero)",
+        "connect": "Conectar"
+      },
+      "bulk": {
+        "title": "Renombrar {count} elemento",
+        "title-plural": "Renombrar {count} elementos",
+        "replace": "Reemplazar texto",
+        "number": "Numerar",
+        "affix": "Agregar texto",
+        "find": "Buscar",
+        "with": "Reemplazar por",
+        "base": "Nombre (p. ej. Vacaciones → Vacaciones 01.jpg)",
+        "start": "Empezar en",
+        "prefix": "Antes del nombre",
+        "suffix": "Después del nombre (antes de la extensión)",
+        "invalid": "Algún nombre queda vacío o tiene «/»",
+        "duplicate": "«{name}» quedaría repetido"
+      },
+      "archive": {
+        "title": "Comprimir {count} elemento",
+        "title-plural": "Comprimir {count} elementos",
+        "name": "Nombre del comprimido",
+        "hint": ".zip se abre en cualquier equipo; .tar.xz y .7z comprimen más.",
+        "action": "Comprimir",
+        "compressing": "Comprimiendo {name}…",
+        "compressed": "Se creó {name}",
+        "failed": "No se pudo comprimir",
+        "extracting": "Extrayendo {count} comprimido…",
+        "extracting-plural": "Extrayendo {count} comprimidos…",
+        "extracted": "Extraído",
+        "extract-failed": "No se pudo extraer {detail}"
+      },
+      "pick": {
+        "title": "Elegir un archivo",
+        "name": "Nombre",
+        "save": "Guardar",
+        "open": "Abrir",
+        "choose-folder": "Elegir esta carpeta",
+        "replace-title": "¿Reemplazar «{name}»?",
+        "replace-body": "Ya hay un archivo con ese nombre en esta carpeta."
+      },
+      "recent-cleared": "Historial de recientes borrado",
+      "recent-clear-failed": "No se pudo borrar el historial de recientes"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "apps": {
+    "play": {
+      "title": "Reproductor multimedia",
+      "open": "Abrir…",
+      "filter": "Audio y video",
+      "close": "Cerrar",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "back": "Atrás 10 segundos",
+      "forward": "Adelante 10 segundos",
+      "play": "Reproducir",
+      "pause": "Pausar",
+      "mute": "Silenciar",
+      "unmute": "Activar sonido",
+      "fullscreen": "Pantalla completa",
+      "subtitles-off": "Sin subtítulos",
+      "track": "Pista {number}",
+      "empty": {
+        "title": "No hay nada en reproducción",
+        "hint": "Abre un video o una canción, o ábrelo desde tu explorador de archivos"
+      }
+    }
+  }
+}

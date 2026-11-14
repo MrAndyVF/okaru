@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
 
   okaru::apps::OkaruApp app({
       .appId = "dev.okaru.Pdf",
+      .dataName = "pdf",
       .titleKey = "apps.pdf.title",
       .width = 900.0F,
       .height = 1000.0F,

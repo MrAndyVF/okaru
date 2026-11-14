@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
 
   okaru::apps::OkaruApp app({
       .appId = "dev.okaru.Editor",
+      .dataName = "editor",
       .titleKey = "apps.edit.title",
       .width = 1000.0F,
       .height = 760.0F,

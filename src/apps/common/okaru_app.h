@@ -45,6 +45,7 @@ namespace okaru::apps {
 
   struct AppOptions {
     const char* appId = "dev.okaru.App";
+    const char* dataName = nullptr; // carpeta de la app en apps/ (sus traducciones); nullptr = sin datos propios
     std::string titleKey; // clave i18n del título; se traduce al abrir, con el idioma de la config
     std::string title;    // título literal (gana sobre titleKey), p. ej. el que pide una app al selector
     float width = 400.0F; // tamaño lógico, antes de accessibility.ui_scale

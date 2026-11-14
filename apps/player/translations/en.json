@@ -1,0 +1,25 @@
+{
+  "apps": {
+    "play": {
+      "title": "Media Player",
+      "open": "Open…",
+      "filter": "Audio and video",
+      "close": "Close",
+      "previous": "Previous",
+      "next": "Next",
+      "back": "Back 10 seconds",
+      "forward": "Forward 10 seconds",
+      "play": "Play",
+      "pause": "Pause",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "fullscreen": "Fullscreen",
+      "subtitles-off": "No subtitles",
+      "track": "Track {number}",
+      "empty": {
+        "title": "Nothing playing",
+        "hint": "Open a video or a song, or open it from your file manager"
+      }
+    }
+  }
+}

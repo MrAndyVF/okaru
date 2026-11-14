@@ -441,7 +441,7 @@ namespace okaru::files {
           destination.reset(g_file_get_child(folder.get(), uniqueName(request.destination, base).c_str()));
           g_free(base);
         } else if (g_file_has_prefix(destination.get(), source.get()) != FALSE) {
-          job.result.errors.push_back(i18n::tr("apps.files.error.into-itself", "name", nameOf(source.get())));
+          job.result.errors.push_back(i18n::tr("apps.common.error.into-itself", "name", nameOf(source.get())));
           continue;
         } else if (g_file_query_exists(destination.get(), nullptr) != FALSE) {
           const bool merge =
@@ -543,7 +543,7 @@ namespace okaru::files {
           trashed = findInTrash(original);
         }
         if (trashed == nullptr || original.empty()) {
-          job.result.errors.push_back(i18n::tr("apps.files.error.not-in-trash", "name", displayNameOf(uri)));
+          job.result.errors.push_back(i18n::tr("apps.common.error.not-in-trash", "name", displayNameOf(uri)));
           continue;
         }
         FilePtr destination(g_file_new_for_path(original.c_str()));

@@ -4158,12 +4158,12 @@ namespace okaru::files {
     }
     case Overlay::FolderColor: {
       heading(
-          m_colorTargets.empty() ? tr("apps.files.color.title-all")
-                                 : trp("apps.files.color.title", static_cast<long>(m_colorTargets.size()), "name",
+          m_colorTargets.empty() ? tr("apps.common.color.title-all")
+                                 : trp("apps.common.color.title", static_cast<long>(m_colorTargets.size()), "name",
                                        displayNameOf(m_colorTargets.front()))
       );
       if (m_colorTargets.empty()) {
-        body(tr("apps.files.color.body-all"));
+        body(tr("apps.common.color.body-all"));
       }
       // Muestras: tema (sin cambio), acento de OKARU y los colores de Papirus.
       const std::string current = m_colorTargets.empty() ? m_icons.defaultFolderColor() : std::string("-");
@@ -4174,8 +4174,8 @@ namespace okaru::files {
         const char* glyph;
       };
       std::vector<Swatch> swatches{
-          {"", tr("apps.files.color.theme"), colorSpecFromRole(ColorRole::SurfaceContainerHighest), "x"},
-          {"accent", tr("apps.files.color.accent"), colorSpecFromRole(ColorRole::Primary), "palette"},
+          {"", tr("apps.common.color.theme"), colorSpecFromRole(ColorRole::SurfaceContainerHighest), "x"},
+          {"accent", tr("apps.common.color.accent"), colorSpecFromRole(ColorRole::Primary), "palette"},
       };
       for (const auto& option : folderColorOptions()) {
         swatches.push_back({option.id, tr(option.label), fixedColorSpec(option.color), nullptr});
