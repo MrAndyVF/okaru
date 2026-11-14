@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
   okaru::apps::OkaruApp app({
       .appId = picking ? "dev.okaru.FilePicker" : "dev.okaru.Files",
+      .dataName = "files",
       .titleKey = picking ? "apps.files.pick.title" : "apps.files.title",
       .title = picking ? picker.title : std::string(),
       .width = picking ? 1000.0F : 1200.0F,

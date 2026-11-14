@@ -427,6 +427,10 @@ def main() -> int:
     catalog: dict[str, str] = {}
     with args.translations.open(encoding="utf-8") as f:
         flatten_json_strings(json.load(f), "", catalog)
+    # OKARU: las apps traen su propio catálogo (apps/<app>/translations/<idioma>.json) que se suma al del núcleo.
+    for app_catalog in sorted((ROOT / "apps").glob(f"*/translations/{args.translations.name}")):
+        with app_catalog.open(encoding="utf-8") as f:
+            flatten_json_strings(json.load(f), "", catalog)
 
     all_tr: set[str] = set()
     all_trp: set[str] = set()

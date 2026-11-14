@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
 
   okaru::apps::OkaruApp app({
       .appId = "dev.okaru.Archive",
+      .dataName = "archive",
       .titleKey = "apps.archive.title",
       .width = 900.0F,
       .height = 620.0F,

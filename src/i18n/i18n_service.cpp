@@ -50,6 +50,34 @@ namespace i18n {
     return s_instance;
   }
 
+  void Service::addCatalogDirectory(std::filesystem::path dir) {
+    if (std::ranges::contains(m_extraDirs, dir)) {
+      return;
+    }
+    m_extraDirs.push_back(std::move(dir));
+    if (m_initialized) {
+      const std::string requested = m_requestedLanguage;
+      init(requested);
+    }
+  }
+
+  void Service::mergeExtraCatalogs(std::string_view lang, Catalog& out) const {
+    for (const auto& dir : m_extraDirs) {
+      std::ifstream file(dir / (std::string(lang) + ".json"));
+      if (!file.is_open()) {
+        continue;
+      }
+      try {
+        const auto json = nlohmann::json::parse(file);
+        if (json.is_object()) {
+          flatten(json, {}, out);
+        }
+      } catch (const std::exception& e) {
+        kLog.error("failed to parse {}: {}", (dir / (std::string(lang) + ".json")).string(), e.what());
+      }
+    }
+  }
+
   bool Service::loadCatalog(std::string_view lang, Catalog& out) const {
     const std::filesystem::path path = paths::assetPath("translations/" + std::string(lang) + ".json");
     std::ifstream file(path);
@@ -64,6 +92,7 @@ namespace i18n {
       }
       Catalog fresh;
       flatten(json, {}, fresh);
+      mergeExtraCatalogs(lang, fresh);
       out = std::move(fresh);
       return true;
     } catch (const std::exception& e) {
@@ -73,6 +102,7 @@ namespace i18n {
   }
 
   void Service::init(std::string_view preferredLang) {
+    m_initialized = true;
     const std::string candidate = resolveRequestedLanguage(preferredLang);
     m_requestedLanguage = candidate;
 

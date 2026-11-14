@@ -10,6 +10,7 @@ int main() {
 
   okaru::apps::OkaruApp app({
       .appId = "dev.okaru.Calculator",
+      .dataName = "calculator",
       .titleKey = "apps.calc.title",
       .width = 440.0F,
       .height = 760.0F,

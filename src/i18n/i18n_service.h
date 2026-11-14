@@ -5,7 +5,9 @@
 #include <functional>
 #include <string>
 #include <string_view>
+#include <filesystem>
 #include <unordered_map>
+#include <vector>
 
 namespace i18n {
 
@@ -75,6 +77,9 @@ namespace i18n {
     void init(std::string_view preferredLang = {});
 
     void setLanguage(std::string_view lang);
+    // OKARU: catálogos de una app (<dir>/<idioma>.json) que se suman al del núcleo; las claves de la app ganan.
+    // Llamarlo antes de init(); si ya hay idioma cargado, se recarga.
+    void addCatalogDirectory(std::filesystem::path dir);
     [[nodiscard]] std::string_view language() const noexcept { return m_language; }
     [[nodiscard]] std::string_view requestedLanguage() const noexcept { return m_requestedLanguage; }
     [[nodiscard]] bool rtl() const noexcept { return m_rtl; }
@@ -85,12 +90,15 @@ namespace i18n {
 
   private:
     bool loadCatalog(std::string_view lang, Catalog& out) const;
+    void mergeExtraCatalogs(std::string_view lang, Catalog& out) const;
 
     Catalog m_active;
     Catalog m_fallback;
     std::string m_language;
     std::string m_requestedLanguage;
     bool m_rtl = false;
+    std::vector<std::filesystem::path> m_extraDirs;
+    bool m_initialized = false;
   };
 
 } // namespace i18n

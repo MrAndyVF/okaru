@@ -109,4 +109,8 @@ namespace paths {
     return assetsRoot() / std::filesystem::path(std::string(relativePath));
   }
 
+  std::filesystem::path appDataDir(std::string_view app) {
+    return assetsRoot().parent_path() / "apps" / std::string(app);
+  }
+
 } // namespace paths

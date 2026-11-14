@@ -1345,6 +1345,11 @@ foreach _header : run_command('find', 'src', '-name', '*.h', check: true).stdout
   endif
 endforeach
 
+# OKARU: los textos de cada app van con ella (/usr/share/okaru/apps/<app>/translations), no en el catálogo del núcleo.
+foreach _app : ['archive', 'calculator', 'editor', 'files', 'pdf', 'player', 'viewer']
+  install_subdir('apps' / _app / 'translations', install_dir: get_option('datadir') / 'okaru' / 'apps' / _app)
+endforeach
+
 _pkgconfig = import('pkgconfig')
 _okaru_pc_requires = []
 foreach _dep : _okaru_system_dependencies

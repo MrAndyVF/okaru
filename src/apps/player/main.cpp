@@ -21,6 +21,7 @@ int main(int argc, char* argv[]) {
 
   okaru::apps::OkaruApp app({
       .appId = "dev.okaru.Player",
+      .dataName = "player",
       .titleKey = "apps.play.title",
       .width = 1100.0F,
       .height = 700.0F,

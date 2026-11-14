@@ -1,5 +1,7 @@
 #include "apps/common/okaru_app.h"
 
+#include "core/files/resource_paths.h"
+
 #include "app/deferred_call_poll_source.h"
 #include "app/main_loop.h"
 #include "app/timer_poll_source.h"
@@ -99,6 +101,9 @@ namespace okaru::apps {
     std::signal(SIGTERM, onSignal);
     std::signal(SIGINT, onSignal);
 
+    if (m_options.dataName != nullptr) {
+      i18n::Service::instance().addCatalogDirectory(paths::appDataDir(m_options.dataName) / "translations");
+    }
     i18n::Service::instance().init(m_config.config().shell.lang);
     if (!m_wayland.connect() || !m_wayland.hasXdgShell()) {
       kLog.error("cannot connect to the Wayland display");
