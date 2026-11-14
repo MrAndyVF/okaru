@@ -59,6 +59,12 @@ jobs:
   compilacion-y-pruebas:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
+    env:
+      # ccache (meson lo usa solo si está instalado) y mold como enlazador: lo que no cambió no se recompila.
+      CCACHE_COMPRESS: "1"
+      CCACHE_MAXSIZE: 3G
+      CC_LD: mold
+      CXX_LD: mold
     steps:
       - uses: actions/checkout@v4
       - name: Dependencias
@@ -67,11 +73,22 @@ jobs:
           source "$PKGBUILD"
           # dbus: las pruebas de integración usan dbus-run-session. ttf-dejavu: el contenedor no trae fuentes
           # y las pruebas que miden texto necesitan al menos una.
-          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" dbus ttf-dejavu >/dev/null
+          pacman -S --noconfirm --needed "${depends[@]}" "${makedepends[@]}" dbus ttf-dejavu ccache mold >/dev/null
+          # Rutas del contenedor (github.workspace sería la del anfitrión).
+          echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_BASEDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+      - name: Caché de compilación
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-verificacion-${{ github.sha }}
+          restore-keys: ccache-verificacion-
       - name: Compilar
         run: |
+          ccache -z
           meson setup build -Dtests=enabled
           meson compile -C build
+          ccache -s
       - name: Pruebas
         run: meson test -C build --print-errorlogs --num-processes "$(nproc)"
 
