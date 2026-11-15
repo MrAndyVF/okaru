@@ -297,53 +297,30 @@ namespace okaru::theme {
     }
 
     // OKARU: catálogo remoto + local; una plantilla local reemplaza a la remota del mismo id.
-    std::vector<CommunityTemplateInfo> loadCatalog() {
-      auto remote = parseCatalogFile(catalogCachePath());
-      auto local = parseCatalogFile(localCatalogPath());
-      std::erase_if(remote, [&local](const CommunityTemplateInfo& info) {
-        return std::ranges::contains(local, info.id, &CommunityTemplateInfo::id);
-      });
-      local.insert(local.end(), std::make_move_iterator(remote.begin()), std::make_move_iterator(remote.end()));
-      return local;
-    }
+    std::vector<CommunityTemplateInfo> loadCatalog() { return parseCatalogFile(catalogCachePath()); }
 
-    // OKARU: una sola vez, convierte en plantillas propias las que están completas en disco (venían del
-    // catálogo de noctalia.dev, que ya no se usa). El md5 sale del archivo local.
-    void ensureLocalCatalog() {
+    // OKARU: lo que el catálogo ya no trae (hooks de versiones anteriores) no se queda en la caché.
+    void removeFilesNotInCatalog(
+        const std::filesystem::path& dir, const CommunityTemplateInfo& info, CacheMetadata& metadata
+    ) {
       std::error_code ec;
-      if (std::filesystem::exists(localCatalogPath(), ec) || !std::filesystem::exists(catalogCachePath(), ec)) {
-        return;
-      }
-      nlohmann::json out = nlohmann::json::array();
-      try {
-        std::ifstream in(catalogCachePath());
-        const auto root = nlohmann::json::parse(in);
-        const nlohmann::json& items = root.is_object() && root.contains("templates") ? root["templates"] : root;
-        for (const auto& item : items) {
-          const std::string id = item.value("name", std::string{});
-          if (id.empty() || !isSafeCommunityTemplateId(id) || !item.contains("files")) {
-            continue;
-          }
-          nlohmann::json copy = item;
-          bool complete = true;
-          for (auto& file : copy["files"]) {
-            const auto path = communityTemplateDir(id) / file.value("name", std::string{});
-            if (!std::filesystem::is_regular_file(path, ec)) {
-              complete = false;
-              break;
-            }
-            file["md5"] = util::fileMd5Hex(path);
-          }
-          if (complete) {
-            out.push_back(std::move(copy));
-          }
+      std::vector<std::filesystem::path> stale;
+      for (const auto& entry : std::filesystem::recursive_directory_iterator(dir, ec)) {
+        std::error_code typeEc;
+        // template.toml se genera desde `entries` cuando el catálogo las trae, aunque no esté en `files`.
+        if (!entry.is_regular_file(typeEc) || entry.path() == cacheMetadataPath(dir)
+            || (!info.entries.empty() && entry.path() == communityTemplateConfigPath(info.id))) {
+          continue;
         }
-      } catch (const std::exception& e) {
-        kLog.warn("could not build local template catalog: {}", e.what());
-        return;
+        const std::string name = entry.path().lexically_relative(dir).generic_string();
+        if (!std::ranges::contains(info.files, name, &CommunityTemplateFile::name)) {
+          stale.push_back(entry.path());
+        }
       }
-      std::ofstream(localCatalogPath()) << out.dump(1);
-      kLog.info("{} community templates kept as local forks", out.size());
+      for (const auto& path : stale) {
+        std::filesystem::remove(path, ec);
+        metadata.fileMd5s.erase(path.lexically_relative(dir).generic_string());
+      }
     }
 
     std::optional<CommunityTemplateInfo>
@@ -734,7 +711,8 @@ namespace okaru::theme {
     std::error_code ec;
     const std::filesystem::path cacheDir = communityTemplatesCacheDir();
     std::filesystem::create_directories(cacheDir, ec);
-    ensureLocalCatalog(); // OKARU: antes de que el catálogo propio reemplace al viejo
+    // OKARU: los forks locales de la época de noctalia.dev dejan paso al catálogo de okaru-templates.
+    std::filesystem::remove(localCatalogPath(), ec);
     if (!templates.communityIds.empty()) {
       syncSelectedFromCatalog(templates.communityIds, generation, false);
     }
@@ -910,6 +888,7 @@ namespace okaru::theme {
             }
         );
       }
+      removeFilesNotInCatalog(dir, *info, *metadata);
       writeCacheMetadata(dir, *metadata);
     }
 

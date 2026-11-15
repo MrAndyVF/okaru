@@ -120,42 +120,9 @@ namespace okaru::theme {
     }
 
     std::vector<AvailablePalette> loadCatalog() {
-      auto remote = parseCatalogFile(catalogCachePath());
-      auto local = parseCatalogFile(localCatalogPath());
-      std::erase_if(remote, [&local](const AvailablePalette& p) {
-        return std::ranges::contains(local, p.name, &AvailablePalette::name);
-      });
-      local.insert(local.end(), std::make_move_iterator(remote.begin()), std::make_move_iterator(remote.end()));
-      std::ranges::sort(local, {}, &AvailablePalette::name);
-      return local;
-    }
-
-    // OKARU: una sola vez, las paletas descargadas pasan a ser propias (md5 del archivo local).
-    void ensureLocalCatalog() {
-      std::error_code ec;
-      if (std::filesystem::exists(localCatalogPath(), ec) || !std::filesystem::exists(catalogCachePath(), ec)) {
-        return;
-      }
-      nlohmann::json out = nlohmann::json::array();
-      try {
-        std::ifstream in(catalogCachePath());
-        const auto root = nlohmann::json::parse(in);
-        const nlohmann::json& items = root.is_object() && root.contains("palettes") ? root["palettes"] : root;
-        for (const auto& item : items) {
-          const std::string name = paletteNameFromJson(item);
-          const auto path = communityPaletteCachePath(name);
-          if (name.empty() || !std::filesystem::is_regular_file(path, ec)) {
-            continue;
-          }
-          nlohmann::json copy = item;
-          copy["md5"] = util::fileMd5Hex(path);
-          out.push_back(std::move(copy));
-        }
-      } catch (const std::exception& e) {
-        kLog.warn("could not build local palette catalog: {}", e.what());
-        return;
-      }
-      std::ofstream(localCatalogPath()) << out.dump(1);
+      auto catalog = parseCatalogFile(catalogCachePath());
+      std::ranges::sort(catalog, {}, &AvailablePalette::name);
+      return catalog;
     }
 
   } // namespace
@@ -169,7 +136,8 @@ namespace okaru::theme {
     const std::filesystem::path path = catalogCachePath();
     std::error_code ec;
     std::filesystem::create_directories(path.parent_path(), ec);
-    ensureLocalCatalog(); // OKARU: antes de que el catálogo propio reemplace al viejo
+    // OKARU: los forks locales de la época de noctalia.dev dejan paso al catálogo de okaru-palettes.
+    std::filesystem::remove(localCatalogPath(), ec);
 
     m_httpClient.download(kCatalogUrl, path, [this, generation, path](bool success) {
       if (generation != m_generation) {
