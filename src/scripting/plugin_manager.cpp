@@ -40,10 +40,6 @@ namespace scripting {
     // sources in config order, then the local data dir.
     std::vector<std::filesystem::path> pluginSourceRoots(const PluginsConfig& plugins) {
       std::vector<std::filesystem::path> roots;
-      // OKARU: los módulos integrados primero (menor precedencia).
-      if (auto integrated = plugin_paths::integratedSourceRoot(); !integrated.empty()) {
-        roots.push_back(std::move(integrated));
-      }
       for (const auto& source : plugins.sources) {
         if (!source.enabled) {
           continue;
@@ -539,21 +535,6 @@ namespace scripting {
           break;
         }
       }
-      // OKARU: los módulos integrados (assets/modules) también se pueden activar; menor precedencia.
-      if (!offering.has_value()) {
-        if (const auto integrated = plugin_paths::integratedSourceRoot(); !integrated.empty()) {
-          const PluginSourceConfig integratedSource{
-              .kind = PluginSourceKind::Path,
-              .name = std::string(plugin_paths::kIntegratedSourceName),
-              .location = integrated.string()
-          };
-          const auto catalog = discoverCatalog(integratedSource, CatalogAccess::Network);
-          if (const auto* entry = findCatalogEntry(catalog.entries, id); entry != nullptr) {
-            offering = Offering{.source = integratedSource, .entry = *entry};
-          }
-        }
-      }
-
       bool ok = false;
       bool incompatible = false;
       bool timedOut = false;
@@ -785,15 +766,6 @@ namespace scripting {
           .location = (std::filesystem::path(data) / "plugins").string()
       };
       collect("local", discoverCatalog(localSource, access), localSource);
-    }
-    // OKARU: módulos integrados, de solo lectura (no se actualizan ni se quitan).
-    if (const auto integrated = plugin_paths::integratedSourceRoot(); !integrated.empty()) {
-      PluginSourceConfig integratedSource{
-          .kind = PluginSourceKind::Path,
-          .name = plugin_paths::kIntegratedSourceName,
-          .location = integrated.string()
-      };
-      collect(integratedSource.name, discoverCatalog(integratedSource, access), integratedSource);
     }
     // Reverse config order: a later user source outranks earlier ones and the defaults.
     for (const auto& source : std::views::reverse(plugins.sources)) {

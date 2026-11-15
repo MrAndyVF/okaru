@@ -2568,10 +2568,6 @@
           "description": "Choose the system icon theme.",
           "button": "Open icon manager"
         }
-      },
-      "plugins": {
-        "integrated": "Built-in",
-        "integrated-desc": "Modules shipped with OKARU. They can be enabled, disabled and configured, but not removed."
       }
     },
     "options": {

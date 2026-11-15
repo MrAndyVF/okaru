@@ -2610,10 +2610,6 @@
           "description": "Elige el tema de iconos del sistema.",
           "button": "Abrir gestor de iconos"
         }
-      },
-      "plugins": {
-        "integrated": "Integrados",
-        "integrated-desc": "Módulos que vienen con OKARU. Se pueden activar, desactivar y configurar, pero no borrar."
       }
     },
     "options": {

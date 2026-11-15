@@ -322,7 +322,6 @@ namespace settings {
 
       const bool removable = ctx.onRemove
           && plugin.source != "local"
-          && plugin.source != scripting::plugin_paths::kIntegratedSourceName // OKARU: viven en assets, solo se desactivan
           && !std::ranges::any_of(ctx.sources, [&](const PluginSourceConfig& s) {
                                return s.name == plugin.source && s.kind == PluginSourceKind::Path;
                              });
@@ -714,12 +713,10 @@ namespace settings {
       section->addChild(std::move(titleRow));
     }
 
-    const std::string integratedTitle = i18n::tr("settings.okaru.plugins.integrated"); // OKARU
     const std::string sourcesTitle = i18n::tr("settings.plugins.sources.title");
     const std::string pluginsTitle = i18n::tr("settings.plugins.plugins.title");
     auto [pageIt, fresh] = ctx.expandedGroupsByPage.try_emplace("plugins");
     if (fresh) {
-      pageIt->second.insert("integrated");
       pageIt->second.insert("plugins");
       if (ctx.expandAllGroups) {
         pageIt->second.insert("sources");
@@ -727,19 +724,9 @@ namespace settings {
     }
     auto& expandedGroups = pageIt->second;
 
-    Button* integratedPill = nullptr;
     Button* sourcesPill = nullptr;
     Button* pluginsPill = nullptr;
     if (ctx.groupJumpRow != nullptr && !ctx.searchActive) {
-      ctx.groupJumpRow->addChild(
-          ui::button({
-              .out = &integratedPill,
-              .text = integratedTitle,
-              .fontSize = Style::fontSizeCaption * scale,
-              .variant = expandedGroups.contains("integrated") ? ButtonVariant::Primary : ButtonVariant::Default,
-              .radius = Style::scaledRadiusMd(scale),
-          })
-      );
       ctx.groupJumpRow->addChild(
           ui::button({
               .out = &sourcesPill,
@@ -762,36 +749,6 @@ namespace settings {
 
     if (ctx.config != nullptr && ctx.config->shell.offlineMode) {
       section->addChild(makeOfflineModeNotice(scale, i18n::tr("settings.window.offline-mode-notice.plugins")));
-    }
-
-    // OKARU: módulos integrados (assets/modules): se activan, desactivan y configuran, no se borran.
-    Flex* integratedBody = addSettingsGroupCard(
-        SettingsGroupCardProps{
-            .parent = *section,
-            .group = "integrated",
-            .title = integratedTitle,
-            .scale = scale,
-            .expandedGroups = expandedGroups,
-            .pill = integratedPill,
-            .scrollToTop = ctx.scrollContentToTop,
-        }
-    );
-    integratedBody->addChild(makeLabel(
-        i18n::tr("settings.okaru.plugins.integrated-desc"), Style::fontSizeCaption * scale, ColorRole::OnSurfaceVariant
-    ));
-    {
-      std::vector<const scripting::PluginStatus*> integrated;
-      for (const auto& plugin : ctx.plugins) {
-        if (plugin.source == scripting::plugin_paths::kIntegratedSourceName) {
-          integrated.push_back(&plugin);
-        }
-      }
-      std::ranges::sort(integrated, [](const auto* a, const auto* b) {
-        return StringUtils::toLower(pluginDisplayName(*a)) < StringUtils::toLower(pluginDisplayName(*b));
-      });
-      for (const auto* plugin : integrated) {
-        integratedBody->addChild(pluginRow(*plugin, ctx, scale));
-      }
     }
 
     Flex* sourcesBody = addSettingsGroupCard(
@@ -900,7 +857,7 @@ namespace settings {
     std::vector<scripting::PluginStatus> plugins;
     plugins.reserve(ctx.plugins.size());
     for (const auto& plugin : ctx.plugins) {
-      if ((plugin.materialized || plugin.enabled) && plugin.source != scripting::plugin_paths::kIntegratedSourceName) {
+      if (plugin.materialized || plugin.enabled) {
         plugins.push_back(plugin);
       }
     }

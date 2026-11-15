@@ -48,9 +48,6 @@ namespace scripting {
     if (roots.empty()) {
       // Implicit local source: the user data dir (honoring OKARU_DATA_HOME). When
       // the plugin manager is wired it injects the resolved git/path source roots.
-      if (auto integrated = scripting::plugin_paths::integratedSourceRoot(); !integrated.empty()) {
-        roots.push_back(std::move(integrated)); // OKARU
-      }
       if (const std::string data = FileUtils::dataDir(); !data.empty()) {
         roots.emplace_back(std::filesystem::path(data) / "plugins");
       }

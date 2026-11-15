@@ -30,12 +30,6 @@ namespace scripting::plugin_paths {
     return std::filesystem::path(data) / "plugins";
   }
 
-  std::filesystem::path integratedSourceRoot() {
-    std::error_code ec;
-    auto root = paths::assetPath("modules");
-    return std::filesystem::is_directory(root, ec) ? root : std::filesystem::path{};
-  }
-
   std::filesystem::path sourceStorageRoot(const PluginSourceConfig& source) {
     if (!isValidPluginSourceName(source.name)) {
       return {};
