@@ -10,6 +10,36 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.1.1] - 2026-11-15
+
+### English
+
+#### Fixes
+- `okaru msg plugins list` no longer freezes the shell while a plugin store update is running: local catalog reads
+  no longer wait for the update's lock.
+- Community templates from other stores (the old noctalia.dev ones) are removed from the cache, so Settings only lists
+  OKARU's own templates; an enabled template that is no longer in the store is kept.
+- Publishing: the apps are rebuilt with a new package release every time the core changes, so `pacman -Syu` updates
+  them together with `okaru-core` (1.3.1 could not be installed because of this).
+
+#### Changes
+- The PKGBUILD no longer lists the optional dependencies of the Claude Code, Cursor and Icons plugins: they come
+  from the plugin store, which shows the dependencies of each plugin.
+
+### Español
+
+#### Correcciones
+- `okaru msg plugins list` ya no congela la shell mientras se actualiza la tienda de plugins: las lecturas locales del
+  catálogo ya no esperan el candado de la actualización.
+- Las plantillas de comunidad de otras tiendas (las antiguas de noctalia.dev) se borran de la caché, así que Ajustes solo
+  lista las plantillas propias de OKARU; una plantilla activa que ya no esté en la tienda se conserva.
+- Publicación: las apps se vuelven a compilar con una nueva versión de paquete cada vez que cambia el núcleo, así que
+  `pacman -Syu` las actualiza junto con `okaru-core` (por esto la 1.3.1 no se podía instalar).
+
+#### Cambios
+- El PKGBUILD ya no lista las dependencias opcionales de los plugins Claude Code, Cursor e Iconos: vienen de la tienda
+  de plugins, que muestra las dependencias de cada uno.
+
 ## [1.3.1] - 2026-11-15
 
 ### English
