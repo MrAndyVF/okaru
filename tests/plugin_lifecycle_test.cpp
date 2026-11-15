@@ -887,6 +887,8 @@ int main() {
          .location = (root / "path-plugins").string(),
          .enabled = true}
     );
+    // Sin la tienda por defecto: su clon real desde GitHub retrasaba las activaciones y hacía fallar la prueba.
+    config.removePluginSource("okaru");
     scripting::PluginManager manager(config);
     manager.refresh();
     // The plugin store reads install state straight off disk, so a plugin whose files
