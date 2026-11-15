@@ -10,6 +10,46 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.1] - 2026-11-15
+
+### English
+
+#### Fixes
+- Community templates and palettes now always update from OKARU's own stores (`okaru-templates`, `okaru-palettes`).
+  Downloaded templates used to be frozen as "local forks" that always won over the store, so they never updated; on
+  a fresh install even the store's own templates froze from the second start. The leftover local catalog is removed
+  once.
+- An enabled template that gets updated is applied again right away, instead of waiting for the next palette change.
+- Files a template no longer ships (hooks from older versions) are removed from its cache.
+
+#### Changes
+- The Claude Code, Cursor and Icons plugins moved from the shell to the plugin store (`okaru-plugins`) with the same
+  ids, so their settings are kept; OKARU installs and updates them from there. The "Built-in" group in Settings →
+  Plugins is gone.
+- The 16 community templates were rewritten from scratch for OKARU (Claude Code, Discord, fastfetch, Heroic,
+  LibreOffice, lsd, micro, Neovim, OBS, Papirus folders, Prism Launcher, Starship, Steam, Telegram, Zed, Zen):
+  live reload where the app supports it, marked and reversible edits, and no repeated work when nothing changed.
+- The plugin lifecycle test no longer clones the store from GitHub (it failed intermittently on slow networks).
+
+### Español
+
+#### Correcciones
+- Las plantillas y paletas de la comunidad se actualizan siempre desde las tiendas propias de OKARU
+  (`okaru-templates`, `okaru-palettes`). Las plantillas descargadas quedaban congeladas como «copias locales» que
+  siempre ganaban a la tienda, así que nunca se actualizaban; en una instalación nueva, desde el segundo arranque se
+  congelaban incluso las de la propia tienda. El catálogo local que quedaba se borra una vez.
+- Una plantilla activa que se actualiza se vuelve a aplicar al momento, sin esperar al siguiente cambio de paleta.
+- Los archivos que una plantilla ya no trae (hooks de versiones anteriores) se borran de su caché.
+
+#### Cambios
+- Los plugins Claude Code, Cursor e Iconos pasaron de la shell a la tienda de plugins (`okaru-plugins`) con los
+  mismos ids, así que se conservan sus ajustes; OKARU los instala y actualiza desde ahí. Desaparece el grupo
+  «Integrados» de Ajustes → Plugins.
+- Las 16 plantillas de la comunidad se escribieron desde cero para OKARU (Claude Code, Discord, fastfetch, Heroic,
+  LibreOffice, lsd, micro, Neovim, OBS, carpetas de Papirus, Prism Launcher, Starship, Steam, Telegram, Zed, Zen):
+  recarga en vivo donde la app lo permite, cambios marcados y reversibles, y sin trabajo repetido cuando nada cambió.
+- La prueba del ciclo de vida de plugins ya no clona la tienda desde GitHub (fallaba a veces con red lenta).
+
 ## [1.3.0] - 2026-11-14
 
 ### English
