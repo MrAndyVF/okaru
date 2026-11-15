@@ -84,16 +84,27 @@ jobs:
           mkdir -p out && chown builder: out
           # El PKGBUILD clona la rama main del checkout; se asegura que exista y apunte al commit que se publica.
           sudo -u builder git -C "$GITHUB_WORKSPACE/okaru" checkout -q -B main
-          build() { # $1 = repo; su PKGBUILD lee la ruta del checkout de <REPO en mayúsculas>_REPO
-            local dir="$GITHUB_WORKSPACE/build-$1" var
-            var=$(echo "$1" | tr 'a-z-' 'A-Z_')_REPO
+          build() { # $1 = repo; su PKGBUILD lee la ruta del checkout de <REPO en mayúsculas>_REPO. $2 = pkgrel opcional
+            local repo="$1" dir="$GITHUB_WORKSPACE/build-$1" var
+            var=$(echo "$repo" | tr 'a-z-' 'A-Z_')_REPO
             sudo -u builder mkdir -p "$dir"
-            sudo -u builder cp "$GITHUB_WORKSPACE/$1/packaging/arch/PKGBUILD" "$dir/"
-            (cd "$dir" && sudo -u builder env \
-              CCACHE_DIR="$CCACHE_DIR" CCACHE_BASEDIR="$dir" CCACHE_COMPRESS=1 CCACHE_MAXSIZE=3G \
-              "$var=$GITHUB_WORKSPACE/$1" \
-              PKGDEST="$GITHUB_WORKSPACE/out" GPGKEY="$KEY_ID" \
-              makepkg --syncdeps --noconfirm --sign)
+            sudo -u builder cp "$GITHUB_WORKSPACE/$repo/packaging/arch/PKGBUILD" "$dir/"
+            mk() { # dentro de mk, $@ son las opciones de makepkg
+              (cd "$dir" && sudo -u builder env \
+                CCACHE_DIR="$CCACHE_DIR" CCACHE_BASEDIR="$dir" CCACHE_COMPRESS=1 CCACHE_MAXSIZE=3G \
+                "$var=$GITHUB_WORKSPACE/$repo" \
+                PKGDEST="$GITHUB_WORKSPACE/out" GPGKEY="$KEY_ID" \
+                makepkg --noconfirm "$@")
+            }
+            if [ -z "$2" ]; then
+              mk --syncdeps --sign
+              return
+            fi
+            # makepkg vuelve a pkgrel=1 cuando pkgver() cambia la versión: primero se resuelve la versión, luego se
+            # fija el pkgrel y se compila sin volver a extraer (la versión ya no cambia y el pkgrel se respeta).
+            mk --syncdeps --nobuild
+            sudo -u builder sed -i "s/^pkgrel=.*/pkgrel=$2/" "$dir/PKGBUILD"
+            mk --noextract --sign
           }
           build okaru
           build okaru-greeter
@@ -108,9 +119,8 @@ jobs:
           # del núcleo: solo crece, así que cada publicación sube la app junto con okaru-core.
           corerel=$(git -c safe.directory='*' -C okaru rev-list --count HEAD)
           for app in $OKARU_APPS; do
-            sed -i "s/^pkgrel=.*/pkgrel=$corerel/" "$GITHUB_WORKSPACE/$app/packaging/arch/PKGBUILD"
             chown -R builder: "$GITHUB_WORKSPACE/$app"
-            build "$app"
+            build "$app" "$corerel"
           done
           sudo -u builder env CCACHE_DIR="$CCACHE_DIR" ccache -s
       - name: Base de datos del repositorio
