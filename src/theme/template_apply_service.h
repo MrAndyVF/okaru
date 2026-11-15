@@ -51,6 +51,8 @@ namespace okaru::theme {
     // Hook warnings are delivered on the main thread after an application finishes.
     void setWarningCallback(std::function<void(std::string_view)> callback) const;
     void registerIpc(IpcService& ipc);
+    // Vuelve a aplicar con la última paleta (p. ej. tras actualizarse una plantilla). false si aún no hay paleta.
+    [[nodiscard]] bool reapplyLast() const;
 
   private:
     // Template ids of one source (built-in or community) whose output OKARU has put on
@@ -78,7 +80,6 @@ namespace okaru::theme {
       std::uint64_t generation = 0;
     };
 
-    [[nodiscard]] bool reapplyLast() const;
     [[nodiscard]] ApplyRequest makeRequest(const GeneratedPalette& palette, std::string_view defaultMode) const;
     [[nodiscard]] static bool sameInputs(const ApplyRequest& a, const ApplyRequest& b);
     // Diffs `enabled` against the ids OKARU has applied and returns the ids that still

@@ -589,6 +589,10 @@ void Application::initStyleThemeAndWayland() {
     if (m_configService.config().theme.templates.enableCommunityTemplates) {
       m_themeService.onConfigReload();
       m_settingsWindow.onExternalOptionsChanged();
+      // OKARU: con la misma paleta onConfigReload no reaplica; una plantilla activa que se actualizó sí debe.
+      if (m_communityTemplateService.takeSelectedFilesUpdated()) {
+        (void)m_templateApplyService.reapplyLast();
+      }
     }
   });
   m_communityTemplateService.sync(m_configService.config().theme.templates);
