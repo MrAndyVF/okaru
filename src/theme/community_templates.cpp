@@ -313,6 +313,10 @@ namespace okaru::theme {
           continue;
         }
         const std::string name = entry.path().lexically_relative(dir).generic_string();
+        // "<archivo>.part" es una descarga en curso de HttpClient: borrarla rompe su renombrado final.
+        if (name.ends_with(".part")) {
+          continue;
+        }
         if (!std::ranges::contains(info.files, name, &CommunityTemplateFile::name)) {
           stale.push_back(entry.path());
         }
@@ -879,6 +883,7 @@ namespace okaru::theme {
                 } else if (!actualMd5.empty()) {
                   metadata->fileMd5s[file.name] = actualMd5;
                   syncCachedFileMode(templateId, file, dest);
+                  m_selectedFilesUpdated = true;
                 }
                 writeCacheMetadata(dir, *metadata);
               } else {

@@ -8,6 +8,7 @@
 #include <functional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 class HttpClient;
@@ -21,6 +22,8 @@ namespace okaru::theme {
     explicit CommunityTemplateService(HttpClient& httpClient);
 
     void setReadyCallback(ReadyCallback callback);
+    // OKARU: true (una vez) si desde la última consulta se descargó algún archivo de una plantilla activa.
+    [[nodiscard]] bool takeSelectedFilesUpdated() { return std::exchange(m_selectedFilesUpdated, false); }
     void sync(const ThemeConfig::TemplatesConfig& templates);
 
     [[nodiscard]] static std::vector<AvailableTemplate> availableTemplates();
@@ -34,6 +37,7 @@ namespace okaru::theme {
     HttpClient& m_httpClient;
     ReadyCallback m_readyCallback;
     std::uint64_t m_generation = 0;
+    bool m_selectedFilesUpdated = false;
   };
 
   [[nodiscard]] std::filesystem::path communityTemplatesCacheDir();
