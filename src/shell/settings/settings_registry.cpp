@@ -645,7 +645,7 @@ namespace settings {
         tr("settings.schema.appearance.popup-shadows.description"), {"shell", "popup_shadows"},
         ToggleSetting{cfg.shell.popupShadows}, "popup menu dropdown drop shadow depth"
     ));
-    // OKARU: cursor e iconos son módulos integrados con su propio gestor; aquí son pestañas que lo abren.
+    // OKARU: los plugins cursor e iconos (tienda okaru-plugins) tienen su propio gestor; aquí son pestañas que lo abren.
     for (const auto& [module, group, glyph, keywords] : {
              std::tuple{"okaru/cursor", "cursor", "pointer", "cursor pointer mouse theme size xcursor"},
              std::tuple{"okaru/icons", "icons", "icons", "icon theme apps folders"},

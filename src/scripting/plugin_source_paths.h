@@ -7,9 +7,6 @@ struct PluginSourceConfig;
 namespace scripting::plugin_paths {
 
   [[nodiscard]] std::filesystem::path localSourceRoot();
-  // OKARU: módulos integrados (antes plugins de la tienda), de solo lectura, en assets/modules.
-  inline constexpr const char* kIntegratedSourceName = "integrado";
-  [[nodiscard]] std::filesystem::path integratedSourceRoot();
   [[nodiscard]] std::filesystem::path sourceStorageRoot(const PluginSourceConfig& source);
   [[nodiscard]] std::filesystem::path gitRepoRoot(const PluginSourceConfig& source);
   [[nodiscard]] std::filesystem::path gitMaterializedRoot(const PluginSourceConfig& source);
