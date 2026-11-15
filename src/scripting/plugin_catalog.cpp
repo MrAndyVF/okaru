@@ -289,8 +289,14 @@ namespace scripting {
     if (dest.empty()) {
       return {.ok = false, .error = "empty plugin source repo path", .entries = {}, .revision = {}};
     }
-    auto sourceLock = plugin_source_locks::acquire(source.name);
     const bool localOnly = access == CatalogAccess::LocalOnly;
+    // OKARU: LocalOnly corre en el hilo principal y no puede esperar a una actualización, que retiene el candado
+    // durante cada export (segundos). Solo lee objetos locales: git admite lecturas concurrentes y, a mitad de un
+    // fetch, se usa el HEAD aplicado.
+    std::optional<plugin_source_locks::SourceLock> sourceLock;
+    if (!localOnly) {
+      sourceLock.emplace(plugin_source_locks::acquire(source.name));
+    }
     std::error_code ec;
     if (localOnly) {
       // Local-only reads never touch the remote, so they need a checkout, not a

@@ -28,14 +28,8 @@ optdepends=('ddcutil: brillo de monitores externos'
             'snapd: actualizaciones Snap (Actualizaciones, AUR)'
             'kdeconnect: conectar el teléfono (panel Teléfono y okaru-files)'
             'sshfs: explorar los archivos del teléfono (panel Teléfono y okaru-files)'
-            'android-tools: portapapeles automático del teléfono a la PC (adb, una vez)'
-            'claude-code: uso de Claude Code (claudecode, AUR o repo de CachyOS)'
-            'jq: uso de Claude Code (claudecode)'
-            'python: gestores de cursores e iconos (cursor, icons)'
-            'python-wand: convertir cursores de Windows (cursor)'
-            'imagemagick: convertir cursores de Windows (cursor)'
-            'win2xcur: convertir cursores de Windows (cursor, AUR)'
-            'zenity: diálogos de archivos (cursor, icons)')
+            'android-tools: portapapeles automático del teléfono a la PC (adb, una vez)')
+# Los plugins de la tienda (okaru-plugins) declaran sus dependencias en su plugin.toml.
 
 source=("okaru::git+file://${OKARU_REPO:-$HOME/Projects/okaru-project/okaru}#branch=main")
 sha256sums=(SKIP)

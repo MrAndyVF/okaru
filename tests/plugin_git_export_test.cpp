@@ -1,17 +1,22 @@
+#include "config/config_types.h"
 #include "core/process/process.h"
 #include "scripting/plugin_api.h"
 #include "scripting/plugin_catalog.h"
 #include "scripting/plugin_git.h"
+#include "scripting/plugin_source_locks.h"
 
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <future>
 #include <iterator>
 #include <print>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -245,6 +250,45 @@ int main() {
            "fetch failed after preparing a cache without origin"
        )
       && ok;
+
+  // OKARU: una lectura LocalOnly (hilo principal, p. ej. `okaru msg plugins list`) no espera a una actualización
+  // que retiene el candado de la fuente durante sus exports.
+  {
+    ::setenv("OKARU_STATE_HOME", (root / "state").c_str(), 1);
+    ok = writeText(
+             source / "catalog.toml",
+             "[[plugin]]\nid = \"okaru/clock\"\nname = \"Clock\"\nversion = \"1.0.0\"\nplugin_api = 3\n"
+         )
+        && ok;
+    ok = runGit({"git", "-C", source.string(), "add", "catalog.toml"}) && ok;
+    ok = runGit(
+             {"git", "-C", source.string(), "-c", "user.name=test", "-c", "user.email=test@example.invalid", "commit",
+              "-q", "-m", "catalog"}
+         )
+        && ok;
+    const PluginSourceConfig store{.kind = PluginSourceKind::Git, .name = "store", .location = source.string()};
+    ok = expect(scripting::discoverCatalog(store, scripting::CatalogAccess::Network).ok, "network catalog read failed")
+        && ok;
+
+    std::promise<void> held;
+    std::promise<void> release;
+    std::thread updater([&held, releasing = release.get_future()] {
+      auto lock = scripting::plugin_source_locks::acquire("store");
+      held.set_value();
+      releasing.wait();
+    });
+    held.get_future().wait();
+    auto read = std::async(std::launch::async, [&store] {
+      return scripting::discoverCatalog(store, scripting::CatalogAccess::LocalOnly);
+    });
+    const bool returned = read.wait_for(std::chrono::seconds(2)) == std::future_status::ready;
+    release.set_value();
+    updater.join();
+    const auto local = read.get();
+    ok = expect(returned, "local-only catalog read waited for the source lock") && ok;
+    ok = expect(local.ok && local.entries.size() == 1, "local-only catalog read failed while the source was locked")
+        && ok;
+  }
 
   std::error_code ec;
   std::filesystem::remove_all(root, ec);
