@@ -103,7 +103,12 @@ jobs:
           pacman-key --add okaru/packaging/keys/okaru.asc >/dev/null
           pacman-key --lsign-key "$KEY_ID" >/dev/null
           pacman -U --noconfirm out/okaru-core-*.pkg.tar.zst >/dev/null
+          # Con el mismo código, una app recompilada contra otro núcleo saldría con la misma versión y pacman no
+          # la actualizaría (y la instalada seguiría pidiendo el núcleo viejo). Su pkgrel es el número de commits
+          # del núcleo: solo crece, así que cada publicación sube la app junto con okaru-core.
+          corerel=$(git -c safe.directory='*' -C okaru rev-list --count HEAD)
           for app in $OKARU_APPS; do
+            sed -i "s/^pkgrel=.*/pkgrel=$corerel/" "$GITHUB_WORKSPACE/$app/packaging/arch/PKGBUILD"
             chown -R builder: "$GITHUB_WORKSPACE/$app"
             build "$app"
           done
