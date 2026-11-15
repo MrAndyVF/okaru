@@ -327,6 +327,33 @@ namespace okaru::theme {
       }
     }
 
+    // OKARU: la caché solo guarda plantillas del catálogo de okaru-templates (las de otras tiendas, como las de
+    // noctalia.dev, se borran). Una activa que ya no esté en el catálogo se conserva para no romper la config.
+    void removeCachedTemplatesNotInCatalog(const std::vector<std::string>& selectedIds) {
+      const auto catalog = parseCatalogFile(catalogCachePath());
+      if (catalog.empty()) {
+        return; // catálogo ilegible o vacío: no se borra nada a ciegas
+      }
+      std::error_code ec;
+      std::vector<std::filesystem::path> stale;
+      for (const auto& entry : std::filesystem::directory_iterator(communityTemplatesCacheDir(), ec)) {
+        std::error_code typeEc;
+        if (!entry.is_directory(typeEc)) {
+          continue;
+        }
+        const std::string id = entry.path().filename().string();
+        if (!std::ranges::contains(catalog, id, &CommunityTemplateInfo::id) && !std::ranges::contains(selectedIds, id)) {
+          stale.push_back(entry.path());
+        }
+      }
+      for (const auto& dir : stale) {
+        std::filesystem::remove_all(dir, ec);
+      }
+      if (!stale.empty()) {
+        kLog.info("removed {} cached community template(s) that are not in the catalog", stale.size());
+      }
+    }
+
     std::optional<CommunityTemplateInfo>
     findInfo(const std::vector<CommunityTemplateInfo>& catalog, std::string_view id) {
       auto it = std::ranges::find(catalog, id, &CommunityTemplateInfo::id);
@@ -732,6 +759,7 @@ namespace okaru::theme {
             }
             return;
           }
+          removeCachedTemplatesNotInCatalog(ids);
           if (!ids.empty()) {
             syncSelectedFromCatalog(ids, generation, true);
           }
