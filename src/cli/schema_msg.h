@@ -8,9 +8,7 @@
 
 namespace okaru::cli {
 
-  inline constexpr std::array<std::string_view, 10> kBuiltinPaletteNames{
-      "Ayu", "Catppuccin", "Dracula", "Eldritch", "Gruvbox", "Kanagawa", "OKARU", "Nord", "Rosé Pine", "Tokyo-Night",
-  };
+  inline constexpr std::array<std::string_view, 1> kBuiltinPaletteNames{"OKARU"};
 
   inline constexpr std::array kMsgColorSchemeSetBuiltinPositionals{
       Positional{"name", {}, kBuiltinPaletteNames, true, false, false},

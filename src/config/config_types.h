@@ -1872,7 +1872,7 @@ struct ThemeConfig {
 
   PaletteSource source = PaletteSource::Builtin;
   std::string builtinPalette = "OKARU";
-  std::string communityPalette = "Oxocarbon";
+  std::string communityPalette = "Catppuccin";
   std::string customPalette;
   std::string wallpaperScheme = "m3-content";
   ThemeMode mode = ThemeMode::Dark;
