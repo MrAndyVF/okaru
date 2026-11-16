@@ -10,6 +10,28 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.3] - 2026-11-16
+
+### English
+
+#### Changes
+- Palettes: only OKARU is bundled. Catppuccin, Tokyo Night, Ayu, Dracula, Eldritch, Gruvbox, Kanagawa, Nord and
+  Rosé Pine now live in the okaru-palettes store, rewritten from each theme's official colors, together with ten
+  new ones (Catppuccin Frappé/Macchiato, Tokyo Night Storm/Moon, Everforest, Solarized, Atom One, GitHub, Nightfox
+  and Monokai). If you had one of them selected, it switches to the store version automatically.
+- Fastfetch: the OKARU version is read without `pacman -Q` (about 67 ms → 9 ms) and the logo kanji has a gradient
+  that follows the theme.
+
+### Español
+
+#### Cambios
+- Paletas: solo OKARU viene integrada. Catppuccin, Tokyo Night, Ayu, Dracula, Eldritch, Gruvbox, Kanagawa, Nord y
+  Rosé Pine pasan a la tienda okaru-palettes, reescritas desde los colores oficiales de cada tema, junto con diez
+  nuevas (Catppuccin Frappé/Macchiato, Tokyo Night Storm/Moon, Everforest, Solarized, Atom One, GitHub, Nightfox y
+  Monokai). Si tenías una elegida, pasa sola a la de la tienda.
+- Fastfetch: la versión de OKARU se lee sin `pacman -Q` (de ~67 ms a ~9 ms) y el kanji del logo tiene un degradado
+  que sigue al tema.
+
 ## [1.3.2] - 2026-11-16
 
 ### English
