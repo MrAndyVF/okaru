@@ -161,9 +161,8 @@ recursive                  = true    # include subdirectories when picking rando
 [theme]
 mode   = "dark"                     # dark | light | auto
 source = "builtin"                  # builtin | wallpaper | community
-builtin = "OKARU"                # Ayu | Catppuccin | Dracula | Eldritch | Gruvbox |
-                                    # Kanagawa | OKARU | Nord | Rosé Pine | Tokyo-Night
-# community_palette = "OKARU"       # catálogo MrAndyVF/okaru-palettes, en caché local
+builtin = "OKARU"                   # la única integrada; el resto está en la tienda
+# community_palette = "Catppuccin"  # catálogo MrAndyVF/okaru-palettes, en caché local
 # wallpaper_scheme  = "m3-content"  # m3-tonal-spot | m3-content | m3-fruit-salad |
                                     # m3-rainbow | m3-monochrome | vibrant | faithful |
                                     # dysfunctional | muted

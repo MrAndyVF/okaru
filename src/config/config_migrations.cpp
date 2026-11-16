@@ -41,6 +41,7 @@ namespace okaru::config {
     constexpr int kOkaruSessionHoldMigrationVersion = 23;        // OKARU
     constexpr int kOkaruNativeUpdatesMigrationVersion = 24;      // OKARU
     constexpr int kOkaruNativeVpnMigrationVersion = 25;          // OKARU
+    constexpr int kOkaruStorePalettesMigrationVersion = 26;      // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -1159,6 +1160,54 @@ namespace okaru::config {
 
     void migratePaletteRenameSidecar(toml::table& root, schema::Diagnostics& /*diag*/) { renameBuiltinPaletteIn(root); }
 
+    // OKARU: las paletas integradas, salvo OKARU, pasaron a la tienda okaru-palettes con el mismo nombre.
+    constexpr std::array<std::pair<std::string_view, std::string_view>, 9> kStorePalettes{{
+        {"Ayu", "Ayu"},
+        {"Catppuccin", "Catppuccin"},
+        {"Dracula", "Dracula"},
+        {"Eldritch", "Eldritch"},
+        {"Gruvbox", "Gruvbox"},
+        {"Kanagawa", "Kanagawa"},
+        {"Nord", "Nord"},
+        {"Rosé Pine", "Rosé Pine"},
+        {"Tokyo-Night", "Tokyo Night"},
+    }};
+
+    // [theme] (source/builtin) o un favorito (palette_source/builtin_palette): la elegida pasa a community_palette.
+    void moveBuiltinPaletteToStore(toml::table& table, std::string_view sourceKey, std::string_view builtinKey) {
+      const auto builtin = table[builtinKey].value<std::string>();
+      if (!builtin) {
+        return;
+      }
+      const auto* it = std::ranges::find(kStorePalettes, *builtin, &std::pair<std::string_view, std::string_view>::first);
+      if (it == kStorePalettes.end()) {
+        return;
+      }
+      table.erase(builtinKey);
+      if (table[sourceKey].value<std::string>() == "builtin") {
+        table.insert_or_assign(sourceKey, "community");
+        table.insert_or_assign("community_palette", std::string(it->second));
+      } else if (!table.contains("community_palette")) {
+        table.insert("community_palette", std::string(it->second));
+      }
+    }
+
+    void moveBuiltinPalettesIn(toml::node& node) {
+      if (auto* table = node.as_table(); table != nullptr) {
+        moveBuiltinPaletteToStore(*table, "source", "builtin");
+        moveBuiltinPaletteToStore(*table, "palette_source", "builtin_palette");
+        for (auto&& [key, value] : *table) {
+          moveBuiltinPalettesIn(value);
+        }
+      } else if (auto* array = node.as_array(); array != nullptr) {
+        for (auto& item : *array) {
+          moveBuiltinPalettesIn(item);
+        }
+      }
+    }
+
+    void migrateStorePalettesSidecar(toml::table& root, schema::Diagnostics& /*diag*/) { moveBuiltinPalettesIn(root); }
+
     void migratePaletteRoleNamesSidecar(toml::table& root, schema::Diagnostics& diag) {
       migratePaletteRoleNames(
           root, [&diag](const std::string& path, std::string_view previous, std::string_view renamed) {
@@ -1328,6 +1377,11 @@ namespace okaru::config {
             .toVersion = kOkaruNativeVpnMigrationVersion,
             .summary = "vpn: the vpn-manager plugin is now the native vpn widget, okaru-vpn tab, shortcut and [vpn]",
             .apply = migrateNativeVpnSidecar,
+        },
+        {
+            .toVersion = kOkaruStorePalettesMigrationVersion,
+            .summary = "theme: builtin palettes other than OKARU moved to the okaru-palettes store",
+            .apply = migrateStorePalettesSidecar,
         },
     };
     return migrations;

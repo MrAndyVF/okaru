@@ -970,7 +970,7 @@ builtin_palette = "Nord"
         sidecar["theme"]["builtin"].value<std::string>() == std::optional<std::string>{"OKARU"} && favorites != nullptr
             && favorites->size() == 2
             && (*favorites)[0].as_table()->get("builtin_palette")->value<std::string>() == std::optional<std::string>{"OKARU"}
-            && (*favorites)[1].as_table()->get("builtin_palette")->value<std::string>() == std::optional<std::string>{"Nord"},
+            && (*favorites)[1].as_table()->get("community_palette")->value<std::string>() == std::optional<std::string>{"Nord"},
         "builtin palette Noctalia was not renamed to OKARU"
     );
   }
@@ -1149,6 +1149,48 @@ left = "panel-toggle okaru/arch-updater:panel"
             == std::optional<std::string>{"panel-toggle okaru-updates"},
         "panel references were not replaced"
     );
+  }
+
+  void checkStorePalettesMigration() {
+    toml::table sidecar = toml::parse(R"(
+config_version = 25
+[theme]
+source = "builtin"
+builtin = "Tokyo-Night"
+[[theme.favorites]]
+palette_source = "builtin"
+builtin_palette = "Catppuccin"
+[[theme.favorites]]
+palette_source = "builtin"
+builtin_palette = "OKARU"
+[[theme.favorites]]
+palette_source = "wallpaper"
+builtin_palette = "Nord"
+community_palette = "Dracula"
+)");
+    okaru::config::schema::Diagnostics diagnostics;
+    const int applied = okaru::config::applyPendingConfigMigrations(sidecar, 25, diagnostics);
+    expect(applied == okaru::config::currentConfigVersion(), "store palettes migration was not applied");
+    const auto str = [](const toml::node* n) { return n != nullptr ? n->value<std::string>() : std::nullopt; };
+    const auto* fav = sidecar["theme"]["favorites"].as_array();
+    const auto* f0 = (*fav)[0].as_table();
+    const auto* f1 = (*fav)[1].as_table();
+    const auto* f2 = (*fav)[2].as_table();
+    expect(sidecar["theme"]["source"].value<std::string>() == std::optional<std::string>{"community"}
+               && sidecar["theme"]["community_palette"].value<std::string>() == std::optional<std::string>{"Tokyo Night"}
+               && sidecar["theme"]["builtin"].node() == nullptr,
+           "theme builtin palette was not moved to the store");
+    expect(str(f0->get("palette_source")) == std::optional<std::string>{"community"}
+               && str(f0->get("community_palette")) == std::optional<std::string>{"Catppuccin"}
+               && f0->get("builtin_palette") == nullptr,
+           "favorite builtin palette was not moved to the store");
+    expect(str(f1->get("builtin_palette")) == std::optional<std::string>{"OKARU"}
+               && str(f1->get("palette_source")) == std::optional<std::string>{"builtin"},
+           "OKARU favorite must stay builtin");
+    expect(str(f2->get("palette_source")) == std::optional<std::string>{"wallpaper"}
+               && str(f2->get("community_palette")) == std::optional<std::string>{"Dracula"}
+               && f2->get("builtin_palette") == nullptr,
+           "a non-builtin favorite must keep its community palette");
   }
 
   void checkNativeVpnMigration() {
@@ -1398,6 +1440,7 @@ int main() {
   checkSessionHoldMigration();
   checkNativeUpdatesMigration();
   checkNativeVpnMigration();
+  checkStorePalettesMigration();
   checkPaletteRenameMigration();
   checkPluginAutoUpdateModeMigration();
   checkVersionGating();
