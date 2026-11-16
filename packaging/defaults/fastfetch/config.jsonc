@@ -4,7 +4,7 @@
   "logo": {
     "type": "file",
     "source": "~/.config/fastfetch/okaru.txt",
-    "color": { "1": "blue" },
+    "color": { "1": "blue", "2": "#2a694e" /*okaru:blue..magenta@1*/, "3": "#2c6853" /*okaru:blue..magenta@2*/, "4": "#2f6858" /*okaru:blue..magenta@3*/, "5": "#32675d" /*okaru:blue..magenta@4*/, "6": "#346662" /*okaru:blue..magenta@5*/, "7": "#376667" /*okaru:blue..magenta@6*/, "8": "#39656c" /*okaru:blue..magenta@7*/, "9": "magenta" },
     "padding": { "top": 4, "right": 6, "left": 2 }
   },
   "display": { "disableLinewrap": true },
