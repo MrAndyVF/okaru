@@ -10,6 +10,20 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.2] - 2026-11-16
+
+### English
+
+#### Changes
+- Files: before copying, the total size is counted with a single query per file (type and size come with the folder
+  listing), so large copies start sooner, most noticeably on hard disks and NTFS drives.
+
+### Español
+
+#### Cambios
+- Archivos: antes de copiar, el tamaño total se cuenta con una sola consulta por archivo (el tipo y el tamaño llegan
+  con el listado de la carpeta), así que las copias grandes empiezan antes, sobre todo en discos mecánicos y en NTFS.
+
 ## [1.3.1.1] - 2026-11-15
 
 ### English
