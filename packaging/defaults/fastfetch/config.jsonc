@@ -4,7 +4,7 @@
   "logo": {
     "type": "file",
     "source": "~/.config/fastfetch/okaru.txt",
-    "color": { "1": "blue" },
+    "color": { "1": "blue", "2": "#2a694e" /*okaru:blue..magenta@1*/, "3": "#2c6853" /*okaru:blue..magenta@2*/, "4": "#2f6858" /*okaru:blue..magenta@3*/, "5": "#32675d" /*okaru:blue..magenta@4*/, "6": "#346662" /*okaru:blue..magenta@5*/, "7": "#376667" /*okaru:blue..magenta@6*/, "8": "#39656c" /*okaru:blue..magenta@7*/, "9": "magenta" },
     "padding": { "top": 4, "right": 6, "left": 2 }
   },
   "display": { "disableLinewrap": true },
@@ -22,7 +22,7 @@
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
     "break",
     { "type": "custom", "format": "\u001b[90m┌──────────────────────Software──────────────────────┐" },
-    { "type": "command", "key": "郁OS", "keyColor": "blue", "text": "echo \"OKARU $(pacman -Q okaru | cut -d' ' -f2 | cut -d. -f1-3)\"" },
+    { "type": "command", "key": "郁OS", "keyColor": "blue", "text": "set -- /var/lib/pacman/local/okaru-[0-9]*; v=${1##*/okaru-}; echo \"OKARU ${v%%.r*}\"" },
     { "type": "os", "key": "│ ├", "format": "{pretty-name}", "keyColor": "blue" },
     { "type": "kernel", "key": "│ ├", "keyColor": "blue" },
     { "type": "wm", "key": "│ ├", "keyColor": "blue" },
