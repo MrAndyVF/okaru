@@ -125,6 +125,29 @@ namespace okaru::files {
 
     using Job = OperationQueue::Job;
 
+    // Tipo y tamaño de cada hijo en la misma enumeración: consultar cada archivo aparte duplica las lecturas
+    // (lento en discos mecánicos y en NTFS por FUSE).
+    void countChildren(Job& job, GFile* dir, std::uint64_t& bytes, std::size_t& items) {
+      GFileEnumerator* it = g_file_enumerate_children(
+          dir, "standard::name,standard::type,standard::size", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, job.cancellable,
+          nullptr
+      );
+      if (it == nullptr) {
+        return;
+      }
+      GFileInfo* child = nullptr;
+      while (!job.cancelled() && (child = g_file_enumerator_next_file(it, job.cancellable, nullptr)) != nullptr) {
+        bytes += static_cast<std::uint64_t>(g_file_info_get_size(child));
+        ++items;
+        if (g_file_info_get_file_type(child) == G_FILE_TYPE_DIRECTORY) {
+          FilePtr childFile(g_file_get_child(dir, g_file_info_get_name(child)));
+          countChildren(job, childFile.get(), bytes, items);
+        }
+        g_object_unref(child);
+      }
+      g_object_unref(it);
+    }
+
     void countTree(Job& job, GFile* file, std::uint64_t& bytes, std::size_t& items) {
       GFileInfo* info = g_file_query_info(
           file, "standard::type,standard::size", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, job.cancellable, nullptr
@@ -136,22 +159,9 @@ namespace okaru::files {
       bytes += static_cast<std::uint64_t>(g_file_info_get_size(info));
       ++items;
       g_object_unref(info);
-      if (!dir) {
-        return;
+      if (dir) {
+        countChildren(job, file, bytes, items);
       }
-      GFileEnumerator* it = g_file_enumerate_children(
-          file, "standard::name", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, job.cancellable, nullptr
-      );
-      if (it == nullptr) {
-        return;
-      }
-      GFileInfo* child = nullptr;
-      while (!job.cancelled() && (child = g_file_enumerator_next_file(it, job.cancellable, nullptr)) != nullptr) {
-        FilePtr childFile(g_file_get_child(file, g_file_info_get_name(child)));
-        countTree(job, childFile.get(), bytes, items);
-        g_object_unref(child);
-      }
-      g_object_unref(it);
     }
 
     bool deleteTree(Job& job, GFile* file) {
