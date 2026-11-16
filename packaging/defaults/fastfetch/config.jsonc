@@ -22,7 +22,7 @@
     { "type": "custom", "format": "\u001b[90m└────────────────────────────────────────────────────┘" },
     "break",
     { "type": "custom", "format": "\u001b[90m┌──────────────────────Software──────────────────────┐" },
-    { "type": "command", "key": "郁OS", "keyColor": "blue", "text": "echo \"OKARU $(pacman -Q okaru | cut -d' ' -f2 | cut -d. -f1-3)\"" },
+    { "type": "command", "key": "郁OS", "keyColor": "blue", "text": "set -- /var/lib/pacman/local/okaru-[0-9]*; v=${1##*/okaru-}; echo \"OKARU ${v%%.r*}\"" },
     { "type": "os", "key": "│ ├", "format": "{pretty-name}", "keyColor": "blue" },
     { "type": "kernel", "key": "│ ├", "keyColor": "blue" },
     { "type": "wm", "key": "│ ├", "keyColor": "blue" },
