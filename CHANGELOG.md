@@ -10,6 +10,22 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.4] - 2026-11-16
+
+### English
+
+#### Features
+- Valandy (`okaru-music`), OKARU's new music player, joins the `[okaru]` repository and is installed with OKARU:
+  local library, lyrics and covers, Jellyfin and Subsonic servers, optional YouTube Music (with `yt-dlp`) and
+  recommendations. Its changes are in its own repository.
+
+### Español
+
+#### Novedades
+- Valandy (`okaru-music`), el nuevo reproductor de música de OKARU, entra al repositorio `[okaru]` y se instala con
+  OKARU: biblioteca local, letras y carátulas, servidores Jellyfin y Subsonic, YouTube Music opcional (con `yt-dlp`)
+  y recomendaciones. Sus cambios están en su propio repositorio.
+
 ## [1.3.3] - 2026-11-16
 
 ### English

@@ -25,7 +25,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       KEY_ID: ${{ secrets.OKARU_GPG_KEY_ID }}
-      OKARU_APPS: okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive
+      OKARU_APPS: okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive okaru-music
     steps:
       - name: Herramientas
         run: |
