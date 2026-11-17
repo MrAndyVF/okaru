@@ -10,6 +10,29 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.5] - 2026-11-17
+
+### English
+
+#### Fixes
+- Hyprland (default config): a focused floating window is drawn above a maximized or fullscreen one. Before, a
+  floating window opened before a maximized one (Files under Valandy) stayed hidden behind it even with focus.
+
+#### Changes
+- Files 1.1.1 updates the drives' used space while open, and Valandy 1.1.0 brings playlists by source and only
+  YouTube Music songs. Their changes are in their own repositories.
+
+### Español
+
+#### Correcciones
+- Hyprland (configuración de fábrica): una ventana flotante enfocada se dibuja encima de una maximizada o en
+  pantalla completa. Antes, una flotante abierta antes que una maximizada (Archivos debajo de Valandy) quedaba
+  oculta detrás aunque tuviera el foco.
+
+#### Cambios
+- Archivos 1.1.1 actualiza el espacio de los discos con la ventana abierta, y Valandy 1.1.0 trae listas por origen y
+  solo canciones de YouTube Music. Sus cambios están en sus propios repositorios.
+
 ## [1.3.4] - 2026-11-16
 
 ### English

@@ -19,6 +19,14 @@ hl.window_rule({ match = { class = "^dev\\.okaru\\.Archive$" }, float = true, ce
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Pdf$" }, float = true, center = true, size = { 760, 960 }, opacity = 1 })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Music$" }, maximize = true }) -- Valandy: todo el espacio, fuera del mosaico
 
+-- Una flotante enfocada se dibuja encima de la maximizada o en pantalla completa (Hyprland la deja debajo si
+-- se abrió antes: Archivos quedaba tapado por Valandy)
+hl.on("window.active", function(w)
+	if w and w.floating then
+		hl.dispatch(hl.dsp.window.alter_zorder({ mode = "top", window = "address:" .. w.address }))
+	end
+end)
+
 -- LocalSend
 hl.window_rule({ match = { class = "^org\\.localsend\\.localsend_app$" }, float = true, center = true, size = { 600, 800 } })
 
