@@ -114,6 +114,11 @@ window-rule {
     default-window-height { fixed 960; }
 }
 
+window-rule {
+    match app-id="^dev\\.okaru\\.Music$"
+    open-maximized true
+}
+
 // Ventanas un poco translúcidas, como en Hyprland; el lector PDF opaco.
 window-rule {
     opacity 0.95

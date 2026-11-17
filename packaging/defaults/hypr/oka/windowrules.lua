@@ -17,6 +17,7 @@ hl.window_rule({ match = { class = "^dev\\.okaru\\.FilePicker$" }, float = true,
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Files$" }, float = true, center = true, size = { 1300, 800 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Archive$" }, float = true, center = true, size = { 900, 620 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Pdf$" }, float = true, center = true, size = { 760, 960 }, opacity = 1 })
+hl.window_rule({ match = { class = "^dev\\.okaru\\.Music$" }, maximize = true }) -- Valandy: todo el espacio, fuera del mosaico
 
 -- LocalSend
 hl.window_rule({ match = { class = "^org\\.localsend\\.localsend_app$" }, float = true, center = true, size = { 600, 800 } })
