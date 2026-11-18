@@ -422,11 +422,46 @@ factory_config() {
   $WANT_PHONE || sed -i 's/^end = \[ "tray", "cat", "phone", /end = [ "tray", "cat", /' "$okaru"
   # En Niri, la plantilla de Hyprland avisaría que falta hyprland.conf: se cambia por la de Niri.
   [[ $COMPOSITOR == niri ]] && sed -i 's/"hyprland", "hyprtoolkit", /"niri", /' "$okaru"
+  [[ $CONFIG_ACTION == keep ]] && app_rules
   return 0
 }
 
+# Configuración propia conservada: las reglas de ventana de las apps de OKARU van en un archivo aparte que se
+# carga desde la suya (si ya las tiene, no se toca nada). Un hyprland.conf (formato viejo) no se toca.
+app_rules() {
+  local dir factory
+  dir=$(config_target)
+  factory=$(defaults_dir)
+  grep -rqsF 'dev\\.okaru' "$dir" && return 0
+  if [[ $COMPOSITOR == niri ]]; then
+    [[ -e $dir/config.kdl ]] || return 0
+    mkdir -p "$dir/okaru"
+    # Los bloques window-rule de fábrica que nombran una app de OKARU.
+    awk '/^window-rule \{/ { block = ""; inside = 1; match_app = 0 }
+      inside { block = block $0 "\n"; if (index($0, "dev\\\\.okaru")) match_app = 1 }
+      inside && /^\}/ { if (match_app) printf "%s\n", block; inside = 0 }' "$factory/config.kdl" >"$dir/okaru/apps.kdl"
+    printf '\n// Reglas de ventana de las apps de OKARU (las agregó el instalador).\ninclude optional=true "okaru/apps.kdl"\n' >>"$dir/config.kdl"
+  else
+    [[ -e $dir/hyprland.lua ]] || return 0 # el aviso lo da main (este paso corre en segundo plano)
+    {
+      echo '-- Reglas de ventana de las apps de OKARU (las agregó el instalador).'
+      grep -F 'dev\\.okaru' "$factory/oka/windowrules.lua"
+      # Una flotante enfocada (Archivos) se dibuja encima de una maximizada (Valandy).
+      sed -n '/^hl.on("window.active"/,/^end)/p' "$factory/oka/windowrules.lua"
+    } >"$dir/okaru-apps.lua"
+    printf '\n-- Apps de OKARU\npcall(require, "okaru-apps")\n' >>"$dir/hyprland.lua"
+  fi
+}
+
 default_apps() {
-  xdg-mime default dev.okaru.Files.desktop inode/directory
+  # Todas las apps de OKARU por defecto en ~/.config/mimeapps.list, que manda sobre la lista de fábrica del
+  # escritorio; lo demás del archivo (navegador, etc.) se conserva y queda una copia fechada.
+  local mimeapps="${XDG_CONFIG_HOME:-$HOME/.config}/mimeapps.list" list=/usr/share/applications/hyprland-mimeapps.list app
+  [[ -e $mimeapps ]] && cp "$mimeapps" "$mimeapps.bak-$STAMP"
+  for app in $(grep -o '=dev\.okaru\.[A-Za-z]*\.desktop$' "$list" | sort -u | tr -d =); do
+    # shellcheck disable=SC2046 # un tipo por palabra
+    xdg-mime default "$app" $(grep "=$app\$" "$list" | cut -d= -f1)
+  done
   # Selector de archivos del sistema: el de okaru-files. La copia de usuario reemplaza entera a la del paquete,
   # así que parte de esa (o de lo mínimo) y solo cambia FileChooser.
   local portals="${XDG_CONFIG_HOME:-$HOME/.config}/xdg-desktop-portal/$COMPOSITOR-portals.conf"
@@ -448,6 +483,8 @@ default_apps() {
     local env="${XDG_CONFIG_HOME:-$HOME/.config}/uwsm/env"
     mkdir -p "$(dirname "$env")"
     grep -qs '^export TERMINAL=' "$env" || echo 'export TERMINAL=kitty' >>"$env"
+    # Firefox y las apps GTK3 usan el selector del portal (okaru-files) solo con esta variable.
+    grep -qs '^export GTK_USE_PORTAL=' "$env" || echo 'export GTK_USE_PORTAL=1' >>"$env"
   fi
   systemctl --user daemon-reload
   systemctl --user enable okaru.service
@@ -567,6 +604,8 @@ main() {
   run_step "$(t "Idioma del sistema" "System language") ($SYSTEM_LOCALE)" system_locale
   run_step "$(t "Configuración de OKARU y de $(compositor_name)" "OKARU and $(compositor_name) configuration")" factory_config
   [[ $CONFIG_ACTION == keep ]] && ok "$(t "Se conserva tu configuración; la de fábrica queda en $DEFAULTS_ROOT" "Your configuration is kept; the factory one stays in $DEFAULTS_ROOT")"
+  [[ $CONFIG_ACTION == keep && $COMPOSITOR == hyprland && ! -e $(config_target)/hyprland.lua ]] &&
+    ! grep -rqsF 'dev\\.okaru' "$(config_target)" && note "$(t "  Tu hyprland.conf no se tocó: copia las reglas de las apps de $DEFAULTS_ROOT/hypr/oka/windowrules.lua" "  Your hyprland.conf was not touched: copy the app rules from $DEFAULTS_ROOT/hypr/oka/windowrules.lua")"
   run_step "$(t "Apps por defecto y servicio de la shell" "Default apps and shell service")" default_apps
   run_step "$(t "Fuente del sistema (JetBrainsMono Nerd Font)" "System font (JetBrainsMono Nerd Font)")" system_font
   run_step "$(t "Terminal: kitty, fastfetch y starship" "Terminal: kitty, fastfetch and starship")" terminal
