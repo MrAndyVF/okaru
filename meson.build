@@ -1742,6 +1742,12 @@ if build_tests
       meson.current_source_dir() / 'packaging/defaults/okaru/config.toml'],
     workdir: meson.current_source_dir(),
   )
+  test('install_app_rules',
+    bash_program,
+    args: ['tests/install_app_rules_test.sh', meson.current_source_dir() / 'install.sh',
+      meson.current_source_dir() / 'packaging/defaults'],
+    workdir: meson.current_source_dir(),
+  )
   test('okaru_update',
     bash_program,
     args: ['tests/okaru_update_test.sh', meson.current_source_dir() / 'data/bin/okaru-update'],
