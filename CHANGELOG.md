@@ -10,6 +10,54 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.6] - 2026-11-18
+
+### English
+
+#### Features
+- Installer: **every OKARU app becomes the default** for its file types in `~/.config/mimeapps.list`, which wins
+  over the desktop's list (a dated backup is kept, and the rest of the file stays). Before, older associations,
+  such as images with another viewer, kept winning.
+- Installer: when you **keep your own configuration**, the window rules of the OKARU apps are added in a separate
+  file loaded from yours (`hypr/okaru-apps.lua` or `niri/okaru/apps.kdl`), only once. An old-format
+  `hyprland.conf` is not touched; the installer says where to copy the rules from.
+- Installer and Niri default config: **Firefox and GTK3 apps use the Files picker** (`GTK_USE_PORTAL=1` in
+  `uwsm/env` and in Niri's `environment`).
+
+#### Fixes
+- Apps: **Shift + mouse wheel scrolls sideways** (PDF reader, text editor, Files and every list that scrolls
+  sideways), as in GTK and Qt.
+- Text editor: **closing with unsaved changes shows the save prompt right away**. Before, the window froze until the
+  next click, because it stopped drawing as soon as the close request arrived.
+
+#### Changes
+- Files 1.2.0 (Show in folder from browsers, folder picker that goes into folders), Valandy 1.1.1 (YouTube songs
+  in playlists, damaged state set aside), Viewer 1.0.1 (dragging a zoomed image) and Player 1.0.1 (click to pause).
+  Their changes are in their own repositories.
+
+### Español
+
+#### Novedades
+- Instalador: **todas las apps de OKARU quedan por defecto** para sus tipos de archivo en `~/.config/mimeapps.list`,
+  que manda sobre la lista del escritorio (queda una copia fechada y se conserva el resto del archivo). Antes seguían
+  ganando asociaciones viejas, como las imágenes con otro visor.
+- Instalador: al **conservar tu propia configuración**, las reglas de ventana de las apps de OKARU se agregan en un
+  archivo aparte que se carga desde la tuya (`hypr/okaru-apps.lua` o `niri/okaru/apps.kdl`), una sola vez. Un
+  `hyprland.conf` del formato viejo no se toca; el instalador indica de dónde copiar las reglas.
+- Instalador y configuración de fábrica de Niri: **Firefox y las apps GTK3 usan el selector de Archivos**
+  (`GTK_USE_PORTAL=1` en `uwsm/env` y en el `environment` de Niri).
+
+#### Correcciones
+- Apps: **Shift + rueda del mouse desplaza en horizontal** (lector PDF, editor de texto, Archivos y cualquier lista
+  con desplazamiento lateral), como en GTK y Qt.
+- Editor de texto: **al cerrar con cambios sin guardar, el aviso aparece de inmediato**. Antes la ventana se quedaba
+  congelada hasta el siguiente clic, porque dejaba de dibujar en cuanto llegaba el pedido de cierre.
+
+#### Cambios
+- Archivos 1.2.0 (Mostrar en la carpeta desde los navegadores, selector que entra en las carpetas), Valandy 1.1.1
+  (canciones de YouTube en las listas, estado dañado apartado), Visor 1.0.1 (arrastrar la imagen ampliada) y
+  Reproductor 1.0.1 (clic para pausar). Sus cambios están en sus propios repositorios.
+
 ## [1.3.5] - 2026-11-17
 
 ### English

@@ -38,6 +38,8 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 environment {
     TERMINAL "kitty"
+    // Firefox y las apps GTK3 usan el selector del portal (okaru-files) solo con esta variable.
+    GTK_USE_PORTAL "1"
 }
 
 hotkey-overlay {

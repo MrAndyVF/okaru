@@ -149,7 +149,6 @@ void ToplevelSurface::handleToplevelConfigure(
 
 void ToplevelSurface::handleToplevelClose(void* data, xdg_toplevel* /*toplevel*/) {
   auto* self = static_cast<ToplevelSurface*>(data);
-  self->setRunning(false);
   if (self->m_closedCallback) {
     self->m_closedCallback();
   }
