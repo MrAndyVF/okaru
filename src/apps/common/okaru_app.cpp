@@ -25,6 +25,7 @@
 #include <cmath>
 #include <csignal>
 #include <linux/input-event-codes.h>
+#include <wayland-client-protocol.h>
 
 namespace okaru::apps {
 
@@ -385,8 +386,10 @@ namespace okaru::apps {
       break;
     case PointerEvent::Type::Axis:
       if (m_pointerInside) {
+        // Shift + rueda desplaza en horizontal, como en GTK/Qt.
+        const bool sideways = event.axis == WL_POINTER_AXIS_VERTICAL_SCROLL && (g_modifiers & KeyMod::Shift) != 0;
         m_input.pointerAxis(
-            x, y, event.axis, event.axisSource, event.axisValue, event.axisDiscrete, event.axisValue120, event.axisLines
+            x, y, sideways ? WL_POINTER_AXIS_HORIZONTAL_SCROLL : event.axis, event.axisSource, event.axisValue, event.axisDiscrete, event.axisValue120, event.axisLines
         );
       }
       break;
