@@ -10,6 +10,38 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.7] - 2026-11-20
+
+### English
+
+#### Fixes
+- **A system update no longer leaves the login screen and the shell unable to start.** libjxl 0.13 renamed its
+  library (`libjxl.so.0.12` → `0.13`) and the greeter, built against the old one, exited at boot: the screen stayed
+  black and flickering. libjxl (JPEG XL images and screenshots) is now loaded when first needed, from any
+  installed release from 0.7 on; without it only JPEG XL images fail.
+
+#### Changes
+- Packaging: **OKARU and the greeter are tied to the system libraries they were built against.** When an update
+  would rename one of them, pacman refuses it and names the OKARU package that needs it, instead of breaking the
+  system; it goes through once OKARU is published rebuilt. Libraries that declare their name to pacman are tied to
+  that name (`libxml2.so=16-64`); libqalculate, libical and md4c, which do not, to their major.minor version.
+
+### Español
+
+#### Correcciones
+- **Una actualización del sistema ya no deja sin arrancar la pantalla de inicio de sesión ni la shell.** libjxl
+  0.13 cambió el nombre de su biblioteca (`libjxl.so.0.12` → `0.13`) y el greeter, compilado contra la anterior, se
+  cerraba al arrancar: la pantalla quedaba en negro parpadeando. libjxl (imágenes JPEG XL y capturas) ahora se carga
+  al usarse por primera vez, desde cualquier versión instalada a partir de la 0.7; sin ella solo fallan las
+  imágenes JPEG XL.
+
+#### Cambios
+- Empaquetado: **OKARU y el greeter quedan atados a las bibliotecas del sistema con las que se compilaron.** Si una
+  actualización le cambiaría el nombre a alguna, pacman se niega y dice qué paquete de OKARU la necesita, en vez de
+  romper el sistema; pasa en cuanto se publica OKARU recompilado. Las bibliotecas que le declaran su nombre a pacman
+  se atan a ese nombre (`libxml2.so=16-64`); libqalculate, libical y md4c, que no lo hacen, a su versión
+  mayor.menor.
+
 ## [1.3.6] - 2026-11-18
 
 ### English
