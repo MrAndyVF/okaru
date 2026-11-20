@@ -1,4 +1,5 @@
 #include "render/core/image_decoder.h"
+#include "render/core/image_encoder.h"
 
 #include <array>
 #include <cstdint>
@@ -154,6 +155,18 @@ namespace {
     return check(!result.has_value(), "3-byte buffer should not decode");
   }
 
+  // Screenshots go through the encoder, which reaches libjxl through the same dlopen loader.
+  bool testLosslessEncodeRoundTrip() {
+    std::string error;
+    const auto encoded = encodeJxl(kExpectedRgba.data(), 4, 4, 100, &error);
+    if (!check(!encoded.empty(), "lossless encode failed")) {
+      std::println(stderr, "jxl_decoder_test: encoder error: {}", error);
+      return false;
+    }
+    auto result = decodeRasterImage(encoded.data(), encoded.size());
+    return checkDecoded(result, "round-trip decode failed") && checkPixels(*result, "round-trip");
+  }
+
 } // namespace
 
 int main() {
@@ -164,5 +177,6 @@ int main() {
   ok = testPremultipliedAlphaIsUnpremultiplied() && ok;
   ok = testTruncated() && ok;
   ok = testTooShortForSignature() && ok;
+  ok = testLosslessEncodeRoundTrip() && ok;
   return ok ? 0 : 1;
 }

@@ -44,6 +44,30 @@ build() {
   meson compile -C build
 }
 
+# Ata el paquete a las bibliotecas del sistema con las que se compiló: si una actualización les cambia el soname
+# (libjxl 0.12 → 0.13 dejó el greeter sin arrancar), pacman se niega a hacerla hasta que se publique OKARU
+# recompilado, en vez de romper el sistema. Las que declaran su soname en provides (libxml2.so=16-64) las fija
+# makepkg; las que no (libqalculate, libical, md4c) se fijan a la versión mayor.menor de su paquete. glibc no cambia
+# de soname y no se fija.
+_fijar_bibliotecas() {
+  local so dueno ver
+  while read -r so; do
+    if pacman -T "${so%%.so*}.so" >/dev/null; then
+      depends+=("${so%%.so*}.so")
+    elif dueno=$(pacman -Qqo "/usr/lib/$so" 2>/dev/null) && [[ $dueno != glibc ]]; then
+      ver=$(pacman -Q "$dueno" | cut -d' ' -f2)
+      ver=${ver#*:}
+      ver=${ver%-*}
+      if [[ $ver =~ ^([0-9]+)\.([0-9]+) ]]; then
+        depends+=("$dueno>=${BASH_REMATCH[0]}" "$dueno<${BASH_REMATCH[1]}.$((BASH_REMATCH[2] + 1))")
+      else
+        depends+=("$dueno=$ver")
+      fi
+    fi
+  done < <(find "$pkgdir" -type f -perm -u+x -exec readelf -d {} + 2>/dev/null \
+    | sed -nr 's/.*Shared library: \[(.*)\].*/\1/p' | sort -u)
+}
+
 # Una sola instalación que se reparte: okaru-core se lleva lo suyo y okaru, el resto.
 _stage() {
   [[ -d "$srcdir/stage" ]] || meson install -C "$srcdir/build" --destdir "$srcdir/stage" --quiet
@@ -60,6 +84,7 @@ package_okaru-core() {
     mv "$srcdir/stage/$item" "$pkgdir/$item"
   done
   install -Dm644 okaru/LICENSE -t "$pkgdir/usr/share/licenses/$pkgname"
+  _fijar_bibliotecas
 }
 
 package_okaru() {
@@ -82,4 +107,5 @@ package_okaru() {
   LD_LIBRARY_PATH="$core" "$bin" completions bash > "$pkgdir/usr/share/bash-completion/completions/okaru"
   LD_LIBRARY_PATH="$core" "$bin" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/okaru.fish"
   LD_LIBRARY_PATH="$core" "$bin" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_okaru"
+  _fijar_bibliotecas
 }
