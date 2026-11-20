@@ -148,8 +148,10 @@ libwebp_dep       = dependency('libwebp', required: true)
 libwebpdemux_dep  = dependency('libwebpdemux', required: true)
 
 # ── System: libjxl (JPEG XL decode and screenshot encode) ─────────────────────
-libjxl_dep          = dependency('libjxl', required: true)
-libjxl_threads_dep  = dependency('libjxl_threads', required: true)
+# Solo cabeceras: libjxl se abre con dlopen (src/render/core/jxl_library.cpp) porque su soname cambia en cada versión
+# menor y enlazarla dejaba OKARU sin arrancar al actualizar el sistema (0.12 → 0.13).
+libjxl_dep          = dependency('libjxl', required: true).partial_dependency(compile_args: true, includes: true)
+libjxl_threads_dep  = dependency('libjxl_threads', required: true).partial_dependency(compile_args: true, includes: true)
 
 # ── System: libsndfile (sound effect decoding) ───────────────────────────────
 sndfile_dep = dependency('sndfile', required: true)
@@ -610,6 +612,7 @@ _okaru_sources = files(
   'src/render/core/thumbnail_service.cpp',
   'src/render/core/image_decoder.cpp',
   'src/render/core/heif_library.cpp',
+  'src/render/core/jxl_library.cpp',
   'src/render/core/image_encoder.cpp',
   'src/render/core/image_orientation.cpp',
   'src/render/programs/glyph_program.cpp',

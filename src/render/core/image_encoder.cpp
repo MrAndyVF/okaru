@@ -1,17 +1,14 @@
 #include "render/core/image_encoder.h"
 
+#include "render/core/jxl_library.h"
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <jxl/color_encoding.h>
-#include <jxl/encode.h>
-#include <jxl/encode_cxx.h>
-#include <jxl/resizable_parallel_runner.h>
-#include <jxl/resizable_parallel_runner_cxx.h>
-#include <jxl/types.h>
+#include <memory>
 #include <utility>
 #include <webp/encode.h>
 
@@ -122,8 +119,15 @@ encodeJxl(const std::uint8_t* rgba, int width, int height, int quality, std::str
     return {};
   }
 
-  auto encoder = JxlEncoderMake(nullptr);
-  auto runner = JxlResizableParallelRunnerMake(nullptr);
+  const JxlApi* jxl = jxlApi();
+  if (jxl == nullptr) {
+    setError(errorOut, "JPEG XL encoding requires libjxl");
+    return {};
+  }
+  std::unique_ptr<JxlEncoder, decltype(jxl->encoderDestroy)> encoder(jxl->encoderCreate(nullptr), jxl->encoderDestroy);
+  std::unique_ptr<void, decltype(jxl->resizableParallelRunnerDestroy)> runner(
+      jxl->resizableParallelRunnerCreate(nullptr), jxl->resizableParallelRunnerDestroy
+  );
   if (encoder == nullptr || runner == nullptr) {
     setError(errorOut, "libjxl: failed to create encoder");
     return {};
@@ -131,8 +135,8 @@ encodeJxl(const std::uint8_t* rgba, int width, int height, int quality, std::str
 
   const auto xsize = static_cast<std::uint32_t>(width);
   const auto ysize = static_cast<std::uint32_t>(height);
-  JxlResizableParallelRunnerSetThreads(runner.get(), JxlResizableParallelRunnerSuggestThreads(xsize, ysize));
-  if (JxlEncoderSetParallelRunner(encoder.get(), JxlResizableParallelRunner, runner.get()) != JXL_ENC_SUCCESS) {
+  jxl->resizableParallelRunnerSetThreads(runner.get(), jxl->resizableParallelRunnerSuggestThreads(xsize, ysize));
+  if (jxl->encoderSetParallelRunner(encoder.get(), jxl->resizableParallelRunner, runner.get()) != JXL_ENC_SUCCESS) {
     setError(errorOut, "libjxl: failed to configure encoder");
     return {};
   }
@@ -140,7 +144,7 @@ encodeJxl(const std::uint8_t* rgba, int width, int height, int quality, std::str
   const bool lossless = quality >= kLosslessQuality;
 
   JxlBasicInfo info;
-  JxlEncoderInitBasicInfo(&info);
+  jxl->encoderInitBasicInfo(&info);
   info.xsize = xsize;
   info.ysize = ysize;
   info.bits_per_sample = 8;
@@ -151,21 +155,22 @@ encodeJxl(const std::uint8_t* rgba, int width, int height, int quality, std::str
   info.uses_original_profile = lossless ? JXL_TRUE : JXL_FALSE;
 
   JxlColorEncoding color;
-  JxlColorEncodingSetToSRGB(&color, JXL_FALSE);
+  jxl->colorEncodingSetToSRGB(&color, JXL_FALSE);
 
-  if (JxlEncoderSetBasicInfo(encoder.get(), &info) != JXL_ENC_SUCCESS
-      || JxlEncoderSetColorEncoding(encoder.get(), &color) != JXL_ENC_SUCCESS) {
+  if (jxl->encoderSetBasicInfo(encoder.get(), &info) != JXL_ENC_SUCCESS
+      || jxl->encoderSetColorEncoding(encoder.get(), &color) != JXL_ENC_SUCCESS) {
     setError(errorOut, "libjxl: failed to set image header");
     return {};
   }
 
-  JxlEncoderFrameSettings* settings = JxlEncoderFrameSettingsCreate(encoder.get(), nullptr);
+  JxlEncoderFrameSettings* settings = jxl->encoderFrameSettingsCreate(encoder.get(), nullptr);
   if (settings == nullptr) {
     setError(errorOut, "libjxl: failed to create frame settings");
     return {};
   }
-  const JxlEncoderStatus frameStatus = lossless ? JxlEncoderSetFrameLossless(settings, JXL_TRUE)
-                                                : JxlEncoderSetFrameDistance(settings, jxlDistanceFromQuality(quality));
+  const JxlEncoderStatus frameStatus = lossless
+      ? jxl->encoderSetFrameLossless(settings, JXL_TRUE)
+      : jxl->encoderSetFrameDistance(settings, jxlDistanceFromQuality(quality));
   if (frameStatus != JXL_ENC_SUCCESS) {
     setError(errorOut, "libjxl: failed to set frame quality");
     return {};
@@ -173,17 +178,17 @@ encodeJxl(const std::uint8_t* rgba, int width, int height, int quality, std::str
 
   constexpr JxlPixelFormat kFormat{4, JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, 0};
   const std::size_t pixelBytes = static_cast<std::size_t>(xsize) * ysize * 4;
-  if (JxlEncoderAddImageFrame(settings, &kFormat, rgba, pixelBytes) != JXL_ENC_SUCCESS) {
+  if (jxl->encoderAddImageFrame(settings, &kFormat, rgba, pixelBytes) != JXL_ENC_SUCCESS) {
     setError(errorOut, "libjxl: failed to add image frame");
     return {};
   }
-  JxlEncoderCloseInput(encoder.get());
+  jxl->encoderCloseInput(encoder.get());
 
   std::vector<std::uint8_t> out(std::max<std::size_t>(pixelBytes / 8, 64 * 1024));
   std::uint8_t* next = out.data();
   std::size_t available = out.size();
   for (;;) {
-    const JxlEncoderStatus status = JxlEncoderProcessOutput(encoder.get(), &next, &available);
+    const JxlEncoderStatus status = jxl->encoderProcessOutput(encoder.get(), &next, &available);
     if (status == JXL_ENC_SUCCESS) {
       break;
     }
