@@ -2,6 +2,7 @@
 
 #include "compositors/compositor_platform.h"
 #include "config/config_service.h"
+#include "core/process/process.h"
 #include "core/deferred_call.h"
 #include "core/input/key_chord.h"
 #include "core/input/keybind_matcher.h"
@@ -265,6 +266,13 @@ namespace {
   // El desenfoque del compositor no se puede atenuar: entra cuando el panel ya se ve casi entero.
   constexpr float kPanelBlurFromProgress = 0.6F;
 
+  // OKARU: el selector de fondos es la app okaru-wallpaper-picker (abre y cierra con cada llamada). Devuelve false si
+  // no está instalada, y entonces se abre el panel de siempre.
+  // shortcut: el respaldo al panel viejo vive hasta que se borre el panel (fase 4 del picker).
+  [[nodiscard]] bool launchWallpaperPicker(std::string_view panelId) {
+    return panelId == "wallpaper" && process::launchFirstAvailable({{"okaru-wallpaper-picker"}});
+  }
+
   [[nodiscard]] bool usesConfiguredFloatingLayer(std::string_view panelId) {
     return panelId == "clipboard"
         || panelId == "control-center"
@@ -443,6 +451,9 @@ void PanelManager::unregisterPanel(const std::string& id) {
 }
 
 void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest request) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_inTransition || m_afterCaptureClose) {
     return;
   }
@@ -1222,6 +1233,9 @@ void PanelManager::destroyPanel() {
 }
 
 void PanelManager::togglePanel(const std::string& panelId, PanelOpenRequest request) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_persistentHost.hasPanel(panelId)) {
     if (m_persistentHost.isOpen(panelId)) {
       m_persistentHost.close(panelId);
@@ -1254,6 +1268,9 @@ void PanelManager::togglePanel(const std::string& panelId, PanelOpenRequest requ
 }
 
 void PanelManager::togglePanel(const std::string& panelId) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_persistentHost.hasPanel(panelId)) {
     if (m_persistentHost.isOpen(panelId)) {
       m_persistentHost.close(panelId);

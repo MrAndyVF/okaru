@@ -744,6 +744,74 @@ void Wallpaper::registerIpc(IpcService& ipc) {
         return "ok\n";
       }
   );
+
+  // OKARU: favoritos para okaru-wallpaper-picker. La ruta va al final (puede tener espacios).
+  ipc.bind(okaru::cli::msg::wallpaperFavorite, [this, &ipc](const std::string& args) -> std::string {
+    if (m_config == nullptr) {
+      return "error: wallpaper service not initialized\n";
+    }
+    const std::optional<std::string_view> callerCwd =
+        ipc.callerCwd().has_value() ? std::optional<std::string_view>{*ipc.callerCwd()} : std::nullopt;
+    std::string_view rest = StringUtils::trim(args);
+    const auto nextToken = [&rest]() -> std::string {
+      const std::size_t end = rest.find_first_of(" \t");
+      std::string token(rest.substr(0, end));
+      rest = end == std::string_view::npos ? std::string_view{} : StringUtils::trim(rest.substr(end));
+      return token;
+    };
+    const std::string action = nextToken();
+    std::string option;
+    std::string value;
+    if (action == "theme") {
+      option = nextToken();
+    } else if (action == "palette") {
+      option = nextToken();
+      value = nextToken();
+    } else if (action != "add" && action != "remove") {
+      return "error: action must be add, remove, theme or palette\n";
+    }
+    if (rest.empty()) {
+      return "error: path required\n";
+    }
+    // Quitar no exige que el archivo siga existiendo.
+    const auto resolved = resolveWallpaperPath(std::string(rest), callerCwd);
+    const std::string path = resolved.has_value() ? *resolved : std::string(rest);
+    if (action == "add") {
+      if (!resolved.has_value()) {
+        return "error: path does not exist or is not a regular file\n";
+      }
+      m_config->addWallpaperFavorite(path);
+      return "ok\n";
+    }
+    if (action == "remove") {
+      m_config->removeWallpaperFavorite(path);
+      return "ok\n";
+    }
+    if (!m_config->isWallpaperFavorite(path)) {
+      return "error: not a favorite\n";
+    }
+    if (action == "theme") {
+      const auto mode = enumFromKey(kThemeModes, option);
+      if (!mode.has_value()) {
+        return "error: theme must be dark, light or auto\n";
+      }
+      m_config->setWallpaperFavoriteThemeMode(path, *mode);
+      return "ok\n";
+    }
+    // palette <builtin|wallpaper|community|custom|none> <valor|->: none = sigue la paleta global.
+    std::optional<PaletteSource> source;
+    if (option != "none") {
+      source = enumFromKey(kPaletteSources, option);
+      if (!source.has_value()) {
+        return "error: palette source must be builtin, wallpaper, community, custom or none\n";
+      }
+    }
+    m_config->setWallpaperFavoritePaletteSource(path, source);
+    if (source.has_value() && !value.empty() && value != "-") {
+      m_config->setWallpaperFavoritePaletteSelection(path, value);
+    }
+    return "ok\n";
+  });
 }
 
 void Wallpaper::syncInstances() {
