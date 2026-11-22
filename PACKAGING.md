@@ -114,7 +114,7 @@ OKARU resolves the asset root in this order:
 5. `../share/okaru/assets` relative to the executable
 6. the compiled install path from Meson (`<prefix>/<datadir>/okaru/assets`)
 
-A candidate is only accepted if it contains `emoji.json`, `fonts/okaru-tabler.ttf`, `templates/builtin.toml`, and `translations/en.json`. If none qualifies, OKARU logs a warning and uses the compiled install path.
+A candidate is only accepted if it contains `fonts/okaru-tabler.ttf`, `templates/builtin.toml`, and `translations/en.json`. If none qualifies, OKARU logs a warning and uses the compiled install path.
 
 Not shipped (don’t look for them in the install): AppStream / metainfo XML, man pages, systemd units.
 

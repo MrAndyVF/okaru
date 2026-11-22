@@ -837,17 +837,6 @@
         "system": "System",
         "utilities": "Utilities"
       },
-      "emoji": {
-        "activity": "Activity",
-        "animals": "Animals",
-        "flags": "Flags",
-        "food": "Food",
-        "nature": "Nature",
-        "objects": "Objects",
-        "people": "People",
-        "symbols": "Symbols",
-        "travel": "Travel"
-      },
       "recently-used": "Recently Used"
     },
     "context-menu": {
@@ -876,9 +865,6 @@
       },
       "calculator": {
         "title": "Calculator"
-      },
-      "emoji": {
-        "title": "Emoji"
       },
       "panel": {
         "builtin": {
@@ -3731,10 +3717,6 @@
           "description": "Also show calculator results in unprefixed search",
           "label": "Calculator in Global Search"
         },
-        "launcher-global-emoji": {
-          "description": "Also show emoji results in unprefixed search",
-          "label": "Emoji in Global Search"
-        },
         "launcher-global-panels": {
           "description": "Also show panels in unprefixed search",
           "label": "Panels in Global Search"
@@ -3778,10 +3760,6 @@
         "launcher-prefix-character": {
           "description": "Common prefix character used to trigger all provider prefixes (e.g. /)",
           "label": "Common Prefix Character"
-        },
-        "launcher-prefix-emoji": {
-          "description": "Trigger prefix for emoji search",
-          "label": "Emoji Prefix"
         },
         "launcher-prefix-panels": {
           "description": "Trigger prefix for panel search",

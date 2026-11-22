@@ -49,7 +49,6 @@ namespace settings {
 
     constexpr auto kLauncherProviderSettings = std::to_array<LauncherProviderSettingSpec>({
         {.name = "calculator", .prefixPlaceholder = "calc", .globalByDefault = true},
-        {.name = "emoji", .prefixPlaceholder = "emo"},
         {.name = "panels", .prefixPlaceholder = "pan"},
         {.name = "session", .prefixPlaceholder = "session"},
         {.name = "wallpaper", .prefixPlaceholder = "wall"},

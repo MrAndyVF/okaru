@@ -105,13 +105,10 @@ provider_prefix = "/"                     # common prefix character for provider
 auto_paste = "auto"                       # off | auto | ctrl_v | ctrl_shift_v | shift_insert (copy activations)
 
 # For each provider: prefix = trigger word (empty falls back to its built-in default; triggers on
-# provider_prefix + trigger, e.g. "/emo"). global = true also surfaces it in unprefixed search.
+# provider_prefix + trigger, e.g. "/calc"). global = true also surfaces it in unprefixed search.
 [shell.launcher.providers.calculator]
 prefix = "calc"
 global = true                           # also show calculator results in unprefixed search
-
-[shell.launcher.providers.emoji]
-prefix = "emo"
 
 [shell.launcher.providers.session]
 prefix = "session"

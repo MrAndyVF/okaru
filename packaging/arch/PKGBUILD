@@ -89,7 +89,7 @@ package_okaru-core() {
 
 package_okaru() {
   # Las apps viven en sus repos (MrAndyVF/okaru-<app>) y se publican junto a la shell en [okaru].
-  depends=("okaru-core=$pkgver-$pkgrel" okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive okaru-music)
+  depends=("okaru-core=$pkgver-$pkgrel" okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive okaru-music okaru-emoji)
   _stage
   # Sin las carpetas que quedaron vacías tras llevarse okaru-core lo suyo.
   find "$srcdir/stage" -mindepth 1 -type d -empty -delete

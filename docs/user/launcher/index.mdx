@@ -1,6 +1,6 @@
 ---
 title: Launcher
-description: Searching applications, calculating expressions, and picking emojis or wallpapers.
+description: Searching applications, calculating expressions and picking wallpapers.
 sidebar:
   order: 5
 ---
@@ -64,7 +64,7 @@ Right-click an application result to open its menu of additional per-app options
 
 The primary provider for finding and launching your installed apps.
 
-Enabling `shell.launcher.app_grid` uses a multi-column icon grid with the item name underneath for grid-capable results, including `/emo`, `/wall`, and `/session`. Emoji tiles show the actual emoji, and wallpaper tiles show image previews. Session actions use the same layout whether opened by prefix or by the power button. Calculator, Windows, Panels, dmenu, and plugin providers use lists. Left/right keybinds move between columns in grid mode; up/down move by row.
+Enabling `shell.launcher.app_grid` uses a multi-column icon grid with the item name underneath for grid-capable results, including `/wall` and `/session`. Wallpaper tiles show image previews. Session actions use the same layout whether opened by prefix or by the power button. Calculator, Windows, Panels, dmenu, and plugin providers use lists. Left/right keybinds move between columns in grid mode; up/down move by row.
 
 - **Source**: Reads `.desktop` entries from standard XDG directories (e.g., `/usr/share/applications`, `~/.local/share/applications`).
 - **Package origins**: Results identify Flatpak, Snap, Nix, and AppImage applications when their desktop entries or executable metadata provide that information. AppImages are recognized from the official `X-AppImage-Version` key or executable evidence, including extensionless files managed by AppImageLauncher. Other `X-AppImage-*` keys alone do not classify a native package as an AppImage. `X-AppImage-Integrate=false` explicitly opts a desktop entry out of AppImage classification.
@@ -86,14 +86,7 @@ A built-in expression evaluator powered by [`libqalculate`](https://qalculate.gi
 
 ### Emoji
 
-A quick way to find and copy emojis.
-
-- **Prefix**: `/emo `
-- **Functionality**: Searches `emoji.json` by name, category, and keywords. Activating a result copies the emoji character directly to your clipboard.
-- **Display**: Emoji fit within each result row, including compact mode and rows with application icons hidden.
-- **Usage**: With `shell.launcher.track_usage` enabled, the **Recently Used** filter lists recent picks newest first. When `shell.launcher.sort_by_usage` is also enabled, frequently copied emojis rise to the top of an empty `/emo` query.
-
-Example: `/emo heart`
+Emojis, GIFs, kaomojis and symbols now live in their own app, `okaru-emoji` (**Super + .**), instead of a launcher provider.
 
 ### Panels
 
@@ -235,7 +228,7 @@ Every prefixed provider (built-in, dmenu, or plugin) is triggered the same way: 
 - `shell.launcher.provider_prefix` sets the common character (default `/`).
 - Each provider supplies a bare trigger word, which is concatenated onto `provider_prefix`.
 
-So `provider_prefix = "/"` with a trigger word of `emo` gives `/emo`. Changing `provider_prefix` to `.` makes every provider trigger on `.emo`, `.ssh`, and so on. An empty trigger word leaves a provider reachable only through the un-prefixed (global) search. Trigger words are always bare: write `ssh`, not `/ssh`.
+So `provider_prefix = "/"` with a trigger word of `calc` gives `/calc`. Changing `provider_prefix` to `.` makes every provider trigger on `.calc`, `.ssh`, and so on. An empty trigger word leaves a provider reachable only through the un-prefixed (global) search. Trigger words are always bare: write `ssh`, not `/ssh`.
 
 Each provider type gets its trigger word from a different place:
 

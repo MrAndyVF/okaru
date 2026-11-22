@@ -60,7 +60,7 @@ hl.bind("SUPER + E", hl.dsp.exec_cmd("okaru-files"))
 
 -- === OKARU ===
 hl.bind("SUPER + space", hl.dsp.exec_cmd(ipc .. "panel-toggle launcher"))
-hl.bind("SUPER + Period", hl.dsp.exec_cmd(ipc .. [[panel-toggle launcher "/emo "]]), { description = "Emoji Picker" })
+hl.bind("SUPER + Period", hl.dsp.exec_cmd("okaru-emoji"), { description = "Emoji Picker" })
 hl.bind("SUPER + V", hl.dsp.exec_cmd(ipc .. "panel-toggle clipboard"))
 hl.bind("SUPER + comma", hl.dsp.exec_cmd(ipc .. "settings-toggle"))
 hl.bind("SUPER + A", hl.dsp.exec_cmd(ipc .. "panel-toggle control-center"))
