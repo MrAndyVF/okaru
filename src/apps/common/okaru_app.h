@@ -66,6 +66,11 @@ namespace okaru::apps {
     // Con `fullscreen`: las demás pantallas se cubren con una capa desenfocada (sin contenido) mientras la app está
     // abierta. Un clic en ellas llama a setBackdropClickCallback.
     bool backdropOtherOutputs = false;
+    // Residente: el proceso sigue vivo con la superficie oculta (hide/show) para abrir al instante. Con startHidden
+    // arranca oculto (precargado por la shell). SIGUSR1 llama a setToggleCallback (p. ej. otra instancia que se
+    // lanza: lo muestra u oculta).
+    bool resident = false;
+    bool startHidden = false;
   };
 
   class OkaruApp {
@@ -102,6 +107,11 @@ namespace okaru::apps {
     // Abre la ventana y corre el bucle hasta cerrarla. Devuelve el código de salida.
     int run();
     void quit();
+    // Con AppOptions::resident: quita la superficie sin terminar (al terminar el cuadro actual) / la vuelve a crear.
+    void hide();
+    void show();
+    [[nodiscard]] bool hidden() const noexcept { return m_surface == nullptr; }
+    void setToggleCallback(std::function<void()> callback) { m_toggle = std::move(callback); }
     // Cierra la ventana y, cuando el foco vuelve a la anterior, pega el portapapeles en ella con el teclado
     // virtual (selector de emojis). Usa el atajo de shell.launcher.auto_paste; "off" se trata como "auto".
     void quitAndPaste(bool isImage = false);
@@ -187,6 +197,9 @@ namespace okaru::apps {
     std::optional<ColorSpec> m_backdropVeil;
     std::function<void()> m_backdropClick;
     void createBackdrops(wl_output* mainOutput);
+    [[nodiscard]] bool createSurface();
+    void destroySurface();
+    std::function<void()> m_toggle;
     void prepareBackdrop(Backdrop& backdrop);
     InputDispatcher m_input;
     FileWatcher m_fileWatcher;

@@ -34,6 +34,8 @@
 #include "wayland/wayland_seat.h"
 
 #include <algorithm>
+#include <fstream>
+#include <csignal>
 #include <cmath>
 #include <format>
 #include <optional>
@@ -268,11 +270,35 @@ namespace {
 
   constexpr std::string_view kWallpaperPickerId = "wallpaper";
 
-  // OKARU: el selector de fondos es la app okaru-wallpaper-picker (abre y cierra con cada llamada); "wallpaper" sigue
-  // siendo su id para los atajos, la barra, el dashboard y Ajustes. Devuelve si el id era ese.
+  // OKARU: el okaru-wallpaper-picker residente, si lo hay: el PID de su candado, comprobado contra /proc.
+  [[nodiscard]] std::optional<pid_t> runningWallpaperPicker() {
+    const char* runtime = std::getenv("XDG_RUNTIME_DIR");
+    if (runtime == nullptr || runtime[0] == '\0') {
+      return std::nullopt;
+    }
+    std::ifstream lock(std::string(runtime) + "/okaru-wallpaper-picker.lock");
+    long pid = 0;
+    if (!(lock >> pid) || pid <= 1) {
+      return std::nullopt;
+    }
+    std::ifstream comm(std::format("/proc/{}/comm", pid));
+    std::string name;
+    // El kernel recorta el nombre a 15 caracteres.
+    if (!std::getline(comm, name) || !name.starts_with("okaru-wallpaper")) {
+      return std::nullopt;
+    }
+    return static_cast<pid_t>(pid);
+  }
+
+  // OKARU: el selector de fondos es la app okaru-wallpaper-picker; "wallpaper" sigue siendo su id para los atajos, la
+  // barra, el dashboard y Ajustes. Si está residente se le pide directamente que se muestre u oculte (sin arrancar
+  // otro proceso); si no, se lanza (y queda residente). Devuelve si el id era ese.
   [[nodiscard]] bool launchWallpaperPicker(std::string_view panelId) {
     if (panelId != kWallpaperPickerId) {
       return false;
+    }
+    if (const auto pid = runningWallpaperPicker(); pid.has_value() && ::kill(*pid, SIGUSR1) == 0) {
+      return true;
     }
     if (!process::launchFirstAvailable({{"okaru-wallpaper-picker"}})) {
       kLog.warn("okaru-wallpaper-picker is not installed");
@@ -2248,6 +2274,14 @@ std::vector<std::string> PanelManager::availablePanelIds() const {
   m_persistentHost.appendPanelIds(ids);
   ids.emplace_back(kWallpaperPickerId);
   return ids;
+}
+
+void PanelManager::schedulePickerPrestart() {
+  m_pickerPrestart.start(std::chrono::seconds(3), [] {
+    if (!runningWallpaperPicker().has_value() && process::commandExists("okaru-wallpaper-picker")) {
+      (void)process::runAsync({"okaru-wallpaper-picker", "--daemon"});
+    }
+  });
 }
 
 void PanelManager::registerIpc(IpcService& ipc) {

@@ -173,6 +173,8 @@ public:
   void unregisterPopupSurface(wl_surface* surface) override;
 
   void registerIpc(IpcService& ipc);
+  // OKARU: arranca okaru-wallpaper-picker oculto unos segundos después de la shell, para que Super+Y abra al instante.
+  void schedulePickerPrestart();
 
 private:
   static PanelManager* s_instance;
@@ -287,6 +289,7 @@ private:
   float m_detachedRevealProgress = 1.0F;
   Timer m_keyboardRelaxTimer;
   Timer m_captureCloseTimer;
+  Timer m_pickerPrestart;
   wl_callback* m_captureCloseFrame = nullptr;
   std::function<void()> m_afterCaptureClose;
   std::string m_sourceBarName;       // name of the bar that opened the current panel

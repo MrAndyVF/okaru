@@ -714,6 +714,7 @@ void Application::initPanelManagerAndPanels() {
     });
     m_launcherPanel = launcherPanel.get();
     m_launcherPanel->schedulePrewarm(); // OKARU
+    m_panelManager.schedulePickerPrestart(); // OKARU
     m_panelManager.registerPanel("launcher", std::move(launcherPanel));
   }
   m_settingsWindow.setResetLauncherUsage([this] {

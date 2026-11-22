@@ -7,6 +7,7 @@
 #include "app/timer_poll_source.h"
 #include "config/config_poll_source.h"
 #include "core/input/keybind_matcher.h"
+#include "core/deferred_call.h"
 #include "core/log.h"
 #include "core/process/process.h"
 #include "core/ui_phase.h"
@@ -28,6 +29,9 @@
 #include <cmath>
 #include <csignal>
 #include <thread>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/signalfd.h>
 #include <linux/input-event-codes.h>
 #include <wayland-client-protocol.h>
 
@@ -67,7 +71,64 @@ namespace okaru::apps {
     }
   }
 
-  OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {}
+  // SIGUSR1 → callback en el bucle principal (signalfd), para apps residentes que otra instancia muestra u oculta.
+  class ToggleSignalSource final : public PollSource {
+  public:
+    ToggleSignalSource(bool enabled, std::function<void()> callback) : m_callback(std::move(callback)) {
+      if (!enabled) {
+        return;
+      }
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigaddset(&mask, SIGUSR1);
+      if (pthread_sigmask(SIG_BLOCK, &mask, nullptr) == 0) {
+        m_fd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
+      }
+    }
+    ~ToggleSignalSource() override {
+      if (m_fd >= 0) {
+        ::close(m_fd);
+      }
+    }
+    ToggleSignalSource(const ToggleSignalSource&) = delete;
+    ToggleSignalSource& operator=(const ToggleSignalSource&) = delete;
+    [[nodiscard]] int fd() const noexcept { return m_fd; }
+    void dispatch(const std::vector<pollfd>& fds, std::size_t startIdx) override {
+      if (m_fd < 0 || startIdx >= fds.size() || (fds[startIdx].revents & POLLIN) == 0) {
+        return;
+      }
+      signalfd_siginfo info{};
+      bool fired = false;
+      while (::read(m_fd, &info, sizeof(info)) == static_cast<ssize_t>(sizeof(info))) {
+        fired = true;
+      }
+      if (fired && m_callback) {
+        m_callback();
+      }
+    }
+
+  protected:
+    void doAddPollFds(std::vector<pollfd>& fds) override {
+      if (m_fd >= 0) {
+        fds.push_back({.fd = m_fd, .events = POLLIN, .revents = 0});
+      }
+    }
+
+  private:
+    int m_fd = -1;
+    std::function<void()> m_callback;
+  };
+
+  OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {
+    if (m_options.resident) {
+      // Antes de crear cualquier hilo (los heredan): si no, SIGUSR1 puede caer en uno sin bloquearla y su acción por
+      // defecto termina el proceso. El bucle la lee con signalfd.
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigaddset(&mask, SIGUSR1);
+      pthread_sigmask(SIG_BLOCK, &mask, nullptr);
+    }
+  }
 
   OkaruApp::~OkaruApp() {
     if (m_virtualKeyboardBound) {
@@ -163,6 +224,51 @@ namespace okaru::apps {
     m_wayland.setKeyboardEventCallback([this](const KeyboardEvent& event) { onKey(event); });
     m_wayland.setKeyboardModifiersCallback([](std::uint32_t modifiers) { g_modifiers = modifiers; });
 
+    if (!(m_options.resident && m_options.startHidden) && !createSurface()) {
+      return 1;
+    }
+
+    DeferredCallPollSource deferred;
+    TimerPollSource timers;
+    KeyRepeatPollSource keyRepeat(m_wayland);
+    ConfigPollSource configSource(m_config);
+    FileWatchPollSource fileWatch(m_fileWatcher);
+    ToggleSignalSource toggleSignal(m_options.resident, [this] {
+      if (m_toggle) {
+        m_toggle();
+      }
+    });
+
+    MainLoop loop(
+        m_wayland, m_stop,
+        [this] {
+          if (m_onClose && m_surface != nullptr) {
+            m_render.makeCurrent(m_surface->renderTarget());
+            m_onClose();
+          }
+          m_pasteTimer.stop();
+          destroySurface();
+        },
+        [&] {
+          std::vector<PollSource*> sources{&deferred, &timers, &keyRepeat, &configSource, &fileWatch};
+          if (toggleSignal.fd() >= 0) {
+            sources.push_back(&toggleSignal);
+          }
+          if (m_sessionBusSource != nullptr) {
+            sources.push_back(m_sessionBusSource.get());
+          }
+          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
+          return sources;
+        }
+    );
+    loop.run();
+    if (m_pasteOnExit.has_value()) {
+      pasteIntoFocusedWindow(*m_pasteOnExit);
+    }
+    return 0;
+  }
+
+  bool OkaruApp::createSurface() {
     const float s = scale();
     const auto closed = [this] {
       if (!m_closeRequest || m_closeRequest()) {
@@ -234,14 +340,11 @@ namespace okaru::apps {
     // argumentos tomaría la primera de la lista (la de la izquierda), no la que se está usando.
     if (!(m_layer != nullptr ? m_layer->initialize(nullptr) : m_toplevel->initialize(nullptr, surfaceConfig))) {
       kLog.error("cannot create the window");
-      return 1;
+      m_layer = nullptr;
+      m_toplevel = nullptr;
+      m_surface.reset();
+      return false;
     }
-
-    DeferredCallPollSource deferred;
-    TimerPollSource timers;
-    KeyRepeatPollSource keyRepeat(m_wayland);
-    ConfigPollSource configSource(m_config);
-    FileWatchPollSource fileWatch(m_fileWatcher);
     m_selectPopup = std::make_unique<SelectDropdownPopup>(m_wayland, m_render);
     m_selectPopup->setShadowConfig(m_config.config().shell.shadow);
     if (m_layer != nullptr) {
@@ -249,35 +352,41 @@ namespace okaru::apps {
     } else {
       m_selectPopup->setParent(m_toplevel->xdgSurface(), m_surface->wlSurface(), nullptr);
     }
+    m_rebuild = true;
+    return true;
 
-    MainLoop loop(
-        m_wayland, m_stop,
-        [this] {
-          if (m_onClose && m_surface != nullptr) {
-            m_render.makeCurrent(m_surface->renderTarget());
-            m_onClose();
-          }
-          m_pasteTimer.stop();
-          m_backdrops.clear();
-          m_selectPopup.reset();
-          m_toplevel = nullptr;
-          m_layer = nullptr;
-          m_surface.reset();
-        },
-        [&] {
-          std::vector<PollSource*> sources{&deferred, &timers, &keyRepeat, &configSource, &fileWatch};
-          if (m_sessionBusSource != nullptr) {
-            sources.push_back(m_sessionBusSource.get());
-          }
-          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
-          return sources;
-        }
-    );
-    loop.run();
-    if (m_pasteOnExit.has_value()) {
-      pasteIntoFocusedWindow(*m_pasteOnExit);
+  }
+
+  void OkaruApp::destroySurface() {
+    m_backdrops.clear();
+    m_mainOutput.clear();
+    m_input.setSceneRoot(nullptr);
+    m_root.reset(); // la escena se vuelve a construir al mostrarse
+    m_selectPopup.reset();
+    m_toplevel = nullptr;
+    m_layer = nullptr;
+    m_surface.reset();
+  }
+
+  void OkaruApp::hide() {
+    if (!m_options.resident) {
+      quit();
+      return;
     }
-    return 0;
+    // Diferido: puede llamarse desde un evento o un cuadro de la propia superficie.
+    DeferredCall::callLater([this] {
+      if (m_surface != nullptr) {
+        m_render.makeCurrent(m_surface->renderTarget());
+        destroySurface();
+        wl_display_flush(m_wayland.display());
+      }
+    });
+  }
+
+  void OkaruApp::show() {
+    if (m_surface == nullptr && !createSurface()) {
+      quit();
+    }
   }
 
   void OkaruApp::pasteIntoFocusedWindow(bool isImage) {
