@@ -845,6 +845,7 @@ void Application::reconcileOutputSurfaces() {
   m_desktopWidgetsController.onOutputChange();
   m_screenCorners.onOutputChange();
   m_hotCorners.onOutputChange();
+  m_cursorShake.onOutputChange(); // OKARU
   m_lockScreen.onOutputChange();
   m_idleGraceOverlay.onOutputChange();
   m_idleInhibitor.onOutputChange();

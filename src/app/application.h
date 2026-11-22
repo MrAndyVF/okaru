@@ -55,6 +55,7 @@
 #include "shell/osd/media_osd.h"
 #include "shell/osd/osd_overlay.h"
 #include "shell/osd/privacy_osd.h"
+#include "shell/okaru_cursor_shake/okaru_cursor_shake.h" // OKARU
 #include "shell/overview/overview_launcher_capture.h"
 #include "shell/panel/panel_manager.h"
 #include "shell/plugin_layer/plugin_layer_host.h"
@@ -385,6 +386,7 @@ private:
   PrivacyOsd m_privacyOsd;
   OsdOverlay m_osdOverlay;
   HotCorners m_hotCorners{this};
+  OkaruCursorShake m_cursorShake; // OKARU
   ScreenCorners m_screenCorners;
   TrayMenu m_trayMenu;
   Wallpaper m_wallpaper;

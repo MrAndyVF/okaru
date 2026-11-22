@@ -132,6 +132,15 @@ void WaylandSeat::setCursorShape(std::uint32_t serial, std::uint32_t shape) {
   wp_cursor_shape_device_v1_set_shape(m_cursorShapeDevice, effectiveSerial, shape);
 }
 
+// OKARU
+void WaylandSeat::hideCursor() {
+  if (m_pointer == nullptr || m_pointerEnterSerial == 0) {
+    return;
+  }
+  wl_pointer_set_cursor(m_pointer, m_pointerEnterSerial, nullptr, 0, 0);
+  m_lastCursorShapeSerial = 0; // el próximo set_shape en esta superficie no debe saltarse por la caché
+}
+
 void WaylandSeat::forgetSurface(wl_surface* surface) noexcept {
   if (surface == nullptr) {
     return;
