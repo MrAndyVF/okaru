@@ -55,6 +55,7 @@
 #include "shell/osd/media_osd.h"
 #include "shell/osd/osd_overlay.h"
 #include "shell/osd/privacy_osd.h"
+#include "shell/okaru_cursor_shake/okaru_cursor_shake.h" // OKARU
 #include "shell/overview/overview_launcher_capture.h"
 #include "shell/panel/panel_manager.h"
 #include "shell/plugin_layer/plugin_layer_host.h"
@@ -66,6 +67,7 @@
 #include "shell/wallpaper/panel/wallpaper_scanner.h"
 #include "shell/wallpaper/wallpaper.h"
 #include "system/battery_warning_monitor.h"
+#include "system/okaru_device_monitor.h" // OKARU
 #include "system/dependency_service.h"
 #include "system/desktop_entry_poll_source.h"
 #include "system/gamma_service.h"
@@ -108,7 +110,7 @@ namespace sdbus {
   class IProxy;
 }
 
-class LauncherPanel;
+class OkaruLauncherPanel;
 class AccountsService;
 class BluetoothAgent;
 class BluetoothService;
@@ -195,10 +197,6 @@ private:
   // and on every output change so first-run stacking matches hot reload.
   void reconcileOutputSurfaces();
   void initIpc();
-  // (Re)register plugin-backed launcher providers from the enabled plugin set.
-  void reloadPluginLauncherProviders();
-  // (Re)register config-driven dmenu launcher providers ([shell.launcher.dmenu.entry.*]).
-  void reloadDmenuProviders();
   // (Re)register plugin-backed panels from the enabled plugin set.
   void reloadPluginPanels();
   // Re-register plugin-backed [[layer]] entries from the enabled plugin set.
@@ -339,6 +337,7 @@ private:
   bool m_calendarCredentialAutoRetried = false;
   std::unique_ptr<PipeWireService> m_pipewireService;
   std::unique_ptr<WirePlumberMixer> m_wirePlumberMixer;
+  std::unique_ptr<OkaruDeviceMonitor> m_deviceMonitor; // OKARU
   std::unique_ptr<EasyEffectsService> m_easyEffectsService;
   std::unique_ptr<PipeWireSpectrum> m_pipewireSpectrum;
   std::shared_ptr<SoundPlayer> m_soundPlayer;
@@ -360,8 +359,8 @@ private:
   LockScreen m_lockScreen;
   SessionActionRunner m_sessionActionRunner{m_compositorPlatform, m_lockScreen};
   PanelManager m_panelManager;
-  // Owned by m_panelManager; kept raw so plugin launcher providers can be re-applied.
-  LauncherPanel* m_launcherPanel = nullptr;
+  // Owned by m_panelManager; kept raw for dmenu sessions and the usage reset in Settings.
+  OkaruLauncherPanel* m_launcherPanel = nullptr;
   // Ids of plugin-backed panels currently registered with m_panelManager, so a
   // reload can retire the previous set before registering the new one.
   std::vector<std::string> m_pluginPanelIds;
@@ -383,6 +382,7 @@ private:
   PrivacyOsd m_privacyOsd;
   OsdOverlay m_osdOverlay;
   HotCorners m_hotCorners{this};
+  OkaruCursorShake m_cursorShake; // OKARU
   ScreenCorners m_screenCorners;
   TrayMenu m_trayMenu;
   Wallpaper m_wallpaper;

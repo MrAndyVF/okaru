@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "config/config_types.h"
 #include "core/ui_phase.h"
 #include "render/scene/node.h"
@@ -61,6 +63,11 @@ public:
   // once at open and only the visible card inside it follows the content, because
   // resizing a layer surface blanks it for a frame on most compositors.
   [[nodiscard]] virtual bool fitsContentHeight() const noexcept { return false; }
+  // OKARU: centrada en pantalla, la tarjeta ajustada al contenido crece hacia abajo desde arriba (Spotlight) en vez
+  // de hacia los dos lados.
+  [[nodiscard]] virtual bool contentFitGrowsDown() const noexcept { return false; }
+  // OKARU: relleno de la tarjeta alrededor del contenido (sin escalar); nullopt = Style::panelPadding.
+  [[nodiscard]] virtual std::optional<float> contentPadding() const { return std::nullopt; }
   // Natural height of the content laid out at `contentWidth`, without padding. Called
   // after layout() and only when fitsContentHeight() is true; may leave the content laid
   // out at that height, so the caller lays it out again.

@@ -736,7 +736,6 @@
   },
   "launcher": {
     "categories": {
-      "all": "Todo",
       "applications": {
         "development": "Desarrollo",
         "education": "Educación",
@@ -747,31 +746,7 @@
         "office": "Oficina",
         "system": "Sistema",
         "utilities": "Utilidades"
-      },
-      "emoji": {
-        "activity": "Actividades",
-        "animals": "Animales",
-        "flags": "Banderas",
-        "food": "Comida",
-        "nature": "Naturaleza",
-        "objects": "Objetos",
-        "people": "Gente",
-        "symbols": "Símbolos",
-        "travel": "Viajes"
-      },
-      "recently-used": "Recientes"
-    },
-    "context-menu": {
-      "open": "Abrir",
-      "pin": "Fijar al lanzador",
-      "pin-to-dock": "Anclar al Dock",
-      "unpin": "Desfijar del lanzador",
-      "unpin-from-dock": "Desanclar del Dock"
-    },
-    "empty": {
-      "loading": "Cargando resultados…",
-      "no-results": "No se han encontrado resultados",
-      "type-to-search": "Escribe para buscar…"
+      }
     },
     "origins": {
       "appimage": "AppImage",
@@ -781,43 +756,103 @@
       "system": "Sistema",
       "user": "Usuario"
     },
-    "providers": {
-      "applications": {
-        "title": "Aplicaciones"
+    "okaru": {
+      "placeholder": "Buscar apps y comandos…",
+      "open": "Abrir",
+      "new-window": "Nueva ventana",
+      "no-results": "Sin resultados",
+      "kind": {
+        "application": "Aplicación",
+        "command": "Comando"
       },
-      "calculator": {
-        "title": "Calculadora"
+      "section": {
+        "results": "Resultados",
+        "suggestions": "Sugerencias",
+        "commands": "Comandos",
+        "applications": "Aplicaciones"
       },
-      "emoji": {
-        "title": "Emoji"
-      },
-      "panel": {
-        "builtin": {
-          "clipboard": "Portapapeles",
-          "control-center": "Centro de control",
-          "launcher": "Lanzador",
-          "polkit": "Solicitud de autenticación",
+      "back": "Atrás",
+      "keybinds": {
+        "title": "Atajos de teclado",
+        "placeholder": "Buscar atajos…",
+        "group": {
+          "apps": "Apps",
+          "okaru": "OKARU",
+          "windows": "Ventanas",
+          "screenshots": "Capturas",
           "session": "Sesión",
-          "setup-wizard": "Asistente de configuración",
-          "test": "Panel de pruebas",
-          "tray-drawer": "Cajón de tray",
-          "wallpaper": "Fondo de pantalla"
+          "custom": "Tus atajos"
         },
-        "title": "Paneles"
+        "item": {
+          "terminal": "Terminal",
+          "browser": "Navegador",
+          "files": "Archivos",
+          "editor": "Editor de código",
+          "monitor": "Monitor del sistema",
+          "fastfetch": "Información del sistema",
+          "color-picker": "Selector de color",
+          "launcher": "Lanzador",
+          "keybinds": "Atajos de teclado",
+          "emoji": "Emojis y GIF",
+          "clipboard": "Historial del portapapeles",
+          "settings": "Ajustes",
+          "control-center": "Centro de control",
+          "notifications": "Notificaciones",
+          "media": "Multimedia",
+          "wallpaper": "Fondos de pantalla",
+          "session": "Menú de sesión",
+          "nightlight": "Luz nocturna",
+          "caffeine": "Cafeína (no suspender)",
+          "switcher": "Cambiar de ventana",
+          "close": "Cerrar ventana",
+          "maximize": "Maximizar",
+          "fullscreen": "Pantalla completa",
+          "float": "Alternar flotante",
+          "layout": "Siguiente distribución",
+          "scratchpad": "Scratchpad",
+          "drag": "Mover con el ratón",
+          "resize": "Redimensionar con el ratón",
+          "region": "Capturar una zona",
+          "fullscreen-shot": "Capturar la pantalla",
+          "window": "Capturar una ventana",
+          "lock": "Bloquear",
+          "logout": "Cerrar sesión"
+        }
       },
-      "session": {
-        "action-subtitle": "Ejecutar acción de sesión",
-        "command-subtitle": "Ejecuta comando de configuración",
-        "title": "Sesión"
+      "command": {
+        "keybinds": {
+          "title": "Atajos de teclado",
+          "subtitle": "Aprender"
+        },
+        "settings": {
+          "title": "Ajustes",
+          "subtitle": "OKARU"
+        },
+        "emoji": {
+          "title": "Emojis",
+          "subtitle": "GIF, kaomoji y símbolos"
+        },
+        "clipboard": {
+          "title": "Portapapeles",
+          "subtitle": "Historial"
+        },
+        "session": {
+          "title": "Sesión",
+          "subtitle": "Bloquear, suspender, apagar"
+        },
+        "wallpaper": {
+          "title": "Fondos",
+          "subtitle": "Estilo"
+        }
       },
-      "wallpaper": {
-        "title": "Fondo de Pantalla"
-      },
-      "window": {
-        "title": "Ventanas"
+      "keys": {
+        "space": "Espacio",
+        "delete": "Supr",
+        "print": "Impr",
+        "mouse-left": "Clic izq.",
+        "mouse-right": "Clic der."
       }
-    },
-    "search-placeholder": "Buscar aplicaciones…"
+    }
   },
   "location": {
     "errors": {
@@ -856,6 +891,11 @@
       "placeholder": "Escribe una respuesta…"
     },
     "internal": {
+      "devices": "Dispositivos",
+      "device-connected": "Dispositivo conectado",
+      "device-phone-connected": "Teléfono conectado",
+      "device-removed": "Dispositivo quitado",
+      "device-open": "Abrir",
       "battery": "Bateria",
       "battery-critical-body": "{device}: {percent}%; el equipo se apagará en breve",
       "battery-critical-title": "Batería críticamente baja",
@@ -2736,6 +2776,10 @@
         "window-switcher-style": {
           "carousel": "Carousel",
           "compact": "Compacto "
+        },
+        "launcher-style": {
+          "card": "Tarjeta",
+          "spotlight": "Spotlight"
         }
       },
       "theme": {
@@ -2898,6 +2942,10 @@
     },
     "schema": {
       "accessibility": {
+        "cursor-shake": {
+          "description": "Agita el ratón para que el cursor crezca un momento y sea fácil de encontrar",
+          "label": "Agrandar el cursor al agitarlo"
+        },
         "high-contrast": {
           "description": "Aumente el contraste llevando los colores de la superficie y del fondo hacia valores extremos",
           "label": "Alto contraste"
@@ -3634,110 +3682,14 @@
           "description": "Espacio en píxeles entre un panel flotante o desanclado y el borde de la barra",
           "label": "Desplazamiento flotante"
         },
-        "launcher-app-actions": {
-          "description": "Mostrar entradas de acciones de la aplicación junto a las aplicaciones en los resultados",
-          "label": "Mostrar acciones de la aplicación"
-        },
-        "launcher-app-origin-indicator": {
-          "description": "Mostrar indicadores de origen del paquete en los resultados de la aplicación",
-          "label": "Mostrar indicadores de origen de la aplicación"
-        },
         "launcher-auto-paste": {
           "description": "Tras activar la calculadora, los emojis u otras funciones de copia, pega el contenido en la ventana activa (utilizando los mismos atajos que para el pegado automático del portapapeles)",
           "label": "Pegado automático"
-        },
-        "launcher-categories": {
-          "description": "Mostrar filtros de categoría en el lanzador; revélalos con F6 y alterna con F6 y Shift+F6",
-          "label": "Mostrar categorías"
-        },
-        "launcher-compact": {
-          "description": "Usar iconos más pequeños y filas de resultados más compactas",
-          "label": "Filas compactas"
-        },
-        "launcher-currency-exchange": {
-          "description": "Obtener tarifas de fuentes en línea de terceros",
-          "label": "Conversión de divisas"
-        },
-        "launcher-global-calculator": {
-          "description": "Mostrar también los resultados de la calculadora en búsquedas sin prefijo",
-          "label": "Calculadora en la Busqueda Global"
-        },
-        "launcher-global-emoji": {
-          "description": "Mostrar también resultados de emojis en búsquedas sin prefijo",
-          "label": "Emojis en la búsqueda global"
-        },
-        "launcher-global-panels": {
-          "description": "Mostrar también paneles en la búsqueda sin prefijo",
-          "label": "Paneles en la búsqueda global"
-        },
-        "launcher-global-session": {
-          "description": "Mostrar también acciones de sesión en la búsqueda sin prefijo",
-          "label": "Sesión en la búsqueda global"
-        },
-        "launcher-global-wallpaper": {
-          "description": "Mostrar también fondos de pantalla en búsquedas sin prefijo",
-          "label": "Fondo de pantalla en la búsqueda global"
-        },
-        "launcher-global-windows": {
-          "description": "Mostrar también las ventanas abiertas en la búsqueda sin prefijo",
-          "label": "Ventanas en la búsqueda global"
-        },
-        "launcher-grid": {
-          "description": "Mostrar una cuadrícula de iconos de aplicaciones con etiquetas debajo cuando los resultados sean solo aplicaciones",
-          "label": "Vista de cuadrícula de aplicaciones"
-        },
-        "launcher-ignored-panels": {
-          "description": "Paneles que el proveedor del panel nunca incluye en la lista (por ejemplo, avisos de autenticación, el asistente de configuración)",
-          "label": "Paneles ignorados"
-        },
-        "launcher-pinned-apps": {
-          "description": "IDs de las entradas de escritorio de las aplicaciones ancladas al lanzador; aparecen primero cuando se abre el lanzador",
-          "label": "Aplicaciones ancladas"
-        },
-        "launcher-prefix-calculator": {
-          "description": "Prefijo de activación para cálculos de la calculadora",
-          "label": "Prefijo de calculadora"
-        },
-        "launcher-prefix-character": {
-          "description": "Carácter usado para cualquier prefijo (ej: /)",
-          "label": "Carácter usado para todos los prefijos"
-        },
-        "launcher-prefix-emoji": {
-          "description": "Prefijo para activar la busqueda de emoji",
-          "label": "Prefijo de emoji"
-        },
-        "launcher-prefix-panels": {
-          "description": "Prefijo de activación para la búsqueda en el panel",
-          "label": "Prefijo de paneles"
-        },
-        "launcher-prefix-session": {
-          "description": "Prefijo para activar las acciones de energia de esta sesión",
-          "label": "Prefijo de sesión"
-        },
-        "launcher-prefix-wallpaper": {
-          "description": "Prefijo para activar el selector de fondos de pantalla",
-          "label": "Prefijo de fondos de pantalla"
-        },
-        "launcher-prefix-windows": {
-          "description": "Prefijo para activar la busqueda de ventanas",
-          "label": "Prefijo de ventanas"
         },
         "launcher-reset-usage": {
           "button": "Restablecer",
           "description": "Borrar los conteos de lanzamiento y el historial de uso reciente usados para ordenar el lanzador",
           "label": "Restablecer datos de uso"
-        },
-        "launcher-session-search": {
-          "description": "Incluir acciones de sesión (bloquear, suspender, reiniciar, apagar, cerrar sesión) en las búsquedas generales del lanzador, no solo tras el prefijo /session",
-          "label": "Activar búsqueda de sesión"
-        },
-        "launcher-show-icons": {
-          "description": "Mostrar iconos de aplicaciones en los resultados del lanzador",
-          "label": "Mostrar iconos de aplicaciones"
-        },
-        "launcher-sort-by-usage": {
-          "description": "Destacar las aplicaciones usadas con frecuencia en la parte superior y mostrar un filtro de categoría de usados recientemente",
-          "label": "Ordenar por uso"
         },
         "list-item-background": {
           "description": "Dibujar un fondo redondeado detras de cada lanzador y elemento del portapapeles",
@@ -3749,10 +3701,6 @@
         },
         "open-near-click-control-center": {
           "description": "Posición del Centro de control al abrirlo haciendo clic en el widget de la barra",
-          "label": "A lo largo de la barra"
-        },
-        "open-near-click-launcher": {
-          "description": "Posición del lanzador al abrirlo haciendo clic en el widget de la barra",
           "label": "A lo largo de la barra"
         },
         "open-near-click-session": {
@@ -3775,10 +3723,6 @@
           "description": "Elige si el Centro de control se ancla a la barra o flota en una posición de pantalla elegida",
           "label": "Ubicación"
         },
-        "placement-launcher": {
-          "description": "Elige si el lanzador se ancla a la barra o flota en una posición de pantalla elegida",
-          "label": "Ubicación"
-        },
         "placement-polkit": {
           "description": "Elige si el aviso de polkit se ancla a la barra o flota en una posición de pantalla elegida",
           "label": "Ubicación"
@@ -3797,10 +3741,6 @@
         },
         "position-control-center": {
           "description": "Dónde flota el Centro de control en la pantalla; Seguir barra lo mantiene cerca de la barra",
-          "label": "Posición"
-        },
-        "position-launcher": {
-          "description": "Dónde flota el lanzador en la pantalla; Seguir barra lo mantiene cerca de la barra",
           "label": "Posición"
         },
         "position-polkit": {
@@ -3825,6 +3765,10 @@
         "wallpaper-show-names": {
           "description": "En el selector de fondos de pantalla, añade el nombre del archivo a cada miniatura.",
           "label": "Mostrar nombres de archivo"
+        },
+        "launcher-style": {
+          "description": "Tarjeta con sugerencias, o Spotlight: solo la barra de búsqueda hasta que escribes",
+          "label": "Estilo"
         }
       },
       "power": {

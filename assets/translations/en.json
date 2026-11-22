@@ -796,36 +796,7 @@
     }
   },
   "launcher": {
-    "browser": {
-      "actions": {
-        "power": "Power",
-        "settings": "Settings"
-      },
-      "navigation": {
-        "all": "All",
-        "all-apps": "All Apps",
-        "categories": "Categories",
-        "pinned": "Pinned",
-        "providers": "Providers",
-        "recent": "Recent"
-      },
-      "options": {
-        "show-grid": "Show Grid View",
-        "show-list": "Show List View",
-        "sort-by-frequency": "Prioritize Frequent Results",
-        "use-default-order": "Use Default Ordering"
-      },
-      "sections": {
-        "all-apps": "All Apps",
-        "other-apps": "Other Apps",
-        "pinned": "Pinned",
-        "providers": "Providers",
-        "recent": "Recent",
-        "search-results": "Search Results"
-      }
-    },
     "categories": {
-      "all": "All",
       "applications": {
         "development": "Development",
         "education": "Education",
@@ -836,31 +807,7 @@
         "office": "Office",
         "system": "System",
         "utilities": "Utilities"
-      },
-      "emoji": {
-        "activity": "Activity",
-        "animals": "Animals",
-        "flags": "Flags",
-        "food": "Food",
-        "nature": "Nature",
-        "objects": "Objects",
-        "people": "People",
-        "symbols": "Symbols",
-        "travel": "Travel"
-      },
-      "recently-used": "Recently Used"
-    },
-    "context-menu": {
-      "open": "Open",
-      "pin": "Pin to Launcher",
-      "pin-to-dock": "Pin to Dock",
-      "unpin": "Unpin from Launcher",
-      "unpin-from-dock": "Unpin from Dock"
-    },
-    "empty": {
-      "loading": "Loading results...",
-      "no-results": "No results found",
-      "type-to-search": "Type to search…"
+      }
     },
     "origins": {
       "appimage": "AppImage",
@@ -870,43 +817,103 @@
       "system": "System",
       "user": "User"
     },
-    "providers": {
-      "applications": {
-        "title": "Applications"
+    "okaru": {
+      "placeholder": "Search for apps and commands…",
+      "open": "Open",
+      "new-window": "New window",
+      "no-results": "No results",
+      "kind": {
+        "application": "Application",
+        "command": "Command"
       },
-      "calculator": {
-        "title": "Calculator"
+      "section": {
+        "results": "Results",
+        "suggestions": "Suggestions",
+        "commands": "Commands",
+        "applications": "Applications"
       },
-      "emoji": {
-        "title": "Emoji"
-      },
-      "panel": {
-        "builtin": {
-          "clipboard": "Clipboard",
-          "control-center": "Control Center",
-          "launcher": "Launcher",
-          "polkit": "Authentication Prompt",
+      "back": "Back",
+      "keybinds": {
+        "title": "Keyboard Shortcuts",
+        "placeholder": "Search shortcuts…",
+        "group": {
+          "apps": "Apps",
+          "okaru": "OKARU",
+          "windows": "Windows",
+          "screenshots": "Screenshots",
           "session": "Session",
-          "setup-wizard": "Setup Wizard",
-          "test": "Test Panel",
-          "tray-drawer": "Tray Drawer",
-          "wallpaper": "Wallpaper"
+          "custom": "Your shortcuts"
         },
-        "title": "Panels"
+        "item": {
+          "terminal": "Terminal",
+          "browser": "Browser",
+          "files": "Files",
+          "editor": "Code editor",
+          "monitor": "System monitor",
+          "fastfetch": "System info",
+          "color-picker": "Color picker",
+          "launcher": "Launcher",
+          "keybinds": "Keyboard shortcuts",
+          "emoji": "Emojis and GIFs",
+          "clipboard": "Clipboard history",
+          "settings": "Settings",
+          "control-center": "Control center",
+          "notifications": "Notifications",
+          "media": "Media",
+          "wallpaper": "Wallpapers",
+          "session": "Session menu",
+          "nightlight": "Night light",
+          "caffeine": "Caffeine (stay awake)",
+          "switcher": "Switch windows",
+          "close": "Close window",
+          "maximize": "Maximize",
+          "fullscreen": "Fullscreen",
+          "float": "Toggle floating",
+          "layout": "Next layout",
+          "scratchpad": "Scratchpad",
+          "drag": "Move with mouse",
+          "resize": "Resize with mouse",
+          "region": "Capture an area",
+          "fullscreen-shot": "Capture the screen",
+          "window": "Capture a window",
+          "lock": "Lock",
+          "logout": "Log out"
+        }
       },
-      "session": {
-        "action-subtitle": "Run session action",
-        "command-subtitle": "Run configured command",
-        "title": "Session"
+      "command": {
+        "keybinds": {
+          "title": "Keyboard Shortcuts",
+          "subtitle": "Learn"
+        },
+        "settings": {
+          "title": "Settings",
+          "subtitle": "OKARU"
+        },
+        "emoji": {
+          "title": "Emojis",
+          "subtitle": "GIF, kaomoji and symbols"
+        },
+        "clipboard": {
+          "title": "Clipboard",
+          "subtitle": "History"
+        },
+        "session": {
+          "title": "Session",
+          "subtitle": "Lock, sleep, shut down"
+        },
+        "wallpaper": {
+          "title": "Wallpapers",
+          "subtitle": "Style"
+        }
       },
-      "wallpaper": {
-        "title": "Wallpaper"
-      },
-      "window": {
-        "title": "Windows"
+      "keys": {
+        "space": "Space",
+        "delete": "Del",
+        "print": "Print",
+        "mouse-left": "Left click",
+        "mouse-right": "Right click"
       }
-    },
-    "search-placeholder": "Search applications…"
+    }
   },
   "location": {
     "errors": {
@@ -945,6 +952,11 @@
       "placeholder": "Type a reply…"
     },
     "internal": {
+      "devices": "Devices",
+      "device-connected": "Device connected",
+      "device-phone-connected": "Phone connected",
+      "device-removed": "Device removed",
+      "device-open": "Open",
       "battery": "Battery",
       "battery-critical-body": "{device}: {percent}%; your computer will shut down soon",
       "battery-critical-title": "Battery critically low",
@@ -2687,20 +2699,6 @@
         }
       },
       "shell": {
-        "launcher-default-view": {
-          "all": "All",
-          "categories": "Categories",
-          "pinned": "Pinned",
-          "recent": "Recent"
-        },
-        "launcher-layout": {
-          "full": "Full",
-          "simple": "Simple"
-        },
-        "launcher-search-position": {
-          "bottom": "Bottom",
-          "top": "Top"
-        },
         "panel-placement": {
           "attached": "Attached",
           "floating": "Floating"
@@ -2728,6 +2726,10 @@
         "window-switcher-style": {
           "carousel": "Carousel",
           "compact": "Compact"
+        },
+        "launcher-style": {
+          "card": "Card",
+          "spotlight": "Spotlight"
         }
       },
       "theme": {
@@ -2911,6 +2913,10 @@
     },
     "schema": {
       "accessibility": {
+        "cursor-shake": {
+          "description": "Shake the mouse to make the cursor grow for a moment so it is easy to find",
+          "label": "Enlarge Cursor When Shaken"
+        },
         "high-contrast": {
           "description": "Increase contrast by pushing surface and background colors towards extreme values",
           "label": "High Contrast"
@@ -3690,142 +3696,14 @@
           "description": "Gap in pixels between a floating or detached panel and the bar edge",
           "label": "Floating Offset"
         },
-        "launcher-app-actions": {
-          "description": "Show application action entries alongside applications in results",
-          "label": "Show App Actions"
-        },
-        "launcher-app-origin-indicator": {
-          "description": "Show package origin indicators on application results",
-          "label": "Show App Origin Indicators"
-        },
         "launcher-auto-paste": {
           "description": "After calculator, emoji, and other copy activations, paste into the focused window (same shortcuts as clipboard auto-paste)",
           "label": "Auto-Paste"
-        },
-        "launcher-categories": {
-          "description": "Show the All, Recently Used, and category chips under the search field",
-          "label": "Show Categories"
-        },
-        "launcher-category-icons-only": {
-          "description": "Show only icons for app categories, with full names in hover tooltips",
-          "label": "Category Icons Only"
-        },
-        "launcher-compact": {
-          "description": "Use smaller icons and tighter result rows",
-          "label": "Compact Rows"
-        },
-        "launcher-currency-exchange": {
-          "description": "Fetch rates from third party online sources",
-          "label": "Currency Exchange Conversion"
-        },
-        "launcher-default-view": {
-          "description": "Choose the view shown when the launcher opens without a search",
-          "label": "Default View"
-        },
-        "launcher-global-calculator": {
-          "description": "Also show calculator results in unprefixed search",
-          "label": "Calculator in Global Search"
-        },
-        "launcher-global-emoji": {
-          "description": "Also show emoji results in unprefixed search",
-          "label": "Emoji in Global Search"
-        },
-        "launcher-global-panels": {
-          "description": "Also show panels in unprefixed search",
-          "label": "Panels in Global Search"
-        },
-        "launcher-global-session": {
-          "description": "Also show session actions in unprefixed search",
-          "label": "Session in Global Search"
-        },
-        "launcher-global-wallpaper": {
-          "description": "Also show wallpapers in unprefixed search",
-          "label": "Wallpaper in Global Search"
-        },
-        "launcher-global-windows": {
-          "description": "Also show open windows in unprefixed search",
-          "label": "Windows in Global Search"
-        },
-        "launcher-grid": {
-          "description": "Show grid-capable provider results and the provider overview as an icon grid instead of rows",
-          "label": "Grid View"
-        },
-        "launcher-ignore-mouse": {
-          "description": "Ignore mouse hover, motion, and clicks inside the launcher for keyboard-only navigation",
-          "label": "Ignore Mouse Input"
-        },
-        "launcher-ignored-panels": {
-          "description": "Panels the panel provider never lists (e.g. authentication prompts, the setup wizard)",
-          "label": "Panels Ignored"
-        },
-        "launcher-layout": {
-          "description": "Full adds view tabs and a toolbar with your profile and shortcuts; Simple shows a search field, optional category chips, and results",
-          "label": "Layout"
-        },
-        "launcher-pinned-apps": {
-          "description": "Desktop entry IDs shown in manual order in the Pinned view",
-          "label": "Pinned Apps"
-        },
-        "launcher-prefix-calculator": {
-          "description": "Trigger prefix for calculator calculations",
-          "label": "Calculator Prefix"
-        },
-        "launcher-prefix-character": {
-          "description": "Common prefix character used to trigger all provider prefixes (e.g. /)",
-          "label": "Common Prefix Character"
-        },
-        "launcher-prefix-emoji": {
-          "description": "Trigger prefix for emoji search",
-          "label": "Emoji Prefix"
-        },
-        "launcher-prefix-panels": {
-          "description": "Trigger prefix for panel search",
-          "label": "Panels Prefix"
-        },
-        "launcher-prefix-session": {
-          "description": "Trigger prefix for session power actions",
-          "label": "Session Prefix"
-        },
-        "launcher-prefix-wallpaper": {
-          "description": "Trigger prefix for wallpaper selector",
-          "label": "Wallpaper Prefix"
-        },
-        "launcher-prefix-windows": {
-          "description": "Trigger prefix for window search",
-          "label": "Windows Prefix"
         },
         "launcher-reset-usage": {
           "button": "Reset",
           "description": "Clear launcher history used by Recent and usage-based sorting",
           "label": "Reset Usage Data"
-        },
-        "launcher-search-position": {
-          "description": "Place the launcher toolbar at the top or bottom",
-          "label": "Toolbar Position"
-        },
-        "launcher-session-search": {
-          "description": "Include session actions (lock, suspend, reboot, shutdown, logout) in general launcher searches, not only behind the /session prefix",
-          "label": "Enable Session Search"
-        },
-        "launcher-show-icons": {
-          "description": "Show application icons in launcher results",
-          "label": "Show App Icons"
-        },
-        "launcher-show-navigation-labels": {
-          "description": "Show text beside the Recent, Pinned, All, Categories, and Providers icons when space allows",
-          "label": "Show Navigation Labels"
-        },
-        "launcher-show-session-button": {
-          "description": "Show a shortcut to the configured session actions",
-          "label": "Show Session Button"
-        },
-        "launcher-show-settings-button": {
-          "description": "Show a shortcut to OKARU Settings",
-          "label": "Show Settings Button"
-        },
-        "launcher-sort-by-usage": {
-          "description": "Prioritize frequently used results in normal browsing and search",
-          "label": "Sort by Usage"
         },
         "launcher-track-usage": {
           "description": "Record launcher history for Recent and usage-based sorting",
@@ -3845,10 +3723,6 @@
         },
         "open-near-click-control-center": {
           "description": "When opened by clicking its bar widget, open Control Center next to the widget instead of at its Position",
-          "label": "Open Near Clicked Widget"
-        },
-        "open-near-click-launcher": {
-          "description": "When opened by clicking its bar widget, open the launcher next to the widget instead of at its Position",
           "label": "Open Near Clicked Widget"
         },
         "open-near-click-session": {
@@ -3871,10 +3745,6 @@
           "description": "Choose whether Control Center attaches to the bar or floats at a chosen screen position",
           "label": "Placement"
         },
-        "placement-launcher": {
-          "description": "Choose whether the launcher attaches to the bar or floats at a chosen screen position",
-          "label": "Placement"
-        },
         "placement-polkit": {
           "description": "Choose whether the polkit prompt attaches to the bar or floats at a chosen screen position",
           "label": "Placement"
@@ -3893,10 +3763,6 @@
         },
         "position-control-center": {
           "description": "Floating: where Control Center sits on screen; Follow Bar keeps it near the bar. Attached: a position along the bar's edge aligns it to that end of the bar",
-          "label": "Position"
-        },
-        "position-launcher": {
-          "description": "Floating: where the launcher sits on screen; Follow Bar keeps it near the bar. Attached: a position along the bar's edge aligns it to that end of the bar",
           "label": "Position"
         },
         "position-polkit": {
@@ -3921,6 +3787,10 @@
         "wallpaper-show-names": {
           "description": "Caption each thumbnail with its file name in the wallpaper picker.",
           "label": "Show File Names"
+        },
+        "launcher-style": {
+          "description": "Card with suggestions, or Spotlight: only the search bar until you type",
+          "label": "Style"
         }
       },
       "power": {

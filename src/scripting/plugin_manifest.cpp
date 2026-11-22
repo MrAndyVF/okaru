@@ -58,12 +58,11 @@ namespace scripting {
     }
 
     // Each entry kind paired with its TOML array-table name.
-    constexpr std::array<std::pair<PluginEntryKind, std::string_view>, 7> kEntryKinds{{
+    constexpr std::array<std::pair<PluginEntryKind, std::string_view>, 6> kEntryKinds{{
         {PluginEntryKind::Widget, "widget"},
         {PluginEntryKind::Panel, "panel"},
         {PluginEntryKind::Shortcut, "shortcut"},
         {PluginEntryKind::DesktopWidget, "desktop_widget"},
-        {PluginEntryKind::LauncherProvider, "launcher_provider"},
         {PluginEntryKind::Service, "service"},
         {PluginEntryKind::Layer, "layer"},
     }};
@@ -702,25 +701,6 @@ namespace scripting {
               return false;
             }
             entry.layerVisible = visible.as_boolean()->get();
-          }
-        }
-        if (kind == PluginEntryKind::LauncherProvider) {
-          entry.launcherPrefix = tableString(*entryTable, "prefix");
-          entry.launcherGlyph = tableString(*entryTable, "glyph");
-          entry.launcherGlobalSearch = tableBool(*entryTable, "include_in_global_search", false);
-          entry.launcherDebounceMs =
-              std::max(0, static_cast<int>(tableNumber(*entryTable, "debounce_ms").value_or(0.0)));
-          if (const auto* cats = (*entryTable)["category"].as_array()) {
-            for (const auto& catNode : *cats) {
-              if (const auto* catTable = catNode.as_table()) {
-                ManifestLauncherCategory cat;
-                cat.label = tableString(*catTable, "label");
-                cat.glyph = tableString(*catTable, "glyph");
-                if (!cat.label.empty()) {
-                  entry.launcherCategories.push_back(std::move(cat));
-                }
-              }
-            }
           }
         }
         manifest.entries.push_back(std::move(entry));

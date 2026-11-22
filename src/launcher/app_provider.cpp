@@ -209,28 +209,6 @@ std::string AppProvider::actionResultId(std::string_view desktopEntryPath, std::
 
 void AppProvider::initialize() { refreshEntriesIfNeeded(); }
 
-std::string AppProvider::displayName() const { return i18n::tr("launcher.providers.applications.title"); }
-
-std::vector<LauncherCategory> AppProvider::categories() const {
-  refreshEntriesIfNeeded();
-
-  std::array<bool, kAppCategories.size()> populated{};
-  for (const auto& entry : m_entries) {
-    if (const auto index = primaryCategoryIndex(entry.categories)) {
-      populated[*index] = true;
-    }
-  }
-
-  std::vector<LauncherCategory> result;
-  for (std::size_t i = 0; i < kAppCategories.size(); ++i) {
-    if (!populated[i]) {
-      continue;
-    }
-    result.push_back({appCategoryLabel(kAppCategories[i].id), std::string(kAppCategories[i].glyph)});
-  }
-  return result;
-}
-
 void AppProvider::refreshEntriesIfNeeded() const {
   const auto version = desktopEntriesVersion();
   if (version == m_entriesVersion) {
@@ -289,15 +267,6 @@ std::vector<LauncherResult> AppProvider::query(std::string_view text) const {
       scored.emplace_back(s, std::make_pair(&entry, nullptr));
     }
 
-    if (m_config == nullptr || !m_config->config().shell.launcher.showAppActions) {
-      continue;
-    }
-    for (const auto& action : entry.actions) {
-      const double actionScore = scoreAction(pattern, action);
-      if (FuzzyMatch::isMatch(actionScore)) {
-        scored.emplace_back(actionScore, std::make_pair(&entry, &action));
-      }
-    }
   }
 
   const auto cmp = [](const auto& a, const auto& b) { return a.first > b.first; };
@@ -321,6 +290,15 @@ bool AppProvider::activate(const LauncherResult& result) {
   for (const auto& entry : m_entries) {
     if (entry.path != result.desktopEntryPath) {
       continue;
+    }
+
+    // OKARU: como el dock, Enter va a la ventana ya abierta de la app; Shift+Enter (newInstance) abre otra.
+    if (m_platform != nullptr && !result.newInstance && result.desktopActionId.empty()) {
+      const std::string& wmClass = entry.startupWmClassLower.empty() ? entry.idLower : entry.startupWmClassLower;
+      if (const auto windows = m_platform->enrichedWindowsForApp(entry.idLower, wmClass); !windows.empty()) {
+        m_platform->activateToplevelInfo(windows.front());
+        return true;
+      }
     }
 
     const DesktopAction* chosen = nullptr;

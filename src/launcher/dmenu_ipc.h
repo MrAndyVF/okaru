@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class LauncherPanel;
+class OkaruLauncherPanel;
 class PanelManager;
 
 // Dedicated Unix socket implementing the `okaru dmenu` stdin/stdout contract.
@@ -26,7 +26,7 @@ public:
   // (dmenu stays unavailable; the shell is otherwise unaffected).
   bool start();
 
-  void setLauncherPanel(LauncherPanel* panel);
+  void setLauncherPanel(OkaruLauncherPanel* panel);
   void setPanelManager(PanelManager* panelManager);
 
 protected:
@@ -58,7 +58,7 @@ private:
 
   int m_listenFd = -1;
   std::string m_socketPath;
-  LauncherPanel* m_launcherPanel = nullptr;
+  OkaruLauncherPanel* m_launcherPanel = nullptr;
   PanelManager* m_panelManager = nullptr;
   std::size_t m_nextToken = 1;
   std::vector<std::unique_ptr<Session>> m_sessions;

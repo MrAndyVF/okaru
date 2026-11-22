@@ -938,8 +938,8 @@ int main() {
       TEST_CHECK(input.is_open());
       const std::string original{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
       const std::string provider = original
-          + "[[launcher_provider]]\nid = \"search\"\n"
-            "entry = \"launcher.luau\"\nprefix = \"one\"\n";
+          + "[[panel]]\nid = \"search\"\n"
+            "entry = \"panel.luau\"\nwidth = 300\n";
       int reconciliations = 0;
       manager.setOnChanged([&]() { ++reconciliations; });
       config.forceReload();
@@ -952,20 +952,20 @@ int main() {
       config.forceReload();
       TEST_CHECK(reconciliations == 1);
 
-      TEST_CHECK(writeText(path.parent_path() / "launcher.luau", "function onQuery() end\n"));
+      TEST_CHECK(writeText(path.parent_path() / "panel.luau", "function onRender() end\n"));
       config.forceReload();
       TEST_CHECK(reconciliations == 1);
 
       // Content changes must not depend on timestamp granularity or file size.
       const auto timestamp = std::filesystem::last_write_time(path);
       std::string changed = provider;
-      changed.replace(changed.find("one"), 3, "two");
+      changed.replace(changed.find("300"), 3, "400");
       TEST_CHECK(writeText(path, changed));
       std::filesystem::last_write_time(path, timestamp);
       config.forceReload();
       TEST_CHECK(reconciliations == 2);
       const auto resolved = scripting::PluginRegistry::instance().resolve("test/plugin:search");
-      TEST_CHECK(resolved.has_value() && resolved->entry->launcherPrefix == "two");
+      TEST_CHECK(resolved.has_value() && resolved->entry->panelWidth == 400);
 
       TEST_CHECK(writeText(path, original));
       config.forceReload();

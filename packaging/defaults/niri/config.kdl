@@ -218,7 +218,7 @@ binds {
 
     // OKARU
     Mod+Space hotkey-overlay-title="Launcher" { spawn "okaru" "msg" "panel-toggle" "launcher"; }
-    Mod+Period hotkey-overlay-title="Emoji Picker" { spawn "okaru" "msg" "panel-toggle" "launcher" "/emo "; }
+    Mod+Period hotkey-overlay-title="Emoji Picker" { spawn "okaru-emoji"; }
     Mod+V hotkey-overlay-title="Clipboard" { spawn "okaru" "msg" "panel-toggle" "clipboard"; }
     Mod+Comma hotkey-overlay-title="OKARU settings" { spawn "okaru" "msg" "settings-toggle"; }
     Mod+A hotkey-overlay-title="Control center" { spawn "okaru" "msg" "panel-toggle" "control-center"; }

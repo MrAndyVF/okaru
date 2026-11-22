@@ -8,7 +8,6 @@
 #include "config/schema/config_sections.h"
 #include "config/schema/engine.h"
 #include "config/widget_config.h"
-#include "launcher/launcher_provider.h"
 #include "scripting/plugin_id.h"
 #include "scripting/plugin_manager.h"
 #include "scripting/plugin_panel_shell.h"
@@ -104,83 +103,6 @@ namespace okaru::config {
         } else if (!set && customSchedule) {
           diag.error(
               path, "custom_schedule needs a " + std::string(key) + " time in HH:MM form", "location.clock.missing"
-          );
-        }
-      }
-    }
-
-    // Launcher provider tables are keyed by provider id, which the schema can't enumerate.
-    // Warn on an empty common prefix, on providers that name nothing real (or a disabled
-    // plugin, or the fixed Applications provider), and on two providers sharing a prefix.
-    void validateLauncherProviders(const toml::table& merged, schema::Diagnostics& diag) {
-      const auto* shellTbl = merged["shell"].as_table();
-      const auto* launcherTbl = shellTbl != nullptr ? (*shellTbl)["launcher"].as_table() : nullptr;
-      if (launcherTbl == nullptr) {
-        return;
-      }
-      if (const auto* prefixVal = (*launcherTbl)["provider_prefix"].as_string();
-          prefixVal && prefixVal->get().empty()) {
-        diag.warn("shell.launcher.provider_prefix", "is empty, falling back to '/'");
-      }
-
-      const auto* providersTbl = (*launcherTbl)["providers"].as_table();
-      if (providersTbl == nullptr) {
-        return;
-      }
-      std::unordered_map<std::string, std::string> seenPrefixes;
-      std::unordered_set<std::string> enabledPlugins;
-      if (const auto* pluginsTbl = merged["plugins"].as_table()) {
-        if (const auto* enabledArr = (*pluginsTbl)["enabled"].as_array()) {
-          for (const auto& node : *enabledArr) {
-            if (const auto* strVal = node.as_string()) {
-              enabledPlugins.insert(StringUtils::toLower(strVal->get()));
-            }
-          }
-        }
-      }
-      for (const auto& [key, node] : *providersTbl) {
-        const auto* provTbl = node.as_table();
-        if (provTbl == nullptr) {
-          continue;
-        }
-        std::string providerName = StringUtils::toLower(key.str());
-        if (providerName == "applications") {
-          diag.warn(
-              "shell.launcher.providers.applications", "custom settings are not allowed (Applications is always global)"
-          );
-          continue;
-        }
-        const auto isBuiltin = std::ranges::contains(launcher::kBuiltinProviders, providerName);
-        if (!isBuiltin) {
-          const std::size_t colon = providerName.find(':');
-          bool isPlugin = false;
-          std::string pluginIdStr;
-          if (colon != std::string::npos) {
-            std::string_view pluginId = std::string_view(providerName).substr(0, colon);
-            std::string_view entryName = std::string_view(providerName).substr(colon + 1);
-            if (scripting::isValidPluginId(pluginId) && scripting::isValidPluginIdSegment(entryName)) {
-              isPlugin = true;
-              pluginIdStr = std::string(pluginId);
-            }
-          }
-          if (!isPlugin) {
-            diag.warn("shell.launcher.providers." + providerName, "provider is nonexistent");
-            continue;
-          }
-          if (!enabledPlugins.contains(pluginIdStr)) {
-            diag.warn("shell.launcher.providers." + providerName, "plugin '" + pluginIdStr + "' is not enabled");
-            continue;
-          }
-        }
-        const auto* prefixVal = (*provTbl)["prefix"].as_string();
-        if (prefixVal == nullptr || prefixVal->get().empty()) {
-          continue;
-        }
-        auto [it, inserted] = seenPrefixes.emplace(prefixVal->get(), std::string(key.str()));
-        if (!inserted) {
-          diag.warn(
-              "shell.launcher.providers." + std::string(key.str()) + ".prefix",
-              "duplicates the prefix of '" + it->second + "'; only one provider will be reachable by it"
           );
         }
       }
@@ -742,7 +664,6 @@ namespace okaru::config {
         checkSection(merged, spec, diag);
       }
       validateCalendarSyntax(merged, diag);
-      validateLauncherProviders(merged, diag);
 
       // Resolve the candidate's plugin catalog without mutating the live registry.
       scripting::PluginRegistry pluginRegistry;

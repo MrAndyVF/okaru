@@ -1052,39 +1052,6 @@ constexpr EnumOption<LockscreenTransition> kLockscreenTransitions[] = {
     {LockscreenTransition::Zoom, "zoom", "settings.options.lockscreen.transition.zoom"},
 };
 
-// One config-driven dmenu-style launcher entry. The provider runs `command`, splits
-// its stdout into newline-separated candidates, and on activation either runs `exec`
-// (with {selection}/{query} substituted) or copies the selection to the clipboard.
-struct DmenuEntryConfig {
-  // Canonical flat identifier; the [shell.launcher.dmenu.entry.<id>] table key. Used as
-  // the provider id suffix (dmenu.<id>) and the usage-tracking key.
-  std::string id;
-  // Shell string run via /bin/sh -lc; stdout lines become candidates. A tab in a line
-  // splits it into title \t description (the raw line is still the selection value).
-  std::string command;
-  // When set, the activated line is substituted into {selection} and run detached.
-  // When unset, the selection is copied to the clipboard.
-  std::optional<std::string> exec;
-  // Launcher trigger word (e.g. "ssh"), combined with shell.launcher.provider_prefix like
-  // the built-in providers (-> "/ssh"). Empty leaves the entry reachable only via
-  // global = true, otherwise it is unreachable (surfaced as a config warning).
-  std::optional<std::string> prefix;
-  std::optional<std::string> label; // Provider overview title; defaults to the id.
-  std::optional<std::string> glyph; // Tabler glyph name; defaults to "terminal".
-  bool global = false;              // Include results in non-prefixed search.
-  bool freeform = false;            // Let typed query text become an activatable result.
-
-  bool operator==(const DmenuEntryConfig&) const = default;
-};
-
-struct LauncherProviderConfig {
-  std::string name;
-  std::string prefix;
-  std::optional<bool> global;
-
-  bool operator==(const LauncherProviderConfig&) const = default;
-};
-
 // Modifier that must be held to move/resize an already selected capture region.
 enum class ScreenshotRegionModifier : std::uint8_t {
   None = 0,
@@ -1142,7 +1109,6 @@ struct ShellConfig {
     bool listItemBackground = false;       // filled rounded background behind launcher/clipboard list items
     bool wallpaperShowNames = true;        // caption wallpaper picker thumbnails with their file name
     std::string floatingLayer = "overlay"; // top | overlay; attached panels follow their bar
-    PanelPlacement launcherPlacement = PanelPlacement::Floating;
     PanelPlacement clipboardPlacement = PanelPlacement::Floating;
     PanelPlacement controlCenterPlacement = PanelPlacement::Attached;
     PanelPlacement wallpaperPlacement = PanelPlacement::Attached;
@@ -1153,7 +1119,6 @@ struct ShellConfig {
     // bar's edge (e.g. bottom_right on a bottom bar aligns to the bar's right end); any
     // other value keeps it bar-centered. Launcher/clipboard default to "center" (the
     // historical center-screen behavior for their floating default).
-    std::string launcherPosition = "center";
     std::string clipboardPosition = "center";
     std::string controlCenterPosition = "auto";
     std::string wallpaperPosition = "auto";
@@ -1161,7 +1126,6 @@ struct ShellConfig {
     std::string polkitPosition = "center";
     std::int32_t floatingOffset = 8; // logical px gap between a floating/detached panel and the bar edge
     bool openNearClickControlCenter = false;
-    bool openNearClickLauncher = false;
     bool openNearClickClipboard = false;
     bool openNearClickWallpaper = false;
     bool openNearClickSession = false;
@@ -1169,87 +1133,26 @@ struct ShellConfig {
     bool operator==(const PanelConfig&) const = default;
   };
 
-  // Launcher behavior/appearance. Panel placement for the launcher surface stays
-  // under [shell.panel] (launcher_placement/position/open_near_click_launcher),
-  // parallel to every other surface.
-  enum class LauncherSearchPosition : std::uint8_t {
-    Top = 0,
-    Bottom = 1,
+  // OKARU: okaru-launcher como tarjeta (oma-cast) o como Spotlight (solo la barra hasta que se escribe).
+  enum class LauncherStyle : std::uint8_t {
+    Card = 0,
+    Spotlight = 1,
   };
 
-  static constexpr EnumOption<LauncherSearchPosition> kLauncherSearchPositions[] = {
-      {LauncherSearchPosition::Top, "top", "settings.options.shell.launcher-search-position.top"},
-      {LauncherSearchPosition::Bottom, "bottom", "settings.options.shell.launcher-search-position.bottom"},
+  static constexpr EnumOption<LauncherStyle> kLauncherStyles[] = {
+      {LauncherStyle::Card, "card", "settings.options.shell.launcher-style.card"},
+      {LauncherStyle::Spotlight, "spotlight", "settings.options.shell.launcher-style.spotlight"},
   };
 
-  enum class LauncherLayout : std::uint8_t {
-    Full = 0,
-    Simple = 1,
-  };
-
-  static constexpr EnumOption<LauncherLayout> kLauncherLayouts[] = {
-      {LauncherLayout::Full, "full", "settings.options.shell.launcher-layout.full"},
-      {LauncherLayout::Simple, "simple", "settings.options.shell.launcher-layout.simple"},
-  };
-
-  enum class LauncherDefaultView : std::uint8_t {
-    Recent = 0,
-    Pinned = 1,
-    All = 2,
-    Categories = 3,
-  };
-
-  static constexpr EnumOption<LauncherDefaultView> kLauncherDefaultViews[] = {
-      {LauncherDefaultView::Recent, "recent", "settings.options.shell.launcher-default-view.recent"},
-      {LauncherDefaultView::Pinned, "pinned", "settings.options.shell.launcher-default-view.pinned"},
-      {LauncherDefaultView::All, "all", "settings.options.shell.launcher-default-view.all"},
-      {LauncherDefaultView::Categories, "categories", "settings.options.shell.launcher-default-view.categories"},
-  };
-
+  // OKARU: okaru-launcher solo tiene estilo, ancho y registro de uso. auto_paste es el atajo de pegado que usan
+  // okaru-emoji y `okaru dmenu` al copiar.
   struct LauncherConfig {
     static constexpr std::int32_t kDefaultWidth = 760;
 
-    LauncherLayout layout = LauncherLayout::Full;
+    LauncherStyle style = LauncherStyle::Card;
     std::int32_t width = kDefaultWidth;
-    LauncherSearchPosition searchPosition = LauncherSearchPosition::Bottom;
-    LauncherDefaultView defaultView = LauncherDefaultView::Recent;
-    // Simple layout only: show the category chip row under the search field.
-    bool categories = true;
-    bool categoryIconsOnly = false;
-    bool showNavigationLabels = true;
-    bool showSettingsButton = true;
-    bool showSessionButton = true;
-    bool showIcons = true;
-    bool showAppOriginIndicator = true;
-    bool compact = false;
-    bool appGrid = false;
-    bool showAppActions = false;
     bool trackUsage = true;
-    bool sortByUsage = true;
-    bool ignoreMouse = false;
-    // Desktop entry IDs shown in manual order in the Pinned view.
-    std::vector<std::string> pinned;
-    /// When true, refresh currency exchange rates from libqalculate's online sources.
-    bool fetchExchangeRates = true;
-    std::string providerPrefix = "/";
-    /// Paste shortcut after a copy-style launcher activation (calculator, emoji, …).
     ClipboardAutoPasteMode autoPaste = ClipboardAutoPasteMode::Auto;
-
-    struct DmenuConfig {
-      std::vector<DmenuEntryConfig> entries;
-
-      bool operator==(const DmenuConfig&) const = default;
-    } dmenu;
-
-    struct PanelsConfig {
-      // Panel ids the panel provider never lists. Setting this in config.toml
-      // replaces the default outright, same as every other list config here.
-      std::vector<std::string> ignored{"polkit", "setup-wizard", "test", "launcher"};
-
-      bool operator==(const PanelsConfig&) const = default;
-    } panels;
-
-    std::vector<LauncherProviderConfig> providers;
 
     bool operator==(const LauncherConfig&) const = default;
   };
@@ -1988,6 +1891,7 @@ struct PluginsConfig {
 struct AccessibilityConfig {
   float uiScale = 1.0F;
   bool highContrast = false;
+  bool cursorShake = true; // OKARU: agrandar el cursor al agitar el ratón (Hyprland)
   bool operator==(const AccessibilityConfig&) const = default;
 };
 
