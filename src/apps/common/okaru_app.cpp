@@ -206,7 +206,9 @@ namespace okaru::apps {
         .title = m_options.title.empty() ? i18n::tr(m_options.titleKey) : m_options.title,
         .appId = m_options.appId,
     };
-    if (!(m_layer != nullptr ? m_layer->initialize() : m_toplevel->initialize(nullptr, surfaceConfig))) {
+    // Capa sin pantalla (nullptr): el compositor la pone en la que tiene el foco. LayerSurface::initialize() sin
+    // argumentos tomaría la primera de la lista (la de la izquierda), no la que se está usando.
+    if (!(m_layer != nullptr ? m_layer->initialize(nullptr) : m_toplevel->initialize(nullptr, surfaceConfig))) {
       kLog.error("cannot create the window");
       return 1;
     }
