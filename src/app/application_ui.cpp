@@ -370,6 +370,11 @@ void Application::initInputDispatch() {
       }
       // Enter/Leave/Motion fall through so other surfaces' hover state stays in sync.
     }
+    // OKARU: el cursor grande va sobre todo y solo reclama sus capas; antes que los paneles, para que el clic que
+    // lo encoge no cierre el panel abierto.
+    if (m_cursorShake.onPointerEvent(event)) {
+      return;
+    }
     if (m_colorPickerDialogPopup.onPointerEvent(event)) {
       return;
     }
@@ -408,8 +413,6 @@ void Application::initInputDispatch() {
     if (m_panelManager.onPointerEvent(event))
       return;
     if (m_hotCorners.onPointerEvent(event))
-      return;
-    if (m_cursorShake.onPointerEvent(event)) // OKARU
       return;
     m_notificationToast.onPointerEvent(event);
   });
