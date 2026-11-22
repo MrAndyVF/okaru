@@ -10,6 +10,40 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.10] - 2026-11-22
+
+### English
+
+#### Features
+- **The wallpaper picker prepares its thumbnails in the background**: right after the session starts, the resident
+  picker caches the thumbnail of every wallpaper of its folder on disk, at each screen's card size, so the first open
+  already finds them. Two threads of their own at the lowest priority do it (they never slow down what is on screen
+  or a game) and then sleep; later only new wallpapers are processed.
+
+#### Fixes
+- Files: **emptying the trash no longer shows "Items in the trash may not be modified"** for every file inside a
+  trashed folder. The trash only lets its top-level items be deleted (each one with everything inside), so folders are
+  no longer walked.
+
+#### Changes
+- Core: `ThumbnailService::warmDiskCache()`, disk-only thumbnails on low-priority threads.
+
+### Español
+
+#### Novedades
+- **El selector de fondos prepara sus miniaturas en segundo plano**: al iniciar la sesión, el selector residente deja
+  en la caché en disco la miniatura de cada fondo de su carpeta, al tamaño de tarjeta de cada pantalla, así que la
+  primera apertura ya las encuentra. Lo hacen dos hilos propios con la prioridad más baja (no frenan lo que se ve ni
+  un juego) que luego se duermen; después solo se procesan los fondos nuevos.
+
+#### Correcciones
+- Archivos: **vaciar la papelera ya no muestra «Items in the trash may not be modified»** por cada archivo de una
+  carpeta enviada a la papelera. La papelera solo deja borrar sus elementos de primer nivel (cada uno con todo lo que
+  contiene), así que ya no se recorren las carpetas.
+
+#### Cambios
+- Núcleo: `ThumbnailService::warmDiskCache()`, miniaturas solo a disco en hilos de baja prioridad.
+
 ## [1.3.9] - 2026-11-22
 
 ### English
