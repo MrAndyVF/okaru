@@ -541,31 +541,10 @@ location = "https://example.invalid/bad"
     c.shell.shadow.direction = ShadowDirection::UpLeft;
     c.shell.panel.transparencyMode = PanelTransparencyMode::Glass;
     c.shell.panel.floatingLayer = "top";
-    c.shell.panel.launcherPlacement = PanelPlacement::Floating;
-    c.shell.launcher.layout = ShellConfig::LauncherLayout::Simple;
+    c.shell.launcher.style = ShellConfig::LauncherStyle::Spotlight;
     c.shell.launcher.width = 680;
-    c.shell.launcher.searchPosition = ShellConfig::LauncherSearchPosition::Bottom;
-    c.shell.launcher.defaultView = ShellConfig::LauncherDefaultView::Categories;
-    c.shell.launcher.categories = false;
-    c.shell.launcher.categoryIconsOnly = true;
-    c.shell.launcher.showNavigationLabels = false;
-    c.shell.launcher.showSettingsButton = false;
-    c.shell.launcher.showSessionButton = false;
-    c.shell.launcher.compact = true;
     c.shell.launcher.trackUsage = false;
-    c.shell.launcher.sortByUsage = false;
-    DmenuEntryConfig notifyDmenu;
-    notifyDmenu.id = "notify";
-    notifyDmenu.exec = std::string("notify-send \"{query}\"");
-    notifyDmenu.prefix = std::string("/notify");
-    notifyDmenu.label = std::string("Notify");
-    notifyDmenu.glyph = std::string("bell");
-    notifyDmenu.freeform = true;
-    c.shell.launcher.dmenu.entries = {notifyDmenu};
-    c.shell.launcher.providerPrefix = ".";
-    c.shell.launcher.providers = {
-        LauncherProviderConfig{"session", "s", true}, LauncherProviderConfig{"wallpaper", "w"}
-    };
+    c.shell.launcher.autoPaste = ClipboardAutoPasteMode::CtrlV;
     c.shell.keyboardLayout.customLabels = {{"English (US)", "US"}, {"German", "DE"}};
     c.shell.windowSwitcher.style = ShellConfig::WindowSwitcherStyle::Compact;
     c.shell.windowSwitcher.mru = true;

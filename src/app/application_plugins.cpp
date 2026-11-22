@@ -1,37 +1,9 @@
 #include "application.h"
-#include "core/log.h"
-#include "launcher/dmenu_provider.h"
-#include "launcher/launcher_provider.h"
-#include "launcher/plugin_launcher_provider.h"
 #include "scripting/plugin_manifest.h"
 #include "scripting/plugin_panel_shell.h"
 #include "scripting/plugin_registry.h"
 #include "scripting/plugin_runtime_context.h"
-#include "shell/launcher/okaru_launcher_panel.h"
 #include "shell/panel/plugin_panel.h"
-
-namespace {
-  constexpr Logger kLog("dmenu");
-} // namespace
-
-void Application::reloadPluginLauncherProviders() {} // OKARU: okaru-launcher no admite proveedores de plugins
-
-void Application::reloadDmenuProviders() {
-  if (m_launcherPanel == nullptr) {
-    return;
-  }
-  m_launcherPanel->clearProvidersWithIdPrefix("dmenu.");
-  for (const auto& entry : m_configService.config().shell.launcher.dmenu.entries) {
-    if (entry.command.empty() && !entry.freeform) {
-      kLog.warn("[{}] missing command, skipping", entry.id);
-      continue;
-    }
-    if (entry.prefix.value_or("").empty() && !entry.global) {
-      kLog.warn("[{}] no prefix and global=false; unreachable until configured", entry.id);
-    }
-    m_launcherPanel->addProvider(std::make_unique<DmenuProvider>(entry, &m_clipboardService));
-  }
-}
 
 void Application::reloadPluginPanels() {
   // Retire the previously registered plugin panels (closing any that are open),

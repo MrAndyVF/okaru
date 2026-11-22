@@ -2,6 +2,7 @@
 ui_scale = 1.0
 ui_scl = 1.25
 
+# Claves del lanzador anterior a okaru-launcher: deben dar aviso, no error.
 [shell.launcher]
 provider_prefix = ""
 

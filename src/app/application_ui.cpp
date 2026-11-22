@@ -15,14 +15,6 @@
 #include "i18n/i18n.h"
 #include "i18n/i18n_service.h"
 #include "launcher/app_provider.h"
-#include "launcher/dmenu_provider.h"
-#include "launcher/math_provider.h"
-#include "launcher/panel_provider.h"
-#include "launcher/plugin_launcher_provider.h"
-#include "launcher/session_provider.h"
-#include "launcher/updates_provider.h"
-#include "launcher/wallpaper_provider.h"
-#include "launcher/window_provider.h"
 #include "notification/notifications.h"
 #include "pipewire/pipewire_service.h"
 #include "pipewire/pipewire_spectrum.h"
@@ -720,6 +712,7 @@ void Application::initPanelManagerAndPanels() {
       (void)m_compositorPlatform.closeOverview();
     });
     m_launcherPanel = launcherPanel.get();
+    m_launcherPanel->schedulePrewarm(); // OKARU
     m_panelManager.registerPanel("launcher", std::move(launcherPanel));
   }
   m_settingsWindow.setResetLauncherUsage([this] {
@@ -738,8 +731,6 @@ void Application::initPanelManagerAndPanels() {
         i18n::tr("notifications.internal.screen-time-reset-success")
     );
   });
-  reloadPluginLauncherProviders();
-  reloadDmenuProviders();
   reloadPluginPanels();
   reloadPluginLayers();
   m_configService.addReloadCallback([this] { m_pluginLayerHost.onConfigReload(); });
@@ -1018,11 +1009,6 @@ void Application::initBarDockAndLayout() {
   // When config reloads, refresh any open panel: bar-driven attached decoration restyle and
   // shell-driven compositor blur.
   m_configService.addReloadCallback([this] { m_panelManager.onConfigReloaded(); });
-  m_configService.addReloadCallback([this] {
-    if (m_configService.lastChange().shell) {
-      reloadDmenuProviders();
-    }
-  });
   m_configService.addReloadCallback([this] { m_screenCorners.onConfigReload(); });
   m_configService.addReloadCallback([this] { m_hotCorners.onConfigReload(); });
 

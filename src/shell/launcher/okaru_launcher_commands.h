@@ -12,7 +12,6 @@ public:
   // `showKeybinds` pasa okaru-launcher a la vista de atajos (no cierra el panel).
   explicit OkaruLauncherCommands(std::function<void()> showKeybinds) : m_showKeybinds(std::move(showKeybinds)) {}
 
-  [[nodiscard]] std::string_view defaultPrefix() const override { return ""; }
   [[nodiscard]] std::string_view id() const override { return "Commands"; }
   [[nodiscard]] bool trackUsage() const override { return true; }
   [[nodiscard]] std::vector<LauncherResult> query(std::string_view text) const override;

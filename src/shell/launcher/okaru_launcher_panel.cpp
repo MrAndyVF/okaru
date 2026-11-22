@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cmath>
 
 namespace {
@@ -306,10 +307,6 @@ OkaruLauncherPanel::~OkaruLauncherPanel() {
 
 void OkaruLauncherPanel::addProvider(std::unique_ptr<LauncherProvider> provider) {
   provider->initialize();
-  LauncherProvider* raw = provider.get();
-  provider->setActivationDoneCallback([this, raw](const std::string& resultId, bool copied) {
-    finishActivation(*raw, resultId, copied, false);
-  });
   m_providers.push_back(std::move(provider));
 }
 
@@ -320,6 +317,25 @@ void OkaruLauncherPanel::clearProvidersWithIdPrefix(std::string_view prefix) {
 void OkaruLauncherPanel::setScopedProvider(std::string_view providerId, std::string_view placeholder) {
   m_scopedProviderId = providerId;
   m_scopedPlaceholder = placeholder;
+}
+
+void OkaruLauncherPanel::schedulePrewarm() {
+  m_prewarmTimer.start(std::chrono::seconds(2), [this] {
+    if (m_input != nullptr) {
+      return; // ya está abierto: la apertura hizo el trabajo
+    }
+    const int iconSize = static_cast<int>(std::round(kIconSize * contentScale()));
+    for (auto& provider : m_providers) {
+      if (provider->id() != kApplicationsProviderId) {
+        continue;
+      }
+      for (const auto& result : provider->query("")) {
+        if (!result.iconName.empty()) {
+          (void)m_iconResolver.resolve(result.iconName, iconSize);
+        }
+      }
+    }
+  });
 }
 
 void OkaruLauncherPanel::clearUsage() {
@@ -594,6 +610,17 @@ void OkaruLauncherPanel::onOpen(std::string_view context) {
 }
 
 void OkaruLauncherPanel::onClose() {
+  // dmenu: cerrar sin elegir es cancelar (el script recibe la salida 1) y el lanzador vuelve a la búsqueda normal.
+  // reset() puede quitar el proveedor de m_providers (dmenu_ipc lo difiere), así que se recorre una copia.
+  std::vector<LauncherProvider*> providers;
+  for (auto& provider : m_providers) {
+    providers.push_back(provider.get());
+  }
+  for (LauncherProvider* provider : providers) {
+    provider->reset();
+  }
+  m_scopedProviderId.clear();
+  m_scopedPlaceholder.clear();
   if (m_asyncTextures != nullptr) {
     m_asyncTextures->trimUnused(0);
   }

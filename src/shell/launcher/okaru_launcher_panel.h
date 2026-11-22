@@ -8,6 +8,7 @@
 #include "launcher/launcher_provider.h"
 #include "launcher/usage_tracker.h"
 #include "shell/panel/panel.h"
+#include "core/timer_manager.h"
 #include "system/icon_resolver.h"
 
 #include <cstddef>
@@ -46,6 +47,9 @@ public:
   // Tras lanzar o enfocar una app (cerrar el overview si estaba abierto).
   void setOnAppLaunchCallback(std::function<void()> callback) { m_onAppLaunch = std::move(callback); }
   void clearUsage();
+  // Lee las apps y resuelve sus iconos poco después de arrancar la shell, para que la primera apertura sea tan rápida
+  // como las siguientes.
+  void schedulePrewarm();
 
   void create() override;
   void onOpen(std::string_view context) override;
@@ -98,6 +102,7 @@ private:
   ConfigService* m_config = nullptr;
   AsyncTextureCache* m_asyncTextures = nullptr;
   IconResolver m_iconResolver;
+  Timer m_prewarmTimer;
   UsageTracker m_usage;
   std::vector<std::unique_ptr<LauncherProvider>> m_providers;
   std::string m_scopedProviderId;

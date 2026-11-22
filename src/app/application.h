@@ -195,10 +195,6 @@ private:
   // and on every output change so first-run stacking matches hot reload.
   void reconcileOutputSurfaces();
   void initIpc();
-  // (Re)register plugin-backed launcher providers from the enabled plugin set.
-  void reloadPluginLauncherProviders();
-  // (Re)register config-driven dmenu launcher providers ([shell.launcher.dmenu.entry.*]).
-  void reloadDmenuProviders();
   // (Re)register plugin-backed panels from the enabled plugin set.
   void reloadPluginPanels();
   // Re-register plugin-backed [[layer]] entries from the enabled plugin set.
@@ -360,7 +356,7 @@ private:
   LockScreen m_lockScreen;
   SessionActionRunner m_sessionActionRunner{m_compositorPlatform, m_lockScreen};
   PanelManager m_panelManager;
-  // Owned by m_panelManager; kept raw so plugin launcher providers can be re-applied.
+  // Owned by m_panelManager; kept raw for dmenu sessions and the usage reset in Settings.
   OkaruLauncherPanel* m_launcherPanel = nullptr;
   // Ids of plugin-backed panels currently registered with m_panelManager, so a
   // reload can retire the previous set before registering the new one.

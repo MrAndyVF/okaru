@@ -1456,49 +1456,6 @@ namespace okaru::config::schema {
       return s;
     }
 
-    // Optional strings stored trimmed-or-nullopt, always emitted (value_or("")).
-    Field<DmenuEntryConfig>
-    dmenuOptionalString(std::optional<std::string> DmenuEntryConfig::* member, std::string_view key) {
-      return custom<DmenuEntryConfig>(
-          key,
-          [member, key](const toml::table& tbl, DmenuEntryConfig& out, std::string_view parentPath, Diagnostics& diag) {
-            if (auto v = tbl[key].value<std::string>()) {
-              const std::string trimmed = StringUtils::trim(*v);
-              out.*member = trimmed.empty() ? std::optional<std::string>{} : std::optional<std::string>{trimmed};
-            } else {
-              warnWrongType(tbl, key, parentPath, diag, "a string");
-            }
-          },
-          [member, key](toml::table& tbl, const DmenuEntryConfig& in) {
-            tbl.insert_or_assign(key, (in.*member).value_or(""));
-          }
-      );
-    }
-
-    const Schema<DmenuEntryConfig>& dmenuEntrySchema() {
-      static const Schema<DmenuEntryConfig> s = {
-          field(&DmenuEntryConfig::command, "command"),
-          dmenuOptionalString(&DmenuEntryConfig::exec, "exec"),
-          dmenuOptionalString(&DmenuEntryConfig::prefix, "prefix"),
-          dmenuOptionalString(&DmenuEntryConfig::label, "label"),
-          dmenuOptionalString(&DmenuEntryConfig::glyph, "glyph"),
-          field(&DmenuEntryConfig::global, "global"),
-          field(&DmenuEntryConfig::freeform, "freeform"),
-      };
-      return s;
-    }
-
-    const Schema<ShellConfig::LauncherConfig::DmenuConfig>& shellLauncherDmenuSchema() {
-      static const Schema<ShellConfig::LauncherConfig::DmenuConfig> s = {
-          namedMap<ShellConfig::LauncherConfig::DmenuConfig, DmenuEntryConfig>(
-              &ShellConfig::LauncherConfig::DmenuConfig::entries, "entry", dmenuEntrySchema(),
-              [](DmenuEntryConfig& e, std::string_view name) { e.id = std::string(name); },
-              [](const DmenuEntryConfig& e) { return e.id; }
-          ),
-      };
-      return s;
-    }
-
     const Schema<ShellConfig::PanelConfig>& shellPanelSchema() {
       static const Schema<ShellConfig::PanelConfig> s = {
           enumField(&ShellConfig::PanelConfig::transparencyMode, "transparency_mode", kPanelTransparencyModes),
@@ -1526,13 +1483,11 @@ namespace okaru::config::schema {
                 tbl.insert_or_assign("floating_layer", in.floatingLayer);
               }
           ),
-          enumField(&ShellConfig::PanelConfig::launcherPlacement, "launcher_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::clipboardPlacement, "clipboard_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::controlCenterPlacement, "control_center_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::wallpaperPlacement, "wallpaper_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::sessionPlacement, "session_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::polkitPlacement, "polkit_placement", kPanelPlacements),
-          field(&ShellConfig::PanelConfig::launcherPosition, "launcher_position"),
           field(&ShellConfig::PanelConfig::clipboardPosition, "clipboard_position"),
           field(&ShellConfig::PanelConfig::controlCenterPosition, "control_center_position"),
           field(&ShellConfig::PanelConfig::wallpaperPosition, "wallpaper_position"),
@@ -1540,7 +1495,6 @@ namespace okaru::config::schema {
           field(&ShellConfig::PanelConfig::polkitPosition, "polkit_position"),
           field(&ShellConfig::PanelConfig::floatingOffset, "floating_offset", Range<std::int64_t>{0, 100}),
           field(&ShellConfig::PanelConfig::openNearClickControlCenter, "open_near_click_control_center"),
-          field(&ShellConfig::PanelConfig::openNearClickLauncher, "open_near_click_launcher"),
           field(&ShellConfig::PanelConfig::openNearClickClipboard, "open_near_click_clipboard"),
           field(&ShellConfig::PanelConfig::openNearClickWallpaper, "open_near_click_wallpaper"),
           field(&ShellConfig::PanelConfig::openNearClickSession, "open_near_click_session"),
@@ -1548,54 +1502,12 @@ namespace okaru::config::schema {
       return s;
     }
 
-    const Schema<LauncherProviderConfig>& launcherProviderSchema() {
-      static const Schema<LauncherProviderConfig> s = {
-          field(&LauncherProviderConfig::prefix, "prefix"),
-          optionalBoolField(&LauncherProviderConfig::global, "global"),
-      };
-      return s;
-    }
-
-    const Schema<ShellConfig::LauncherConfig::PanelsConfig>& shellLauncherPanelsSchema() {
-      static const Schema<ShellConfig::LauncherConfig::PanelsConfig> s = {
-          field(&ShellConfig::LauncherConfig::PanelsConfig::ignored, "ignored"),
-      };
-      return s;
-    }
-
     const Schema<ShellConfig::LauncherConfig>& shellLauncherSchema() {
       static const Schema<ShellConfig::LauncherConfig> s = {
-          enumField(&ShellConfig::LauncherConfig::layout, "layout", ShellConfig::kLauncherLayouts),
           enumField(&ShellConfig::LauncherConfig::style, "style", ShellConfig::kLauncherStyles), // OKARU
           field(&ShellConfig::LauncherConfig::width, "width", okaru::config::schema::kLauncherWidthRange),
-          enumField(
-              &ShellConfig::LauncherConfig::searchPosition, "search_position", ShellConfig::kLauncherSearchPositions
-          ),
-          enumField(&ShellConfig::LauncherConfig::defaultView, "default_view", ShellConfig::kLauncherDefaultViews),
-          field(&ShellConfig::LauncherConfig::categories, "categories"),
-          field(&ShellConfig::LauncherConfig::categoryIconsOnly, "category_icons_only"),
-          field(&ShellConfig::LauncherConfig::showNavigationLabels, "show_navigation_labels"),
-          field(&ShellConfig::LauncherConfig::showSettingsButton, "show_settings_button"),
-          field(&ShellConfig::LauncherConfig::showSessionButton, "show_session_button"),
-          field(&ShellConfig::LauncherConfig::showIcons, "show_icons"),
-          field(&ShellConfig::LauncherConfig::showAppOriginIndicator, "show_app_origin_indicator"),
-          field(&ShellConfig::LauncherConfig::compact, "compact"),
-          field(&ShellConfig::LauncherConfig::appGrid, "app_grid"),
-          field(&ShellConfig::LauncherConfig::showAppActions, "show_app_actions"),
           field(&ShellConfig::LauncherConfig::trackUsage, "track_usage"),
-          field(&ShellConfig::LauncherConfig::sortByUsage, "sort_by_usage"),
-          field(&ShellConfig::LauncherConfig::ignoreMouse, "ignore_mouse"),
-          field(&ShellConfig::LauncherConfig::pinned, "pinned"),
-          field(&ShellConfig::LauncherConfig::fetchExchangeRates, "fetch_exchange_rates"),
-          field(&ShellConfig::LauncherConfig::providerPrefix, "provider_prefix"),
           enumField(&ShellConfig::LauncherConfig::autoPaste, "auto_paste", kClipboardAutoPasteModes),
-          subTable(&ShellConfig::LauncherConfig::dmenu, "dmenu", shellLauncherDmenuSchema()),
-          subTable(&ShellConfig::LauncherConfig::panels, "panels", shellLauncherPanelsSchema()),
-          namedMap<ShellConfig::LauncherConfig, LauncherProviderConfig>(
-              &ShellConfig::LauncherConfig::providers, "providers", launcherProviderSchema(),
-              [](LauncherProviderConfig& elem, std::string_view name) { elem.name = StringUtils::toLower(name); },
-              [](const LauncherProviderConfig& elem) { return elem.name; }
-          ),
       };
       return s;
     }
