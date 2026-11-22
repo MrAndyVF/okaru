@@ -25,7 +25,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       KEY_ID: ${{ secrets.OKARU_GPG_KEY_ID }}
-      OKARU_APPS: okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive okaru-music okaru-emoji
+      OKARU_APPS: okaru-calc okaru-view okaru-play okaru-edit okaru-pdf okaru-files okaru-archive okaru-music okaru-emoji okaru-wallpaper-picker
       # Clave de cliente de Klipy (GIF de okaru-emoji); su PKGBUILD la pasa a meson. Sin ella, la app no muestra GIF.
       KLIPY_API_KEY: ${{ secrets.KLIPY_API_KEY }}
     steps:
