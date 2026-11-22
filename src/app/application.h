@@ -55,6 +55,7 @@
 #include "shell/osd/media_osd.h"
 #include "shell/osd/osd_overlay.h"
 #include "shell/osd/privacy_osd.h"
+#include "shell/okaru_cursor_shake/okaru_cursor_shake.h" // OKARU
 #include "shell/overview/overview_launcher_capture.h"
 #include "shell/panel/panel_manager.h"
 #include "shell/plugin_layer/plugin_layer_host.h"
@@ -66,7 +67,6 @@
 #include "shell/wallpaper/panel/wallpaper_scanner.h"
 #include "shell/wallpaper/wallpaper.h"
 #include "system/battery_warning_monitor.h"
-#include "shell/okaru_cursor_shake/okaru_cursor_shake.h" // OKARU
 #include "system/dependency_service.h"
 #include "system/desktop_entry_poll_source.h"
 #include "system/gamma_service.h"
