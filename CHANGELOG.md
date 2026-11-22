@@ -21,7 +21,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   applies it to **all screens** by default, and the wallpaper transition is born from that image. A toolbar searches
   by name and chooses the folder (root, one subfolder or all of them), the order (name, date, random) and the screen.
   The star (or Ctrl + F) marks favorites, which come first and carry their own theme mode and palette. Thumbnails of
-  the whole folder are cached on disk, and the shell decodes the image you stop on, so applying starts at once.
+  the whole folder are cached on disk, and the shell decodes the image you stop on, so applying starts at once. It
+  stays resident (started hidden shortly after the shell), so Super + Y opens it in a frame or two.
 - IPC: `wallpaper-favorite add|remove|theme|palette`, `wallpaper-preload <path>` and `wallpaper-set --origin x,y`
   (the transition starts at that point of the desktop).
 
@@ -33,6 +34,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - The Settings window opens 1280 px wide, so every row of tabs fits.
 
 #### Changes
+- OkaruApp: apps can stay resident (hide/show, SIGUSR1 toggles them), and full-screen layer apps can blur the
+  desktop behind them and on the other screens.
 - The old wallpaper panel is removed, with its options `shell.panel.wallpaper_show_names`, `wallpaper_placement`,
   `wallpaper_position` and `open_near_click_wallpaper` (migration 27 drops them from `settings.toml`).
   `panel-toggle wallpaper` now opens the picker app. The `okaru` package pulls in `okaru-wallpaper-picker`.
@@ -47,7 +50,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
   imagen. Una barra busca por nombre y elige la carpeta (la principal, una subcarpeta o todas), el orden (nombre,
   fecha, aleatorio) y la pantalla. La estrella (o Ctrl + F) marca favoritos, que van primero y llevan su propio modo
   de tema y paleta. Las miniaturas de toda la carpeta quedan en caché en disco y el shell decodifica la imagen en la
-  que te detienes, así que aplicar empieza al instante.
+  que te detienes, así que aplicar empieza al instante. Queda residente (la shell lo arranca oculto poco después de
+  iniciar), así que Super + Y lo abre en uno o dos cuadros.
 - IPC: `wallpaper-favorite add|remove|theme|palette`, `wallpaper-preload <ruta>` y `wallpaper-set --origin x,y`
   (la transición nace en ese punto del escritorio).
 
@@ -59,6 +63,8 @@ copia la sección de la versión etiquetada en su release de GitHub, y Ajustes �
 - La ventana de Ajustes se abre con 1280 px de ancho, para que quepa cada fila de pestañas.
 
 #### Cambios
+- OkaruApp: las apps pueden quedar residentes (ocultar/mostrar; SIGUSR1 las alterna) y las de capa a pantalla
+  completa pueden desenfocar el escritorio detrás y en las demás pantallas.
 - Se quita el panel de fondos viejo, con sus opciones `shell.panel.wallpaper_show_names`, `wallpaper_placement`,
   `wallpaper_position` y `open_near_click_wallpaper` (la migración 27 las borra de `settings.toml`).
   `panel-toggle wallpaper` ahora abre la app. El paquete `okaru` trae `okaru-wallpaper-picker`.
