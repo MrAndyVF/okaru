@@ -10,6 +10,75 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.8] - 2026-11-22
+
+### English
+
+#### Features
+- **okaru-launcher**, a new minimal launcher in the spirit of Raycast/oma-cast (Super + Space): a card with a large
+  search field, **Suggestions** (the apps you use most), **Commands** and **Applications**, and the keys drawn as
+  keycaps in the footer. **Enter on an app that is already open focuses its window**; Shift + Enter opens a new one.
+  Opening is faster (the apps are read once shortly after the shell starts).
+- **Spotlight style** for the launcher (Settings → Launcher → Style): only a slim search bar until you type; the
+  results unfold downward.
+- **Commands** in the launcher: Keyboard shortcuts, Settings, Emojis, Clipboard, Session and Wallpapers, found by
+  name or keyword in English and Spanish.
+- **Keyboard shortcuts view** (Super + /, or from the launcher): a short list of OKARU's built-in functions with
+  short descriptions and the keys you bound to them (recognized by what each bind does), plus your own binds that
+  carry a `description`.
+- **Emoji picker: okaru-emoji**, its own app and package (Super + .): emojis with recents and skin tones, GIFs from
+  KLIPY, kaomojis and symbols. It opens centered and **clicking an item pastes it where you were typing while the
+  picker stays open**; Enter pastes and closes. Pressing the shortcut again closes it.
+- **Removable devices**: connecting a USB drive, an external disk or a phone in file-transfer mode shows a small
+  notification with an **Open** button that mounts it and opens it in Files; removing it shows another one.
+- Accessibility: **enlarge the cursor when you shake the mouse** (Settings → Appearance → Accessibility, on by
+  default, Hyprland only). The shell draws your own cursor theme, growing and following the mouse across monitors;
+  it shrinks when you calm down or click.
+
+#### Changes
+- The launcher no longer has the calculator, the `/prefix` providers (wallpapers, windows, panels, session,
+  updates), the app grid, categories, pinned apps or the plugin `[[launcher_provider]]` entries; those parts of
+  OKARU keep their own panels and apps (Calculator, the wallpaper and session panels…). `okaru dmenu` stays.
+  Its configuration is now only `style`, `width`, `track_usage` and `auto_paste`; old keys in `config.toml` only show
+  an "unknown setting" warning.
+- Plugins: the `launcher.*` API and `[[launcher_provider]]` entries were removed.
+- Packaging: the OKARU apps are rebuilt **tied to the system libraries they were built against**, like the shell
+  in 1.3.7, and `okaru` now depends on `okaru-emoji`.
+
+### Español
+
+#### Novedades
+- **okaru-launcher**, un lanzador nuevo y minimalista al estilo Raycast/oma-cast (Super + Espacio): una tarjeta con
+  un buscador grande, **Sugerencias** (las apps que más usas), **Comandos** y **Aplicaciones**, y las teclas
+  dibujadas como teclas en el pie. **Enter sobre una app ya abierta enfoca su ventana**; Shift + Enter abre otra.
+  Abre más rápido (las apps se leen una vez poco después de arrancar la shell).
+- **Estilo Spotlight** para el lanzador (Ajustes → Lanzador → Estilo): solo una barra delgada hasta que escribes;
+  los resultados se despliegan hacia abajo.
+- **Comandos** en el lanzador: Atajos de teclado, Ajustes, Emojis, Portapapeles, Sesión y Fondos, que se encuentran
+  por nombre o palabra clave en inglés y español.
+- **Vista de atajos de teclado** (Super + /, o desde el lanzador): una lista corta de las funciones de fábrica de
+  OKARU con descripciones breves y las teclas que tienes asignadas (se reconocen por lo que hace cada atajo), más
+  tus propios atajos que lleven `description`.
+- **Selector de emojis: okaru-emoji**, app y paquete propios (Super + .): emojis con recientes y tonos de piel, GIF
+  de KLIPY, kaomojis y símbolos. Se abre centrado y **al hacer clic en algo se pega donde estabas escribiendo y el
+  selector sigue abierto**; Enter pega y cierra. El mismo atajo lo cierra.
+- **Dispositivos extraíbles**: al conectar una USB, un disco externo o un teléfono en modo transferencia de archivos
+  aparece una notificación pequeña con el botón **Abrir**, que lo monta y lo abre en Archivos; al quitarlo avisa
+  también.
+- Accesibilidad: **agrandar el cursor al agitar el ratón** (Ajustes → Apariencia → Accesibilidad, activado de
+  fábrica, solo en Hyprland). La shell dibuja tu propio tema de cursor, que crece y sigue al ratón entre monitores;
+  encoge cuando te calmas o al hacer clic.
+
+#### Cambios
+- El lanzador ya no tiene la calculadora, los proveedores con `/prefijo` (fondos, ventanas, paneles, sesión,
+  actualizaciones), la rejilla de apps, las categorías, las apps fijadas ni las entradas `[[launcher_provider]]` de
+  los plugins; esas partes de OKARU conservan sus propios paneles y apps (Calculadora, los paneles de fondos y de
+  sesión…). `okaru dmenu` se queda. Su configuración queda en `style`, `width`, `track_usage` y `auto_paste`; las
+  claves viejas en `config.toml` solo muestran el aviso «unknown setting».
+- Plugins: se quitaron la API `launcher.*` y las entradas `[[launcher_provider]]`.
+- Empaquetado: las apps de OKARU se recompilan **atadas a las bibliotecas del sistema con las que se compilaron**,
+  como la shell en la 1.3.7, y `okaru` ahora depende de `okaru-emoji`.
+
 ## [1.3.7] - 2026-11-20
 
 ### English
