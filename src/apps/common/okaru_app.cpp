@@ -17,6 +17,7 @@
 #include "render/scene/input_area.h"
 #include "shell/clipboard/clipboard_paste.h"
 #include "theme/apps_palette.h"
+#include "ui/controls/box.h"
 #include "ui/controls/input.h"
 #include "ui/palette.h"
 #include "ui/style.h"
@@ -171,15 +172,19 @@ namespace okaru::apps {
     const auto width = static_cast<std::uint32_t>(std::lround(m_options.width * s));
     const auto height = static_cast<std::uint32_t>(std::lround(m_options.height * s));
     if (m_options.layer) {
-      // Sin anclas: el compositor la centra en la pantalla con el foco.
+      // Sin anclas: el compositor la centra en la pantalla con el foco. A pantalla completa: los cuatro bordes.
+      const bool full = m_options.fullscreen;
       auto layer = std::make_unique<LayerSurface>(
           m_wayland, LayerSurfaceConfig{
                          .nameSpace = std::string("okaru-") + (m_options.dataName != nullptr ? m_options.dataName : "app"),
                          .layer = LayerShellLayer::Overlay,
-                         .width = width,
-                         .height = height,
+                         .anchor = full ? LayerShellAnchor::Top | LayerShellAnchor::Bottom | LayerShellAnchor::Left
+                                 | LayerShellAnchor::Right
+                                        : 0U,
+                         .width = full ? 0U : width,
+                         .height = full ? 0U : height,
                          .exclusiveZone = -1,
-                         .keyboard = LayerShellKeyboard::OnDemand,
+                         .keyboard = full ? LayerShellKeyboard::Exclusive : LayerShellKeyboard::OnDemand,
                      }
       );
       layer->setClosedCallback(closed);
@@ -193,10 +198,23 @@ namespace okaru::apps {
     }
     m_surface->setRenderContext(&m_render);
     m_surface->setAnimationManager(&m_animations);
-    m_surface->setConfigureCallback([this](std::uint32_t, std::uint32_t) { m_surface->requestLayout(); });
+    m_surface->setConfigureCallback([this](std::uint32_t w, std::uint32_t h) {
+      if (m_backdropBlur) {
+        m_surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+      }
+      m_surface->requestLayout();
+    });
     m_surface->setPrepareFrameCallback([this](bool needsUpdate, bool needsLayout) {
       prepareFrame(needsUpdate, needsLayout);
     });
+    if (m_options.layer && m_options.fullscreen && m_options.backdropOtherOutputs) {
+      // La pantalla de la capa principal la elige el compositor: las demás se cubren al saber cuál es.
+      m_surface->setOutputChangedCallback([this](wl_output* output) {
+        if (m_backdrops.empty() && output != nullptr) {
+          createBackdrops(output);
+        }
+      });
+    }
     m_surface->setUpdateCallback([] {});
     const ToplevelSurfaceConfig surfaceConfig{
         .width = width,
@@ -234,6 +252,7 @@ namespace okaru::apps {
             m_onClose();
           }
           m_pasteTimer.stop();
+          m_backdrops.clear();
           m_selectPopup.reset();
           m_toplevel = nullptr;
           m_layer = nullptr;
@@ -306,6 +325,88 @@ namespace okaru::apps {
     if (m_toplevel != nullptr) {
       m_toplevel->setFullscreen(fullscreen);
     }
+  }
+
+  void OkaruApp::setBackdropBlur(bool enabled) {
+    m_backdropBlur = enabled;
+    if (m_surface == nullptr || m_surface->width() == 0 || m_surface->height() == 0) {
+      return; // se aplica en el primer configure
+    }
+    if (enabled) {
+      m_surface->setBlurRegion(
+          {{.width = static_cast<int>(m_surface->width()), .height = static_cast<int>(m_surface->height())}}
+      );
+    } else {
+      m_surface->clearBlurRegion();
+    }
+  }
+
+  void OkaruApp::setBackdropVeil(const ColorSpec& color) {
+    if (m_backdropVeil == color) {
+      return;
+    }
+    m_backdropVeil = color;
+    for (auto& backdrop : m_backdrops) {
+      if (backdrop->veil != nullptr) {
+        backdrop->veil->setFill(color);
+        backdrop->surface->requestRedraw();
+      }
+    }
+  }
+
+  void OkaruApp::createBackdrops(wl_output* mainOutput) {
+    for (const auto& out : m_wayland.outputs()) {
+      if (!out.done || out.output == nullptr || out.output == mainOutput) {
+        continue;
+      }
+      auto backdrop = std::make_unique<Backdrop>();
+      Backdrop* raw = backdrop.get();
+      backdrop->surface = std::make_unique<LayerSurface>(
+          m_wayland, LayerSurfaceConfig{
+                         .nameSpace = std::string("okaru-") + (m_options.dataName != nullptr ? m_options.dataName : "app")
+                             + "-backdrop",
+                         .layer = LayerShellLayer::Overlay,
+                         .anchor = LayerShellAnchor::Top | LayerShellAnchor::Bottom | LayerShellAnchor::Left
+                             | LayerShellAnchor::Right,
+                         .exclusiveZone = -1,
+                         .keyboard = LayerShellKeyboard::None,
+                     }
+      );
+      raw->surface->setRenderContext(&m_render);
+      raw->surface->setConfigureCallback([raw](std::uint32_t w, std::uint32_t h) {
+        raw->surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+        raw->surface->requestLayout();
+      });
+      raw->surface->setPrepareFrameCallback([this, raw](bool, bool) { prepareBackdrop(*raw); });
+      if (!raw->surface->initialize(out.output)) {
+        kLog.warn("cannot cover output {}", out.connectorName);
+        continue;
+      }
+      m_backdrops.push_back(std::move(backdrop));
+    }
+  }
+
+  void OkaruApp::prepareBackdrop(Backdrop& backdrop) {
+    LayerSurface& surface = *backdrop.surface;
+    if (surface.width() == 0 || surface.height() == 0) {
+      return;
+    }
+    m_render.makeCurrent(surface.renderTarget());
+    Renderer& renderer = surface.renderTarget().renderer();
+    UiPhaseScope layoutPhase(UiPhase::Layout);
+    const auto w = static_cast<float>(surface.width());
+    const auto h = static_cast<float>(surface.height());
+    if (backdrop.root == nullptr) {
+      backdrop.root = std::make_unique<Node>();
+      auto veil = std::make_unique<Box>();
+      backdrop.veil = veil.get();
+      backdrop.veil->setFill(m_backdropVeil.value_or(clearColorSpec()));
+      backdrop.root->addChild(std::move(veil));
+      surface.setSceneRoot(backdrop.root.get());
+    }
+    backdrop.root->setSize(w, h);
+    backdrop.veil->setSize(w, h);
+    backdrop.root->layout(renderer);
   }
 
   SessionBus* OkaruApp::sessionBus() {
@@ -416,6 +517,13 @@ namespace okaru::apps {
 
   void OkaruApp::onPointer(const PointerEvent& event) {
     if (m_surface == nullptr) {
+      return;
+    }
+    if (event.surface != nullptr && !m_backdrops.empty()
+        && std::ranges::any_of(m_backdrops, [&](const auto& b) { return b->surface->wlSurface() == event.surface; })) {
+      if (event.type == PointerEvent::Type::Button && event.pressed && m_backdropClick) {
+        m_backdropClick();
+      }
       return;
     }
     if (m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen()) {

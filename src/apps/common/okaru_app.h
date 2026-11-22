@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+class Box;
 class PollSource;
 class Renderer;
 class SessionBus;
@@ -59,6 +60,12 @@ namespace okaru::apps {
     // clic en sus zonas pasivas, así puede pegar en la ventana anterior y seguir abierta. No se mueve, no cambia
     // de tamaño ni sale en Alt+Tab.
     bool layer = false;
+    // Con `layer`: capa a pantalla completa (anclada a los cuatro bordes del monitor con el foco) y teclado exclusivo,
+    // p. ej. el selector de fondos. width/height no se usan.
+    bool fullscreen = false;
+    // Con `fullscreen`: las demás pantallas se cubren con una capa desenfocada (sin contenido) mientras la app está
+    // abierta. Un clic en ellas llama a setBackdropClickCallback.
+    bool backdropOtherOutputs = false;
   };
 
   class OkaruApp {
@@ -120,6 +127,12 @@ namespace okaru::apps {
     );
 
     void setFullscreen(bool fullscreen);
+    // Pide al compositor que desenfoque lo que hay detrás de toda la superficie (ext-background-effect). El
+    // desenfoque no se puede atenuar: la app funde encima su propio velo.
+    void setBackdropBlur(bool enabled);
+    // Velo de las capas de las demás pantallas (AppOptions::backdropOtherOutputs); la app lo funde con el suyo.
+    void setBackdropVeil(const ColorSpec& color);
+    void setBackdropClickCallback(std::function<void()> callback) { m_backdropClick = std::move(callback); }
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
     void setCloseRequestCallback(std::function<bool()> callback) { m_closeRequest = std::move(callback); }
     [[nodiscard]] FileWatcher& fileWatcher() noexcept { return m_fileWatcher; }
@@ -158,6 +171,18 @@ namespace okaru::apps {
     GlSharedContext m_glShared;
     RenderContext m_render;
     AnimationManager m_animations;
+    bool m_backdropBlur = false;
+    // Capas de las demás pantallas: desenfoque + velo.
+    struct Backdrop {
+      std::unique_ptr<LayerSurface> surface;
+      std::unique_ptr<Node> root;
+      Box* veil = nullptr;
+    };
+    std::vector<std::unique_ptr<Backdrop>> m_backdrops;
+    std::optional<ColorSpec> m_backdropVeil;
+    std::function<void()> m_backdropClick;
+    void createBackdrops(wl_output* mainOutput);
+    void prepareBackdrop(Backdrop& backdrop);
     InputDispatcher m_input;
     FileWatcher m_fileWatcher;
     WlClipboard m_clipboard;
