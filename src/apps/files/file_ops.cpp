@@ -165,7 +165,9 @@ namespace okaru::files {
     }
 
     bool deleteTree(Job& job, GFile* file) {
-      if (typeOf(file) == G_FILE_TYPE_DIRECTORY) {
+      // En la papelera, GVfs solo deja borrar lo de primer nivel (y lo borra con todo lo que contiene): recorrer una
+      // carpeta daba «Items in the trash may not be modified» por cada archivo de dentro.
+      if (typeOf(file) == G_FILE_TYPE_DIRECTORY && !g_file_has_uri_scheme(file, "trash")) {
         GFileEnumerator* it = g_file_enumerate_children(
             file, "standard::name", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, job.cancellable, nullptr
         );
