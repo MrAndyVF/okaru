@@ -15,14 +15,6 @@
 #include "i18n/i18n.h"
 #include "i18n/i18n_service.h"
 #include "launcher/app_provider.h"
-#include "launcher/dmenu_provider.h"
-#include "launcher/math_provider.h"
-#include "launcher/panel_provider.h"
-#include "launcher/plugin_launcher_provider.h"
-#include "launcher/session_provider.h"
-#include "launcher/updates_provider.h"
-#include "launcher/wallpaper_provider.h"
-#include "launcher/window_provider.h"
 #include "notification/notifications.h"
 #include "pipewire/pipewire_service.h"
 #include "pipewire/pipewire_spectrum.h"
@@ -45,7 +37,7 @@
 #include "shell/control_center/tabs/vpn_tab.h"
 #include "shell/control_center/tabs/weather_tab.h"
 #include "shell/greeter/greeter_appearance_sync.h"
-#include "shell/launcher/launcher_panel.h"
+#include "shell/launcher/okaru_launcher_panel.h"
 #include "shell/okaru_auth/okaru_auth_controller.h"
 #include "shell/okaru_auth/okaru_auth_panel.h"
 #include "shell/okaru_auth/okaru_vpn_auth.h"
@@ -700,14 +692,8 @@ void Application::initPanelManagerAndPanels() {
   m_panelManager.registerPanel("control-center", std::move(controlCenterPanel));
   {
     auto launcherPanel =
-        std::make_unique<LauncherPanel>(&m_configService, m_accountsService.get(), &m_asyncTextureCache);
+        std::make_unique<OkaruLauncherPanel>(&m_configService, &m_asyncTextureCache); // OKARU: okaru-launcher
     launcherPanel->addProvider(std::make_unique<AppProvider>(&m_configService, &m_compositorPlatform));
-    launcherPanel->addProvider(std::make_unique<WallpaperProvider>(&m_configService, &m_wayland, &m_themeService));
-    launcherPanel->addProvider(std::make_unique<WindowProvider>(&m_compositorPlatform));
-    launcherPanel->addProvider(std::make_unique<PanelProvider>(&m_panelManager, &m_configService));
-    launcherPanel->addProvider(std::make_unique<SessionProvider>(&m_configService, &m_sessionActionRunner));
-    launcherPanel->addProvider(std::make_unique<UpdatesProvider>()); // OKARU
-    launcherPanel->addProvider(std::make_unique<MathProvider>(&m_clipboardService, &m_configService, &m_httpClient));
     launcherPanel->setCopiedActivationCallback([this] {
       const ClipboardAutoPasteMode mode = m_configService.config().shell.launcher.autoPaste;
       if (mode == ClipboardAutoPasteMode::Off) {
@@ -728,16 +714,9 @@ void Application::initPanelManagerAndPanels() {
       (void)m_compositorPlatform.closeOverview();
     });
     m_launcherPanel = launcherPanel.get();
+    m_launcherPanel->schedulePrewarm(); // OKARU
     m_panelManager.registerPanel("launcher", std::move(launcherPanel));
   }
-  m_configService.addReloadCallback(
-      [this] {
-        if (m_launcherPanel != nullptr) {
-          m_launcherPanel->syncUsageOrderingState();
-        }
-      },
-      "launcher-usage"
-  );
   m_settingsWindow.setResetLauncherUsage([this] {
     if (m_launcherPanel != nullptr) {
       m_launcherPanel->clearUsage();
@@ -754,8 +733,6 @@ void Application::initPanelManagerAndPanels() {
         i18n::tr("notifications.internal.screen-time-reset-success")
     );
   });
-  reloadPluginLauncherProviders();
-  reloadDmenuProviders();
   reloadPluginPanels();
   reloadPluginLayers();
   m_configService.addReloadCallback([this] { m_pluginLayerHost.onConfigReload(); });
@@ -1034,11 +1011,6 @@ void Application::initBarDockAndLayout() {
   // When config reloads, refresh any open panel: bar-driven attached decoration restyle and
   // shell-driven compositor blur.
   m_configService.addReloadCallback([this] { m_panelManager.onConfigReloaded(); });
-  m_configService.addReloadCallback([this] {
-    if (m_configService.lastChange().shell) {
-      reloadDmenuProviders();
-    }
-  });
   m_configService.addReloadCallback([this] { m_screenCorners.onConfigReload(); });
   m_configService.addReloadCallback([this] { m_hotCorners.onConfigReload(); });
   m_configService.addReloadCallback([this] { m_cursorShake.onConfigReload(); }); // OKARU

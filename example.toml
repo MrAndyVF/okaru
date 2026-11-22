@@ -70,56 +70,21 @@ borders               = true        # panel shell outline and in-panel section c
 border_color          = "outline_variant"   # floating panel outline color: theme role token or #RRGGBB
 border_width          = 1.0         # floating panel outline width in px, 0 hides the stroke
 shadow                = true        # cast the global [shell.shadow] from panel surfaces
-launcher_placement       = "floating" # attached | floating
 clipboard_placement      = "floating" # attached | floating
 control_center_placement = "attached" # attached | floating
 wallpaper_placement      = "attached" # attached | floating
 session_placement        = "attached" # attached | floating
-launcher_position        = "center"   # auto | center | top_left | … (floating only)
 clipboard_position       = "center"   # auto | center | top_left | … (floating only)
 open_near_click_control_center = false # for attached/floating placement, follow the bar click instead of bar-center
-open_near_click_launcher       = false # for attached/floating placement, follow the bar click instead of bar-center
 open_near_click_clipboard      = false # for attached/floating placement, follow the bar click instead of bar-center
 open_near_click_wallpaper      = false # for attached/floating placement, follow the bar click instead of bar-center
 open_near_click_session        = false # for attached/floating placement, follow the bar click instead of bar-center
 
 [shell.launcher]
-layout = "full"                          # full | simple; simple is search, optional category chips, and results at 560x500
-width = 760                              # full layout: panel width in pixels (560–1200)
-search_position = "top"                  # full layout: top | bottom; whole launcher toolbar position
-default_view   = "recent"                # full layout: recent | pinned | all | categories
-categories = true                        # simple layout: show the category chip row under the search field
-category_icons_only = false             # hide app category labels; keep names in hover tooltips
-show_navigation_labels = true           # full layout: show Recent, Pinned, All, Categories, and Providers labels
-show_settings_button = true              # show the Settings shortcut beside search
-show_session_button = true               # show the session-actions shortcut beside search
-show_icons    = true                    # show application icons in launcher results
-show_app_origin_indicator = true        # show package origin indicators on application results
-compact       = false                   # use smaller icons and tighter result rows
-app_grid      = false                   # show grid-capable providers and the provider overview as icon grids
-track_usage   = true                    # record launcher history for Recent and usage-based sorting
-sort_by_usage = true                    # boost frequently used results
-ignore_mouse  = false                   # ignore mouse hover and clicks inside the launcher
-pinned        = []                      # ordered apps in the Pinned view, e.g. ["firefox", "code", "kitty"]
-fetch_exchange_rates = true             # refresh currency rates from third-party sources
-provider_prefix = "/"                     # common prefix character for provider trigger words (e.g. "/" or ".")
-auto_paste = "auto"                       # off | auto | ctrl_v | ctrl_shift_v | shift_insert (copy activations)
-
-# For each provider: prefix = trigger word (empty falls back to its built-in default; triggers on
-# provider_prefix + trigger, e.g. "/calc"). global = true also surfaces it in unprefixed search.
-[shell.launcher.providers.calculator]
-prefix = "calc"
-global = true                           # also show calculator results in unprefixed search
-
-[shell.launcher.providers.session]
-prefix = "session"
-global = false                          # set true to include session actions in unprefixed search
-
-[shell.launcher.providers.wallpaper]
-prefix = "wall"
-
-[shell.launcher.providers.windows]
-prefix = "win"
+style       = "card"                     # card | spotlight (only the search bar until you type)
+width       = 760                        # card width in pixels (spotlight is capped at 640)
+track_usage = true                       # remember launches for Suggestions and ordering
+auto_paste  = "auto"                     # off | auto | ctrl_v | ctrl_shift_v | shift_insert (okaru-emoji paste)
 
 [shell.mpris]
 blacklist = []                      # ignore MPRIS players by bus/identity/desktop entry token
@@ -477,7 +442,6 @@ active_opacity      = 1.0
 inactive_opacity    = 0.85
 show_dots           = false
 show_instance_count = true
-launcher_position   = "none"       # none | start | end
 launcher_icon       = "grid-dots"  # Tabler glyph name
 active_monitor_only = false
 pinned              = []            # e.g. ["firefox", "code", "kitty"]

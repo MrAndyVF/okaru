@@ -106,9 +106,6 @@ namespace scripting {
       if (src.enabled.has_value()) {
         dest.enabled = src.enabled;
       }
-      if (src.launcherResults.has_value()) {
-        dest.launcherResults = src.launcherResults;
-      }
       if (src.uiTree.has_value()) {
         dest.uiTree = src.uiTree;
       }

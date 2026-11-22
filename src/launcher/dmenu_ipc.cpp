@@ -4,7 +4,7 @@
 #include "core/log.h"
 #include "launcher/dmenu_socket_path.h"
 #include "launcher/dmenu_stdin_provider.h"
-#include "shell/launcher/launcher_panel.h"
+#include "shell/launcher/okaru_launcher_panel.h"
 #include "shell/panel/panel_manager.h"
 
 #include <algorithm>
@@ -79,7 +79,7 @@ bool DmenuIpcService::start() {
   return true;
 }
 
-void DmenuIpcService::setLauncherPanel(LauncherPanel* panel) { m_launcherPanel = panel; }
+void DmenuIpcService::setLauncherPanel(OkaruLauncherPanel* panel) { m_launcherPanel = panel; }
 
 void DmenuIpcService::setPanelManager(PanelManager* panelManager) { m_panelManager = panelManager; }
 

@@ -30,25 +30,14 @@ case "$warn_output" in
   *"WARN  tests/config_validate/warn-only.toml:3:10: accessibility.ui_scl: unknown setting"*) ;;
   *) fail "warning-only config did not report the unknown setting with its origin" ;;
 esac
+# Las claves del lanzador viejo (antes de okaru-launcher) siguen validando: solo avisan que ya no existen.
 case "$warn_output" in
-  *"WARN  tests/config_validate/warn-only.toml:8:1: shell.launcher.providers.applications: custom settings are not allowed"*) ;;
-  *) fail "warning-only config did not report the disallowed applications provider setting" ;;
+  *"WARN  tests/config_validate/warn-only.toml:7:19: shell.launcher.provider_prefix: unknown setting"*) ;;
+  *) fail "warning-only config did not report the removed provider_prefix as unknown" ;;
 esac
 case "$warn_output" in
-  *"WARN  tests/config_validate/warn-only.toml:6:19: shell.launcher.provider_prefix: is empty"*) ;;
-  *) fail "warning-only config did not report the empty provider_prefix" ;;
-esac
-case "$warn_output" in
-  *"WARN  tests/config_validate/warn-only.toml:11:1: shell.launcher.providers.nonexistent: provider is nonexistent"*) ;;
-  *) fail "warning-only config did not report the nonexistent provider setting" ;;
-esac
-case "$warn_output" in
-  *"shell.launcher.providers.author/my-plugin:entry: plugin 'author/my-plugin' is not enabled"*) ;;
-  *) fail "warning-only config did not report the disabled plugin provider setting" ;;
-esac
-case "$warn_output" in
-  *"duplicates the prefix of"*) ;;
-  *) fail "warning-only config did not report the duplicate provider prefix" ;;
+  *"WARN  tests/config_validate/warn-only.toml:9:1: shell.launcher.providers: unknown setting"*) ;;
+  *) fail "warning-only config did not report the removed launcher providers as unknown" ;;
 esac
 
 # A value of the wrong type keeps the default but must be reported, not silently ignored.

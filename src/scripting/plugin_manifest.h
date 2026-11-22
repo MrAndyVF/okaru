@@ -75,16 +75,8 @@ namespace scripting {
     Panel,
     Shortcut,
     DesktopWidget,
-    LauncherProvider,
     Service,
     Layer,
-  };
-
-  // A launcher result category, declared statically on a [[launcher_provider]]
-  // entry so the launcher can render the category filter without running code.
-  struct ManifestLauncherCategory {
-    std::string label;
-    std::string glyph;
   };
 
   struct PluginEntry {
@@ -102,16 +94,6 @@ namespace scripting {
     // Whether the bar draws its whole-widget hover highlight over this [[widget]] entry
     // (`hover_highlight`, plugin_api >= 34). False when the widget draws its own per-item hover.
     bool widgetHoverHighlight = true;
-
-    // Launcher-provider routing metadata (parsed only for LauncherProvider entries);
-    // static so the launcher routes/filters without invoking the plugin.
-    std::string launcherPrefix;
-    std::string launcherGlyph;
-    bool launcherGlobalSearch = false;
-    std::vector<ManifestLauncherCategory> launcherCategories;
-    // Wait this many ms after the last keystroke before running onQuery, so a
-    // network-backed provider isn't hit on every character. 0 = no debounce.
-    int launcherDebounceMs = 0;
 
     // Panel size in logical pixels (parsed only for Panel entries). Geometry is
     // host-owned and declared once here so the surface is sized correctly on the

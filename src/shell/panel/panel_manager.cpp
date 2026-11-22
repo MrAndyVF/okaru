@@ -679,7 +679,7 @@ void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest reques
   // Which slot edge a content-fitted card keeps: the one this placement anchors to.
   CardAlign detachedCardAlign = CardAlign::Start;
   if (useCenterScreenLayout) {
-    detachedCardAlign = CardAlign::Center;
+    detachedCardAlign = m_activePanel->contentFitGrowsDown() ? CardAlign::Start : CardAlign::Center; // OKARU
   } else if (useScreenPosition) {
     const bool anchoredTop = (standaloneAnchor & LayerShellAnchor::Top) != 0;
     const bool anchoredBottom = (standaloneAnchor & LayerShellAnchor::Bottom) != 0;
@@ -2080,7 +2080,9 @@ void PanelManager::placePanelChrome() {
   // Re-apply opacity-dependent styling for bg, shadow, and contact-shadow.
   // Ensures these stay in sync if the bar config changed.
 
-  const float kPadding = m_activePanel->hasDecoration() ? m_activePanel->contentScale() * Style::panelPadding : 0.0F;
+  const float kPadding = m_activePanel->hasDecoration()
+      ? m_activePanel->contentScale() * m_activePanel->contentPadding().value_or(Style::panelPadding) // OKARU
+      : 0.0F;
   m_contentWidth = panelW - kPadding * 2.0F;
   // A content-fitted panel lays its content out at the target height once; while the card
   // animates toward it, the content node clips to the card instead of relaying out.
@@ -2098,7 +2100,9 @@ void PanelManager::layoutActivePanel(Renderer& renderer) {
   if (!m_contentFit.enabled) {
     return;
   }
-  const float padding = m_activePanel->hasDecoration() ? m_activePanel->contentScale() * Style::panelPadding : 0.0F;
+  const float padding = m_activePanel->hasDecoration()
+      ? m_activePanel->contentScale() * m_activePanel->contentPadding().value_or(Style::panelPadding) // OKARU
+      : 0.0F;
   const float natural = m_activePanel->measureContentHeight(renderer, m_contentWidth);
   const auto target = std::clamp<std::uint32_t>(
       static_cast<std::uint32_t>(std::ceil(std::max(0.0F, natural) + padding * 2.0F)), 1U,

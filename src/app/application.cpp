@@ -27,11 +27,6 @@
 #include "dbus/system_bus_poll_source.h"
 #include "debug/debug_service.h"
 #include "launcher/app_provider.h"
-#include "launcher/math_provider.h"
-#include "launcher/plugin_launcher_provider.h"
-#include "launcher/session_provider.h"
-#include "launcher/wallpaper_provider.h"
-#include "launcher/window_provider.h"
 #include "notification/notifications.h"
 #include "pipewire/pipewire_poll_source.h"
 #include "pipewire/pipewire_service.h"
@@ -44,7 +39,7 @@
 #include "shell/okaru_auth/okaru_vpn_auth.h"
 #include "shell/clipboard/clipboard_panel.h"
 #include "shell/greeter/greeter_appearance_sync.h"
-#include "shell/launcher/launcher_panel.h"
+#include "shell/launcher/okaru_launcher_panel.h"
 #include "shell/panel/plugin_panel.h"
 #include "shell/polkit/polkit_panel.h"
 #include "shell/session/session_ipc.h"
@@ -194,7 +189,6 @@ void Application::run(const std::function<void()>& startupReadyCallback) {
     m_configService.addReloadCallback([this] {
       if (m_configService.lastChange().plugins) {
         m_pluginServiceHost.refresh(m_configService.config().plugins.pluginSettings);
-        reloadPluginLauncherProviders();
         reloadPluginPanels();
         reloadPluginLayers();
         m_settingsWindow.onPluginsChanged();
@@ -207,7 +201,6 @@ void Application::run(const std::function<void()>& startupReadyCallback) {
     m_pluginManager.setOnChanged([this] {
       m_pluginServiceHost.refresh(m_configService.config().plugins.pluginSettings);
       m_bar.reload();
-      reloadPluginLauncherProviders();
       reloadPluginPanels();
       reloadPluginLayers();
       m_settingsWindow.onPluginsChanged();

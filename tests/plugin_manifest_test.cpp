@@ -361,54 +361,18 @@ int main() {
   ok = expect(!missingOptionLabelKey.has_value(), "bare string select options should fail") && ok;
   ok = expectEq(error, "setting 'mode' option must be a table with value and label_key", "bare option error") && ok;
 
-  const auto launcherManifestPath = root / "launcher/plugin.toml";
-  ok = writeManifest(
-           launcherManifestPath,
-           "id = \"me/launcher\"\n"
-           "name = \"Launcher\"\n"
-           "plugin_api = 3\n"
-           "[[launcher_provider]]\n"
-           "id = \"translate\"\n"
-           "entry = \"translate.luau\"\n"
-           "prefix = \":tr\"\n"
-           "glyph = \"language\"\n"
-           "include_in_global_search = true\n"
-           "debounce_ms = 300\n"
-           "[[launcher_provider.category]]\n"
-           "label = \"Languages\"\n"
-           "glyph = \"world\"\n"
-       )
-      && ok;
-  error.clear();
-  const auto launcherManifest = scripting::parsePluginManifest(launcherManifestPath, &error);
-  ok = expect(launcherManifest.has_value(), error.empty() ? "failed to parse launcher manifest" : error.c_str()) && ok;
-  if (launcherManifest.has_value() && expect(launcherManifest->entries.size() == 1, "one launcher entry expected")) {
-    const auto& entry = launcherManifest->entries.front();
-    ok = expect(entry.kind == scripting::PluginEntryKind::LauncherProvider, "entry kind should be LauncherProvider")
-        && ok;
-    ok = expectEq(entry.launcherPrefix, ":tr", "launcher prefix should parse") && ok;
-    ok = expectEq(entry.launcherGlyph, "language", "launcher glyph should parse") && ok;
-    ok = expect(entry.launcherGlobalSearch, "include_in_global_search should parse true") && ok;
-    ok = expect(entry.launcherDebounceMs == 300, "debounce_ms should parse") && ok;
-    ok = expect(entry.launcherCategories.size() == 1, "one launcher category expected") && ok;
-    if (!entry.launcherCategories.empty()) {
-      ok = expectEq(entry.launcherCategories.front().label, "Languages", "category label should parse") && ok;
-      ok = expectEq(entry.launcherCategories.front().glyph, "world", "category glyph should parse") && ok;
-    }
-  }
-
-  // Entry-level settings on a launcher provider (a singleton with no settings UI)
+  // Entry-level settings on a service (a singleton with no settings UI)
   // are rejected — authors must use a plugin-level [[setting]] instead.
-  const auto launcherSettingManifestPath = root / "launcher-setting/plugin.toml";
+  const auto launcherSettingManifestPath = root / "service-setting/plugin.toml";
   ok = writeManifest(
            launcherSettingManifestPath,
-           "id = \"me/launcher-setting\"\n"
-           "name = \"Launcher Setting\"\n"
+           "id = \"me/service-setting\"\n"
+           "name = \"Service Setting\"\n"
            "plugin_api = 3\n"
-           "[[launcher_provider]]\n"
+           "[[service]]\n"
            "id = \"translate\"\n"
            "entry = \"translate.luau\"\n"
-           "[[launcher_provider.setting]]\n"
+           "[[service.setting]]\n"
            "key = \"target_lang\"\n"
            "type = \"string\"\n"
            "default = \"en\"\n"
@@ -416,13 +380,13 @@ int main() {
       && ok;
   error.clear();
   const auto launcherSettingManifest = scripting::parsePluginManifest(launcherSettingManifestPath, &error);
-  ok = expect(!launcherSettingManifest.has_value(), "launcher-provider entry setting should be rejected") && ok;
+  ok = expect(!launcherSettingManifest.has_value(), "service entry setting should be rejected") && ok;
   ok = expectEq(
            error,
-           "entry 'translate' of kind 'launcher_provider' declares [[launcher_provider.setting]], but entry-level "
+           "entry 'translate' of kind 'service' declares [[service.setting]], but entry-level "
            "settings are only supported for widget, desktop_widget, and panel entries; move it to a plugin-level "
            "[[setting]]",
-           "launcher-provider entry setting error message"
+           "service entry setting error message"
        )
       && ok;
 
