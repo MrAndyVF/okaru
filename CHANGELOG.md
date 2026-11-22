@@ -10,6 +10,25 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.8.1] - 2026-11-22
+
+### English
+
+#### Fixes
+- **The emoji picker opens on the monitor you are using.** It always appeared on the first (left) monitor; layer
+  surfaces of OKARU apps now let the compositor place them on the focused one.
+- Default window rules: **CachyOS Package Installer 2.0 floats again** (centered, 1300×800). Its window class
+  changed from `org.cachyos.cachyos-pi` to `cachyos-pi`; both are matched, in Hyprland and Niri.
+
+### Español
+
+#### Correcciones
+- **El selector de emojis se abre en el monitor que estás usando.** Siempre aparecía en el primero (el de la
+  izquierda); las superficies layer-shell de las apps de OKARU ahora dejan que el compositor las ponga en el que
+  tiene el foco.
+- Reglas de ventana de fábrica: **CachyOS Package Installer 2.0 vuelve a abrirse flotante** (centrado, 1300×800).
+  Su clase de ventana cambió de `org.cachyos.cachyos-pi` a `cachyos-pi`; se reconocen las dos, en Hyprland y Niri.
+
 ## [1.3.8] - 2026-11-22
 
 ### English
