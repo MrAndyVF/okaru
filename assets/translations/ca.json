@@ -2248,10 +2248,6 @@
           "description": "On se situa el panell de sessió quan s'obre en clicar el giny de la barra",
           "label": "Al llarg de la barra"
         },
-        "open-near-click-wallpaper": {
-          "description": "On se situa el selector de fons de pantalla quan s'obre en clicar el giny de la barra",
-          "label": "Al llarg de la barra"
-        },
         "panel-anchor-bar": {
           "description": "Barra a la qual s'ancoren els panells en obrir-se; deixa-ho buit per seguir el giny, drecera o dock que els ha obert",
           "label": "Barra d'ancoratge"
@@ -2276,10 +2272,6 @@
           "description": "Tria si el panell de sessió s'ancora a la barra o flota en una posició escollida de la pantalla",
           "label": "Ubicació"
         },
-        "placement-wallpaper": {
-          "description": "Tria si el selector de fons de pantalla s'ancora a la barra o flota en una posició escollida de la pantalla",
-          "label": "Ubicació"
-        },
         "position-clipboard": {
           "description": "On flota el porta-retalls a la pantalla; «Segueix la barra» el manté a prop de la barra",
           "label": "Posició"
@@ -2298,10 +2290,6 @@
         },
         "position-session": {
           "description": "On flota el panell de sessió a la pantalla; «Segueix la barra» el manté a prop de la barra",
-          "label": "Posició"
-        },
-        "position-wallpaper": {
-          "description": "On flota el selector de fons de pantalla a la pantalla; «Segueix la barra» el manté a prop de la barra",
           "label": "Posició"
         },
         "shadow": {
@@ -3872,21 +3860,6 @@
         "search-placeholder": "Cerca glifs…",
         "title": "Tria un glif"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TOTS",
-      "color-title": "Color del fons de pantalla",
-      "filter-placeholder": "Filtra…",
-      "flatten": "Aplana",
-      "loading": "Carregant els fons de pantalla…",
-      "sort-date-asc": "Ordena per data (més antic primer)",
-      "sort-date-desc": "Ordena per data (més nou primer)",
-      "sort-name-asc": "Ordena per nom (A-Z)",
-      "sort-name-desc": "Ordena per nom (Z-A)",
-      "sort-random": "Ordena a l'atzar (aleatori)",
-      "title": "Fons de pantalla"
     }
   },
   "weather": {

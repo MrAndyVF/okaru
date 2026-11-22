@@ -64,7 +64,6 @@
 #include "shell/settings/settings_window.h"
 #include "shell/switcher/window_switcher.h"
 #include "shell/tray/tray_menu.h"
-#include "shell/wallpaper/panel/wallpaper_scanner.h"
 #include "shell/wallpaper/wallpaper.h"
 #include "system/battery_warning_monitor.h"
 #include "system/okaru_device_monitor.h" // OKARU
@@ -352,7 +351,6 @@ private:
   // Outlives the panels, widgets, and layers whose pixel stream views register with it.
   PixelStreamService m_pixelStreamService;
   ThumbnailService m_thumbnailService;
-  WallpaperScanner m_wallpaperScanner;
   Bar m_bar;
   Dock m_dock;
   DesktopWidgetsController m_desktopWidgetsController;

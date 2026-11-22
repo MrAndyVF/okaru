@@ -1994,10 +1994,6 @@
           "description": "Coloca o panel do menú de sesión preto do clic na barra en vez de centralo ao longo da barra",
           "label": "Abrir preto do clic"
         },
-        "open-near-click-wallpaper": {
-          "description": "Coloca o panel do selector de fondo de pantalla preto do clic na barra en vez de centralo ao longo da barra",
-          "label": "Abrir preto do clic"
-        },
         "placement-clipboard": {
           "description": "Escolle se o portapapeis se anexa á barra ou flota nunha posición da pantalla escollida",
           "label": "Colocación"
@@ -2018,10 +2014,6 @@
           "description": "Escolle se o menú de sesión se anexa á barra ou flota nunha posición da pantalla escollida",
           "label": "Colocación"
         },
-        "placement-wallpaper": {
-          "description": "Escolle se o selector de fondo de pantalla se anexa á barra ou flota nunha posición da pantalla escollida",
-          "label": "Colocación"
-        },
         "position-clipboard": {
           "description": "Onde flota o portapapeis na pantalla; Seguir a barra manteno preto da barra",
           "label": "Posición"
@@ -2040,10 +2032,6 @@
         },
         "position-session": {
           "description": "Onde flota o menú de sesión na pantalla; Seguir a barra manteno preto da barra",
-          "label": "Posición"
-        },
-        "position-wallpaper": {
-          "description": "Onde flota o selector de fondo de pantalla na pantalla; Seguir a barra manteno preto da barra",
           "label": "Posición"
         },
         "shadow": {
@@ -3317,20 +3305,6 @@
         "search-placeholder": "Buscar glifos…",
         "title": "Escoller un glifo"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TODOS",
-      "color-title": "Cor do fondo de pantalla",
-      "filter-placeholder": "Filtrar...",
-      "flatten": "Aplanar",
-      "loading": "Cargando fondos de pantalla...",
-      "sort-date-asc": "Ordenar por data (máis antigos primeiro)",
-      "sort-date-desc": "Ordenar por data (máis recentes primeiro)",
-      "sort-name-asc": "Ordenar por nome (A-Z)",
-      "sort-name-desc": "Ordenar por nome (Z-A)",
-      "title": "Fondo de pantalla"
     }
   },
   "weather": {

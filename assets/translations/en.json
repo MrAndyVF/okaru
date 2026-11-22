@@ -3729,10 +3729,6 @@
           "description": "When opened by clicking its bar widget, open the session panel next to the widget instead of at its Position",
           "label": "Open Near Clicked Widget"
         },
-        "open-near-click-wallpaper": {
-          "description": "When opened by clicking its bar widget, open the wallpaper picker next to the widget instead of at its Position",
-          "label": "Open Near Clicked Widget"
-        },
         "panel-anchor-bar": {
           "description": "Bar panels attach to when opened; leave empty to follow the widget, shortcut, or dock that opened them",
           "label": "Anchor Bar"
@@ -3753,10 +3749,6 @@
           "description": "Choose whether the session panel attaches to the bar or floats at a chosen screen position",
           "label": "Placement"
         },
-        "placement-wallpaper": {
-          "description": "Choose whether the wallpaper picker attaches to the bar or floats at a chosen screen position",
-          "label": "Placement"
-        },
         "position-clipboard": {
           "description": "Floating: where the clipboard sits on screen; Follow Bar keeps it near the bar. Attached: a position along the bar's edge aligns it to that end of the bar",
           "label": "Position"
@@ -3773,20 +3765,12 @@
           "description": "Floating: where the session panel sits on screen; Follow Bar keeps it near the bar. Attached: a position along the bar's edge aligns it to that end of the bar",
           "label": "Position"
         },
-        "position-wallpaper": {
-          "description": "Floating: where the wallpaper picker sits on screen; Follow Bar keeps it near the bar. Attached: a position along the bar's edge aligns it to that end of the bar",
-          "label": "Position"
-        },
         "shadow": {
           "description": "Cast the global surface shadow from panel surfaces"
         },
         "transparency-mode": {
           "description": "Panel glass style, including floating panel opacity and card translucency",
           "label": "Transparency"
-        },
-        "wallpaper-show-names": {
-          "description": "Caption each thumbnail with its file name in the wallpaper picker.",
-          "label": "Show File Names"
         },
         "launcher-style": {
           "description": "Card with suggestions, or Spotlight: only the search bar until you type",
@@ -4689,9 +4673,9 @@
           "placeholder": "~/Pictures/Wallpapers"
         },
         "panel": {
-          "button": "Open Panel",
-          "description": "Open the wallpaper picker panel",
-          "label": "Wallpaper Panel"
+          "button": "Open",
+          "description": "Browse your wallpapers in a carousel and apply one",
+          "label": "Wallpaper picker"
         },
         "per-monitor-directories": {
           "description": "Use separate wallpaper folders for each monitor",
@@ -6268,29 +6252,6 @@
         "search-placeholder": "Search glyphs…",
         "title": "Pick a Glyph"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "ALL",
-      "choose-color": "Choose wallpaper color",
-      "close": "Close wallpaper panel",
-      "color-title": "Wallpaper color",
-      "favorite-add": "Add to favorites",
-      "favorite-current": "Add current wallpaper to favorites",
-      "favorite-remove": "Remove from favorites",
-      "filter-placeholder": "Filter…",
-      "flatten": "Flatten",
-      "loading": "Loading wallpapers…",
-      "navigate-up": "Go to parent folder",
-      "refresh": "Refresh wallpapers",
-      "sort-date-asc": "Sort by date (oldest first)",
-      "sort-date-desc": "Sort by date (newest first)",
-      "sort-name-asc": "Sort by name (A-Z)",
-      "sort-name-desc": "Sort by name (Z-A)",
-      "sort-random": "Sort by random (shuffle)",
-      "title": "Wallpaper",
-      "unfavorite-current": "Remove current wallpaper from favorites"
     }
   },
   "weather": {

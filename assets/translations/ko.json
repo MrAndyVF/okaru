@@ -2318,10 +2318,6 @@
           "description": "세션 패널을 연 바 위젯 근처에 세션 패널을 위치시킵니다. 바 트리거 없이 열리는 경우에는 가운데에 위치합니다",
           "label": "클릭한 위젯 근처에서 열기"
         },
-        "open-near-click-wallpaper": {
-          "description": "배경 화면 선택기를 연 바 위젯 근처에 배경 화면 선택기를 위치시킵니다. 바 트리거 없이 열리는 경우에는 가운데에 위치합니다",
-          "label": "클릭한 위젯 근처에서 열기"
-        },
         "panel-anchor-bar": {
           "description": "단축키 또는 독에서 열릴 때 패널이 연결될 바. 비워 두면 패널을 연 위젯을 따릅니다",
           "label": "앵커 바"
@@ -2346,10 +2342,6 @@
           "description": "세션 패널을 바에 연결하거나 선택한 화면 위치에 플로팅할지 선택",
           "label": "배치"
         },
-        "placement-wallpaper": {
-          "description": "배경 화면 선택기를 바에 연결하거나 선택한 화면 위치에 플로팅할지 선택",
-          "label": "배치"
-        },
         "position-clipboard": {
           "description": "클립보드가 화면에서 플로팅될 위치. 바 따르기는 바 근처에 유지합니다",
           "label": "위치"
@@ -2368,10 +2360,6 @@
         },
         "position-session": {
           "description": "세션 패널이 화면에서 플로팅될 위치. 바 따르기는 바 근처에 유지합니다",
-          "label": "위치"
-        },
-        "position-wallpaper": {
-          "description": "배경 화면 선택기가 화면에서 플로팅될 위치. 바 따르기는 바 근처에 유지합니다",
           "label": "위치"
         },
         "shadow": {
@@ -4010,21 +3998,6 @@
         "search-placeholder": "글리프 검색…",
         "title": "글리프 선택"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "전체",
-      "color-title": "배경 화면 색상",
-      "filter-placeholder": "필터…",
-      "flatten": "단순화",
-      "loading": "배경 화면 불러오는 중…",
-      "sort-date-asc": "날짜 순 정렬 (오래된 순)",
-      "sort-date-desc": "날짜 순 정렬 (최신순)",
-      "sort-name-asc": "이름 순 정렬 (A-Z)",
-      "sort-name-desc": "이름 순 정렬 (Z-A)",
-      "sort-random": "랜덤 정렬 (셔플)",
-      "title": "배경 화면"
     }
   },
   "weather": {

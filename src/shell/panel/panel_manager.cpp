@@ -266,11 +266,16 @@ namespace {
   // El desenfoque del compositor no se puede atenuar: entra cuando el panel ya se ve casi entero.
   constexpr float kPanelBlurFromProgress = 0.6F;
 
-  // OKARU: el selector de fondos es la app okaru-wallpaper-picker (abre y cierra con cada llamada). Devuelve false si
-  // no está instalada, y entonces se abre el panel de siempre.
-  // shortcut: el respaldo al panel viejo vive hasta que se borre el panel (fase 4 del picker).
+  // OKARU: el selector de fondos es la app okaru-wallpaper-picker (abre y cierra con cada llamada); "wallpaper" sigue
+  // siendo su id para los atajos, la barra, el dashboard y Ajustes. Devuelve si el id era ese.
   [[nodiscard]] bool launchWallpaperPicker(std::string_view panelId) {
-    return panelId == "wallpaper" && process::launchFirstAvailable({{"okaru-wallpaper-picker"}});
+    if (panelId != "wallpaper") {
+      return false;
+    }
+    if (!process::launchFirstAvailable({{"okaru-wallpaper-picker"}})) {
+      kLog.warn("okaru-wallpaper-picker is not installed");
+    }
+    return true;
   }
 
   [[nodiscard]] bool usesConfiguredFloatingLayer(std::string_view panelId) {
@@ -278,8 +283,7 @@ namespace {
         || panelId == "control-center"
         || panelId == "launcher"
         || panelId == "session"
-        || panelId == "setup-wizard"
-        || panelId == "wallpaper";
+        || panelId == "setup-wizard";
   }
 
   [[nodiscard]] LayerShellLayer

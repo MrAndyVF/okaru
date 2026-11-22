@@ -906,9 +906,6 @@
         },
         "placement-session": {
           "label": "Placering"
-        },
-        "placement-wallpaper": {
-          "label": "Placering"
         }
       },
       "services": {
@@ -984,12 +981,6 @@
           "name": "Namn"
         }
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "sort-name-asc": "Sortera namn (A-Z)",
-      "sort-name-desc": "Sortera namn (Z-A)"
     }
   },
   "weather": {

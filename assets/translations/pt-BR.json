@@ -2717,10 +2717,6 @@
           "description": "Quando aberto ao clicar no widget de sua barra, abrir o Painel de Sessão próximo ao widget ao invés de sua Posição",
           "label": "Abrir Próximo ao Widget Clicado"
         },
-        "open-near-click-wallpaper": {
-          "description": "Quando aberto ao clicar no widget de sua barra, abrir o Seletor de Papel de Parede próximo ao widget ao invés de sua Posição",
-          "label": "Abrir Próximo ao Widget Clicado"
-        },
         "panel-anchor-bar": {
           "description": "Barra à qual os painéis se anexam quando abertos; Deixe vazio para seguir o widget, atalho ou Dock que os abriu",
           "label": "Barra Âncora"
@@ -2745,10 +2741,6 @@
           "description": "Escolha se o menu de sessão fica acoplado à barra ou flutua em uma posição escolhida na tela",
           "label": "Posicionamento"
         },
-        "placement-wallpaper": {
-          "description": "Escolha se o seletor de papéis de parede fica acoplado à barra ou flutua em uma posição escolhida na tela",
-          "label": "Posicionamento"
-        },
         "position-clipboard": {
           "description": "Fluturante: onde a Área de Transferência fica na tela; Seguir Barra mantém-na perto da barra. Anexado: uma posição ao longo da extremidade da barra alinha-a ao fim da barra",
           "label": "Posição"
@@ -2769,20 +2761,12 @@
           "description": "Fluturante: onde o Painel de Sessão fica na tela; Seguir Barra mantém-no perto da barra. Anexado: uma posição ao longo da extremidade da barra alinha-o ao fim da barra",
           "label": "Posição"
         },
-        "position-wallpaper": {
-          "description": "Fluturante: onde o Seletor de Papéis de Parede fica na tela; Seguir Barra mantém-no perto da barra. Anexado: uma posição ao longo da extremidade da barra alinha-o ao fim da barra",
-          "label": "Posição"
-        },
         "shadow": {
           "description": "Faz as superfícies dos painéis projetarem a sombra global da superfície"
         },
         "transparency-mode": {
           "description": "Estilo vidro dos painéis, incluindo a opacidade dos painéis flutuantes e a translucência dos cards",
           "label": "Transparência"
-        },
-        "wallpaper-show-names": {
-          "description": "Legende cada miniatura com o nome do arquivo no seletor de papéis de parede.",
-          "label": "Mostrar Nomes de Arquivos"
         }
       },
       "power": {
@@ -5072,29 +5056,6 @@
         "search-placeholder": "Busque símbolos...",
         "title": "Selecione um símbolo"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TODOS",
-      "choose-color": "Escolher cor de papel de parede",
-      "close": "Fechar painel de papel de parede",
-      "color-title": "Cor do papel de parede",
-      "favorite-add": "Adicionar aos favoritos",
-      "favorite-current": "Adicionar o papel de parede atual aos favoritos",
-      "favorite-remove": "Remover dos favoritos",
-      "filter-placeholder": "Filtrar...",
-      "flatten": "Achatar",
-      "loading": "Carregando papéis de parede...",
-      "navigate-up": "Ir para a pasta superior",
-      "refresh": "Atualizar papéis de parede",
-      "sort-date-asc": "Ordenar por data (mais antigos primeiro)",
-      "sort-date-desc": "Ordenar por data (mais recentes primeiro)",
-      "sort-name-asc": "Ordenar por nome (A-Z)",
-      "sort-name-desc": "Ordenar por nome (Z-A)",
-      "sort-random": "Ordenar aleatoriamente (embaralhar)",
-      "title": "Papel de Parede",
-      "unfavorite-current": "Remover papel de parede atual de favoritos"
     }
   },
   "weather": {
