@@ -1654,6 +1654,7 @@ void Application::initSessionBusServices() {
 
   // Load the persisted fired set before the first evaluation, or a restart would re-notify.
   m_calendarReminderMonitor.initialize();
+  m_deviceMonitor = std::make_unique<OkaruDeviceMonitor>(m_notificationManager); // OKARU
   (void)m_calendarService.addChangeCallback([this] {
     m_calendarReminderMonitor.onSnapshotChanged(m_calendarService.snapshot());
   });

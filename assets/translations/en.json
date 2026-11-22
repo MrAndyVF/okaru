@@ -945,6 +945,11 @@
       "placeholder": "Type a reply…"
     },
     "internal": {
+      "devices": "Devices",
+      "device-connected": "Device connected",
+      "device-phone-connected": "Phone connected",
+      "device-removed": "Device removed",
+      "device-open": "Open",
       "battery": "Battery",
       "battery-critical-body": "{device}: {percent}%; your computer will shut down soon",
       "battery-critical-title": "Battery critically low",
