@@ -55,7 +55,7 @@ window-rule {
 window-rule {
     match app-id="^dev\\.okaru\\.Okaru"
     open-floating true
-    default-column-width { fixed 1080; }
+    default-column-width { fixed 1280; }
     default-window-height { fixed 920; }
 }
 

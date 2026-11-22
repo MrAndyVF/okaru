@@ -7,7 +7,7 @@ hl.window_rule({ match = { title = "(?i)notification|toast" }, no_initial_focus 
 hl.window_rule({ match = { title = "^(Picture in picture|Picture-in-Picture)$" }, float = true, pin = true })
 
 -- Ajustes y diálogos de OKARU
-hl.window_rule({ match = { class = "^dev\\.okaru\\.Okaru" }, float = true, size = { 1080, 920 } })
+hl.window_rule({ match = { class = "^dev\\.okaru\\.Okaru" }, float = true, size = { 1280, 920 } })
 -- Apps de OKARU
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Calculator$" }, float = true, center = true, size = { 440, 760 } })
 hl.window_rule({ match = { class = "^dev\\.okaru\\.Viewer$" }, float = true, center = true, size = { 1000, 720 } })
