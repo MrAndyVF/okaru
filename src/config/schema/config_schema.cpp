@@ -2741,6 +2741,7 @@ namespace okaru::config::schema {
     static const Schema<AccessibilityConfig> s = {
         field(&AccessibilityConfig::uiScale, "ui_scale", kScaleRange),
         field(&AccessibilityConfig::highContrast, "high_contrast"),
+        field(&AccessibilityConfig::cursorShake, "cursor_shake"), // OKARU
     };
     return s;
   }

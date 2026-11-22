@@ -1988,6 +1988,7 @@ struct PluginsConfig {
 struct AccessibilityConfig {
   float uiScale = 1.0F;
   bool highContrast = false;
+  bool cursorShake = true; // OKARU: agrandar el cursor al agitar el ratón (Hyprland)
   bool operator==(const AccessibilityConfig&) const = default;
 };
 

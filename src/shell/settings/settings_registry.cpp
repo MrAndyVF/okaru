@@ -1,5 +1,6 @@
 #include "shell/settings/settings_registry.h"
 
+#include "compositors/compositor_detect.h" // OKARU
 #include "config/config_types.h"
 #include "config/schema/config_schema.h"
 #include "config/schema/ranges.h"
@@ -600,6 +601,13 @@ namespace settings {
         tr("settings.schema.accessibility.high-contrast.description"), {"accessibility", "high_contrast"},
         ToggleSetting{cfg.accessibility.highContrast}, "accessibility high contrast visually impaired"
     ));
+    if (compositors::isHyprland()) { // OKARU: la posición del cursor sale de la IPC de Hyprland
+      entries.push_back(makeEntry(
+          SettingsSection::Appearance, "accessibility", tr("settings.schema.accessibility.cursor-shake.label"),
+          tr("settings.schema.accessibility.cursor-shake.description"), {"accessibility", "cursor_shake"},
+          ToggleSetting{cfg.accessibility.cursorShake}, "accessibility cursor mouse pointer shake find locate"
+      ));
+    }
     entries.push_back(makeEntry(
         SettingsSection::Appearance, "motion", tr("settings.schema.appearance.animations.label"),
         tr("settings.schema.appearance.animations.description"), {"shell", "animation", "enabled"},

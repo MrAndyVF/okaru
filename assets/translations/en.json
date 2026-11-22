@@ -2911,6 +2911,10 @@
     },
     "schema": {
       "accessibility": {
+        "cursor-shake": {
+          "description": "Shake the mouse to make the cursor grow for a moment so it is easy to find",
+          "label": "Enlarge Cursor When Shaken"
+        },
         "high-contrast": {
           "description": "Increase contrast by pushing surface and background colors towards extreme values",
           "label": "High Contrast"

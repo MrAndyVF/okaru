@@ -752,6 +752,8 @@ _okaru_sources = files(
   'src/shell/osd/osd_overlay.cpp',
   'src/shell/tooltip/tooltip_manager.cpp',
   'src/shell/hot_corners/hot_corners.cpp',
+  'src/shell/okaru_cursor_shake/okaru_cursor_shake.cpp',
+  'src/shell/okaru_cursor_shake/okaru_xcursor.cpp',
   'src/shell/screen_corners/screen_corners.cpp',
   'src/shell/panel/panel_click_shield.cpp',
   'src/wayland/hyprland/focus_grab_service.cpp',
@@ -1315,6 +1317,11 @@ if build_tests
   ))
   test('okaru_file_drop', executable('okaru_file_drop_test',
     sources: files('tests/okaru_file_drop_test.cpp'),
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
+  test('okaru_cursor_shake', executable('okaru_cursor_shake_test',
+    sources: files('tests/okaru_cursor_shake_test.cpp'),
     dependencies: okaru_core_dep,
     override_options: ['b_ndebug=false'],
   ))

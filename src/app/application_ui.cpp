@@ -418,6 +418,8 @@ void Application::initInputDispatch() {
       return;
     if (m_hotCorners.onPointerEvent(event))
       return;
+    if (m_cursorShake.onPointerEvent(event)) // OKARU
+      return;
     m_notificationToast.onPointerEvent(event);
   });
 
@@ -1041,6 +1043,7 @@ void Application::initBarDockAndLayout() {
   });
   m_configService.addReloadCallback([this] { m_screenCorners.onConfigReload(); });
   m_configService.addReloadCallback([this] { m_hotCorners.onConfigReload(); });
+  m_configService.addReloadCallback([this] { m_cursorShake.onConfigReload(); }); // OKARU
 
   m_layerPopupHosts.registerHost(
       [this](wl_surface* surface) { return m_desktopWidgetsController.popupParentContextForSurface(surface); }, {}, {},
@@ -1245,6 +1248,7 @@ void Application::initWidgetControllersAndCallbacks() {
   // never occluded by shell chrome on their shared layer.
   m_screenCorners.initialize(m_wayland, &m_configService, &m_renderContext);
   m_hotCorners.initialize(m_wayland, &m_configService, &m_renderContext);
+  m_cursorShake.initialize(m_wayland, &m_configService, &m_renderContext); // OKARU
 }
 
 TimeService::Precision Application::timePrecisionNeeded() const {

@@ -7,6 +7,7 @@
 [accessibility]
 ui_scale              = 1.0
 high_contrast         = false
+cursor_shake          = true            # shake the mouse to enlarge the cursor for a moment (Hyprland)
 
 [shell]
 corner_radius_scale   = 1.0          # 0 = square, 1 = default, 2 = extra rounded

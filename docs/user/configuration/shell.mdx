@@ -479,10 +479,12 @@ Global accessibility settings.
 [accessibility]
 ui_scale              = 1.0             # content scale for panels and non-bar shell UI
 high_contrast         = false           # enable high contrast mode for visually impaired
+cursor_shake          = true            # shake the mouse to enlarge the cursor for a moment (Hyprland)
 ```
 
 - `ui_scale` is completely separate from `bar.scale` and `[widget.*].scale`: bar scale settings only affect bar widget content; `ui_scale` covers the control center, launcher, clipboard, and other non-bar surfaces. Neither changes Wayland output / HiDPI buffer scale.
 - `high_contrast` increases visibility and contrast by ensuring pure black backgrounds and high visibility borders for visually impaired users. It forces the `pure_black_dark` override under the hood for dark themes.
+- `cursor_shake` makes the cursor grow for a moment when you shake the mouse, like KDE Plasma, so it is easy to find. The shell draws it (your Xcursor theme's arrow) on an overlay; a click while it is enlarged dismisses it. Hyprland only: Niri's IPC does not report the cursor position.
 
 ---
 

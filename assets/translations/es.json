@@ -2898,6 +2898,10 @@
     },
     "schema": {
       "accessibility": {
+        "cursor-shake": {
+          "description": "Agita el ratón para que el cursor crezca un momento y sea fácil de encontrar",
+          "label": "Agrandar el cursor al agitarlo"
+        },
         "high-contrast": {
           "description": "Aumente el contraste llevando los colores de la superficie y del fondo hacia valores extremos",
           "label": "Alto contraste"

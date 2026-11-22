@@ -88,6 +88,8 @@ public:
   // Fired when the effective xkb layout name changes (group switch or new keymap).
   void setKeyboardLayoutChangeCallback(KeyboardLayoutChangeCallback callback);
   void setCursorShape(std::uint32_t serial, std::uint32_t shape);
+  // OKARU: oculta el cursor sobre la superficie que tiene el puntero (cursor agrandado al agitar).
+  void hideCursor();
   void forgetSurface(wl_surface* surface) noexcept;
   void cleanup();
 

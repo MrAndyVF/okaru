@@ -66,6 +66,7 @@
 #include "shell/wallpaper/panel/wallpaper_scanner.h"
 #include "shell/wallpaper/wallpaper.h"
 #include "system/battery_warning_monitor.h"
+#include "shell/okaru_cursor_shake/okaru_cursor_shake.h" // OKARU
 #include "system/dependency_service.h"
 #include "system/desktop_entry_poll_source.h"
 #include "system/gamma_service.h"
@@ -383,6 +384,7 @@ private:
   PrivacyOsd m_privacyOsd;
   OsdOverlay m_osdOverlay;
   HotCorners m_hotCorners{this};
+  OkaruCursorShake m_cursorShake; // OKARU
   ScreenCorners m_screenCorners;
   TrayMenu m_trayMenu;
   Wallpaper m_wallpaper;
