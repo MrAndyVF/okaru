@@ -1192,6 +1192,17 @@ struct ShellConfig {
       {LauncherLayout::Simple, "simple", "settings.options.shell.launcher-layout.simple"},
   };
 
+  // OKARU: okaru-launcher como tarjeta (oma-cast) o como Spotlight (solo la barra hasta que se escribe).
+  enum class LauncherStyle : std::uint8_t {
+    Card = 0,
+    Spotlight = 1,
+  };
+
+  static constexpr EnumOption<LauncherStyle> kLauncherStyles[] = {
+      {LauncherStyle::Card, "card", "settings.options.shell.launcher-style.card"},
+      {LauncherStyle::Spotlight, "spotlight", "settings.options.shell.launcher-style.spotlight"},
+  };
+
   enum class LauncherDefaultView : std::uint8_t {
     Recent = 0,
     Pinned = 1,
@@ -1210,6 +1221,7 @@ struct ShellConfig {
     static constexpr std::int32_t kDefaultWidth = 760;
 
     LauncherLayout layout = LauncherLayout::Full;
+    LauncherStyle style = LauncherStyle::Card; // OKARU
     std::int32_t width = kDefaultWidth;
     LauncherSearchPosition searchPosition = LauncherSearchPosition::Bottom;
     LauncherDefaultView defaultView = LauncherDefaultView::Recent;

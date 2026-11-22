@@ -323,6 +323,15 @@ bool AppProvider::activate(const LauncherResult& result) {
       continue;
     }
 
+    // OKARU: como el dock, Enter va a la ventana ya abierta de la app; Shift+Enter (newInstance) abre otra.
+    if (m_platform != nullptr && !result.newInstance && result.desktopActionId.empty()) {
+      const std::string& wmClass = entry.startupWmClassLower.empty() ? entry.idLower : entry.startupWmClassLower;
+      if (const auto windows = m_platform->enrichedWindowsForApp(entry.idLower, wmClass); !windows.empty()) {
+        m_platform->activateToplevelInfo(windows.front());
+        return true;
+      }
+    }
+
     const DesktopAction* chosen = nullptr;
     if (!result.desktopActionId.empty()) {
       for (const auto& action : entry.actions) {

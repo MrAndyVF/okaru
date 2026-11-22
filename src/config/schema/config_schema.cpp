@@ -1566,6 +1566,7 @@ namespace okaru::config::schema {
     const Schema<ShellConfig::LauncherConfig>& shellLauncherSchema() {
       static const Schema<ShellConfig::LauncherConfig> s = {
           enumField(&ShellConfig::LauncherConfig::layout, "layout", ShellConfig::kLauncherLayouts),
+          enumField(&ShellConfig::LauncherConfig::style, "style", ShellConfig::kLauncherStyles), // OKARU
           field(&ShellConfig::LauncherConfig::width, "width", okaru::config::schema::kLauncherWidthRange),
           enumField(
               &ShellConfig::LauncherConfig::searchPosition, "search_position", ShellConfig::kLauncherSearchPositions

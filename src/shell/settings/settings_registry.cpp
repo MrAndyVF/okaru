@@ -1280,6 +1280,12 @@ namespace settings {
         "settings.schema.panels.open-near-click-launcher.description", cfg.shell.panel.openNearClickLauncher,
         &ShellConfig::PanelConfig::launcherPlacement, &ShellConfig::PanelConfig::launcherPosition
     ));
+    entries.push_back(makeEntry( // OKARU
+        SettingsSection::Launcher, "launcher", tr("settings.schema.panels.launcher-style.label"),
+        tr("settings.schema.panels.launcher-style.description"), {"shell", "launcher", "style"},
+        asSegmented(enumSelect(ShellConfig::kLauncherStyles, cfg.shell.launcher.style)),
+        "launcher style card spotlight raycast compact minimal tarjeta"
+    ));
     const SettingVisibility launcherFull = [](const Config& c) {
       return c.shell.launcher.layout == ShellConfig::LauncherLayout::Full;
     };

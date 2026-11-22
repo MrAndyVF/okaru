@@ -803,7 +803,104 @@
         "title": "Ventanas"
       }
     },
-    "search-placeholder": "Buscar aplicaciones…"
+    "search-placeholder": "Buscar aplicaciones…",
+    "okaru": {
+      "placeholder": "Buscar apps y comandos…",
+      "open": "Abrir",
+      "new-window": "Nueva ventana",
+      "no-results": "Sin resultados",
+      "kind": {
+        "application": "Aplicación",
+        "command": "Comando"
+      },
+      "section": {
+        "results": "Resultados",
+        "suggestions": "Sugerencias",
+        "commands": "Comandos",
+        "applications": "Aplicaciones"
+      },
+      "back": "Atrás",
+      "keybinds": {
+        "title": "Atajos de teclado",
+        "placeholder": "Buscar atajos…",
+        "group": {
+          "apps": "Apps",
+          "okaru": "OKARU",
+          "windows": "Ventanas",
+          "screenshots": "Capturas",
+          "session": "Sesión",
+          "custom": "Tus atajos"
+        },
+        "item": {
+          "terminal": "Terminal",
+          "browser": "Navegador",
+          "files": "Archivos",
+          "editor": "Editor de código",
+          "monitor": "Monitor del sistema",
+          "fastfetch": "Información del sistema",
+          "color-picker": "Selector de color",
+          "launcher": "Lanzador",
+          "keybinds": "Atajos de teclado",
+          "emoji": "Emojis y GIF",
+          "clipboard": "Historial del portapapeles",
+          "settings": "Ajustes",
+          "control-center": "Centro de control",
+          "notifications": "Notificaciones",
+          "media": "Multimedia",
+          "wallpaper": "Fondos de pantalla",
+          "session": "Menú de sesión",
+          "nightlight": "Luz nocturna",
+          "caffeine": "Cafeína (no suspender)",
+          "switcher": "Cambiar de ventana",
+          "close": "Cerrar ventana",
+          "maximize": "Maximizar",
+          "fullscreen": "Pantalla completa",
+          "float": "Alternar flotante",
+          "layout": "Siguiente distribución",
+          "scratchpad": "Scratchpad",
+          "drag": "Mover con el ratón",
+          "resize": "Redimensionar con el ratón",
+          "region": "Capturar una zona",
+          "fullscreen-shot": "Capturar la pantalla",
+          "window": "Capturar una ventana",
+          "lock": "Bloquear",
+          "logout": "Cerrar sesión"
+        }
+      },
+      "command": {
+        "keybinds": {
+          "title": "Atajos de teclado",
+          "subtitle": "Aprender"
+        },
+        "settings": {
+          "title": "Ajustes",
+          "subtitle": "OKARU"
+        },
+        "emoji": {
+          "title": "Emojis",
+          "subtitle": "GIF, kaomoji y símbolos"
+        },
+        "clipboard": {
+          "title": "Portapapeles",
+          "subtitle": "Historial"
+        },
+        "session": {
+          "title": "Sesión",
+          "subtitle": "Bloquear, suspender, apagar"
+        },
+        "wallpaper": {
+          "title": "Fondos",
+          "subtitle": "Estilo"
+        }
+      },
+      "keys": {
+        "space": "Espacio",
+        "delete": "Supr",
+        "print": "Impr",
+        "mouse-left": "Clic izq.",
+        "mouse-right": "Clic der."
+      }
+    }
   },
   "location": {
     "errors": {
@@ -2722,6 +2819,10 @@
         "window-switcher-style": {
           "carousel": "Carousel",
           "compact": "Compacto "
+        },
+        "launcher-style": {
+          "card": "Tarjeta",
+          "spotlight": "Spotlight"
         }
       },
       "theme": {
@@ -3803,6 +3904,10 @@
         "wallpaper-show-names": {
           "description": "En el selector de fondos de pantalla, añade el nombre del archivo a cada miniatura.",
           "label": "Mostrar nombres de archivo"
+        },
+        "launcher-style": {
+          "description": "Tarjeta con sugerencias, o Spotlight: solo la barra de búsqueda hasta que escribes",
+          "label": "Estilo"
         }
       },
       "power": {

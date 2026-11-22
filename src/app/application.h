@@ -108,7 +108,7 @@ namespace sdbus {
   class IProxy;
 }
 
-class LauncherPanel;
+class OkaruLauncherPanel;
 class AccountsService;
 class BluetoothAgent;
 class BluetoothService;
@@ -361,7 +361,7 @@ private:
   SessionActionRunner m_sessionActionRunner{m_compositorPlatform, m_lockScreen};
   PanelManager m_panelManager;
   // Owned by m_panelManager; kept raw so plugin launcher providers can be re-applied.
-  LauncherPanel* m_launcherPanel = nullptr;
+  OkaruLauncherPanel* m_launcherPanel = nullptr;
   // Ids of plugin-backed panels currently registered with m_panelManager, so a
   // reload can retire the previous set before registering the new one.
   std::vector<std::string> m_pluginPanelIds;

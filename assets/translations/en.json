@@ -892,7 +892,104 @@
         "title": "Windows"
       }
     },
-    "search-placeholder": "Search applications…"
+    "search-placeholder": "Search applications…",
+    "okaru": {
+      "placeholder": "Search for apps and commands…",
+      "open": "Open",
+      "new-window": "New window",
+      "no-results": "No results",
+      "kind": {
+        "application": "Application",
+        "command": "Command"
+      },
+      "section": {
+        "results": "Results",
+        "suggestions": "Suggestions",
+        "commands": "Commands",
+        "applications": "Applications"
+      },
+      "back": "Back",
+      "keybinds": {
+        "title": "Keyboard Shortcuts",
+        "placeholder": "Search shortcuts…",
+        "group": {
+          "apps": "Apps",
+          "okaru": "OKARU",
+          "windows": "Windows",
+          "screenshots": "Screenshots",
+          "session": "Session",
+          "custom": "Your shortcuts"
+        },
+        "item": {
+          "terminal": "Terminal",
+          "browser": "Browser",
+          "files": "Files",
+          "editor": "Code editor",
+          "monitor": "System monitor",
+          "fastfetch": "System info",
+          "color-picker": "Color picker",
+          "launcher": "Launcher",
+          "keybinds": "Keyboard shortcuts",
+          "emoji": "Emojis and GIFs",
+          "clipboard": "Clipboard history",
+          "settings": "Settings",
+          "control-center": "Control center",
+          "notifications": "Notifications",
+          "media": "Media",
+          "wallpaper": "Wallpapers",
+          "session": "Session menu",
+          "nightlight": "Night light",
+          "caffeine": "Caffeine (stay awake)",
+          "switcher": "Switch windows",
+          "close": "Close window",
+          "maximize": "Maximize",
+          "fullscreen": "Fullscreen",
+          "float": "Toggle floating",
+          "layout": "Next layout",
+          "scratchpad": "Scratchpad",
+          "drag": "Move with mouse",
+          "resize": "Resize with mouse",
+          "region": "Capture an area",
+          "fullscreen-shot": "Capture the screen",
+          "window": "Capture a window",
+          "lock": "Lock",
+          "logout": "Log out"
+        }
+      },
+      "command": {
+        "keybinds": {
+          "title": "Keyboard Shortcuts",
+          "subtitle": "Learn"
+        },
+        "settings": {
+          "title": "Settings",
+          "subtitle": "OKARU"
+        },
+        "emoji": {
+          "title": "Emojis",
+          "subtitle": "GIF, kaomoji and symbols"
+        },
+        "clipboard": {
+          "title": "Clipboard",
+          "subtitle": "History"
+        },
+        "session": {
+          "title": "Session",
+          "subtitle": "Lock, sleep, shut down"
+        },
+        "wallpaper": {
+          "title": "Wallpapers",
+          "subtitle": "Style"
+        }
+      },
+      "keys": {
+        "space": "Space",
+        "delete": "Del",
+        "print": "Print",
+        "mouse-left": "Left click",
+        "mouse-right": "Right click"
+      }
+    }
   },
   "location": {
     "errors": {
@@ -2714,6 +2811,10 @@
         "window-switcher-style": {
           "carousel": "Carousel",
           "compact": "Compact"
+        },
+        "launcher-style": {
+          "card": "Card",
+          "spotlight": "Spotlight"
         }
       },
       "theme": {
@@ -3899,6 +4000,10 @@
         "wallpaper-show-names": {
           "description": "Caption each thumbnail with its file name in the wallpaper picker.",
           "label": "Show File Names"
+        },
+        "launcher-style": {
+          "description": "Card with suggestions, or Spotlight: only the search bar until you type",
+          "label": "Style"
         }
       },
       "power": {

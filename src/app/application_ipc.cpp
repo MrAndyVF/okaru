@@ -27,7 +27,7 @@
 #include "scripting/plugin_runtime_context.h"
 #include "shell/clipboard/clipboard_panel.h"
 #include "shell/greeter/greeter_appearance_sync.h"
-#include "shell/launcher/launcher_panel.h"
+#include "shell/launcher/okaru_launcher_panel.h"
 #include "shell/panel/plugin_panel.h"
 #include "shell/polkit/polkit_panel.h"
 #include "shell/session/session_ipc.h"
