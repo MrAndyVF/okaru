@@ -95,6 +95,7 @@ private:
   wl_surface* m_wlSurface = nullptr;
   wl_surface* m_pointerParentSurface = nullptr;
   bool m_pointerInside = false;
+  bool m_skipGrabMotion = false; // OKARU
 
   void restoreParentKeyboardInteractivity();
   void ensureHighlightedVisible();

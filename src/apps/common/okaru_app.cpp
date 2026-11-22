@@ -7,6 +7,7 @@
 #include "app/timer_poll_source.h"
 #include "config/config_poll_source.h"
 #include "core/input/keybind_matcher.h"
+#include "core/deferred_call.h"
 #include "core/log.h"
 #include "core/process/process.h"
 #include "core/ui_phase.h"
@@ -17,6 +18,7 @@
 #include "render/scene/input_area.h"
 #include "shell/clipboard/clipboard_paste.h"
 #include "theme/apps_palette.h"
+#include "ui/controls/box.h"
 #include "ui/controls/input.h"
 #include "ui/palette.h"
 #include "ui/style.h"
@@ -27,6 +29,9 @@
 #include <cmath>
 #include <csignal>
 #include <thread>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/signalfd.h>
 #include <linux/input-event-codes.h>
 #include <wayland-client-protocol.h>
 
@@ -66,7 +71,64 @@ namespace okaru::apps {
     }
   }
 
-  OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {}
+  // SIGUSR1 → callback en el bucle principal (signalfd), para apps residentes que otra instancia muestra u oculta.
+  class ToggleSignalSource final : public PollSource {
+  public:
+    ToggleSignalSource(bool enabled, std::function<void()> callback) : m_callback(std::move(callback)) {
+      if (!enabled) {
+        return;
+      }
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigaddset(&mask, SIGUSR1);
+      if (pthread_sigmask(SIG_BLOCK, &mask, nullptr) == 0) {
+        m_fd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
+      }
+    }
+    ~ToggleSignalSource() override {
+      if (m_fd >= 0) {
+        ::close(m_fd);
+      }
+    }
+    ToggleSignalSource(const ToggleSignalSource&) = delete;
+    ToggleSignalSource& operator=(const ToggleSignalSource&) = delete;
+    [[nodiscard]] int fd() const noexcept { return m_fd; }
+    void dispatch(const std::vector<pollfd>& fds, std::size_t startIdx) override {
+      if (m_fd < 0 || startIdx >= fds.size() || (fds[startIdx].revents & POLLIN) == 0) {
+        return;
+      }
+      signalfd_siginfo info{};
+      bool fired = false;
+      while (::read(m_fd, &info, sizeof(info)) == static_cast<ssize_t>(sizeof(info))) {
+        fired = true;
+      }
+      if (fired && m_callback) {
+        m_callback();
+      }
+    }
+
+  protected:
+    void doAddPollFds(std::vector<pollfd>& fds) override {
+      if (m_fd >= 0) {
+        fds.push_back({.fd = m_fd, .events = POLLIN, .revents = 0});
+      }
+    }
+
+  private:
+    int m_fd = -1;
+    std::function<void()> m_callback;
+  };
+
+  OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {
+    if (m_options.resident) {
+      // Antes de crear cualquier hilo (los heredan): si no, SIGUSR1 puede caer en uno sin bloquearla y su acción por
+      // defecto termina el proceso. El bucle la lee con signalfd.
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigaddset(&mask, SIGUSR1);
+      pthread_sigmask(SIG_BLOCK, &mask, nullptr);
+    }
+  }
 
   OkaruApp::~OkaruApp() {
     if (m_virtualKeyboardBound) {
@@ -162,6 +224,51 @@ namespace okaru::apps {
     m_wayland.setKeyboardEventCallback([this](const KeyboardEvent& event) { onKey(event); });
     m_wayland.setKeyboardModifiersCallback([](std::uint32_t modifiers) { g_modifiers = modifiers; });
 
+    if (!(m_options.resident && m_options.startHidden) && !createSurface()) {
+      return 1;
+    }
+
+    DeferredCallPollSource deferred;
+    TimerPollSource timers;
+    KeyRepeatPollSource keyRepeat(m_wayland);
+    ConfigPollSource configSource(m_config);
+    FileWatchPollSource fileWatch(m_fileWatcher);
+    ToggleSignalSource toggleSignal(m_options.resident, [this] {
+      if (m_toggle) {
+        m_toggle();
+      }
+    });
+
+    MainLoop loop(
+        m_wayland, m_stop,
+        [this] {
+          if (m_onClose && m_surface != nullptr) {
+            m_render.makeCurrent(m_surface->renderTarget());
+            m_onClose();
+          }
+          m_pasteTimer.stop();
+          destroySurface();
+        },
+        [&] {
+          std::vector<PollSource*> sources{&deferred, &timers, &keyRepeat, &configSource, &fileWatch};
+          if (toggleSignal.fd() >= 0) {
+            sources.push_back(&toggleSignal);
+          }
+          if (m_sessionBusSource != nullptr) {
+            sources.push_back(m_sessionBusSource.get());
+          }
+          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
+          return sources;
+        }
+    );
+    loop.run();
+    if (m_pasteOnExit.has_value()) {
+      pasteIntoFocusedWindow(*m_pasteOnExit);
+    }
+    return 0;
+  }
+
+  bool OkaruApp::createSurface() {
     const float s = scale();
     const auto closed = [this] {
       if (!m_closeRequest || m_closeRequest()) {
@@ -171,15 +278,19 @@ namespace okaru::apps {
     const auto width = static_cast<std::uint32_t>(std::lround(m_options.width * s));
     const auto height = static_cast<std::uint32_t>(std::lround(m_options.height * s));
     if (m_options.layer) {
-      // Sin anclas: el compositor la centra en la pantalla con el foco.
+      // Sin anclas: el compositor la centra en la pantalla con el foco. A pantalla completa: los cuatro bordes.
+      const bool full = m_options.fullscreen;
       auto layer = std::make_unique<LayerSurface>(
           m_wayland, LayerSurfaceConfig{
                          .nameSpace = std::string("okaru-") + (m_options.dataName != nullptr ? m_options.dataName : "app"),
                          .layer = LayerShellLayer::Overlay,
-                         .width = width,
-                         .height = height,
+                         .anchor = full ? LayerShellAnchor::Top | LayerShellAnchor::Bottom | LayerShellAnchor::Left
+                                 | LayerShellAnchor::Right
+                                        : 0U,
+                         .width = full ? 0U : width,
+                         .height = full ? 0U : height,
                          .exclusiveZone = -1,
-                         .keyboard = LayerShellKeyboard::OnDemand,
+                         .keyboard = full ? LayerShellKeyboard::Exclusive : LayerShellKeyboard::OnDemand,
                      }
       );
       layer->setClosedCallback(closed);
@@ -193,10 +304,29 @@ namespace okaru::apps {
     }
     m_surface->setRenderContext(&m_render);
     m_surface->setAnimationManager(&m_animations);
-    m_surface->setConfigureCallback([this](std::uint32_t, std::uint32_t) { m_surface->requestLayout(); });
+    m_surface->setConfigureCallback([this](std::uint32_t w, std::uint32_t h) {
+      if (m_backdropBlur) {
+        m_surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+      }
+      m_surface->requestLayout();
+    });
     m_surface->setPrepareFrameCallback([this](bool needsUpdate, bool needsLayout) {
       prepareFrame(needsUpdate, needsLayout);
     });
+    if (m_options.layer && m_options.fullscreen) {
+      // La pantalla de la capa principal la elige el compositor: las demás se cubren al saber cuál es.
+      m_surface->setOutputChangedCallback([this](wl_output* output) {
+        if (output == nullptr) {
+          return;
+        }
+        if (const WaylandOutput* out = m_wayland.findOutputByWl(output); out != nullptr) {
+          m_mainOutput = out->connectorName;
+        }
+        if (m_options.backdropOtherOutputs && m_backdrops.empty()) {
+          createBackdrops(output);
+        }
+      });
+    }
     m_surface->setUpdateCallback([] {});
     const ToplevelSurfaceConfig surfaceConfig{
         .width = width,
@@ -210,14 +340,11 @@ namespace okaru::apps {
     // argumentos tomaría la primera de la lista (la de la izquierda), no la que se está usando.
     if (!(m_layer != nullptr ? m_layer->initialize(nullptr) : m_toplevel->initialize(nullptr, surfaceConfig))) {
       kLog.error("cannot create the window");
-      return 1;
+      m_layer = nullptr;
+      m_toplevel = nullptr;
+      m_surface.reset();
+      return false;
     }
-
-    DeferredCallPollSource deferred;
-    TimerPollSource timers;
-    KeyRepeatPollSource keyRepeat(m_wayland);
-    ConfigPollSource configSource(m_config);
-    FileWatchPollSource fileWatch(m_fileWatcher);
     m_selectPopup = std::make_unique<SelectDropdownPopup>(m_wayland, m_render);
     m_selectPopup->setShadowConfig(m_config.config().shell.shadow);
     if (m_layer != nullptr) {
@@ -225,34 +352,41 @@ namespace okaru::apps {
     } else {
       m_selectPopup->setParent(m_toplevel->xdgSurface(), m_surface->wlSurface(), nullptr);
     }
+    m_rebuild = true;
+    return true;
 
-    MainLoop loop(
-        m_wayland, m_stop,
-        [this] {
-          if (m_onClose && m_surface != nullptr) {
-            m_render.makeCurrent(m_surface->renderTarget());
-            m_onClose();
-          }
-          m_pasteTimer.stop();
-          m_selectPopup.reset();
-          m_toplevel = nullptr;
-          m_layer = nullptr;
-          m_surface.reset();
-        },
-        [&] {
-          std::vector<PollSource*> sources{&deferred, &timers, &keyRepeat, &configSource, &fileWatch};
-          if (m_sessionBusSource != nullptr) {
-            sources.push_back(m_sessionBusSource.get());
-          }
-          sources.insert(sources.end(), m_extraSources.begin(), m_extraSources.end());
-          return sources;
-        }
-    );
-    loop.run();
-    if (m_pasteOnExit.has_value()) {
-      pasteIntoFocusedWindow(*m_pasteOnExit);
+  }
+
+  void OkaruApp::destroySurface() {
+    m_backdrops.clear();
+    m_mainOutput.clear();
+    m_input.setSceneRoot(nullptr);
+    m_root.reset(); // la escena se vuelve a construir al mostrarse
+    m_selectPopup.reset();
+    m_toplevel = nullptr;
+    m_layer = nullptr;
+    m_surface.reset();
+  }
+
+  void OkaruApp::hide() {
+    if (!m_options.resident) {
+      quit();
+      return;
     }
-    return 0;
+    // Diferido: puede llamarse desde un evento o un cuadro de la propia superficie.
+    DeferredCall::callLater([this] {
+      if (m_surface != nullptr) {
+        m_render.makeCurrent(m_surface->renderTarget());
+        destroySurface();
+        wl_display_flush(m_wayland.display());
+      }
+    });
+  }
+
+  void OkaruApp::show() {
+    if (m_surface == nullptr && !createSurface()) {
+      quit();
+    }
   }
 
   void OkaruApp::pasteIntoFocusedWindow(bool isImage) {
@@ -306,6 +440,98 @@ namespace okaru::apps {
     if (m_toplevel != nullptr) {
       m_toplevel->setFullscreen(fullscreen);
     }
+  }
+
+  void OkaruApp::setBackdropBlur(bool enabled) {
+    m_backdropBlur = enabled;
+    if (m_surface == nullptr || m_surface->width() == 0 || m_surface->height() == 0) {
+      return; // se aplica en el primer configure
+    }
+    const auto apply = [enabled](Surface& surface) {
+      if (surface.width() == 0 || surface.height() == 0) {
+        return;
+      }
+      if (enabled) {
+        surface.setBlurRegion({{.width = static_cast<int>(surface.width()), .height = static_cast<int>(surface.height())}});
+      } else {
+        surface.clearBlurRegion();
+      }
+      surface.requestRedraw();
+    };
+    apply(*m_surface);
+    for (auto& backdrop : m_backdrops) {
+      apply(*backdrop->surface);
+    }
+  }
+
+  void OkaruApp::setBackdropVeil(const ColorSpec& color) {
+    if (m_backdropVeil == color) {
+      return;
+    }
+    m_backdropVeil = color;
+    for (auto& backdrop : m_backdrops) {
+      if (backdrop->veil != nullptr) {
+        backdrop->veil->setFill(color);
+        backdrop->surface->requestRedraw();
+      }
+    }
+  }
+
+  void OkaruApp::createBackdrops(wl_output* mainOutput) {
+    for (const auto& out : m_wayland.outputs()) {
+      if (!out.done || out.output == nullptr || out.output == mainOutput) {
+        continue;
+      }
+      auto backdrop = std::make_unique<Backdrop>();
+      Backdrop* raw = backdrop.get();
+      backdrop->surface = std::make_unique<LayerSurface>(
+          m_wayland, LayerSurfaceConfig{
+                         .nameSpace = std::string("okaru-") + (m_options.dataName != nullptr ? m_options.dataName : "app")
+                             + "-backdrop",
+                         .layer = LayerShellLayer::Overlay,
+                         .anchor = LayerShellAnchor::Top | LayerShellAnchor::Bottom | LayerShellAnchor::Left
+                             | LayerShellAnchor::Right,
+                         .exclusiveZone = -1,
+                         .keyboard = LayerShellKeyboard::None,
+                     }
+      );
+      raw->surface->setRenderContext(&m_render);
+      raw->surface->setConfigureCallback([this, raw](std::uint32_t w, std::uint32_t h) {
+        if (m_backdropBlur) {
+          raw->surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+        }
+        raw->surface->requestLayout();
+      });
+      raw->surface->setPrepareFrameCallback([this, raw](bool, bool) { prepareBackdrop(*raw); });
+      if (!raw->surface->initialize(out.output)) {
+        kLog.warn("cannot cover output {}", out.connectorName);
+        continue;
+      }
+      m_backdrops.push_back(std::move(backdrop));
+    }
+  }
+
+  void OkaruApp::prepareBackdrop(Backdrop& backdrop) {
+    LayerSurface& surface = *backdrop.surface;
+    if (surface.width() == 0 || surface.height() == 0) {
+      return;
+    }
+    m_render.makeCurrent(surface.renderTarget());
+    Renderer& renderer = surface.renderTarget().renderer();
+    UiPhaseScope layoutPhase(UiPhase::Layout);
+    const auto w = static_cast<float>(surface.width());
+    const auto h = static_cast<float>(surface.height());
+    if (backdrop.root == nullptr) {
+      backdrop.root = std::make_unique<Node>();
+      auto veil = std::make_unique<Box>();
+      backdrop.veil = veil.get();
+      backdrop.veil->setFill(m_backdropVeil.value_or(clearColorSpec()));
+      backdrop.root->addChild(std::move(veil));
+      surface.setSceneRoot(backdrop.root.get());
+    }
+    backdrop.root->setSize(w, h);
+    backdrop.veil->setSize(w, h);
+    backdrop.root->layout(renderer);
   }
 
   SessionBus* OkaruApp::sessionBus() {
@@ -416,6 +642,13 @@ namespace okaru::apps {
 
   void OkaruApp::onPointer(const PointerEvent& event) {
     if (m_surface == nullptr) {
+      return;
+    }
+    if (event.surface != nullptr && !m_backdrops.empty()
+        && std::ranges::any_of(m_backdrops, [&](const auto& b) { return b->surface->wlSurface() == event.surface; })) {
+      if (event.type == PointerEvent::Type::Button && event.pressed && m_backdropClick) {
+        m_backdropClick();
+      }
       return;
     }
     if (m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen()) {

@@ -2187,10 +2187,6 @@
           "description": "A munkamenet panelt az azt megnyitó sáv-widget közelében, egyéb esetben pedig középen helyezze el.",
           "label": "Sáv mentén"
         },
-        "open-near-click-wallpaper": {
-          "description": "A háttérképválasztó panelt az azt megnyitó sáv-widget közelében, egyéb esetben pedig középen helyezze el.",
-          "label": "Sáv mentén"
-        },
         "panel-anchor-bar": {
           "description": "Melyik sávhoz kapcsolódnak a panelek, ha parancsikonnal vagy a dokkból nyitják meg őket. Ha üresen hagyod, akkor azt a widgetet követik, amelyik megnyitotta őket.",
           "label": "Sáv rögzítése"
@@ -2215,10 +2211,6 @@
           "description": "Válaszd ki, hogy a munkamenet-panel a sávhoz legyen rögzítve, vagy a képernyőn egy kiválasztott pozícióban lebegjen",
           "label": "Elhelyezés"
         },
-        "placement-wallpaper": {
-          "description": "Válaszd ki, hogy a Háttérkép-választó a sávhoz legyen rögzítve, vagy a képernyőn egy kiválasztott pozícióban lebegjen",
-          "label": "Elhelyezés"
-        },
         "position-clipboard": {
           "description": "Ha a vágólap a képernyőn szabadon lebeg, a \"Sáv követése\" a sáv közelében tartja",
           "label": "Pozíció"
@@ -2237,10 +2229,6 @@
         },
         "position-session": {
           "description": "Ha a munkamenetpanel a képernyőn szabadon lebeg, a \"Sáv követése\" a sáv közelében tartja",
-          "label": "Pozíció"
-        },
-        "position-wallpaper": {
-          "description": "Ha a háttérkép-választó a képernyőn szabadon lebeg, a \"Sáv követése\" a sáv közelében tartja",
           "label": "Pozíció"
         },
         "shadow": {
@@ -3677,20 +3665,6 @@
         "search-placeholder": "Szimbólumok keresése…",
         "title": "Válassz egy szimbólumot"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "ÖSSZES",
-      "color-title": "Háttérkép színe",
-      "filter-placeholder": "Szűrés…",
-      "flatten": "Lapít",
-      "loading": "Háttérképek betöltése…",
-      "sort-date-asc": "Rendezés dátum szerint (legkorábbi elöl)",
-      "sort-date-desc": "Rendezés dátum szerint (legújabb elöl)",
-      "sort-name-asc": "Rendezés név szerint (A-Z)",
-      "sort-name-desc": "Rendezés név szerint (Z-A)",
-      "title": "Háttérkép"
     }
   },
   "weather": {

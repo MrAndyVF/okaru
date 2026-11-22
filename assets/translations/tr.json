@@ -2278,10 +2278,6 @@
           "description": "Çubuk bileşenine tıklayarak açıldığında oturum panelinin nerede konumlandırılacağı",
           "label": "Çubuk Boyunca"
         },
-        "open-near-click-wallpaper": {
-          "description": "Çubuk bileşenine tıklayarak açıldığında duvar kağıdı seçicisinin nerede konumlandırılacağı",
-          "label": "Çubuk Boyunca"
-        },
         "panel-anchor-bar": {
           "description": "Panellerin açıldığında tutunacağı çubuk; paneli açan aracı, kısayolu veya rıhtımı takip etmesi için boş bırakın",
           "label": "Çapalanan Çubuk"
@@ -2306,10 +2302,6 @@
           "description": "Oturum panelinin çubuğa mı tutunacağını, yoksa ekranda seçilen konumda mı yer alacağını seçin",
           "label": "Yerleşim"
         },
-        "placement-wallpaper": {
-          "description": "Duvar kağıdı seçicisinin çubuğa mı tutunacağını veya seçili ekran konumunda mı açılacağını seçin",
-          "label": "Yerleşim"
-        },
         "position-clipboard": {
           "description": "Panonun nerede açılacağı; Çubuğu Takip Et, çubuğa yakın olmasını sağlar",
           "label": "Konum"
@@ -2328,10 +2320,6 @@
         },
         "position-session": {
           "description": "Oturum panelinin nerede açılacağı; Çubuğu Takip Et, çubuğa yakın olmasını sağlar",
-          "label": "Konum"
-        },
-        "position-wallpaper": {
-          "description": "Duvar kağıdı seçicisinin nerede açılacağı; Çubuğu Takip Et, çubuğa yakın olmasını sağlar",
           "label": "Konum"
         },
         "shadow": {
@@ -3910,21 +3898,6 @@
         "search-placeholder": "Sembol ara...",
         "title": "Bir Sembol Seç"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TÜMÜ",
-      "color-title": "Duvar kağıdı rengi",
-      "filter-placeholder": "Filtre…",
-      "flatten": "Düzleştirilmiş",
-      "loading": "Duvar kağıtları yükleniyor…",
-      "sort-date-asc": "Tarihe göre sırala (önce eskiler)",
-      "sort-date-desc": "Tarihe göre sırala (önce yeniler)",
-      "sort-name-asc": "Ada göre sırala (A-Z)",
-      "sort-name-desc": "Ada göre sırala (Z-A)",
-      "sort-random": "Rastgele sırala (karıştır)",
-      "title": "Duvar Kağıdı"
     }
   },
   "weather": {

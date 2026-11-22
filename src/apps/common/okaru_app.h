@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+class Box;
 class PollSource;
 class Renderer;
 class SessionBus;
@@ -59,6 +60,17 @@ namespace okaru::apps {
     // clic en sus zonas pasivas, así puede pegar en la ventana anterior y seguir abierta. No se mueve, no cambia
     // de tamaño ni sale en Alt+Tab.
     bool layer = false;
+    // Con `layer`: capa a pantalla completa (anclada a los cuatro bordes del monitor con el foco) y teclado exclusivo,
+    // p. ej. el selector de fondos. width/height no se usan.
+    bool fullscreen = false;
+    // Con `fullscreen`: las demás pantallas se cubren con una capa desenfocada (sin contenido) mientras la app está
+    // abierta. Un clic en ellas llama a setBackdropClickCallback.
+    bool backdropOtherOutputs = false;
+    // Residente: el proceso sigue vivo con la superficie oculta (hide/show) para abrir al instante. Con startHidden
+    // arranca oculto (precargado por la shell). SIGUSR1 llama a setToggleCallback (p. ej. otra instancia que se
+    // lanza: lo muestra u oculta).
+    bool resident = false;
+    bool startHidden = false;
   };
 
   class OkaruApp {
@@ -95,6 +107,11 @@ namespace okaru::apps {
     // Abre la ventana y corre el bucle hasta cerrarla. Devuelve el código de salida.
     int run();
     void quit();
+    // Con AppOptions::resident: quita la superficie sin terminar (al terminar el cuadro actual) / la vuelve a crear.
+    void hide();
+    void show();
+    [[nodiscard]] bool hidden() const noexcept { return m_surface == nullptr; }
+    void setToggleCallback(std::function<void()> callback) { m_toggle = std::move(callback); }
     // Cierra la ventana y, cuando el foco vuelve a la anterior, pega el portapapeles en ella con el teclado
     // virtual (selector de emojis). Usa el atajo de shell.launcher.auto_paste; "off" se trata como "auto".
     void quitAndPaste(bool isImage = false);
@@ -120,6 +137,14 @@ namespace okaru::apps {
     );
 
     void setFullscreen(bool fullscreen);
+    // Pide al compositor que desenfoque lo que hay detrás de toda la superficie (ext-background-effect). El
+    // desenfoque no se puede atenuar: la app funde encima su propio velo.
+    void setBackdropBlur(bool enabled);
+    // Velo de las capas de las demás pantallas (AppOptions::backdropOtherOutputs); la app lo funde con el suyo.
+    void setBackdropVeil(const ColorSpec& color);
+    // Conector de la pantalla de la capa principal (vacío hasta que el compositor la elige).
+    [[nodiscard]] const std::string& mainOutputName() const noexcept { return m_mainOutput; }
+    void setBackdropClickCallback(std::function<void()> callback) { m_backdropClick = std::move(callback); }
     // Al cerrar la ventana desde el compositor: false la deja abierta (p. ej. para preguntar por cambios sin guardar).
     void setCloseRequestCallback(std::function<bool()> callback) { m_closeRequest = std::move(callback); }
     [[nodiscard]] FileWatcher& fileWatcher() noexcept { return m_fileWatcher; }
@@ -130,6 +155,8 @@ namespace okaru::apps {
     [[nodiscard]] bool popupOpen() const { return m_selectPopup != nullptr && m_selectPopup->isSelectDropdownOpen(); }
 
     [[nodiscard]] ConfigService& config() noexcept { return m_config; }
+    // Las pantallas conectadas (conector, descripción…), p. ej. para elegir en cuál aplicar algo.
+    [[nodiscard]] const std::vector<WaylandOutput>& outputs() const noexcept { return m_wayland.outputs(); }
     // Bus de sesión bajo demanda (portales); nullptr si no hay bus.
     [[nodiscard]] SessionBus* sessionBus();
     // Válido dentro de la construcción de la escena (contexto GL activo).
@@ -158,6 +185,22 @@ namespace okaru::apps {
     GlSharedContext m_glShared;
     RenderContext m_render;
     AnimationManager m_animations;
+    bool m_backdropBlur = false;
+    // Capas de las demás pantallas: desenfoque + velo.
+    struct Backdrop {
+      std::unique_ptr<LayerSurface> surface;
+      std::unique_ptr<Node> root;
+      Box* veil = nullptr;
+    };
+    std::string m_mainOutput;
+    std::vector<std::unique_ptr<Backdrop>> m_backdrops;
+    std::optional<ColorSpec> m_backdropVeil;
+    std::function<void()> m_backdropClick;
+    void createBackdrops(wl_output* mainOutput);
+    [[nodiscard]] bool createSurface();
+    void destroySurface();
+    std::function<void()> m_toggle;
+    void prepareBackdrop(Backdrop& backdrop);
     InputDispatcher m_input;
     FileWatcher m_fileWatcher;
     WlClipboard m_clipboard;

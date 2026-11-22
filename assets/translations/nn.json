@@ -2261,10 +2261,6 @@
           "description": "Der øyktefjøla er når du opnar henne med eit trykk på stongnøytelen",
           "label": "Langs med stonga"
         },
-        "open-near-click-wallpaper": {
-          "description": "Der fjøla for bakgrunnsbileteval er når du opnar henne med eit trykk på stongnøytelen",
-          "label": "Langs med stonga"
-        },
         "panel-anchor-bar": {
           "description": "Stongfjøler bind seg til dette når dei er opna; haldt dette tomt for å fylgja nøytelen, snarvegen eller festepunktet som opna dei",
           "label": "Ankra stong"
@@ -2289,10 +2285,6 @@
           "description": "Vel om øyktefjøla er bunden til stonga eller flyter i ein stad du vel",
           "label": "Stad"
         },
-        "placement-wallpaper": {
-          "description": "Vel om fjøla for bakgrunnsbileteval er bunden til stonga eller flyter i ein stad du vel",
-          "label": "Stad"
-        },
         "position-clipboard": {
           "description": "Det utklippstavla flyt på skjermen; Fylg stonga held henne nær stonga",
           "label": "Stad"
@@ -2311,10 +2303,6 @@
         },
         "position-session": {
           "description": "Der øyktefjøla flyt på skjermen; Fylg stonga held henne nær stonga",
-          "label": "Stad"
-        },
-        "position-wallpaper": {
-          "description": "Der veljaren for bakgrunnsbilete flyt på skjermen; Fylg stonga held han nær stonga",
           "label": "Stad"
         },
         "shadow": {
@@ -3868,21 +3856,6 @@
         "search-placeholder": "Leita etter symbol ...",
         "title": "Vel eit symbol"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "ALLE",
-      "color-title": "Leten på bakgrunnsbilete",
-      "filter-placeholder": "Vilkår ...",
-      "flatten": "Gjera flat",
-      "loading": "Lastar inn bakgrunnsbilete ...",
-      "sort-date-asc": "Sorter med dato (eldst fyrst)",
-      "sort-date-desc": "Sorter med dato (yngst fyrst)",
-      "sort-name-asc": "Sorter med namn (A - Å)",
-      "sort-name-desc": "Sorter med namn (Å - A)",
-      "sort-random": "Sorter vilkårleg (stokka)",
-      "title": "Bakgrunnsbilete"
     }
   },
   "weather": {

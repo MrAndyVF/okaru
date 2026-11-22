@@ -56,7 +56,6 @@
 #include "shell/test/test_panel.h"
 #include "shell/tooltip/tooltip_manager.h"
 #include "shell/tray/tray_drawer_panel.h"
-#include "shell/wallpaper/panel/wallpaper_panel.h"
 #include "shell/wallpaper/wallpaper_paths.h"
 #include "system/brightness_service.h"
 #include "system/easyeffects_service.h"
@@ -370,6 +369,11 @@ void Application::initInputDispatch() {
       }
       // Enter/Leave/Motion fall through so other surfaces' hover state stays in sync.
     }
+    // OKARU: el cursor grande va sobre todo y solo reclama sus capas; antes que los paneles, para que el clic que
+    // lo encoge no cierre el panel abierto.
+    if (m_cursorShake.onPointerEvent(event)) {
+      return;
+    }
     if (m_colorPickerDialogPopup.onPointerEvent(event)) {
       return;
     }
@@ -408,8 +412,6 @@ void Application::initInputDispatch() {
     if (m_panelManager.onPointerEvent(event))
       return;
     if (m_hotCorners.onPointerEvent(event))
-      return;
-    if (m_cursorShake.onPointerEvent(event)) // OKARU
       return;
     m_notificationToast.onPointerEvent(event);
   });
@@ -715,6 +717,7 @@ void Application::initPanelManagerAndPanels() {
     });
     m_launcherPanel = launcherPanel.get();
     m_launcherPanel->schedulePrewarm(); // OKARU
+    m_panelManager.schedulePickerPrestart(); // OKARU
     m_panelManager.registerPanel("launcher", std::move(launcherPanel));
   }
   m_settingsWindow.setResetLauncherUsage([this] {
@@ -765,12 +768,6 @@ void Application::initPanelManagerAndPanels() {
     m_overviewLauncherCapture.setEnabled(overviewTypeToLaunchEnabled(m_configService));
   });
   m_overviewLauncherCapture.sync();
-  m_panelManager.registerPanel(
-      "wallpaper",
-      std::make_unique<WallpaperPanel>(
-          &m_wayland, &m_configService, &m_thumbnailService, &m_wallpaperScanner, &m_themeService
-      )
-  );
   m_panelManager.registerPanel("tray-drawer", std::make_unique<TrayDrawerPanel>(m_trayService.get(), &m_configService));
   m_panelManager.registerPanel("polkit", std::make_unique<PolkitPanel>(&m_configService, [this] {
                                  return m_polkitAgent.get();

@@ -2561,9 +2561,6 @@
         "open-near-click-session": {
           "label": "Уздоўж панэлі"
         },
-        "open-near-click-wallpaper": {
-          "label": "Уздоўж панэлі"
-        },
         "placement-clipboard": {
           "label": "Размяшчэнне"
         },
@@ -2579,9 +2576,6 @@
         "placement-session": {
           "label": "Размяшчэнне"
         },
-        "placement-wallpaper": {
-          "label": "Размяшчэнне"
-        },
         "position-clipboard": {
           "label": "Пазіцыя"
         },
@@ -2595,9 +2589,6 @@
           "label": "Пазіцыя"
         },
         "position-session": {
-          "label": "Пазіцыя"
-        },
-        "position-wallpaper": {
           "label": "Пазіцыя"
         },
         "transparency-mode": {
@@ -4188,29 +4179,6 @@
         "search-placeholder": "Пошук гліфаў…",
         "title": "Выбар гліфа"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "УСЕ",
-      "choose-color": "Выбраць колер шпалер",
-      "close": "Закрыць панэль шпалер",
-      "color-title": "Колер шпалер",
-      "favorite-add": "Дадаць у абранае",
-      "favorite-current": "Дадаць бягучыя шпалеры ў абранае",
-      "favorite-remove": "Выдаліць з абранага",
-      "filter-placeholder": "Фільтр…",
-      "flatten": "Сплюшчыць",
-      "loading": "Загрузка шпалер…",
-      "navigate-up": "Перайсці ў бацькоўскую папку",
-      "refresh": "Абнавіць шпалеры",
-      "sort-date-asc": "Сартаваць па даце (спачатку старыя)",
-      "sort-date-desc": "Сартаваць па даце (спачатку новыя)",
-      "sort-name-asc": "Сартаваць па назве (А–Я)",
-      "sort-name-desc": "Сартаваць па назве (Я–А)",
-      "sort-random": "Сартаваць выпадкова (перамяшаць)",
-      "title": "Шпалеры",
-      "unfavorite-current": "Выдаліць бягучыя шпалеры з абранага"
     }
   },
   "weather": {

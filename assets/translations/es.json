@@ -3707,10 +3707,6 @@
           "description": "Dónde se posiciona el panel de sesión cuando se abre haciendo clic en el widget de la barra",
           "label": "A lo largo de la barra"
         },
-        "open-near-click-wallpaper": {
-          "description": "Dónde se posiciona el selector de fondo de pantalla cuando se abre haciendo clic en el widget de la barra",
-          "label": "A lo largo de la barra"
-        },
         "panel-anchor-bar": {
           "description": "Los paneles de la barra se acoplan al elemento que los abrió; deje el campo vacío para seguir al widget, acceso directo o dock que los abrió",
           "label": "Anclaje de la barra"
@@ -3731,10 +3727,6 @@
           "description": "Elige si el panel de sesión se ancla a la barra o flota en una posición de pantalla elegida",
           "label": "Ubicación"
         },
-        "placement-wallpaper": {
-          "description": "Elige si el selector de fondo de pantalla se ancla a la barra o flota en una posición de pantalla elegida",
-          "label": "Ubicación"
-        },
         "position-clipboard": {
           "description": "Dónde flota el portapapeles en la pantalla; Seguir barra lo mantiene cerca de la barra",
           "label": "Posición"
@@ -3751,20 +3743,12 @@
           "description": "Dónde flota el panel de sesión en la pantalla; Seguir barra lo mantiene cerca de la barra",
           "label": "Posición"
         },
-        "position-wallpaper": {
-          "description": "Donde el selector de fondo de pantalla flota en la pantalla; Seguir barra lo mantiene cerca de la barra",
-          "label": "Posición"
-        },
         "shadow": {
           "description": "Proyectar la sombra global de superficie desde las superficies de los paneles"
         },
         "transparency-mode": {
           "description": "Estilo de cristal del panel, incluida la opacidad del panel flotante y la translucidez de las tarjetas",
           "label": "Transparencia"
-        },
-        "wallpaper-show-names": {
-          "description": "En el selector de fondos de pantalla, añade el nombre del archivo a cada miniatura.",
-          "label": "Mostrar nombres de archivo"
         },
         "launcher-style": {
           "description": "Tarjeta con sugerencias, o Spotlight: solo la barra de búsqueda hasta que escribes",
@@ -4599,9 +4583,9 @@
           "placeholder": "~/Pictures/Wallpapers"
         },
         "panel": {
-          "button": "Abrir Panel",
-          "description": "Abrir el selector de fondos de pantalla",
-          "label": "Panel de fondos de pantalla"
+          "button": "Abrir",
+          "description": "Recorre tus fondos en un carrusel y aplica uno",
+          "label": "Selector de fondos"
         },
         "per-monitor-directories": {
           "description": "Usar directorio de fondos de pantalla diferente para cada monitor",
@@ -6134,29 +6118,6 @@
         "search-placeholder": "Buscar glifos…",
         "title": "Elegir un glifo"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TODO",
-      "choose-color": "Elegir el color del fondo de pantalla",
-      "close": "Cerrar panel de fondo de pantalla",
-      "color-title": "Color del fondo de pantalla",
-      "favorite-add": "Añadir  a Favoritos",
-      "favorite-current": "Agregar el fondo de pantalla actual a favoritos",
-      "favorite-remove": "Eliminar de Favoritos",
-      "filter-placeholder": "Filtrar...",
-      "flatten": "Subcarpetas",
-      "loading": "Cargando fondos de pantalla...",
-      "navigate-up": "Ir a la carpeta padre",
-      "refresh": "Actualizar fondos de pantalla",
-      "sort-date-asc": "Ordenar por fecha (más antiguo primero)",
-      "sort-date-desc": "Ordenar por fecha (más nuevo primero)",
-      "sort-name-asc": "Ordenar por nombre (A-Z)",
-      "sort-name-desc": "Ordenar por nombre (Z-A)",
-      "sort-random": "Ordenar aleatoriamente (mezclar)",
-      "title": "Fondo de pantalla",
-      "unfavorite-current": "Eliminar el fondo de pantalla actual de favoritos"
     }
   },
   "weather": {

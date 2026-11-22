@@ -2276,10 +2276,6 @@
           "description": "Wo das Sitzungsmenü platziert wird, wenn es durch Klicken auf das Leisten-Widget geöffnet wird",
           "label": "An der Leiste"
         },
-        "open-near-click-wallpaper": {
-          "description": "Wo die Hintergrundbild-Auswahl platziert wird, wenn sie durch Klicken auf das Leisten-Widget geöffnet wird",
-          "label": "An der Leiste"
-        },
         "panel-anchor-bar": {
           "description": "Leiste, an der Panels angeheftet werden, wenn sie geöffnet werden; leer lassen, um dem Widget, Tastenkürzel oder Dock zu folgen, das sie geöffnet hat",
           "label": "Ankerleiste"
@@ -2304,10 +2300,6 @@
           "description": "Wähle, ob das Sitzungsmenü an der Leiste angedockt wird oder an einer gewählten Bildschirmposition schwebt",
           "label": "Platzierung"
         },
-        "placement-wallpaper": {
-          "description": "Wähle, ob die Hintergrundbild-Auswahl an der Leiste angedockt wird oder an einer gewählten Bildschirmposition schwebt",
-          "label": "Platzierung"
-        },
         "position-clipboard": {
           "description": "Wo die Zwischenablage auf dem Bildschirm schwebt; „Leiste folgen“ hält die Position in der Nähe der Leiste",
           "label": "Position"
@@ -2326,10 +2318,6 @@
         },
         "position-session": {
           "description": "Wo das Sitzungsmenü auf dem Bildschirm schwebt; „Leiste folgen“ hält die Position in der Nähe der Leiste",
-          "label": "Position"
-        },
-        "position-wallpaper": {
-          "description": "Wo die Hintergrundbild-Auswahl auf dem Bildschirm schwebt; „Leiste folgen“ hält die Position in der Nähe der Leiste",
           "label": "Position"
         },
         "shadow": {
@@ -3908,21 +3896,6 @@
         "search-placeholder": "Symbole suchen…",
         "title": "Symbol auswählen"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "Alle",
-      "color-title": "Hintergrundbildfarbe",
-      "filter-placeholder": "Filtern…",
-      "flatten": "Unterordner einbeziehen",
-      "loading": "Hintergrundbilder werden geladen…",
-      "sort-date-asc": "Nach Datum sortieren (älteste zuerst)",
-      "sort-date-desc": "Nach Datum sortieren (neueste zuerst)",
-      "sort-name-asc": "Nach Name sortieren (A-Z)",
-      "sort-name-desc": "Nach Name sortieren (Z-A)",
-      "sort-random": "Zufällig sortieren (Shuffle)",
-      "title": "Hintergrundbild"
     }
   },
   "weather": {

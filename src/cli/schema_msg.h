@@ -271,6 +271,15 @@ namespace okaru::cli {
       Positional{"connector", {}, {}, false, false, false},
       Positional{"path", {}, {}, true, false, false},
   };
+  // OKARU: favoritos de fondo para okaru-wallpaper-picker (la app escribe la config a través del shell).
+  inline constexpr std::array<std::string_view, 4> kMsgWallpaperFavoriteActionChoices{"add", "remove", "theme", "palette"};
+  inline constexpr std::array kMsgWallpaperFavoritePositionals{
+      Positional{"action", {}, kMsgWallpaperFavoriteActionChoices, true, false, false},
+      Positional{"args", {}, {}, true, false, true},
+  };
+  inline constexpr std::array kMsgWallpaperPreloadPositionals{
+      Positional{"path", {}, {}, true, false, true},
+  };
   inline constexpr std::array<std::string_view, 3> kMsgWindowSwitcherActionChoices{"close", "hide", "hold"};
   inline constexpr std::array<std::string_view, 4> kMsgWindowSwitcherScopeChoices{
       "all", "output", "workspace", "current"
@@ -867,6 +876,16 @@ namespace okaru::cli {
                                        {},           kMsgVolumeSetPositionals, {}, false};
     inline constexpr Command volumeUp{"volume-up", "Increase speaker volume", {}, {},
                                       {},          kMsgVolumeUpPositionals,   {}, false};
+    inline constexpr Command wallpaperFavorite{
+        "wallpaper-favorite",
+        "Manage wallpaper favorites: add <path>, remove <path>, theme <dark|light|auto> <path>, palette <source> <value|-> <path>",
+        {},
+        {},
+        {},
+        kMsgWallpaperFavoritePositionals,
+        {},
+        false
+    };
     inline constexpr Command wallpaperGet{
         "wallpaper-get",
         "Print default wallpaper path, or effective path for an output",
@@ -892,6 +911,16 @@ namespace okaru::cli {
         {},
         {},
         kMsgWallpaperPreviousPositionals,
+        {},
+        false
+    };
+    inline constexpr Command wallpaperPreload{
+        "wallpaper-preload",
+        "Decode a wallpaper ahead of time so a following wallpaper-set starts its transition at once",
+        {},
+        {},
+        {},
+        kMsgWallpaperPreloadPositionals,
         {},
         false
     };
@@ -1072,8 +1101,10 @@ namespace okaru::cli {
       msg::volumeOsd,
       msg::volumeSet,
       msg::volumeUp,
+      msg::wallpaperFavorite,
       msg::wallpaperGet,
       msg::wallpaperNext,
+      msg::wallpaperPreload,
       msg::wallpaperPrevious,
       msg::wallpaperRandom,
       msg::wallpaperSet,

@@ -10,6 +10,65 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.3.9] - 2026-11-22
+
+### English
+
+#### Features
+- **New wallpaper picker, okaru-wallpaper-picker** (Super + Y, the bar widget, the dashboard, Settings): your
+  wallpapers in a full-screen carousel over the blurred desktop (every screen is blurred, the carousel stays on the
+  focused one). Arrows, the wheel or a click browse it with a spring animation; Enter or a click on the centered one
+  applies it to **all screens** by default, and the wallpaper transition is born from that image. A toolbar searches
+  by name and chooses the folder (root, one subfolder or all of them), the order (name, date, random) and the screen.
+  The star (or Ctrl + F) marks favorites, which come first and carry their own theme mode and palette. Thumbnails of
+  the whole folder are cached on disk, and the shell decodes the image you stop on, so applying starts at once. It
+  stays resident (started hidden shortly after the shell), so Super + Y opens it in a frame or two.
+- IPC: `wallpaper-favorite add|remove|theme|palette`, `wallpaper-preload <path>` and `wallpaper-set --origin x,y`
+  (the transition starts at that point of the desktop).
+
+#### Fixes
+- Dropdowns of layer-shell apps (the emoji picker's category) no longer highlight a row the pointer never touched:
+  Hyprland sends a stray motion with the parent's coordinates when the popup takes its grab.
+- **Shake to find the cursor works with a panel open**: the big cursor follows the pointer instead of appearing in
+  random places, and the click that shrinks it no longer closes the panel.
+- The Settings window opens 1280 px wide, so every row of tabs fits.
+
+#### Changes
+- OkaruApp: apps can stay resident (hide/show, SIGUSR1 toggles them), and full-screen layer apps can blur the
+  desktop behind them and on the other screens.
+- The old wallpaper panel is removed, with its options `shell.panel.wallpaper_show_names`, `wallpaper_placement`,
+  `wallpaper_position` and `open_near_click_wallpaper` (migration 27 drops them from `settings.toml`).
+  `panel-toggle wallpaper` now opens the picker app. The `okaru` package pulls in `okaru-wallpaper-picker`.
+
+### Español
+
+#### Novedades
+- **Nuevo selector de fondos, okaru-wallpaper-picker** (Super + Y, el widget de la barra, el dashboard, Ajustes):
+  tus fondos en un carrusel a pantalla completa sobre el escritorio desenfocado (se desenfocan todas las pantallas;
+  el carrusel queda en la del foco). Las flechas, la rueda o un clic lo recorren con una animación elástica; Enter o
+  un clic en el central lo aplica en **todas las pantallas** por defecto, y la transición del fondo nace desde esa
+  imagen. Una barra busca por nombre y elige la carpeta (la principal, una subcarpeta o todas), el orden (nombre,
+  fecha, aleatorio) y la pantalla. La estrella (o Ctrl + F) marca favoritos, que van primero y llevan su propio modo
+  de tema y paleta. Las miniaturas de toda la carpeta quedan en caché en disco y el shell decodifica la imagen en la
+  que te detienes, así que aplicar empieza al instante. Queda residente (la shell lo arranca oculto poco después de
+  iniciar), así que Super + Y lo abre en uno o dos cuadros.
+- IPC: `wallpaper-favorite add|remove|theme|palette`, `wallpaper-preload <ruta>` y `wallpaper-set --origin x,y`
+  (la transición nace en ese punto del escritorio).
+
+#### Correcciones
+- Los selectores desplegables de las apps layer-shell (la categoría del selector de emojis) ya no marcan una fila
+  que el puntero no tocó: Hyprland manda un movimiento suelto con las coordenadas del padre al tomar el grab.
+- **Agitar para encontrar el cursor funciona con un panel abierto**: el cursor grande sigue al puntero en vez de
+  aparecer en sitios al azar, y el clic que lo encoge ya no cierra el panel.
+- La ventana de Ajustes se abre con 1280 px de ancho, para que quepa cada fila de pestañas.
+
+#### Cambios
+- OkaruApp: las apps pueden quedar residentes (ocultar/mostrar; SIGUSR1 las alterna) y las de capa a pantalla
+  completa pueden desenfocar el escritorio detrás y en las demás pantallas.
+- Se quita el panel de fondos viejo, con sus opciones `shell.panel.wallpaper_show_names`, `wallpaper_placement`,
+  `wallpaper_position` y `open_near_click_wallpaper` (la migración 27 las borra de `settings.toml`).
+  `panel-toggle wallpaper` ahora abre la app. El paquete `okaru` trae `okaru-wallpaper-picker`.
+
 ## [1.3.8.1] - 2026-11-22
 
 ### English

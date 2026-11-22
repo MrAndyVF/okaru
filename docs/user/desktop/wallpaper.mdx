@@ -17,7 +17,7 @@ transition_duration = 1500      # milliseconds
 edge_smoothness     = 0.3       # 0.0 – 1.0
 transition_on_startup = false   # animate the first wallpaper at shell startup (v4-style)
 
-# Directory browsed by the wallpaper picker panel. Leave empty to use the
+# Directory browsed by the wallpaper picker. Leave empty to use the
 # standard XDG Pictures directory (from `XDG_PICTURES_DIR` or `user-dirs.dirs`).
 directory           = ""
 # Theme-aware directories (used when theme mode is Light/Dark; Auto falls back to directory)
@@ -69,15 +69,15 @@ Wallpapers are decoded in the background, so a huge file never freezes the shell
 
 An empty global `wallpaper.directory` resolves to the standard XDG Pictures directory, using `XDG_PICTURES_DIR` or the `user-dirs.dirs` configuration file, and falls back to `~/Pictures`. This keeps the picker, launcher provider, and automatic rotation aligned without requiring a separate wallpaper folder.
 
-The wallpaper picker panel lists images from the resolved browse folder as a grid of thumbnails and highlights the wallpaper currently applied to the selected monitor. In the **ALL** monitor view, the highlight follows the default wallpaper path. Theme-aware directories (`directory_light` / `directory_dark`) are used when the shell is in Light or Dark mode; **Auto** mode falls back to `directory`. Missing per-mode paths fall back to `directory`.
+The wallpaper picker (the `okaru-wallpaper-picker` app, opened with `panel-toggle wallpaper`, **Super + Y**, the bar widget or Settings) shows the images of the resolved browse folder as a full-screen carousel over the blurred desktop, starting at the current default wallpaper. Its toolbar searches by name, picks the root folder, one subfolder or all of them, changes the sort order and chooses the screen (**All screens** by default). Enter or a click on the centered image applies it; the transition then starts from that image. Theme-aware directories (`directory_light` / `directory_dark`) are used when the shell is in Light or Dark mode; **Auto** mode falls back to `directory`. Missing per-mode paths fall back to `directory`.
 
-When `per_monitor_directories` is **true**, each connected monitor can define its own `directory` / `directory_light` / `directory_dark` under `[wallpaper.monitor.<name>]`. The picker and automatic rotation resolve the folder per-monitor, so selecting a monitor in the panel toolbar switches to that monitor's override (falling back to the global folder if unset). When **false**, all monitors share the global directories regardless of which monitor is selected in the panel.
+When `per_monitor_directories` is **true**, each connected monitor can define its own `directory` / `directory_light` / `directory_dark` under `[wallpaper.monitor.<name>]`, used by automatic rotation. The picker always browses the global folder.
 
-Selecting a monitor in the panel toolbar switches to that monitor's resolved directory (falling back to the global browse folder). Clicking a tile writes the path to `settings.toml` and applies it immediately. Picking a wallpaper while **ALL** is selected applies it to every connected monitor. Picking a solid color stores it as a wallpaper source path such as `color:#FF00FF`, so it uses the same transition shader pipeline as image wallpapers.
+Applying writes the path to `settings.toml`. With **All screens** selected it applies to every connected monitor. A solid color can be set as a wallpaper source path such as `color:#FF00FF` (with `wallpaper-set` or in config), so it uses the same transition shader pipeline as image wallpapers.
 
 The launcher's wallpaper provider and **automatic rotation** use the same browse-folder resolution so they stay aligned with the picker. When automation runs with `per_monitor_directories = true`, each monitor picks independently from its own resolved folder.
 
-Recursive scans follow symlinks to folders: the picker with **Flatten** on, the launcher's wallpaper provider, and automatic rotation with `recursive = true`. Each real folder is scanned once, so a symlink back up the tree or a second link to the same folder does not repeat images.
+Recursive scans follow symlinks to folders: the picker with **All subfolders**, the launcher's wallpaper provider, and automatic rotation with `recursive = true`. Each real folder is scanned once, so a symlink back up the tree or a second link to the same folder does not repeat images.
 
 Prefer a color role such as `surface` or `primary` for `fill_color` so wallpaper fallback colors follow the active palette. Fixed hex colors (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`) are supported when a non-palette fill is intentional. It is used behind image wallpapers and in uncovered areas for `center`/`fit`. Invalid role names or malformed hex colors are treated as config errors.
 
@@ -91,9 +91,9 @@ Rotation also holds while the lock screen is up. With `pause_on_fullscreen = tru
 
 ## Favorites
 
-There is no separate Settings page for favorites. The wallpaper panel manages image favorites through tile stars, and advanced users can also declare favorites with `[[wallpaper.favorite]]` in OKARU config.
+There is no separate Settings page for favorites. The picker marks the centered image with its star (or **Ctrl + F**) and, for a favorite, sets the theme mode and palette applied with it; advanced users can also declare favorites with `[[wallpaper.favorite]]` in OKARU config, or use `wallpaper-favorite` over IPC.
 
-Starred wallpapers appear at the **top of the browse grid** at the wallpaper root (before folders and images from that folder). Inside a subfolder, only favorites whose files live in that folder (or under it when **Flatten** is on) are pinned at the top. Solid `color:#RRGGBB` favorites can be declared in config and only appear at the root. The panel can display and remove those declarative color favorites, but it does not create them from the color picker because colors are applied through a dialog, not selected from the grid. Star an image tile to bookmark it; star again to remove it. The monitor selector (**ALL** vs one output) works the same for favorites and browse entries.
+Favorites of the folder being browsed come first in the carousel, in the chosen order, followed by the rest.
 
 Declare favorites with `[[wallpaper.favorite]]`:
 

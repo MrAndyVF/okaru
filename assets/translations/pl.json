@@ -1697,10 +1697,6 @@
           "description": "Umieść panel menu sesji blisko kliknięcia na pasku zamiast wyśrodkowywać go wzdłuż paska",
           "label": "Wzdłuż Paska"
         },
-        "open-near-click-wallpaper": {
-          "description": "Umieść panel wyboru tapety blisko kliknięcia na pasku zamiast wyśrodkowywać go wzdłuż paska",
-          "label": "Wzdłuż Paska"
-        },
         "placement-clipboard": {
           "description": "Zdecyduj czy schowek przyczepia się do paska, czy unosi się w wybranej pozycji na ekranie",
           "label": "Umiejscowienie"
@@ -1715,10 +1711,6 @@
         },
         "placement-session": {
           "description": "Zdecyduj czy panel sesji przyczepia się do paska, czy unosi się w wybranej pozycji na ekranie",
-          "label": "Umiejscowienie"
-        },
-        "placement-wallpaper": {
-          "description": "Zdecyduj czy narzędzie do wyboru tapet przyczepia się do paska, czy unosi się w wybranej pozycji na ekranie",
           "label": "Umiejscowienie"
         },
         "shadow": {
@@ -2781,19 +2773,6 @@
         "search-placeholder": "Szukaj glifów…",
         "title": "Wybierz glif"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "Wszystkie",
-      "color-title": "Kolor tapety",
-      "filter-placeholder": "Filtruj…",
-      "flatten": "Spłaszcz",
-      "sort-date-asc": "Sortuj po dacie (najstarsze pierwsze)",
-      "sort-date-desc": "Sortuj po dacie (najnowsze pierwsze)",
-      "sort-name-asc": "Sortuj po nazwie (A–Z)",
-      "sort-name-desc": "Sortuj po nazwie (Z–A)",
-      "title": "Tapeta"
     }
   },
   "weather": {

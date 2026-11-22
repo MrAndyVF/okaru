@@ -1306,26 +1306,6 @@ namespace settings {
         SettingsSection::Panels, "polkit", "polkit", "settings.schema.panels.position-polkit.label",
         "settings.schema.panels.position-polkit.description", cfg.shell.panel.polkitPosition
     ));
-    entries.push_back(makeEntry(
-        SettingsSection::Panels, "wallpaper", tr("settings.schema.panels.wallpaper-show-names.label"),
-        tr("settings.schema.panels.wallpaper-show-names.description"), {"shell", "panel", "wallpaper_show_names"},
-        ToggleSetting{cfg.shell.panel.wallpaperShowNames}, "picker grid caption file name label thumbnail"
-    ));
-    entries.push_back(makeEntry(
-        SettingsSection::Panels, "wallpaper", tr("settings.schema.panels.placement-wallpaper.label"),
-        tr("settings.schema.panels.placement-wallpaper.description"), {"shell", "panel", "wallpaper_placement"},
-        asSegmented(enumSelect(kPanelPlacements, cfg.shell.panel.wallpaperPlacement)),
-        "attached floating bar panel position"
-    ));
-    entries.push_back(panelPositionEntry(
-        SettingsSection::Panels, "wallpaper", "wallpaper", "settings.schema.panels.position-wallpaper.label",
-        "settings.schema.panels.position-wallpaper.description", cfg.shell.panel.wallpaperPosition
-    ));
-    entries.push_back(panelOpenNearClickEntry(
-        SettingsSection::Panels, "wallpaper", "wallpaper", "settings.schema.panels.open-near-click-wallpaper.label",
-        "settings.schema.panels.open-near-click-wallpaper.description", cfg.shell.panel.openNearClickWallpaper,
-        &ShellConfig::PanelConfig::wallpaperPlacement, &ShellConfig::PanelConfig::wallpaperPosition
-    ));
 
     // Desktop
     entries.push_back(makeEntry(

@@ -27,6 +27,7 @@
 #include "wayland/wayland_seat.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -711,9 +712,25 @@ void Wallpaper::registerIpc(IpcService& ipc) {
         if (m_config == nullptr) {
           return "error: wallpaper service not initialized\n";
         }
-        const auto tokens = StringUtils::splitWhitespace(StringUtils::trim(args));
+        auto tokens = StringUtils::splitWhitespace(StringUtils::trim(args));
+        // OKARU: --origin x,y = la transición nace en ese punto del escritorio (okaru-wallpaper-picker).
+        std::optional<std::pair<float, float>> origin;
+        while (!tokens.empty() && tokens.front().starts_with("--")) {
+          if (tokens.front() == "--origin" && tokens.size() > 1) {
+            float x = 0.0F;
+            float y = 0.0F;
+            if (std::sscanf(tokens[1].c_str(), "%f,%f", &x, &y) != 2) {
+              return "error: --origin expects x,y\n";
+            }
+            origin = std::pair{x, y};
+            tokens.erase(tokens.begin());
+          } else {
+            return "error: unknown option " + tokens.front() + "\n";
+          }
+          tokens.erase(tokens.begin());
+        }
         if (tokens.empty()) {
-          return "error: path required (wallpaper-set [<connector>] <path>)\n";
+          return "error: path required (wallpaper-set [--origin x,y] [<connector>] <path>)\n";
         }
 
         const std::optional<std::string_view> callerCwd =
@@ -740,10 +757,111 @@ void Wallpaper::registerIpc(IpcService& ipc) {
             return error;
           }
         }
+        if (origin.has_value()) {
+          m_originPath = resolved;
+          m_originX = origin->first;
+          m_originY = origin->second;
+          m_originUntil = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        }
         applyResolvedWallpaper(outputConnector, resolved);
         return "ok\n";
       }
   );
+
+  // OKARU: precarga para okaru-wallpaper-picker: decodifica la imagen (con la cobertura de cada pantalla) y la retiene
+  // unos segundos; el wallpaper-set que llegue después la encuentra en la caché.
+  ipc.bind(okaru::cli::msg::wallpaperPreload, [this, &ipc](const std::string& args) -> std::string {
+    if (m_textureCache == nullptr) {
+      return "error: wallpaper service not initialized\n";
+    }
+    const std::optional<std::string_view> callerCwd =
+        ipc.callerCwd().has_value() ? std::optional<std::string_view>{*ipc.callerCwd()} : std::nullopt;
+    const auto resolved = resolveWallpaperPath(StringUtils::trim(args), callerCwd);
+    if (!resolved.has_value()) {
+      return "error: path does not exist or is not a regular file\n";
+    }
+    std::vector<SharedTextureCache::Lease> leases;
+    for (const auto& inst : m_instances) {
+      auto lease = m_textureCache->acquire(
+          SharedTextureRequest{.path = *resolved, .coverage = textureCoverage(*inst)},
+          m_renderContext != nullptr ? &m_renderContext->backend() : nullptr, [] {}
+      );
+      if (!lease.empty() && !lease.failed()) {
+        leases.push_back(std::move(lease));
+      }
+    }
+    m_preloadLeases = std::move(leases); // suelta la precarga anterior
+    m_preloadExpiry.start(std::chrono::seconds(15), [this] { m_preloadLeases.clear(); });
+    return "ok\n";
+  });
+
+  // OKARU: favoritos para okaru-wallpaper-picker. La ruta va al final (puede tener espacios).
+  ipc.bind(okaru::cli::msg::wallpaperFavorite, [this, &ipc](const std::string& args) -> std::string {
+    if (m_config == nullptr) {
+      return "error: wallpaper service not initialized\n";
+    }
+    const std::optional<std::string_view> callerCwd =
+        ipc.callerCwd().has_value() ? std::optional<std::string_view>{*ipc.callerCwd()} : std::nullopt;
+    std::string_view rest = StringUtils::trim(args);
+    const auto nextToken = [&rest]() -> std::string {
+      const std::size_t end = rest.find_first_of(" \t");
+      std::string token(rest.substr(0, end));
+      rest = end == std::string_view::npos ? std::string_view{} : StringUtils::trim(rest.substr(end));
+      return token;
+    };
+    const std::string action = nextToken();
+    std::string option;
+    std::string value;
+    if (action == "theme") {
+      option = nextToken();
+    } else if (action == "palette") {
+      option = nextToken();
+      value = nextToken();
+    } else if (action != "add" && action != "remove") {
+      return "error: action must be add, remove, theme or palette\n";
+    }
+    if (rest.empty()) {
+      return "error: path required\n";
+    }
+    // Quitar no exige que el archivo siga existiendo.
+    const auto resolved = resolveWallpaperPath(std::string(rest), callerCwd);
+    const std::string path = resolved.has_value() ? *resolved : std::string(rest);
+    if (action == "add") {
+      if (!resolved.has_value()) {
+        return "error: path does not exist or is not a regular file\n";
+      }
+      m_config->addWallpaperFavorite(path);
+      return "ok\n";
+    }
+    if (action == "remove") {
+      m_config->removeWallpaperFavorite(path);
+      return "ok\n";
+    }
+    if (!m_config->isWallpaperFavorite(path)) {
+      return "error: not a favorite\n";
+    }
+    if (action == "theme") {
+      const auto mode = enumFromKey(kThemeModes, option);
+      if (!mode.has_value()) {
+        return "error: theme must be dark, light or auto\n";
+      }
+      m_config->setWallpaperFavoriteThemeMode(path, *mode);
+      return "ok\n";
+    }
+    // palette <builtin|wallpaper|community|custom|none> <valor|->: none = sigue la paleta global.
+    std::optional<PaletteSource> source;
+    if (option != "none") {
+      source = enumFromKey(kPaletteSources, option);
+      if (!source.has_value()) {
+        return "error: palette source must be builtin, wallpaper, community, custom or none\n";
+      }
+    }
+    m_config->setWallpaperFavoritePaletteSource(path, source);
+    if (source.has_value() && !value.empty() && value != "-") {
+      m_config->setWallpaperFavoritePaletteSelection(path, value);
+    }
+    return "ok\n";
+  });
 }
 
 void Wallpaper::syncInstances() {
@@ -1409,6 +1527,16 @@ void Wallpaper::startTransition(WallpaperInstance& instance) {
       transitions[static_cast<std::size_t>(std::floor(randomFloat(0.0F, static_cast<float>(transitions.size()))))];
   instance.activeTransition = picked;
   instance.transitionParams = randomizeParams(picked, wpConfig.edgeSmoothness, aspectRatio);
+  if (!m_originPath.empty() && instance.pendingPath == m_originPath && std::chrono::steady_clock::now() < m_originUntil
+      && m_wayland != nullptr) {
+    // El centro (disc, honeycomb…) en el punto pedido, relativo a esta pantalla; fuera de ella, la transición entra
+    // desde ese lado.
+    if (const WaylandOutput* out = m_wayland->findOutputByWl(instance.output);
+        out != nullptr && out->logicalWidth > 0 && out->logicalHeight > 0) {
+      instance.transitionParams.centerX = (m_originX - static_cast<float>(out->logicalX)) / static_cast<float>(out->logicalWidth);
+      instance.transitionParams.centerY = (m_originY - static_cast<float>(out->logicalY)) / static_cast<float>(out->logicalHeight);
+    }
+  }
   startTransitionAnimation(instance, 0.0F, WallpaperTransitionDirection::Forward);
 }
 

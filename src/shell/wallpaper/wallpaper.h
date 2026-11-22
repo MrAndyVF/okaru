@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config/config_types.h"
+#include "core/timer_manager.h"
 #include "render/core/shared_texture_cache.h"
 #include "render/core/wallpaper_types.h"
 #include "shell/wallpaper/wallpaper_shuffle_state.h"
@@ -150,4 +151,15 @@ private:
   Signal<> m_changed;
   std::vector<std::unique_ptr<WallpaperInstance>> m_instances;
   std::unordered_set<std::string> m_externallyManagedOutputs;
+  // OKARU: `wallpaper-set --origin x,y`: la transición del próximo cambio a esta ruta nace en ese punto (coordenadas
+  // lógicas del escritorio), en cada pantalla según su posición; p. ej. desde la tarjeta elegida en el selector.
+  // Caduca para no afectar a un cambio posterior.
+  std::string m_originPath;
+  float m_originX = 0.0F;
+  float m_originY = 0.0F;
+  std::chrono::steady_clock::time_point m_originUntil;
+  // OKARU: `wallpaper-preload`: la imagen ya decodificada (una por cobertura de pantalla) hasta que se use, se pida
+  // otra o caduque, para que el wallpaper-set siguiente empiece su transición sin esperar.
+  std::vector<SharedTextureCache::Lease> m_preloadLeases;
+  Timer m_preloadExpiry;
 };

@@ -2726,10 +2726,6 @@
           "description": "バーウィジェットをクリックして開いたときは、指定した表示位置ではなく、ウィジェットの隣にセッションパネルを表示",
           "label": "クリックしたウィジェットの隣に開く"
         },
-        "open-near-click-wallpaper": {
-          "description": "クリックしたウィジェットの隣に壁紙選択画面を開く（指定した表示位置より優先）",
-          "label": "クリックしたウィジェットの隣に開く"
-        },
         "panel-anchor-bar": {
           "description": "パネルを開いたときに固定するバー。空欄の場合は、パネルを開いたウィジェット、ショートカット、またはドックに従います",
           "label": "固定先のバー"
@@ -2754,10 +2750,6 @@
           "description": "セッションパネルをバーに固定するか、画面上の指定位置に浮かせて表示するかを選択",
           "label": "配置方法"
         },
-        "placement-wallpaper": {
-          "description": "壁紙選択画面をバーに固定するか、画面上の指定位置に浮かせて表示するかを選択",
-          "label": "配置方法"
-        },
         "position-clipboard": {
           "description": "フローティング表示：クリップボードの表示位置。「バーに追従」ではバーの近くに表示。「固定」ではバーの端に合わせて表示",
           "label": "表示位置"
@@ -2778,20 +2770,12 @@
           "description": "フローティング表示：セッションパネルの表示位置。「バーに追従」ではバーの近くに表示。「固定」ではバーの端に合わせて表示",
           "label": "表示位置"
         },
-        "position-wallpaper": {
-          "description": "フローティング表示：壁紙選択画面の表示位置。「バーに追従」ではバーの近くに表示。「固定」では指定した位置に表示",
-          "label": "表示位置"
-        },
         "shadow": {
           "description": "パネルから全体のサーフェスシャドウを表示"
         },
         "transparency-mode": {
           "description": "フローティングパネルの不透明度やカードの半透明を含む、パネルのガラス風表示",
           "label": "透明度"
-        },
-        "wallpaper-show-names": {
-          "description": "壁紙選択画面で各サムネイルにファイル名を表示",
-          "label": "ファイル名を表示"
         }
       },
       "power": {
@@ -5081,29 +5065,6 @@
         "search-placeholder": "グリフを検索…",
         "title": "グリフを選択"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "すべて",
-      "choose-color": "壁紙の色を選択",
-      "close": "壁紙パネルを閉じる",
-      "color-title": "壁紙の色",
-      "favorite-add": "お気に入りに追加",
-      "favorite-current": "現在の壁紙をお気に入りに追加",
-      "favorite-remove": "お気に入りから外す",
-      "filter-placeholder": "絞り込み…",
-      "flatten": "階層をまとめて表示",
-      "loading": "壁紙を読み込み中…",
-      "navigate-up": "親フォルダーへ移動",
-      "refresh": "壁紙を再読み込み",
-      "sort-date-asc": "日付順（古い順）",
-      "sort-date-desc": "日付順（新しい順）",
-      "sort-name-asc": "名前順（昇順）",
-      "sort-name-desc": "名前順（降順）",
-      "sort-random": "ランダム表示・シャッフル",
-      "title": "壁紙",
-      "unfavorite-current": "現在の壁紙をお気に入りから削除"
     }
   },
   "weather": {

@@ -2,6 +2,7 @@
 
 #include "compositors/compositor_platform.h"
 #include "config/config_service.h"
+#include "core/process/process.h"
 #include "core/deferred_call.h"
 #include "core/input/key_chord.h"
 #include "core/input/keybind_matcher.h"
@@ -33,6 +34,8 @@
 #include "wayland/wayland_seat.h"
 
 #include <algorithm>
+#include <fstream>
+#include <csignal>
 #include <cmath>
 #include <format>
 #include <optional>
@@ -265,13 +268,50 @@ namespace {
   // El desenfoque del compositor no se puede atenuar: entra cuando el panel ya se ve casi entero.
   constexpr float kPanelBlurFromProgress = 0.6F;
 
+  constexpr std::string_view kWallpaperPickerId = "wallpaper";
+
+  // OKARU: el okaru-wallpaper-picker residente, si lo hay: el PID de su candado, comprobado contra /proc.
+  [[nodiscard]] std::optional<pid_t> runningWallpaperPicker() {
+    const char* runtime = std::getenv("XDG_RUNTIME_DIR");
+    if (runtime == nullptr || runtime[0] == '\0') {
+      return std::nullopt;
+    }
+    std::ifstream lock(std::string(runtime) + "/okaru-wallpaper-picker.lock");
+    long pid = 0;
+    if (!(lock >> pid) || pid <= 1) {
+      return std::nullopt;
+    }
+    std::ifstream comm(std::format("/proc/{}/comm", pid));
+    std::string name;
+    // El kernel recorta el nombre a 15 caracteres.
+    if (!std::getline(comm, name) || !name.starts_with("okaru-wallpaper")) {
+      return std::nullopt;
+    }
+    return static_cast<pid_t>(pid);
+  }
+
+  // OKARU: el selector de fondos es la app okaru-wallpaper-picker; "wallpaper" sigue siendo su id para los atajos, la
+  // barra, el dashboard y Ajustes. Si está residente se le pide directamente que se muestre u oculte (sin arrancar
+  // otro proceso); si no, se lanza (y queda residente). Devuelve si el id era ese.
+  [[nodiscard]] bool launchWallpaperPicker(std::string_view panelId) {
+    if (panelId != kWallpaperPickerId) {
+      return false;
+    }
+    if (const auto pid = runningWallpaperPicker(); pid.has_value() && ::kill(*pid, SIGUSR1) == 0) {
+      return true;
+    }
+    if (!process::launchFirstAvailable({{"okaru-wallpaper-picker"}})) {
+      kLog.warn("okaru-wallpaper-picker is not installed");
+    }
+    return true;
+  }
+
   [[nodiscard]] bool usesConfiguredFloatingLayer(std::string_view panelId) {
     return panelId == "clipboard"
         || panelId == "control-center"
         || panelId == "launcher"
         || panelId == "session"
-        || panelId == "setup-wizard"
-        || panelId == "wallpaper";
+        || panelId == "setup-wizard";
   }
 
   [[nodiscard]] LayerShellLayer
@@ -443,6 +483,9 @@ void PanelManager::unregisterPanel(const std::string& id) {
 }
 
 void PanelManager::openPanel(const std::string& panelId, PanelOpenRequest request) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_inTransition || m_afterCaptureClose) {
     return;
   }
@@ -1222,6 +1265,9 @@ void PanelManager::destroyPanel() {
 }
 
 void PanelManager::togglePanel(const std::string& panelId, PanelOpenRequest request) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_persistentHost.hasPanel(panelId)) {
     if (m_persistentHost.isOpen(panelId)) {
       m_persistentHost.close(panelId);
@@ -1254,6 +1300,9 @@ void PanelManager::togglePanel(const std::string& panelId, PanelOpenRequest requ
 }
 
 void PanelManager::togglePanel(const std::string& panelId) {
+  if (launchWallpaperPicker(panelId)) {
+    return;
+  }
   if (m_persistentHost.hasPanel(panelId)) {
     if (m_persistentHost.isOpen(panelId)) {
       m_persistentHost.close(panelId);
@@ -2223,7 +2272,16 @@ std::vector<std::string> PanelManager::availablePanelIds() const {
     ids.push_back(entry.first);
   }
   m_persistentHost.appendPanelIds(ids);
+  ids.emplace_back(kWallpaperPickerId);
   return ids;
+}
+
+void PanelManager::schedulePickerPrestart() {
+  m_pickerPrestart.start(std::chrono::seconds(3), [] {
+    if (!runningWallpaperPicker().has_value() && process::commandExists("okaru-wallpaper-picker")) {
+      (void)process::runAsync({"okaru-wallpaper-picker", "--daemon"});
+    }
+  });
 }
 
 void PanelManager::registerIpc(IpcService& ipc) {
@@ -2268,7 +2326,7 @@ void PanelManager::registerIpc(IpcService& ipc) {
         if (auto error = parseOpenArgs(args, "panel-toggle", panelId, context)) {
           return *error;
         }
-        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId) && panelId != kWallpaperPickerId) {
           return unknownPanelError(panelId);
         }
         // Output left unset: openPanel resolves it (focus source, else compositor probe).
@@ -2288,7 +2346,7 @@ void PanelManager::registerIpc(IpcService& ipc) {
         if (auto error = parseOpenArgs(args, "panel-open", panelId, context)) {
           return *error;
         }
-        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId) && panelId != kWallpaperPickerId) {
           return unknownPanelError(panelId);
         }
 
@@ -2311,8 +2369,12 @@ void PanelManager::registerIpc(IpcService& ipc) {
     if (!panelId.empty() && StringUtils::splitWhitespace(panelId).size() != 1) {
       return "error: panel-close accepts at most one panel id\n";
     }
-    if (!panelId.empty() && !m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+    if (!panelId.empty() && !m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)
+        && panelId != kWallpaperPickerId) {
       return unknownPanelError(panelId);
+    }
+    if (panelId == kWallpaperPickerId) {
+      return "ok\n"; // la app se cierra sola (Esc, aplicar, o abrirla otra vez); no hay panel que cerrar
     }
 
     if (!panelId.empty() && m_persistentHost.hasPanel(panelId)) {
