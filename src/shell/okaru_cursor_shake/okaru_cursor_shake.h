@@ -22,6 +22,7 @@ class Image;
 class LayerSurface;
 class Node;
 class RenderContext;
+class PopupGrabHost;
 class WaylandConnection;
 struct PointerEvent;
 struct wl_output;
@@ -56,6 +57,7 @@ private:
   void poll();
   void show(double globalX, double globalY);
   void hide();
+  [[nodiscard]] PopupGrabHost* grabHost() const;
   void prepareFrame(Overlay& overlay);
   void relayout();
   void startAnimation(Phase phase);

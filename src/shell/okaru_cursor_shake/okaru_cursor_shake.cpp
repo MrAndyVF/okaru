@@ -10,6 +10,8 @@
 #include "render/scene/node.h"
 #include "ui/builders.h"
 #include "ui/controls/image.h"
+#include "wayland/hyprland/focus_grab_service.h"
+#include "wayland/hyprland/popup_grab_host.h"
 #include "wayland/layer_surface.h"
 #include "wayland/wayland_connection.h"
 #include "wayland/wayland_seat.h"
@@ -67,6 +69,13 @@ void OkaruCursorShake::onConfigReload() {
 
 void OkaruCursorShake::onOutputChange() { hide(); }
 
+PopupGrabHost* OkaruCursorShake::grabHost() const {
+  // Un panel abierto limita el puntero (focus grab) a sus superficies: sin entrar en su lista, las capas no
+  // reciben el movimiento y el cursor grande se queda quieto donde apareció.
+  auto* svc = m_wayland != nullptr ? m_wayland->focusGrabService() : nullptr;
+  return svc != nullptr ? svc->popupGrabHost() : nullptr;
+}
+
 void OkaruCursorShake::poll() {
   const auto json = m_hyprland.requestJson("j/cursorpos");
   if (!json.has_value() || !json->is_object() || !json->contains("x") || !json->contains("y")) {
@@ -117,6 +126,9 @@ void OkaruCursorShake::show(double globalX, double globalY) {
       kLog.warn("cursor shake: failed to create the overlay on {}", out.connectorName);
       continue;
     }
+    if (auto* host = grabHost(); host != nullptr) {
+      host->registerPopupSurface(raw->surface->wlSurface());
+    }
     if (globalX >= out.logicalX && globalX < out.logicalX + out.logicalWidth && globalY >= out.logicalY
         && globalY < out.logicalY + out.logicalHeight) {
       m_active = raw;
@@ -137,7 +149,11 @@ void OkaruCursorShake::hide() {
   m_animTimer.stop();
   m_settleTimer.stop();
   m_active = nullptr;
+  auto* host = grabHost();
   for (auto& overlay : m_overlays) {
+    if (host != nullptr) {
+      host->unregisterPopupSurface(overlay->surface->wlSurface());
+    }
     overlay->surface->setSceneRoot(nullptr);
   }
   m_overlays.clear();
