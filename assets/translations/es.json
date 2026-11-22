@@ -856,6 +856,11 @@
       "placeholder": "Escribe una respuesta…"
     },
     "internal": {
+      "devices": "Dispositivos",
+      "device-connected": "Dispositivo conectado",
+      "device-phone-connected": "Teléfono conectado",
+      "device-removed": "Dispositivo quitado",
+      "device-open": "Abrir",
       "battery": "Bateria",
       "battery-critical-body": "{device}: {percent}%; el equipo se apagará en breve",
       "battery-critical-title": "Batería críticamente baja",

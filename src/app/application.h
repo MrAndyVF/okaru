@@ -66,6 +66,7 @@
 #include "shell/wallpaper/panel/wallpaper_scanner.h"
 #include "shell/wallpaper/wallpaper.h"
 #include "system/battery_warning_monitor.h"
+#include "system/okaru_device_monitor.h" // OKARU
 #include "system/dependency_service.h"
 #include "system/desktop_entry_poll_source.h"
 #include "system/gamma_service.h"
@@ -339,6 +340,7 @@ private:
   bool m_calendarCredentialAutoRetried = false;
   std::unique_ptr<PipeWireService> m_pipewireService;
   std::unique_ptr<WirePlumberMixer> m_wirePlumberMixer;
+  std::unique_ptr<OkaruDeviceMonitor> m_deviceMonitor; // OKARU
   std::unique_ptr<EasyEffectsService> m_easyEffectsService;
   std::unique_ptr<PipeWireSpectrum> m_pipewireSpectrum;
   std::shared_ptr<SoundPlayer> m_soundPlayer;

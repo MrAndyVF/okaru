@@ -49,6 +49,9 @@ std::vector<PollSource*> Application::currentPollSources() {
   if (m_wirePlumberMixer != nullptr) {
     sources.push_back(m_wirePlumberMixer.get());
   }
+  if (m_deviceMonitor != nullptr) { // OKARU
+    sources.push_back(m_deviceMonitor.get());
+  }
   if (m_polkitPollSource != nullptr) {
     sources.push_back(m_polkitPollSource.get());
   }

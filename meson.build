@@ -671,6 +671,7 @@ _okaru_sources = files(
   'src/security/secure_buffer.cpp',
   'src/security/storage_key_provider.cpp',
   'src/system/battery_warning_monitor.cpp',
+  'src/system/okaru_device_monitor.cpp',
   'src/shell/bar/bar.cpp',
   'src/shell/clipboard/clipboard_paste.cpp',
   'src/shell/dock/dock.cpp',
