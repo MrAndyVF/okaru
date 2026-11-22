@@ -20,6 +20,8 @@
 #include <utility>
 #include <vector>
 #include <webp/encode.h>
+#include <sys/syscall.h>
+#include <sys/resource.h>
 
 namespace {
 
@@ -97,6 +99,15 @@ namespace {
     }
     file.write(reinterpret_cast<const char*>(data), static_cast<std::streamsize>(size));
     return static_cast<bool>(file);
+  }
+
+  void encodeThumbnailToDisk(const std::filesystem::path& cachePath, const std::vector<std::uint8_t>& pixels, int w, int h) {
+    std::uint8_t* encoded = nullptr;
+    const std::size_t encodedSize = WebPEncodeRGB(pixels.data(), w, h, w * 3, kThumbnailWebPQuality, &encoded);
+    if (encoded != nullptr && encodedSize > 0) {
+      (void)writeFile(cachePath, encoded, encodedSize);
+      WebPFree(encoded);
+    }
   }
 
   std::vector<std::uint8_t> rgbaToRgb(const std::vector<std::uint8_t>& rgba) {
@@ -211,6 +222,11 @@ ThumbnailService::~ThumbnailService() {
       t.join();
     }
   }
+  for (auto& t : m_warmWorkers) {
+    if (t.joinable()) {
+      t.join();
+    }
+  }
 
   deleteAllTextures();
 
@@ -321,6 +337,58 @@ void ThumbnailService::release(const std::string& path, int targetPx) {
   std::scoped_lock lock(m_queueMutex);
   if (m_inFlight.contains(key)) {
     m_canceled.insert(key);
+  }
+}
+
+void ThumbnailService::warmDiskCache(const std::string& path, int targetPx) {
+  {
+    std::scoped_lock lock(m_queueMutex);
+    m_warmQueue.push_back(RequestKey{.path = path, .targetPx = targetPx});
+  }
+  if (m_warmWorkers.empty()) {
+    // Hilos propios y de prioridad mínima: los pedidos normales siguen en sus hilos, sin esperar ni ir más lentos.
+    constexpr int kWarmWorkers = 2;
+    for (int i = 0; i < kWarmWorkers; ++i) {
+      m_warmWorkers.emplace_back([this] { warmLoop(); });
+    }
+  }
+  m_queueCv.notify_all();
+}
+
+void ThumbnailService::warmLoop() {
+  // nice por hilo en Linux: no compite con lo que el usuario esté usando (p. ej. un juego al iniciar sesión).
+  (void)::setpriority(PRIO_PROCESS, static_cast<id_t>(::syscall(SYS_gettid)), 19);
+  while (true) {
+    RequestKey key;
+    {
+      std::unique_lock<std::mutex> lock(m_queueMutex);
+      m_queueCv.wait(lock, [this] { return m_shutdown.load() || !m_warmQueue.empty(); });
+      if (m_shutdown.load()) {
+        return;
+      }
+      key = std::move(m_warmQueue.front());
+      m_warmQueue.pop_front();
+    }
+    // Solo a disco: si ya está, nada; si no, decodificar, reducir y guardar el WebP. Sin resultado.
+    const auto cachePath = cachePathForSource(key.path, key.targetPx);
+    std::error_code ec;
+    if (!cachePath.has_value() || std::filesystem::exists(*cachePath, ec)) {
+      continue;
+    }
+    const auto bytes = FileUtils::readBinaryFile(key.path);
+    if (bytes.empty()) {
+      continue;
+    }
+    auto decoded = decodeRasterImage(bytes.data(), bytes.size());
+    if (!decoded) {
+      continue;
+    }
+    int w = decoded->width;
+    int h = decoded->height;
+    auto pixels = rgbaToRgb(decoded->pixels);
+    if (resizeThumbnail(pixels, w, h, key.targetPx)) {
+      encodeThumbnailToDisk(*cachePath, pixels, w, h);
+    }
   }
 }
 
@@ -564,12 +632,7 @@ void ThumbnailService::workerLoop() {
     }
 
     if (const auto cachePath = cachePathForSource(path, key.targetPx); cachePath.has_value()) {
-      std::uint8_t* encoded = nullptr;
-      const std::size_t encodedSize = WebPEncodeRGB(pixels.data(), w, h, w * 3, kThumbnailWebPQuality, &encoded);
-      if (encoded != nullptr && encodedSize > 0) {
-        (void)writeFile(*cachePath, encoded, encodedSize);
-        WebPFree(encoded);
-      }
+      encodeThumbnailToDisk(*cachePath, pixels, w, h);
     }
 
     result.rgba = rgbToRgba(pixels);

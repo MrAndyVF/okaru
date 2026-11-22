@@ -1321,6 +1321,11 @@ if build_tests
     dependencies: okaru_core_dep,
     override_options: ['b_ndebug=false'],
   ))
+  test('okaru_thumbnail_warm', executable('okaru_thumbnail_warm_test',
+    sources: files('tests/okaru_thumbnail_warm_test.cpp'),
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
 endif
 
 # OKARU: apps por defecto del escritorio para instalaciones limpias (fotos → visor). Hyprland y Niri leen
