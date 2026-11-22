@@ -301,7 +301,10 @@ bool ContextMenuPopup::onPointerEvent(const PointerEvent& event) {
   }
 
   const bool captured = m_inputDispatcher.pointerCaptured();
-  const bool onPopup = (event.surface != nullptr && event.surface == m_wlSurface);
+  // OKARU: la superficie del PopupSurface, no m_wlSurface: el enter del grab llega durante el roundtrip de
+  // initialize(), antes de que open() copie m_wlSurface, y se perdía.
+  const bool onPopup =
+      event.surface != nullptr && m_surface != nullptr && event.surface == m_surface->wlSurface();
   auto localX = static_cast<float>(event.sx);
   auto localY = static_cast<float>(event.sy);
   // While a press holds the pointer capture (e.g. a scrollbar thumb drag), events sliding onto the
