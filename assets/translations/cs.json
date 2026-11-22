@@ -1901,10 +1901,6 @@
           "description": "Umístit panel nabídky relace poblíž kliknutí na liště místo vystředění podél lišty",
           "label": "Otevřít u kliknutí"
         },
-        "open-near-click-wallpaper": {
-          "description": "Umístit panel výběru tapety poblíž kliknutí na liště místo vystředění podél lišty",
-          "label": "Otevřít u kliknutí"
-        },
         "placement-clipboard": {
           "description": "Vybrat, zda se schránka připojí k liště nebo bude plovoucí na zvolené pozici obrazovky",
           "label": "Umístění"
@@ -1925,10 +1921,6 @@
           "description": "Vybrat, zda se nabídka relace připojí k liště nebo bude plovoucí na zvolené pozici obrazovky",
           "label": "Umístění"
         },
-        "placement-wallpaper": {
-          "description": "Vybrat, zda se výběr tapety připojí k liště nebo bude plovoucí na zvolené pozici obrazovky",
-          "label": "Umístění"
-        },
         "position-clipboard": {
           "description": "Kde se schránka na obrazovce vznáší; Sledovat lištu ji udrží poblíž lišty",
           "label": "Pozice"
@@ -1947,10 +1939,6 @@
         },
         "position-session": {
           "description": "Kde se nabídka relace na obrazovce vznáší; Sledovat lištu ji udrží poblíž lišty",
-          "label": "Pozice"
-        },
-        "position-wallpaper": {
-          "description": "Kde se výběr tapety na obrazovce vznáší; Sledovat lištu ho udrží poblíž lišty",
           "label": "Pozice"
         },
         "shadow": {
@@ -3185,20 +3173,6 @@
         "search-placeholder": "Hledat ikony…",
         "title": "Vybrat ikonu"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "VŠE",
-      "color-title": "Barva tapety",
-      "filter-placeholder": "Filtrovat...",
-      "flatten": "Sloučit",
-      "loading": "Načítání tapet...",
-      "sort-date-asc": "Seřadit podle data (nejstarší první)",
-      "sort-date-desc": "Seřadit podle data (nejnovější první)",
-      "sort-name-asc": "Seřadit podle názvu (A-Z)",
-      "sort-name-desc": "Seřadit podle názvu (Z-A)",
-      "title": "Tapeta"
     }
   },
   "weather": {

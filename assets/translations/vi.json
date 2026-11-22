@@ -2427,10 +2427,6 @@
           "description": "Khi được gắn vào thanh hoặc hiển thị nổi với vị trí tự động, session menu sẽ được đặt gần widget trên thanh đã mở nó.",
           "label": "Mở gần vị trí nhấp chuột"
         },
-        "open-near-click-wallpaper": {
-          "description": "Đặt bảng chọn hình nền gần vị trí nhấp vào thanh thay vì căn giữa theo chiều dài thanh",
-          "label": "Mở gần nhấp"
-        },
         "panel-anchor-bar": {
           "description": "Các bảng thanh sẽ gắn vào vị trí kích hoạt khi được mở; hãy để trống để chúng đi theo widget, lối tắt hoặc thanh dock đã mở chúng."
         },
@@ -2454,10 +2450,6 @@
           "description": "Chọn xem Session menu gắn vào Bar, nổi gần đó, hay mở ở giữa",
           "label": "Vị trí"
         },
-        "placement-wallpaper": {
-          "description": "Chọn xem trình chọn hình nền gắn vào thanh Bar, nổi gần đó hay mở ở giữa",
-          "label": "Vị trí"
-        },
         "position-clipboard": {
           "description": "Vị trí nổi của bảng nhớ tạm trên màn hình; Chế độ Theo thanh sẽ đặt nó gần thanh",
           "label": "Vị trí"
@@ -2476,10 +2468,6 @@
         },
         "position-session": {
           "description": "Vị trí nổi của session menu trên màn hình; Tùy chọn Theo thanh sẽ giữ nó gần thanh",
-          "label": "Vị trí"
-        },
-        "position-wallpaper": {
-          "description": "Vị trí nổi của trình chọn hình nền trên màn hình; Tùy chọn Theo thanh sẽ giữ nó gần thanh",
           "label": "Vị trí"
         },
         "shadow": {
@@ -3748,19 +3736,6 @@
         "search-placeholder": "Tìm kiếm ký tự…",
         "title": "Chọn biểu tượng"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "Tất cả",
-      "color-title": "Màu hình nền",
-      "filter-placeholder": "Lọc...",
-      "flatten": "Làm phẳng",
-      "sort-date-asc": "Sắp xếp theo ngày (cũ nhất trước)",
-      "sort-date-desc": "Sắp xếp theo ngày (mới nhất trước)",
-      "sort-name-asc": "Sắp xếp theo tên (A-Z)",
-      "sort-name-desc": "Sắp xếp theo tên (Z-A)",
-      "title": "Hình nền"
     }
   },
   "weather": {

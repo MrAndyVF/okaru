@@ -2631,10 +2631,6 @@
           "description": "Dove si posiziona il pannello della sessione quando viene aperto cliccando sul widget della barra",
           "label": "Lungo la barra"
         },
-        "open-near-click-wallpaper": {
-          "description": "Dove viene posizionato il selettore dello sfondo quando viene aperto facendo clic sul widget della barra",
-          "label": "Lungo la barra"
-        },
         "panel-anchor-bar": {
           "description": "I pannelli della barra si attaccano quando vengono aperti; lascia vuoto per seguire il widget, il collegamento o il dock che li ha aperti",
           "label": "Barra di ancoraggio"
@@ -2659,10 +2655,6 @@
           "description": "Scegli se il pannello di sessione si attacca alla barra, fluttua vicino ad essa o si apre centrato",
           "label": "Posizionamento"
         },
-        "placement-wallpaper": {
-          "description": "Scegli se il selettore sfondo si attacca alla barra o fluttua in una posizione scelta",
-          "label": "Posizionamento"
-        },
         "position-clipboard": {
           "description": "Dove il pannello appunti appare sullo schermo; Segui la barra lo mantiene vicino ad essa",
           "label": "Posizione"
@@ -2683,20 +2675,12 @@
           "description": "Dove il menu di sessione appare sullo schermo; Segui la barra lo mantiene vicino ad essa",
           "label": "Posizione"
         },
-        "position-wallpaper": {
-          "description": "Dove il selettore dello sfondo appare sullo schermo; Segui la barra lo mantiene vicino ad essa",
-          "label": "Posizione"
-        },
         "shadow": {
           "description": "Proietta l'ombra globale della superficie dalle superfici pannello"
         },
         "transparency-mode": {
           "description": "Stile vetro del pannello, incluse opacità dei pannelli flottanti e traslucenza delle schede",
           "label": "Trasparenza"
-        },
-        "wallpaper-show-names": {
-          "description": "Aggiungi a ciascuna miniatura la didascalia con il nome del file nello strumento di selezione dello sfondo.",
-          "label": "Mostra i nomi dei file"
         }
       },
       "power": {
@@ -4928,29 +4912,6 @@
         "search-placeholder": "Cerca glifi...",
         "title": "Scegli un glifo"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TUTTI",
-      "choose-color": "Scegli il colore dello sfondo",
-      "close": "Chiudi il pannello sfondi",
-      "color-title": "Colore sfondo",
-      "favorite-add": "Aggiungi ai preferiti",
-      "favorite-current": "Aggiungi lo sfondo corrente ai preferiti",
-      "favorite-remove": "Rimuovi dai preferiti",
-      "filter-placeholder": "Filtra...",
-      "flatten": "Appiattisci",
-      "loading": "Caricamento sfondi...",
-      "navigate-up": "Vai alla cartella padre",
-      "refresh": "Aggiorna gli sfondi",
-      "sort-date-asc": "Ordina per data (prima i più vecchi)",
-      "sort-date-desc": "Ordina per data (prima i più recenti)",
-      "sort-name-asc": "Ordina per nome (A-Z)",
-      "sort-name-desc": "Ordina per nome (Z-A)",
-      "sort-random": "Ordina in modo casuale (shuffle)",
-      "title": "Sfondo",
-      "unfavorite-current": "Rimuovi lo sfondo corrente dai preferiti"
     }
   },
   "weather": {

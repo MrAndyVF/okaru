@@ -60,7 +60,6 @@
 #include "shell/test/test_panel.h"
 #include "shell/tooltip/tooltip_manager.h"
 #include "shell/tray/tray_drawer_panel.h"
-#include "shell/wallpaper/panel/wallpaper_panel.h"
 #include "shell/wallpaper/wallpaper_paths.h"
 #include "system/brightness_service.h"
 #include "system/distro_info.h"

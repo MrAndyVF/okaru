@@ -72,12 +72,10 @@ border_width          = 1.0         # floating panel outline width in px, 0 hide
 shadow                = true        # cast the global [shell.shadow] from panel surfaces
 clipboard_placement      = "floating" # attached | floating
 control_center_placement = "attached" # attached | floating
-wallpaper_placement      = "attached" # attached | floating
 session_placement        = "attached" # attached | floating
 clipboard_position       = "center"   # auto | center | top_left | … (floating only)
 open_near_click_control_center = false # for attached/floating placement, follow the bar click instead of bar-center
 open_near_click_clipboard      = false # for attached/floating placement, follow the bar click instead of bar-center
-open_near_click_wallpaper      = false # for attached/floating placement, follow the bar click instead of bar-center
 open_near_click_session        = false # for attached/floating placement, follow the bar click instead of bar-center
 
 [shell.launcher]

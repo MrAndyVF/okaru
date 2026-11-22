@@ -1743,10 +1743,6 @@
           "description": "Positioneer het sessiemenupaneel dicht bij de klik op de balk in plaats van het langs de balk te centreren",
           "label": "Openen nabij klik"
         },
-        "open-near-click-wallpaper": {
-          "description": "Positioneer het achtergrondkiezerpaneel dicht bij de klik op de balk in plaats van het langs de balk te centreren",
-          "label": "Openen nabij klik"
-        },
         "placement-clipboard": {
           "description": "Kies of het klembord zich vastmaakt aan de balk, er dichtbij zweeft of gecentreerd opent",
           "label": "Plaatsing"
@@ -1761,10 +1757,6 @@
         },
         "placement-session": {
           "description": "Kies of het sessiemenu zich vastmaakt aan de balk, er dichtbij zweeft of gecentreerd opent",
-          "label": "Plaatsing"
-        },
-        "placement-wallpaper": {
-          "description": "Kies of de achtergrondkiezer zich vastmaakt aan de balk, er dichtbij zweeft of gecentreerd opent",
           "label": "Plaatsing"
         },
         "shadow": {
@@ -2861,19 +2853,6 @@
         "search-placeholder": "Zoeken in glyphs…",
         "title": "Kies een glyph"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "ALLE",
-      "color-title": "Achtergrondkleur",
-      "filter-placeholder": "Filteren...",
-      "flatten": "Afvlakken",
-      "sort-date-asc": "Sorteren op datum (oudste eerst)",
-      "sort-date-desc": "Sorteren op datum (nieuwste eerst)",
-      "sort-name-asc": "Sorteren op naam (A-Z)",
-      "sort-name-desc": "Sorteren op naam (Z-A)",
-      "title": "Achtergrond"
     }
   },
   "weather": {

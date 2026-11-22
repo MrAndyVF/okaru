@@ -2667,10 +2667,6 @@
           "description": "Când este deschis prin clic pe widgetul său din bară, deschide panoul de sesiune lângă widget în loc de poziția sa",
           "label": "Deschide lângă widgetul apăsat"
         },
-        "open-near-click-wallpaper": {
-          "description": "Când este deschis prin clic pe widgetul său din bară, deschide selectorul de fundal lângă widget în loc de poziția sa",
-          "label": "Deschide lângă widgetul apăsat"
-        },
         "panel-anchor-bar": {
           "description": "Bara de care se atașează panourile când sunt deschise; lasă gol pentru a urma widgetul, comanda rapidă sau dock-ul care le-a deschis",
           "label": "Bară de ancorare"
@@ -2695,10 +2691,6 @@
           "description": "Alege dacă panoul de sesiune se atașează la bară sau plutește la o poziție aleasă pe ecran",
           "label": "Plasare"
         },
-        "placement-wallpaper": {
-          "description": "Alege dacă selectorul de fundal se atașează la bară sau plutește la o poziție aleasă pe ecran",
-          "label": "Plasare"
-        },
         "position-clipboard": {
           "description": "Flotant: unde se află clipboardul pe ecran; Urmează bara îl menține lângă bară. Atașat: o poziție de-a lungul marginii barei îl aliniază la acel capăt al barei",
           "label": "Poziție"
@@ -2719,20 +2711,12 @@
           "description": "Flotant: unde se află panoul de sesiune pe ecran; Urmează bara îl menține lângă bară. Atașat: o poziție de-a lungul marginii barei îl aliniază la acel capăt al barei",
           "label": "Poziție"
         },
-        "position-wallpaper": {
-          "description": "Flotant: unde se află selectorul de fundal pe ecran; Urmează bara îl menține lângă bară. Atașat: o poziție de-a lungul marginii barei îl aliniază la acel capăt al barei",
-          "label": "Poziție"
-        },
         "shadow": {
           "description": "Aruncă umbra globală a suprafețelor din suprafețele panourilor"
         },
         "transparency-mode": {
           "description": "Stilul de sticlă al panourilor, inclusiv opacitatea panourilor flotante și transparența cardurilor",
           "label": "Transparență"
-        },
-        "wallpaper-show-names": {
-          "description": "Adaugă numele fișierului ca legendă sub fiecare miniatură în selectorul de fundal.",
-          "label": "Arată numele fișierelor"
         }
       },
       "power": {
@@ -5006,29 +4990,6 @@
         "search-placeholder": "Caută pictograme…",
         "title": "Alege o pictogramă"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "TOATE",
-      "choose-color": "Alege culoarea fundalului",
-      "close": "Închide panoul de fundal",
-      "color-title": "Culoarea fundalului",
-      "favorite-add": "Adaugă la favorite",
-      "favorite-current": "Adaugă fundalul curent la favorite",
-      "favorite-remove": "Elimină din favorite",
-      "filter-placeholder": "Filtrează…",
-      "flatten": "Aplatizează",
-      "loading": "Se încarcă fundalurile…",
-      "navigate-up": "Mergi la folderul părinte",
-      "refresh": "Reîmprospătează fundalurile",
-      "sort-date-asc": "Sortează după dată (cele mai vechi primele)",
-      "sort-date-desc": "Sortează după dată (cele mai noi primele)",
-      "sort-name-asc": "Sortează după nume (A-Z)",
-      "sort-name-desc": "Sortează după nume (Z-A)",
-      "sort-random": "Sortează aleatoriu (amestecă)",
-      "title": "Fundal",
-      "unfavorite-current": "Elimină fundalul curent din favorite"
     }
   },
   "weather": {

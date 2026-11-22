@@ -29,7 +29,6 @@
 #include "shell/setup_wizard/setup_wizard_panel.h"
 #include "shell/tooltip/tooltip_manager.h"
 #include "shell/tray/tray_drawer_panel.h"
-#include "shell/wallpaper/panel/wallpaper_panel.h"
 #include "system/brightness_service.h"
 #include "system/easyeffects_service.h"
 #include "system/keyboard_backlight_service.h"

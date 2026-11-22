@@ -2659,10 +2659,6 @@
           "description": "通过点击状态栏小组件打开时，将会话面板显示在小组件旁，而非固定的“屏幕位置”",
           "label": "在被点击的小组件旁打开"
         },
-        "open-near-click-wallpaper": {
-          "description": "通过点击状态栏小组件打开时，将壁纸选择器显示在小组件旁，而非固定的“屏幕位置”",
-          "label": "在被点击的小组件旁打开"
-        },
         "panel-anchor-bar": {
           "description": "面板打开时依附的状态栏；留空时跟随打开面板的小组件、快捷项或 Dock",
           "label": "锚定状态栏"
@@ -2687,10 +2683,6 @@
           "description": "选择会话面板是附着于状态栏，还是在指定屏幕位置浮动",
           "label": "显示模式"
         },
-        "placement-wallpaper": {
-          "description": "选择壁纸选择器是附着于状态栏，还是在指定屏幕位置浮动",
-          "label": "显示模式"
-        },
         "position-clipboard": {
           "description": "悬浮模式：剪贴板在屏幕上的显示位置，选择“跟随状态栏”可使其保持在状态栏附近；吸附模式：沿状态栏边缘的位置，使其与状态栏对应一端对齐",
           "label": "屏幕位置"
@@ -2711,20 +2703,12 @@
           "description": "悬浮模式：会话面板在屏幕上的显示位置，选择“跟随状态栏”可使其保持在状态栏附近；吸附模式：沿状态栏边缘的位置，使其与状态栏对应一端对齐",
           "label": "屏幕位置"
         },
-        "position-wallpaper": {
-          "description": "悬浮模式：壁纸选择器在屏幕上的显示位置，选择“跟随状态栏”可使其保持在状态栏附近；吸附模式：沿状态栏边缘的位置，使其与状态栏对应一端对齐",
-          "label": "屏幕位置"
-        },
         "shadow": {
           "description": "为面板表面投射全局表面阴影"
         },
         "transparency-mode": {
           "description": "面板透明效果，包括悬浮面板的不透明度和卡片的半透明效果",
           "label": "透明效果"
-        },
-        "wallpaper-show-names": {
-          "description": "在壁纸选择器中为每个缩略图标注文件名",
-          "label": "显示文件名"
         }
       },
       "power": {
@@ -4974,29 +4958,6 @@
         "search-placeholder": "搜索图标…",
         "title": "选择图标"
       }
-    }
-  },
-  "wallpaper": {
-    "panel": {
-      "all-monitors": "全部",
-      "choose-color": "选择壁纸颜色",
-      "close": "关闭壁纸面板",
-      "color-title": "壁纸颜色",
-      "favorite-add": "添加到收藏",
-      "favorite-current": "将当前壁纸添加到收藏",
-      "favorite-remove": "从收藏中移除",
-      "filter-placeholder": "筛选…",
-      "flatten": "平铺显示",
-      "loading": "正在加载壁纸…",
-      "navigate-up": "返回上级文件夹",
-      "refresh": "刷新壁纸",
-      "sort-date-asc": "按日期排序（最旧优先）",
-      "sort-date-desc": "按日期排序（最新优先）",
-      "sort-name-asc": "按名称排序（A-Z）",
-      "sort-name-desc": "按名称排序（Z-A）",
-      "sort-random": "随机排序",
-      "title": "壁纸",
-      "unfavorite-current": "将当前壁纸从收藏中移除"
     }
   },
   "weather": {

@@ -1464,7 +1464,6 @@ namespace okaru::config::schema {
           field(&ShellConfig::PanelConfig::borderWidth, "border_width", kPanelBorderWidthRange),
           field(&ShellConfig::PanelConfig::shadow, "shadow"),
           field(&ShellConfig::PanelConfig::listItemBackground, "list_item_background"),
-          field(&ShellConfig::PanelConfig::wallpaperShowNames, "wallpaper_show_names"),
           custom<ShellConfig::PanelConfig>(
               "floating_layer",
               [](const toml::table& tbl, ShellConfig::PanelConfig& out, std::string_view parentPath,
@@ -1485,18 +1484,15 @@ namespace okaru::config::schema {
           ),
           enumField(&ShellConfig::PanelConfig::clipboardPlacement, "clipboard_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::controlCenterPlacement, "control_center_placement", kPanelPlacements),
-          enumField(&ShellConfig::PanelConfig::wallpaperPlacement, "wallpaper_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::sessionPlacement, "session_placement", kPanelPlacements),
           enumField(&ShellConfig::PanelConfig::polkitPlacement, "polkit_placement", kPanelPlacements),
           field(&ShellConfig::PanelConfig::clipboardPosition, "clipboard_position"),
           field(&ShellConfig::PanelConfig::controlCenterPosition, "control_center_position"),
-          field(&ShellConfig::PanelConfig::wallpaperPosition, "wallpaper_position"),
           field(&ShellConfig::PanelConfig::sessionPosition, "session_position"),
           field(&ShellConfig::PanelConfig::polkitPosition, "polkit_position"),
           field(&ShellConfig::PanelConfig::floatingOffset, "floating_offset", Range<std::int64_t>{0, 100}),
           field(&ShellConfig::PanelConfig::openNearClickControlCenter, "open_near_click_control_center"),
           field(&ShellConfig::PanelConfig::openNearClickClipboard, "open_near_click_clipboard"),
-          field(&ShellConfig::PanelConfig::openNearClickWallpaper, "open_near_click_wallpaper"),
           field(&ShellConfig::PanelConfig::openNearClickSession, "open_near_click_session"),
       };
       return s;

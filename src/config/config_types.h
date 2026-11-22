@@ -1107,11 +1107,9 @@ struct ShellConfig {
     float borderWidth = Style::borderWidth;
     bool shadow = true;                    // cast the global [shell.shadow] from panel surfaces
     bool listItemBackground = false;       // filled rounded background behind launcher/clipboard list items
-    bool wallpaperShowNames = true;        // caption wallpaper picker thumbnails with their file name
     std::string floatingLayer = "overlay"; // top | overlay; attached panels follow their bar
     PanelPlacement clipboardPlacement = PanelPlacement::Floating;
     PanelPlacement controlCenterPlacement = PanelPlacement::Attached;
-    PanelPlacement wallpaperPlacement = PanelPlacement::Attached;
     PanelPlacement sessionPlacement = PanelPlacement::Attached;
     PanelPlacement polkitPlacement = PanelPlacement::Floating;
     // Screen position per panel (one of kPanelPositions). Pins a floating panel to that
@@ -1121,13 +1119,11 @@ struct ShellConfig {
     // historical center-screen behavior for their floating default).
     std::string clipboardPosition = "center";
     std::string controlCenterPosition = "auto";
-    std::string wallpaperPosition = "auto";
     std::string sessionPosition = "auto";
     std::string polkitPosition = "center";
     std::int32_t floatingOffset = 8; // logical px gap between a floating/detached panel and the bar edge
     bool openNearClickControlCenter = false;
     bool openNearClickClipboard = false;
-    bool openNearClickWallpaper = false;
     bool openNearClickSession = false;
 
     bool operator==(const PanelConfig&) const = default;
