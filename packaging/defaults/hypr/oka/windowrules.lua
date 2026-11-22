@@ -52,7 +52,7 @@ hl.window_rule({ match = { class = "^(heroic|io\\.github\\.Faugus\\.faugus-launc
 
 -- Utilidades del sistema flotantes y centradas
 hl.window_rule({
-	match = { class = "^(pavucontrol|blueman-manager|nm-connection-editor|org\\.gnome\\.FileRoller|org\\.gnome\\.DiskUtility|com\\.github\\.wwmm\\.easyeffects|org\\.kde\\.kdeconnect\\.app|nwg-look|qt[56]ct|goverlay|org\\.cachyos\\.(KernelManager|scx-manager|hello|cachyos-pi)|nvidia-settings|btrfs-assistant|io\\.missioncenter\\.MissionCenter)$" },
+	match = { class = "^(pavucontrol|blueman-manager|nm-connection-editor|org\\.gnome\\.FileRoller|org\\.gnome\\.DiskUtility|com\\.github\\.wwmm\\.easyeffects|org\\.kde\\.kdeconnect\\.app|nwg-look|qt[56]ct|goverlay|org\\.cachyos\\.(KernelManager|scx-manager|hello|cachyos-pi)|cachyos-pi|nvidia-settings|btrfs-assistant|io\\.missioncenter\\.MissionCenter)$" },
 	float = true,
 	center = true,
 	size = { 1100, 720 },
