@@ -207,10 +207,16 @@ namespace okaru::apps {
     m_surface->setPrepareFrameCallback([this](bool needsUpdate, bool needsLayout) {
       prepareFrame(needsUpdate, needsLayout);
     });
-    if (m_options.layer && m_options.fullscreen && m_options.backdropOtherOutputs) {
+    if (m_options.layer && m_options.fullscreen) {
       // La pantalla de la capa principal la elige el compositor: las demás se cubren al saber cuál es.
       m_surface->setOutputChangedCallback([this](wl_output* output) {
-        if (m_backdrops.empty() && output != nullptr) {
+        if (output == nullptr) {
+          return;
+        }
+        if (const WaylandOutput* out = m_wayland.findOutputByWl(output); out != nullptr) {
+          m_mainOutput = out->connectorName;
+        }
+        if (m_options.backdropOtherOutputs && m_backdrops.empty()) {
           createBackdrops(output);
         }
       });
@@ -332,12 +338,20 @@ namespace okaru::apps {
     if (m_surface == nullptr || m_surface->width() == 0 || m_surface->height() == 0) {
       return; // se aplica en el primer configure
     }
-    if (enabled) {
-      m_surface->setBlurRegion(
-          {{.width = static_cast<int>(m_surface->width()), .height = static_cast<int>(m_surface->height())}}
-      );
-    } else {
-      m_surface->clearBlurRegion();
+    const auto apply = [enabled](Surface& surface) {
+      if (surface.width() == 0 || surface.height() == 0) {
+        return;
+      }
+      if (enabled) {
+        surface.setBlurRegion({{.width = static_cast<int>(surface.width()), .height = static_cast<int>(surface.height())}});
+      } else {
+        surface.clearBlurRegion();
+      }
+      surface.requestRedraw();
+    };
+    apply(*m_surface);
+    for (auto& backdrop : m_backdrops) {
+      apply(*backdrop->surface);
     }
   }
 
@@ -373,8 +387,10 @@ namespace okaru::apps {
                      }
       );
       raw->surface->setRenderContext(&m_render);
-      raw->surface->setConfigureCallback([raw](std::uint32_t w, std::uint32_t h) {
-        raw->surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+      raw->surface->setConfigureCallback([this, raw](std::uint32_t w, std::uint32_t h) {
+        if (m_backdropBlur) {
+          raw->surface->setBlurRegion({{.width = static_cast<int>(w), .height = static_cast<int>(h)}});
+        }
         raw->surface->requestLayout();
       });
       raw->surface->setPrepareFrameCallback([this, raw](bool, bool) { prepareBackdrop(*raw); });

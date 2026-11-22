@@ -27,6 +27,7 @@
 #include "wayland/wayland_seat.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -711,9 +712,25 @@ void Wallpaper::registerIpc(IpcService& ipc) {
         if (m_config == nullptr) {
           return "error: wallpaper service not initialized\n";
         }
-        const auto tokens = StringUtils::splitWhitespace(StringUtils::trim(args));
+        auto tokens = StringUtils::splitWhitespace(StringUtils::trim(args));
+        // OKARU: --origin x,y = la transición nace en ese punto del escritorio (okaru-wallpaper-picker).
+        std::optional<std::pair<float, float>> origin;
+        while (!tokens.empty() && tokens.front().starts_with("--")) {
+          if (tokens.front() == "--origin" && tokens.size() > 1) {
+            float x = 0.0F;
+            float y = 0.0F;
+            if (std::sscanf(tokens[1].c_str(), "%f,%f", &x, &y) != 2) {
+              return "error: --origin expects x,y\n";
+            }
+            origin = std::pair{x, y};
+            tokens.erase(tokens.begin());
+          } else {
+            return "error: unknown option " + tokens.front() + "\n";
+          }
+          tokens.erase(tokens.begin());
+        }
         if (tokens.empty()) {
-          return "error: path required (wallpaper-set [<connector>] <path>)\n";
+          return "error: path required (wallpaper-set [--origin x,y] [<connector>] <path>)\n";
         }
 
         const std::optional<std::string_view> callerCwd =
@@ -740,10 +757,43 @@ void Wallpaper::registerIpc(IpcService& ipc) {
             return error;
           }
         }
+        if (origin.has_value()) {
+          m_originPath = resolved;
+          m_originX = origin->first;
+          m_originY = origin->second;
+          m_originUntil = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        }
         applyResolvedWallpaper(outputConnector, resolved);
         return "ok\n";
       }
   );
+
+  // OKARU: precarga para okaru-wallpaper-picker: decodifica la imagen (con la cobertura de cada pantalla) y la retiene
+  // unos segundos; el wallpaper-set que llegue después la encuentra en la caché.
+  ipc.bind(okaru::cli::msg::wallpaperPreload, [this, &ipc](const std::string& args) -> std::string {
+    if (m_textureCache == nullptr) {
+      return "error: wallpaper service not initialized\n";
+    }
+    const std::optional<std::string_view> callerCwd =
+        ipc.callerCwd().has_value() ? std::optional<std::string_view>{*ipc.callerCwd()} : std::nullopt;
+    const auto resolved = resolveWallpaperPath(StringUtils::trim(args), callerCwd);
+    if (!resolved.has_value()) {
+      return "error: path does not exist or is not a regular file\n";
+    }
+    std::vector<SharedTextureCache::Lease> leases;
+    for (const auto& inst : m_instances) {
+      auto lease = m_textureCache->acquire(
+          SharedTextureRequest{.path = *resolved, .coverage = textureCoverage(*inst)},
+          m_renderContext != nullptr ? &m_renderContext->backend() : nullptr, [] {}
+      );
+      if (!lease.empty() && !lease.failed()) {
+        leases.push_back(std::move(lease));
+      }
+    }
+    m_preloadLeases = std::move(leases); // suelta la precarga anterior
+    m_preloadExpiry.start(std::chrono::seconds(15), [this] { m_preloadLeases.clear(); });
+    return "ok\n";
+  });
 
   // OKARU: favoritos para okaru-wallpaper-picker. La ruta va al final (puede tener espacios).
   ipc.bind(okaru::cli::msg::wallpaperFavorite, [this, &ipc](const std::string& args) -> std::string {
@@ -1477,6 +1527,16 @@ void Wallpaper::startTransition(WallpaperInstance& instance) {
       transitions[static_cast<std::size_t>(std::floor(randomFloat(0.0F, static_cast<float>(transitions.size()))))];
   instance.activeTransition = picked;
   instance.transitionParams = randomizeParams(picked, wpConfig.edgeSmoothness, aspectRatio);
+  if (!m_originPath.empty() && instance.pendingPath == m_originPath && std::chrono::steady_clock::now() < m_originUntil
+      && m_wayland != nullptr) {
+    // El centro (disc, honeycomb…) en el punto pedido, relativo a esta pantalla; fuera de ella, la transición entra
+    // desde ese lado.
+    if (const WaylandOutput* out = m_wayland->findOutputByWl(instance.output);
+        out != nullptr && out->logicalWidth > 0 && out->logicalHeight > 0) {
+      instance.transitionParams.centerX = (m_originX - static_cast<float>(out->logicalX)) / static_cast<float>(out->logicalWidth);
+      instance.transitionParams.centerY = (m_originY - static_cast<float>(out->logicalY)) / static_cast<float>(out->logicalHeight);
+    }
+  }
   startTransitionAnimation(instance, 0.0F, WallpaperTransitionDirection::Forward);
 }
 

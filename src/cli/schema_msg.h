@@ -277,6 +277,9 @@ namespace okaru::cli {
       Positional{"action", {}, kMsgWallpaperFavoriteActionChoices, true, false, false},
       Positional{"args", {}, {}, true, false, true},
   };
+  inline constexpr std::array kMsgWallpaperPreloadPositionals{
+      Positional{"path", {}, {}, true, false, true},
+  };
   inline constexpr std::array<std::string_view, 3> kMsgWindowSwitcherActionChoices{"close", "hide", "hold"};
   inline constexpr std::array<std::string_view, 4> kMsgWindowSwitcherScopeChoices{
       "all", "output", "workspace", "current"
@@ -911,6 +914,16 @@ namespace okaru::cli {
         {},
         false
     };
+    inline constexpr Command wallpaperPreload{
+        "wallpaper-preload",
+        "Decode a wallpaper ahead of time so a following wallpaper-set starts its transition at once",
+        {},
+        {},
+        {},
+        kMsgWallpaperPreloadPositionals,
+        {},
+        false
+    };
     inline constexpr Command wallpaperRandom{"wallpaper-random",
                                              "Switch to a random wallpaper immediately",
                                              {},
@@ -1091,6 +1104,7 @@ namespace okaru::cli {
       msg::wallpaperFavorite,
       msg::wallpaperGet,
       msg::wallpaperNext,
+      msg::wallpaperPreload,
       msg::wallpaperPrevious,
       msg::wallpaperRandom,
       msg::wallpaperSet,
