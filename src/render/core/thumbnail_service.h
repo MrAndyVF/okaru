@@ -77,6 +77,10 @@ public:
 
   // Releases one acquire() owner. The texture is unloaded only when the last
   // owner releases it.
+  // OKARU: deja la miniatura en la caché en disco sin cargarla (p. ej. una app residente que prepara su carpeta
+  // mientras está oculta). La atienden 2 hilos propios de prioridad mínima (los pedidos normales no esperan) y salta
+  // las que ya están en disco. No necesita uploadPending().
+  void warmDiskCache(const std::string& path, int targetPx = kDefaultTargetPx);
   void release(const std::string& path, int targetPx = kDefaultTargetPx);
 
   // Uploads decoded pixmaps to textures. Must run on the main thread with the
@@ -114,6 +118,7 @@ private:
   };
 
   void workerLoop();
+  void warmLoop(); // OKARU
   void signalMain();
   void pushResult(DecodedJob job);
   void deleteAllTextures();
@@ -143,6 +148,8 @@ private:
   mutable std::mutex m_queueMutex;
   std::condition_variable m_queueCv;
   std::deque<RequestKey> m_jobQueue;
+  std::deque<RequestKey> m_warmQueue;     // OKARU: warmDiskCache
+  std::vector<std::thread> m_warmWorkers; // OKARU: sus hilos (prioridad mínima), creados al primer uso
   std::unordered_set<RequestKey, RequestKeyHash> m_inFlight;
   std::unordered_set<RequestKey, RequestKeyHash> m_canceled;
 
