@@ -266,10 +266,12 @@ namespace {
   // El desenfoque del compositor no se puede atenuar: entra cuando el panel ya se ve casi entero.
   constexpr float kPanelBlurFromProgress = 0.6F;
 
+  constexpr std::string_view kWallpaperPickerId = "wallpaper";
+
   // OKARU: el selector de fondos es la app okaru-wallpaper-picker (abre y cierra con cada llamada); "wallpaper" sigue
   // siendo su id para los atajos, la barra, el dashboard y Ajustes. Devuelve si el id era ese.
   [[nodiscard]] bool launchWallpaperPicker(std::string_view panelId) {
-    if (panelId != "wallpaper") {
+    if (panelId != kWallpaperPickerId) {
       return false;
     }
     if (!process::launchFirstAvailable({{"okaru-wallpaper-picker"}})) {
@@ -2244,6 +2246,7 @@ std::vector<std::string> PanelManager::availablePanelIds() const {
     ids.push_back(entry.first);
   }
   m_persistentHost.appendPanelIds(ids);
+  ids.emplace_back(kWallpaperPickerId);
   return ids;
 }
 
@@ -2289,7 +2292,7 @@ void PanelManager::registerIpc(IpcService& ipc) {
         if (auto error = parseOpenArgs(args, "panel-toggle", panelId, context)) {
           return *error;
         }
-        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId) && panelId != kWallpaperPickerId) {
           return unknownPanelError(panelId);
         }
         // Output left unset: openPanel resolves it (focus source, else compositor probe).
@@ -2309,7 +2312,7 @@ void PanelManager::registerIpc(IpcService& ipc) {
         if (auto error = parseOpenArgs(args, "panel-open", panelId, context)) {
           return *error;
         }
-        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+        if (!m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId) && panelId != kWallpaperPickerId) {
           return unknownPanelError(panelId);
         }
 
@@ -2332,8 +2335,12 @@ void PanelManager::registerIpc(IpcService& ipc) {
     if (!panelId.empty() && StringUtils::splitWhitespace(panelId).size() != 1) {
       return "error: panel-close accepts at most one panel id\n";
     }
-    if (!panelId.empty() && !m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)) {
+    if (!panelId.empty() && !m_panels.contains(panelId) && !m_persistentHost.hasPanel(panelId)
+        && panelId != kWallpaperPickerId) {
       return unknownPanelError(panelId);
+    }
+    if (panelId == kWallpaperPickerId) {
+      return "ok\n"; // la app se cierra sola (Esc, aplicar, o abrirla otra vez); no hay panel que cerrar
     }
 
     if (!panelId.empty() && m_persistentHost.hasPanel(panelId)) {

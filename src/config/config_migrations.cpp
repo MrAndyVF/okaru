@@ -42,6 +42,7 @@ namespace okaru::config {
     constexpr int kOkaruNativeUpdatesMigrationVersion = 24;      // OKARU
     constexpr int kOkaruNativeVpnMigrationVersion = 25;          // OKARU
     constexpr int kOkaruStorePalettesMigrationVersion = 26;      // OKARU
+    constexpr int kOkaruWallpaperPickerMigrationVersion = 27;    // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -1028,6 +1029,17 @@ namespace okaru::config {
       }
     }
 
+    // OKARU: el panel de fondos pasó a ser la app okaru-wallpaper-picker (pantalla completa): sus opciones de panel
+    // ya no existen.
+    void migrateWallpaperPickerSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      if (auto* panel = root["shell"]["panel"].as_table(); panel != nullptr) {
+        for (const char* key :
+             {"wallpaper_show_names", "wallpaper_placement", "wallpaper_position", "open_near_click_wallpaper"}) {
+          panel->erase(key);
+        }
+      }
+    }
+
     // OKARU: el menú de sesión confirma manteniendo presionado; la cuenta regresiva por acción ya no existe.
     void migrateSessionHoldSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
       if (auto* actions = root["shell"]["session"]["actions"].as_array(); actions != nullptr) {
@@ -1382,6 +1394,11 @@ namespace okaru::config {
             .toVersion = kOkaruStorePalettesMigrationVersion,
             .summary = "theme: builtin palettes other than OKARU moved to the okaru-palettes store",
             .apply = migrateStorePalettesSidecar,
+        },
+        {
+            .toVersion = kOkaruWallpaperPickerMigrationVersion,
+            .summary = "wallpaper: the wallpaper panel is now the okaru-wallpaper-picker app; drop its panel options",
+            .apply = migrateWallpaperPickerSidecar,
         },
     };
     return migrations;
