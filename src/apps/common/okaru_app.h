@@ -12,9 +12,12 @@
 #include "render/gl_shared_context.h"
 #include "render/render_context.h"
 #include "render/scene/input_dispatcher.h"
+#include "core/timer_manager.h"
 #include "render/scene/node.h"
 #include "ui/controls/select_dropdown_popup.h"
+#include "wayland/layer_surface.h"
 #include "wayland/toplevel_surface.h"
+#include "wayland/virtual_keyboard_service.h"
 #include "wayland/wayland_connection.h"
 
 #include <atomic>
@@ -52,6 +55,10 @@ namespace okaru::apps {
     float height = 600.0F;
     float minWidth = 320.0F;
     float minHeight = 400.0F;
+    // Superficie layer-shell centrada en vez de ventana normal (selector de emojis): no roba el foco al hacer
+    // clic en sus zonas pasivas, así puede pegar en la ventana anterior y seguir abierta. No se mueve, no cambia
+    // de tamaño ni sale en Alt+Tab.
+    bool layer = false;
   };
 
   class OkaruApp {
@@ -88,6 +95,14 @@ namespace okaru::apps {
     // Abre la ventana y corre el bucle hasta cerrarla. Devuelve el código de salida.
     int run();
     void quit();
+    // Cierra la ventana y, cuando el foco vuelve a la anterior, pega el portapapeles en ella con el teclado
+    // virtual (selector de emojis). Usa el atajo de shell.launcher.auto_paste; "off" se trata como "auto".
+    void quitAndPaste(bool isImage = false);
+    // Solo con AppOptions::layer: suelta el teclado para que vuelva a la ventana anterior, pega en ella y sigue
+    // abierta. El próximo clic fuera de la zona pasiva lo retoma. Sin layer equivale a quitAndPaste().
+    void pasteKeepOpen(bool isImage = false);
+    // Con AppOptions::layer: los clics dentro de este nodo no retoman el teclado (la rejilla de lo que se pega).
+    void setPassiveNode(Node* node) { m_passiveNode = node; }
 
     void requestRebuild();
     // Tras cambiar textos o estados de nodos ya construidos.
@@ -127,11 +142,14 @@ namespace okaru::apps {
 
   private:
     void applyConfig();
+    void pasteIntoFocusedWindow(bool isImage);
     void applyPalette();
     void prepareFrame(bool needsUpdate, bool needsLayout);
     void onPointer(const PointerEvent& event);
     void onKey(const KeyboardEvent& event);
     [[nodiscard]] bool dragRegionContains(float x, float y) const;
+    [[nodiscard]] static bool nodeContains(const Node* node, float x, float y);
+    void sendPaste(bool isImage);
 
     AppOptions m_options;
     ConfigService m_config;
@@ -143,13 +161,19 @@ namespace okaru::apps {
     InputDispatcher m_input;
     FileWatcher m_fileWatcher;
     WlClipboard m_clipboard;
-    std::unique_ptr<ToplevelSurface> m_surface;
+    std::unique_ptr<Surface> m_surface;
+    ToplevelSurface* m_toplevel = nullptr; // m_surface si es ventana normal
+    LayerSurface* m_layer = nullptr;       // m_surface si AppOptions::layer
+    VirtualKeyboardService m_virtualKeyboard;
+    bool m_virtualKeyboardBound = false;
+    Timer m_pasteTimer;
     std::unique_ptr<SelectDropdownPopup> m_selectPopup; // desplegables de los Select
     std::unique_ptr<SessionBus> m_sessionBus;
     std::unique_ptr<SessionBusPollSource> m_sessionBusSource;
     std::unique_ptr<Node> m_root;
     std::vector<PollSource*> m_extraSources;
     Node* m_dragNode = nullptr;
+    Node* m_passiveNode = nullptr;
     BuildFn m_build;
     KeyFn m_keyHandler;
     std::function<void()> m_onReload;
@@ -162,6 +186,7 @@ namespace okaru::apps {
     bool m_rebuild = true;
     bool m_pointerInside = false;
     bool m_fullscreen = false;
+    std::optional<bool> m_pasteOnExit; // isImage del pegado pendiente
   };
 
 } // namespace okaru::apps

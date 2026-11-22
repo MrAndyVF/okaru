@@ -39,7 +39,6 @@
 #include "i18n/i18n_service.h"
 #include "launcher/app_provider.h"
 #include "launcher/dmenu_provider.h"
-#include "launcher/emoji_provider.h"
 #include "launcher/math_provider.h"
 #include "launcher/plugin_launcher_provider.h"
 #include "launcher/session_provider.h"

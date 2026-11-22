@@ -15,15 +15,18 @@
 #include "i18n/i18n.h"
 #include "i18n/i18n_service.h"
 #include "render/scene/input_area.h"
+#include "shell/clipboard/clipboard_paste.h"
 #include "theme/apps_palette.h"
 #include "ui/controls/input.h"
 #include "ui/palette.h"
 #include "ui/style.h"
 #include "wayland/key_repeat_poll_source.h"
+#include "wayland/virtual_keyboard_service.h"
 
 #include <algorithm>
 #include <cmath>
 #include <csignal>
+#include <thread>
 #include <linux/input-event-codes.h>
 #include <wayland-client-protocol.h>
 
@@ -66,6 +69,9 @@ namespace okaru::apps {
   OkaruApp::OkaruApp(AppOptions options) : m_options(std::move(options)) {}
 
   OkaruApp::~OkaruApp() {
+    if (m_virtualKeyboardBound) {
+      m_wayland.setVirtualKeyboardService(nullptr); // m_virtualKeyboard se destruye antes que la conexión
+    }
     m_sessionBusSource.reset();
     m_sessionBus.reset();
     Input::setTextClipboard(nullptr);
@@ -157,28 +163,50 @@ namespace okaru::apps {
     m_wayland.setKeyboardModifiersCallback([](std::uint32_t modifiers) { g_modifiers = modifiers; });
 
     const float s = scale();
-    m_surface = std::make_unique<ToplevelSurface>(m_wayland);
-    m_surface->setRenderContext(&m_render);
-    m_surface->setAnimationManager(&m_animations);
-    m_surface->setClosedCallback([this] {
+    const auto closed = [this] {
       if (!m_closeRequest || m_closeRequest()) {
         quit();
       }
-    });
+    };
+    const auto width = static_cast<std::uint32_t>(std::lround(m_options.width * s));
+    const auto height = static_cast<std::uint32_t>(std::lround(m_options.height * s));
+    if (m_options.layer) {
+      // Sin anclas: el compositor la centra en la pantalla con el foco.
+      auto layer = std::make_unique<LayerSurface>(
+          m_wayland, LayerSurfaceConfig{
+                         .nameSpace = std::string("okaru-") + (m_options.dataName != nullptr ? m_options.dataName : "app"),
+                         .layer = LayerShellLayer::Overlay,
+                         .width = width,
+                         .height = height,
+                         .exclusiveZone = -1,
+                         .keyboard = LayerShellKeyboard::OnDemand,
+                     }
+      );
+      layer->setClosedCallback(closed);
+      m_layer = layer.get();
+      m_surface = std::move(layer);
+    } else {
+      auto toplevel = std::make_unique<ToplevelSurface>(m_wayland);
+      toplevel->setClosedCallback(closed);
+      m_toplevel = toplevel.get();
+      m_surface = std::move(toplevel);
+    }
+    m_surface->setRenderContext(&m_render);
+    m_surface->setAnimationManager(&m_animations);
     m_surface->setConfigureCallback([this](std::uint32_t, std::uint32_t) { m_surface->requestLayout(); });
     m_surface->setPrepareFrameCallback([this](bool needsUpdate, bool needsLayout) {
       prepareFrame(needsUpdate, needsLayout);
     });
     m_surface->setUpdateCallback([] {});
     const ToplevelSurfaceConfig surfaceConfig{
-        .width = static_cast<std::uint32_t>(std::lround(m_options.width * s)),
-        .height = static_cast<std::uint32_t>(std::lround(m_options.height * s)),
+        .width = width,
+        .height = height,
         .minWidth = static_cast<std::uint32_t>(std::lround(m_options.minWidth * s)),
         .minHeight = static_cast<std::uint32_t>(std::lround(m_options.minHeight * s)),
         .title = m_options.title.empty() ? i18n::tr(m_options.titleKey) : m_options.title,
         .appId = m_options.appId,
     };
-    if (!m_surface->initialize(nullptr, surfaceConfig)) {
+    if (!(m_layer != nullptr ? m_layer->initialize() : m_toplevel->initialize(nullptr, surfaceConfig))) {
       kLog.error("cannot create the window");
       return 1;
     }
@@ -190,7 +218,11 @@ namespace okaru::apps {
     FileWatchPollSource fileWatch(m_fileWatcher);
     m_selectPopup = std::make_unique<SelectDropdownPopup>(m_wayland, m_render);
     m_selectPopup->setShadowConfig(m_config.config().shell.shadow);
-    m_selectPopup->setParent(m_surface->xdgSurface(), m_surface->wlSurface(), nullptr);
+    if (m_layer != nullptr) {
+      m_selectPopup->setParent(m_layer->layerSurface(), m_surface->wlSurface(), nullptr);
+    } else {
+      m_selectPopup->setParent(m_toplevel->xdgSurface(), m_surface->wlSurface(), nullptr);
+    }
 
     MainLoop loop(
         m_wayland, m_stop,
@@ -199,7 +231,10 @@ namespace okaru::apps {
             m_render.makeCurrent(m_surface->renderTarget());
             m_onClose();
           }
+          m_pasteTimer.stop();
           m_selectPopup.reset();
+          m_toplevel = nullptr;
+          m_layer = nullptr;
           m_surface.reset();
         },
         [&] {
@@ -212,10 +247,50 @@ namespace okaru::apps {
         }
     );
     loop.run();
+    if (m_pasteOnExit.has_value()) {
+      pasteIntoFocusedWindow(*m_pasteOnExit);
+    }
     return 0;
   }
 
+  void OkaruApp::pasteIntoFocusedWindow(bool isImage) {
+    // La ventana ya se destruyó: el compositor devuelve el foco a la anterior y wl-copy toma la selección.
+    wl_display_roundtrip(m_wayland.display());
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    sendPaste(isImage);
+    wl_display_roundtrip(m_wayland.display());
+  }
+
+  void OkaruApp::sendPaste(bool isImage) {
+    if (!m_virtualKeyboardBound) {
+      m_wayland.setVirtualKeyboardService(&m_virtualKeyboard);
+      m_virtualKeyboardBound = true;
+    }
+    ClipboardAutoPasteMode mode = m_config.config().shell.launcher.autoPaste;
+    if (mode == ClipboardAutoPasteMode::Off) {
+      mode = ClipboardAutoPasteMode::Auto;
+    }
+    (void)clipboard_paste::pasteEntry(isImage, mode, m_virtualKeyboard);
+  }
+
+  void OkaruApp::pasteKeepOpen(bool isImage) {
+    if (m_layer == nullptr) {
+      quitAndPaste(isImage);
+      return;
+    }
+    // Sin teclado, el compositor lo devuelve a la ventana anterior. El roundtrip asegura que ya procesó el cambio;
+    // el margen corto cubre a wl-copy (toma la selección en ~1 ms) y al cliente que recibe el foco.
+    m_layer->setKeyboardInteractivity(LayerShellKeyboard::None);
+    wl_display_roundtrip(m_wayland.display());
+    m_pasteTimer.start(std::chrono::milliseconds(40), [this, isImage] { sendPaste(isImage); });
+  }
+
   void OkaruApp::quit() { m_stop = true; }
+
+  void OkaruApp::quitAndPaste(bool isImage) {
+    m_pasteOnExit = isImage;
+    quit();
+  }
 
   bool OkaruApp::startDrag(
       std::vector<std::string> uris, unsigned serial, const DragIcon& icon, std::function<void()> prepare
@@ -226,8 +301,8 @@ namespace okaru::apps {
 
   void OkaruApp::setFullscreen(bool fullscreen) {
     m_fullscreen = fullscreen;
-    if (m_surface != nullptr) {
-      m_surface->setFullscreen(fullscreen);
+    if (m_toplevel != nullptr) {
+      m_toplevel->setFullscreen(fullscreen);
     }
   }
 
@@ -296,6 +371,7 @@ namespace okaru::apps {
       m_input.stashTabFocus();
       m_input.setSceneRoot(nullptr);
       m_dragNode = nullptr;
+      m_passiveNode = nullptr;
       if (m_selectPopup != nullptr) {
         m_selectPopup->closeSelectDropdown();
       }
@@ -322,15 +398,17 @@ namespace okaru::apps {
     }
   }
 
-  bool OkaruApp::dragRegionContains(float x, float y) const {
-    if (m_dragNode == nullptr) {
+  bool OkaruApp::dragRegionContains(float x, float y) const { return nodeContains(m_dragNode, x, y); }
+
+  bool OkaruApp::nodeContains(const Node* node, float x, float y) {
+    if (node == nullptr) {
       return false;
     }
     float left = 0.0F;
     float top = 0.0F;
     float right = 0.0F;
     float bottom = 0.0F;
-    Node::transformedBounds(m_dragNode, left, top, right, bottom);
+    Node::transformedBounds(node, left, top, right, bottom);
     return x >= left && x < right && y >= top && y < bottom;
   }
 
@@ -377,9 +455,15 @@ namespace okaru::apps {
     case PointerEvent::Type::Button:
       if (m_pointerInside) {
         m_input.pointerMotion(x, y, event.serial);
-        if (event.pressed && event.button == BTN_LEFT && m_input.hoveredArea() == nullptr && dragRegionContains(x, y)) {
-          m_surface->beginMove(event.serial);
+        if (m_toplevel != nullptr && event.pressed && event.button == BTN_LEFT && m_input.hoveredArea() == nullptr
+            && dragRegionContains(x, y)) {
+          m_toplevel->beginMove(event.serial);
           break;
+        }
+        // Tras pegar sin cerrar, un clic fuera de la zona pasiva (buscador, pestañas) retoma el teclado.
+        if (m_layer != nullptr && event.pressed && m_layer->keyboardInteractivity() == LayerShellKeyboard::None
+            && !nodeContains(m_passiveNode, x, y)) {
+          m_layer->setKeyboardInteractivity(LayerShellKeyboard::OnDemand);
         }
         m_input.pointerButton(x, y, event.button, event.pressed, event.serial, event.time, event.touch);
       }

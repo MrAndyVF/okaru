@@ -131,9 +131,6 @@ auto_paste      = "auto" # off | auto | ctrl_v | ctrl_shift_v | shift_insert (af
 prefix = "calc"          # trigger word for calculator expressions (e.g. "/calc")
 global = true            # also show calculator results in un-prefixed search
 
-[shell.launcher.providers.emoji]
-prefix = "emo"           # trigger word (triggers on provider_prefix + trigger, e.g. "/emo")
-
 [shell.launcher.providers.panels]
 prefix = "pan"           # trigger word for panel search (e.g. "/pan")
 
@@ -270,7 +267,7 @@ Notes:
 
 - `lang`: empty follows `$LC_ALL`, `$LC_MESSAGES`, then `$LANG`. Values may be BCP-47 tags (`pt-BR`, `zh-Hans`) or POSIX locale names (`pt_BR.UTF-8`, `zh_CN.UTF-8`). Chinese region locales infer script before matching catalogs, so `zh_CN` and `zh_SG` match `zh-Hans`, while `zh_TW`, `zh_HK`, and `zh_MO` match `zh-Hant`. When a right-to-left catalog is loaded, OKARU mirrors text, controls, grids, scrollbars, and directional icons automatically. Bar `start`/`center`/`end` lanes and dock item order remain on their configured physical sides. If no matching catalog loads and OKARU falls back to English, the UI remains left-to-right.
 
-- `clipboard_enabled`: when `false`, disables clipboard **history** only - the history is no longer recorded or persisted, and the clipboard panel and bar/control-center shortcuts are unavailable. The live clipboard transport stays active, so basic copy/cut/paste in text fields and launcher math/emoji copy-to-clipboard actions keep working.
+- `clipboard_enabled`: when `false`, disables clipboard **history** only - the history is no longer recorded or persisted, and the clipboard panel and bar/control-center shortcuts are unavailable. The live clipboard transport stays active, so basic copy/cut/paste in text fields and launcher math copy-to-clipboard actions keep working.
 
 - `clipboard_keep_from_closed_apps`: when `true` (default), OKARU takes ownership of the live selection after the application that supplied it closes, keeping the last copied value pasteable. This is independent of clipboard history retention.
 
@@ -356,7 +353,7 @@ Notes:
 
 - `shell.launcher.show_navigation_labels` shows text on the Full layout's main view tabs: Recent, Pinned, All, Categories, and Providers (default `true`). Turn off **Show navigation labels** in the launcher settings for icons with names in hover tooltips at any panel width. Narrow panels use icons automatically even when this option is enabled.
 
-- `shell.launcher.show_icons` toggles application icons in launcher result rows. Prefixed-provider rows (for example emoji) still show their leading character when icons are hidden.
+- `shell.launcher.show_icons` toggles application icons in launcher result rows.
 
 - `shell.launcher.show_app_origin_indicator` toggles the package-origin overlays on application results, such as Flatpak, Snap, Nix, and AppImage.
 
@@ -368,7 +365,7 @@ Notes:
 
 - `shell.launcher.track_usage` records local launcher history for the chronological **Recent** view and usage-based sorting. Disable it to stop recording launches, hide **Recent**, and disable usage ordering. Existing history remains stored until it is reset and becomes available again if tracking is re-enabled.
 
-- `shell.launcher.sort_by_usage` boosts frequently used results (applications, emoji, panels, wallpapers, and dmenu entries) toward the top while usage tracking is enabled. Disable it to keep each provider's default ordering while continuing to record frequency and recent launches. The ordering button above the results changes the same setting without leaving the launcher.
+- `shell.launcher.sort_by_usage` boosts frequently used results (applications, panels, wallpapers, and dmenu entries) toward the top while usage tracking is enabled. Disable it to keep each provider's default ordering while continuing to record frequency and recent launches. The ordering button above the results changes the same setting without leaving the launcher.
 
 - `shell.launcher.ignore_mouse` makes the launcher and its menus ignore pointer hover, motion, clicks, scrolling, and touch taps, so navigation is keyboard-only. Clicking outside the launcher still closes it. Disabled by default.
 
@@ -376,13 +373,13 @@ Notes:
 
 - `shell.launcher.fetch_exchange_rates` refreshes currency exchange rates in the background from libqalculate's third-party online sources (enabled by default). Disable it to opt out of those requests; the last cached rates are still used for conversion. Refresh is also skipped when `[shell].offline_mode` is enabled.
 
-- `shell.launcher.auto_paste` controls virtual-keyboard paste after copy-style activations (calculator, emoji, copy-mode dmenu). Providers that copy opt in with `supportsAutoPaste`. Same values as `shell.clipboard_auto_paste` (`off` | `auto` | `ctrl_v` | `ctrl_shift_v` | `shift_insert`). Default `auto`.
+- `shell.launcher.auto_paste` controls virtual-keyboard paste after copy-style activations (calculator, copy-mode dmenu). Providers that copy opt in with `supportsAutoPaste`. Same values as `shell.clipboard_auto_paste` (`off` | `auto` | `ctrl_v` | `ctrl_shift_v` | `shift_insert`). Default `auto`.
 
 - Reset stored launcher usage data from **Settings → Panels → Launcher → Reset Usage Data** (clears `usage_counts.json` and `recently_used.json` while OKARU is running).
 
 - `shell.launcher.provider_prefix` sets the common prefix character used to trigger all provider prefixes (default `"/"`). See [Launcher: Provider prefixes](/okaru/launcher/#provider-prefixes) for how prefixes, trigger words, and global search fit together.
 
-- `shell.launcher.providers.<name>.prefix` sets the trigger word for a specific built-in provider (`calculator`, `emoji`, `panels`, `session`, `wallpaper`, `windows`; keys are matched case-insensitively). The provider is activated when typing the `provider_prefix` followed by this trigger word (e.g. `/calc`, `/session`, or `/emo`). Setting the prefix to an empty string (`""`) falls back to the provider's built-in default trigger; it does **not** make the provider global. The Applications provider cannot be prefixed and is always queryable globally.
+- `shell.launcher.providers.<name>.prefix` sets the trigger word for a specific built-in provider (`calculator`, `panels`, `session`, `wallpaper`, `windows`; keys are matched case-insensitively). The provider is activated when typing the `provider_prefix` followed by this trigger word (e.g. `/calc` or `/session`). Setting the prefix to an empty string (`""`) falls back to the provider's built-in default trigger; it does **not** make the provider global. The Applications provider cannot be prefixed and is always queryable globally.
 
 - `shell.launcher.providers.<name>.global` includes a prefixed provider in the un-prefixed (global) search in addition to its prefix. Unset keeps the provider's built-in default (`true` for `calculator`, `false` for the others). This replaces the removed `session_search` option.
 

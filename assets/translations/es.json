@@ -748,17 +748,6 @@
         "system": "Sistema",
         "utilities": "Utilidades"
       },
-      "emoji": {
-        "activity": "Actividades",
-        "animals": "Animales",
-        "flags": "Banderas",
-        "food": "Comida",
-        "nature": "Naturaleza",
-        "objects": "Objetos",
-        "people": "Gente",
-        "symbols": "Símbolos",
-        "travel": "Viajes"
-      },
       "recently-used": "Recientes"
     },
     "context-menu": {
@@ -787,9 +776,6 @@
       },
       "calculator": {
         "title": "Calculadora"
-      },
-      "emoji": {
-        "title": "Emoji"
       },
       "panel": {
         "builtin": {
@@ -3662,10 +3648,6 @@
           "description": "Mostrar también los resultados de la calculadora en búsquedas sin prefijo",
           "label": "Calculadora en la Busqueda Global"
         },
-        "launcher-global-emoji": {
-          "description": "Mostrar también resultados de emojis en búsquedas sin prefijo",
-          "label": "Emojis en la búsqueda global"
-        },
         "launcher-global-panels": {
           "description": "Mostrar también paneles en la búsqueda sin prefijo",
           "label": "Paneles en la búsqueda global"
@@ -3701,10 +3683,6 @@
         "launcher-prefix-character": {
           "description": "Carácter usado para cualquier prefijo (ej: /)",
           "label": "Carácter usado para todos los prefijos"
-        },
-        "launcher-prefix-emoji": {
-          "description": "Prefijo para activar la busqueda de emoji",
-          "label": "Prefijo de emoji"
         },
         "launcher-prefix-panels": {
           "description": "Prefijo de activación para la búsqueda en el panel",

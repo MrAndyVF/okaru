@@ -32,8 +32,7 @@ namespace paths {
       }
 
       std::error_code ec;
-      return std::filesystem::exists(root / "emoji.json", ec)
-          && std::filesystem::exists(root / "fonts" / "okaru-tabler.ttf", ec)
+      return std::filesystem::exists(root / "fonts" / "okaru-tabler.ttf", ec)
           && std::filesystem::exists(root / "templates" / "builtin.toml", ec)
           && std::filesystem::exists(root / "translations" / "en.json", ec);
     }
