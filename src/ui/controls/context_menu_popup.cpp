@@ -240,6 +240,7 @@ void ContextMenuPopup::close() {
   m_wlSurface = nullptr;
   m_pointerParentSurface = nullptr;
   m_pointerInside = false;
+  m_skipGrabMotion = false;
   if (wasOpen && m_onDismissed) {
     m_onDismissed();
   }
@@ -321,6 +322,9 @@ bool ContextMenuPopup::onPointerEvent(const PointerEvent& event) {
   case PointerEvent::Type::Enter:
     if (onPopup) {
       m_pointerInside = true;
+      // OKARU — shortcut: Hyprland, al tomar el grab con el puntero fuera, entra en (-0.0078, -0.0078) y manda un
+      // primer motion con coordenadas de la superficie padre (resalta una fila al azar); quitarlo si Hyprland lo arregla.
+      m_skipGrabMotion = localX < 0.0F && localY < 0.0F;
       m_inputDispatcher.pointerEnter(localX, localY, event.serial);
     } else if (mapped) {
       // Parent-surface enter during a captured drag: swallow it so the parent's hover
@@ -338,6 +342,10 @@ bool ContextMenuPopup::onPointerEvent(const PointerEvent& event) {
     }
     break;
   case PointerEvent::Type::Motion:
+    if (onPopup && m_skipGrabMotion) {
+      m_skipGrabMotion = false;
+      return true;
+    }
     if (mapped || m_pointerInside) {
       if (onPopup) {
         m_pointerInside = true;
