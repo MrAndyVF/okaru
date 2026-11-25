@@ -393,6 +393,8 @@ namespace {
         entry.terminal = parseDesktopBool(value);
       } else if (key == "DBusActivatable") {
         entry.dbusActivatable = parseDesktopBool(value);
+      } else if (key == "MimeType") {
+        splitMultipleDesktopStrings(entry.mimeTypes, value);
       } else if (key == "OnlyShowIn") {
         splitMultipleDesktopStrings(onlyShowIn, value);
       } else if (key == "NotShowIn") {

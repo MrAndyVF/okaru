@@ -412,7 +412,7 @@ namespace {
         ui::progressBar({
             .fill = toastProgressFillColor(urgency),
             .track = clearColorSpec(),
-            .radius = progressHeight(scale) * 0.5F,
+            .radius = 0.0F,
             .orientation = ProgressBarOrientation::HorizontalCentered,
             .width = std::max(0.0F, cardW - topProgressInset(scale) * 2.0F),
             .height = progressHeight(scale),
@@ -2454,7 +2454,7 @@ InputArea* NotificationToast::buildCard(
           .out = outProgress,
           .fill = toastProgressFillColor(entry.urgency),
           .track = clearColorSpec(),
-          .radius = progressHeight(scale) * 0.5F,
+          .radius = 0.0F,
           .orientation = ProgressBarOrientation::HorizontalCentered,
           .width = std::max(0.0F, cardW - topProgressInset(scale) * 2.0F),
           .height = progressHeight(scale),

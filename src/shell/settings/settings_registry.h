@@ -62,6 +62,9 @@ namespace settings {
     Home, // OKARU: módulo Home (información del sistema)
     SoundDevices, // OKARU: Sonido → Dispositivos
     Sound, // OKARU: Sonido → Sonidos de la shell (antes Servicios → Audio)
+    AppsDefaults, // OKARU: Aplicaciones → Por defecto
+    AppsFileTypes, // OKARU: Aplicaciones → Tipos de archivo
+    AppsInstalled, // OKARU: Aplicaciones → Instaladas
   };
 
   struct SettingsSectionDescriptor {

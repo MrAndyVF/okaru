@@ -14,7 +14,9 @@
 #include <unordered_map>
 #include <vector>
 
+class DragDropController;
 class Flex;
+class Node;
 class ScrollView;
 class Shortcut;
 class Tab;
@@ -58,6 +60,7 @@ private:
   void buildAddList(float scale);
   std::unique_ptr<Flex> makeEditTile(std::size_t index, okaru::dashboard::CardSize size, float scale);
   void save(std::vector<ControlCenterCardConfig> cards);
+  void moveCard(std::size_t from, std::size_t to);
   [[nodiscard]] std::vector<ControlCenterCardConfig> currentCards() const;
   [[nodiscard]] Shortcut* shortcutFor(std::string_view type);
   [[nodiscard]] float cellWidth() const;
@@ -68,6 +71,9 @@ private:
 
   okaru::dashboard::CardDeps m_deps;
   Flex* m_root = nullptr;
+  // Modo edición: arrastrar el título de una tarjeta y soltarla sobre otra la mueve a ese lugar.
+  std::unique_ptr<DragDropController> m_drag;
+  Node* m_dragOverlay = nullptr; // capa encima de todo para la vista previa del arrastre
   Flex* m_header = nullptr;
   Flex* m_body = nullptr;
   ScrollView* m_scroll = nullptr; // contiene m_body; se ubica a mano en doLayout

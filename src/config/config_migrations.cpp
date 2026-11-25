@@ -43,6 +43,7 @@ namespace okaru::config {
     constexpr int kOkaruNativeVpnMigrationVersion = 25;          // OKARU
     constexpr int kOkaruStorePalettesMigrationVersion = 26;      // OKARU
     constexpr int kOkaruWallpaperPickerMigrationVersion = 27;    // OKARU
+    constexpr int kOkaruSettingsGroupsMigrationVersion = 28;     // OKARU
     constexpr std::int64_t kMaxBarRadius = 500;
     constexpr std::array<std::string_view, 5> kBarRadiusKeys = {
         "radius", "radius_top_left", "radius_top_right", "radius_bottom_left", "radius_bottom_right",
@@ -1040,6 +1041,13 @@ namespace okaru::config {
       }
     }
 
+    // OKARU: los grupos de los ajustes ya no se pliegan (todas las tarjetas abiertas): la opción sobra.
+    void migrateSettingsGroupsSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
+      if (auto* shell = root["shell"].as_table(); shell != nullptr) {
+        shell->erase("settings_expand_all_groups");
+      }
+    }
+
     // OKARU: el menú de sesión confirma manteniendo presionado; la cuenta regresiva por acción ya no existe.
     void migrateSessionHoldSidecar(toml::table& root, schema::Diagnostics& /*diag*/) {
       if (auto* actions = root["shell"]["session"]["actions"].as_array(); actions != nullptr) {
@@ -1399,6 +1407,11 @@ namespace okaru::config {
             .toVersion = kOkaruWallpaperPickerMigrationVersion,
             .summary = "wallpaper: the wallpaper panel is now the okaru-wallpaper-picker app; drop its panel options",
             .apply = migrateWallpaperPickerSidecar,
+        },
+        {
+            .toVersion = kOkaruSettingsGroupsMigrationVersion,
+            .summary = "settings: groups no longer collapse; drop shell.settings_expand_all_groups",
+            .apply = migrateSettingsGroupsSidecar,
         },
     };
     return migrations;

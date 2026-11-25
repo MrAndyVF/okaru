@@ -302,13 +302,13 @@ void OkaruPhoneTab::addHero(Flex& parent, const PhoneDevice& d) {
   const float avatarSize = kAvatarSize * scale;
   if (!avatar.empty() && fs::exists(avatar)) {
     Image* image = nullptr;
-    top->addChild(ui::image({.out = &image, .fit = ImageFit::Cover, .radius = avatarSize * 0.5F,
+    top->addChild(ui::image({.out = &image, .fit = ImageFit::Cover, .radius = 0.0F,
                              .width = avatarSize, .height = avatarSize}));
     m_pendingImages.push_back({image, avatar, static_cast<int>(avatarSize)});
   } else {
     top->addChild(ui::row(
         {.align = FlexAlign::Center, .justify = FlexJustify::Center,
-         .fill = colorSpecFromRole(ColorRole::Primary, 0.12F), .radius = avatarSize * 0.5F, .width = avatarSize,
+         .fill = colorSpecFromRole(ColorRole::Primary, 0.12F), .radius = 0.0F, .width = avatarSize,
          .height = avatarSize},
         ui::glyph({.glyph = phone::deviceGlyph(d), .glyphSize = avatarSize * 0.5F,
                    .color = colorSpecFromRole(ColorRole::Primary)})

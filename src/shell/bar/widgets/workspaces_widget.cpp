@@ -1137,7 +1137,7 @@ void WorkspacesWidget::applyItemLayout(Item& it) {
       const float dotY = (itemH - dotSize) * 0.5F;
       it.indicator->setPosition(dotX, dotY);
       it.indicator->setFrameSize(dotSize, dotSize);
-      it.indicator->setRadius(dotSize * 0.5F);
+      it.indicator->setRadius(0.0F);
     } else {
       it.indicator->setPosition(0.0F, 0.0F);
       it.indicator->setFrameSize(itemW, itemH);

@@ -608,7 +608,7 @@ namespace shell::dock {
           dotIndicator = static_cast<Box*>(areaNode->addChild(
               ui::box({
                   .fill = colorSpecFromRole(ColorRole::Secondary),
-                  .radius = dot * 0.5F,
+                  .radius = 0.0F,
                   .width = dot,
                   .height = dot,
                   .visible = false,
@@ -630,7 +630,7 @@ namespace shell::dock {
           ui::box({
               .out = &item.minimizedIndicator,
               .fill = colorSpecFromRole(ColorRole::Secondary),
-              .radius = kMinimizedIndicatorThickness * 0.5F,
+              .radius = 0.0F,
               .width = vert ? kMinimizedIndicatorThickness : kMinimizedIndicatorLength,
               .height = vert ? kMinimizedIndicatorLength : kMinimizedIndicatorThickness,
               .visible = false,
@@ -650,7 +650,7 @@ namespace shell::dock {
         areaNode->addChild(
             ui::box({
                 .out = &item.badge,
-                .radius = bd * 0.5F,
+                .radius = 0.0F,
                 .width = bd,
                 .height = bd,
                 .visible = false,

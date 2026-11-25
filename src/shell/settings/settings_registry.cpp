@@ -66,7 +66,7 @@ namespace settings {
       return defaultKeybindSet(action);
     }
 
-    constexpr std::array<SettingsSectionDescriptor, 37> kSettingsSections{{
+    constexpr std::array<SettingsSectionDescriptor, 40> kSettingsSections{{
         {SettingsSection::Appearance, "appearance", "adjustments-horizontal"},
         {SettingsSection::Wallpaper, "wallpaper", "paint"},
         {SettingsSection::Templates, "templates", "color-swatch"},
@@ -104,6 +104,9 @@ namespace settings {
         {SettingsSection::Home, "home", "home", true, true}, // OKARU
         {SettingsSection::SoundDevices, "sound-devices", "device-speaker", true, true}, // OKARU
         {SettingsSection::Sound, "sound", "music"}, // OKARU
+        {SettingsSection::AppsDefaults, "apps-defaults", "star", true, true}, // OKARU
+        {SettingsSection::AppsFileTypes, "apps-file-types", "file-settings", true, true}, // OKARU
+        {SettingsSection::AppsInstalled, "apps-installed", "package", true, true}, // OKARU
     }};
 
     const SettingsSectionDescriptor& descriptorFor(SettingsSection section) {
@@ -1616,11 +1619,6 @@ namespace settings {
         tr("settings.schema.shell.settings-window-translucent.description"), {"shell", "settings_window_translucent"},
         ToggleSetting{cfg.shell.settingsWindowTranslucent},
         "settings window background alpha transparency translucent opacity"
-    ));
-    entries.push_back(makeEntry(
-        SettingsSection::Shell, "general", tr("settings.schema.shell.settings-expand-all-groups.label"),
-        tr("settings.schema.shell.settings-expand-all-groups.description"), {"shell", "settings_expand_all_groups"},
-        ToggleSetting{cfg.shell.settingsExpandAllGroups}, "settings window groups expand collapse expanded"
     ));
     entries.push_back(makeEntry(
         SettingsSection::Shell, "general", tr("settings.schema.shell.time-format.label"),

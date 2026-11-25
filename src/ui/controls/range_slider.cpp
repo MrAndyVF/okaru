@@ -379,10 +379,10 @@ void RangeSlider::applyVisualState() {
     thumbBorder = resolved(ColorRole::Hover);
   }
 
-  m_track->setStyle(solidStyle(trackColor, m_trackHeight * 0.5F));
-  m_fill->setStyle(solidStyle(fillColor, m_trackHeight * 0.5F));
+  m_track->setStyle(solidStyle(trackColor, 0.0F));
+  m_fill->setStyle(solidStyle(fillColor, 0.0F));
 
-  auto thumbStyle = solidStyle(thumbColor, m_thumbSizePx * 0.5F);
+  auto thumbStyle = solidStyle(thumbColor, 0.0F);
   thumbStyle.border = thumbBorder;
   thumbStyle.borderWidth = focused ? Style::focusRingWidth : Style::borderWidth;
   m_lowThumb->setStyle(thumbStyle);

@@ -117,7 +117,7 @@ namespace {
     hand->setPosition(-width * 0.5F, -length);
     RoundedRectStyle style;
     style.fill = color;
-    style.radius = width * 0.5F;
+    style.radius = 0.0F;
     hand->setStyle(style);
     return static_cast<RectNode*>(pivot.addChild(std::move(hand)));
   }
@@ -146,7 +146,7 @@ namespace {
     mark->setPosition(-width * 0.5F, -dialRadius);
     RoundedRectStyle style;
     style.fill = color;
-    style.radius = width * 0.5F;
+    style.radius = 0.0F;
     mark->setStyle(style);
     pivotPtr->addChild(std::move(mark));
   }
@@ -178,7 +178,7 @@ namespace {
       mark->setPosition(-width * 0.5F, -metrics.dialRadius);
       RoundedRectStyle style = mark->style();
       style.fill = color;
-      style.radius = width * 0.5F;
+      style.radius = 0.0F;
       mark->setStyle(style);
     }
   }
@@ -265,7 +265,7 @@ void DesktopClockWidget::create() {
   hub->setPosition(metrics.center - hubSize * 0.5F, metrics.center - hubSize * 0.5F);
   RoundedRectStyle hubStyle;
   hubStyle.fill = handColor;
-  hubStyle.radius = hubSize * 0.5F;
+  hubStyle.radius = 0.0F;
   hub->setStyle(hubStyle);
   m_analogRoot->addChild(std::move(hub));
 
@@ -387,7 +387,7 @@ void DesktopClockWidget::layoutAnalog(Renderer& /*renderer*/, float size) {
     hand->setSize(width, length);
     hand->setPosition(-width * 0.5F, -length);
     RoundedRectStyle style = hand->style();
-    style.radius = width * 0.5F;
+    style.radius = 0.0F;
     hand->setStyle(style);
   };
   resizeHand(m_hourPivot, hourWidth, metrics.dialRadius * kHourHandReach);
@@ -400,7 +400,7 @@ void DesktopClockWidget::layoutAnalog(Renderer& /*renderer*/, float size) {
     m_hub->setPosition(metrics.center - hubSize * 0.5F, metrics.center - hubSize * 0.5F);
     RoundedRectStyle hubStyle = m_hub->style();
     hubStyle.fill = handColor;
-    hubStyle.radius = hubSize * 0.5F;
+    hubStyle.radius = 0.0F;
     m_hub->setStyle(hubStyle);
   }
 

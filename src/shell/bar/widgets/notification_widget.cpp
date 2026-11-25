@@ -33,7 +33,7 @@ void NotificationWidget::create() {
   m_dot = area->addChild(
       ui::box({
           .fill = colorSpecFromRole(ColorRole::Primary),
-          .radius = dotSize * 0.5F,
+          .radius = 0.0F,
           .width = dotSize,
           .height = dotSize,
           .visible = false,

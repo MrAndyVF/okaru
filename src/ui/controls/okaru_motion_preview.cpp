@@ -123,7 +123,7 @@ void OkaruMotionPreview::run(double elapsedMs) {
 
 void OkaruMotionPreview::applyPalette() {
   m_lane->setStyle(solid(colorForRole(ColorRole::SurfaceContainerHigh), Style::scaledRadiusMd(m_scale)));
-  m_pill->setStyle(solid(colorForRole(ColorRole::Primary), kPillHeight * 0.5F * m_scale));
+  m_pill->setStyle(solid(colorForRole(ColorRole::Primary), 0.0F));
   m_hint->setColor(colorForRole(ColorRole::OnSurfaceVariant));
   markPaintDirty();
 }

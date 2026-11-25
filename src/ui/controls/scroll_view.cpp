@@ -255,6 +255,14 @@ void ScrollView::setScrollbarVisible(bool visible) {
   markLayoutDirty();
 }
 
+void ScrollView::setFillViewport(bool fill) {
+  if (m_fillViewport == fill) {
+    return;
+  }
+  m_fillViewport = fill;
+  markLayoutDirty();
+}
+
 void ScrollView::setReserveScrollbarGutter(bool reserve) {
   if (m_reserveScrollbarGutter == reserve) {
     return;
@@ -495,6 +503,14 @@ void ScrollView::doLayout(Renderer& renderer) {
       m_content->arrange(
           renderer, LayoutRect{.x = 0.0F, .y = 0.0F, .width = contentWidth, .height = contentSize.height}
       );
+    }
+
+    if (m_fillViewport && m_content->height() < viewportH) {
+      contentConstraints = {};
+      contentConstraints.setExactWidth(contentWidth);
+      contentConstraints.setExactHeight(viewportH);
+      (void)m_content->measure(renderer, contentConstraints);
+      m_content->arrange(renderer, LayoutRect{.x = 0.0F, .y = 0.0F, .width = contentWidth, .height = viewportH});
     }
 
     const float contentHeight = m_content->height();

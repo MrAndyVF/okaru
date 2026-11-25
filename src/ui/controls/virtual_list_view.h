@@ -32,6 +32,8 @@ public:
   [[nodiscard]] virtual std::unique_ptr<Node> createItem() = 0;
   virtual void bindItem(Renderer& renderer, Node& item, std::size_t index, float width, bool hovered) = 0;
   virtual void onActivate(std::size_t /*index*/) {}
+  // Right-button press on an item; scene coordinates are the parent surface's (to anchor a context menu).
+  virtual void onSecondaryActivate(std::size_t /*index*/, float /*sceneX*/, float /*sceneY*/, std::uint32_t /*serial*/) {}
 };
 
 class VirtualListView : public Flex {

@@ -18,6 +18,7 @@ namespace settings {
           {"appearance", "palette", 1, {S::Appearance, S::Wallpaper, S::Templates}},
           {"displays", "device-desktop", 1, {S::Displays, S::HyprWorkspaces}},
           {"sound", "volume", 1, {S::SoundDevices, S::Sound}},
+          {"apps", "apps", 1, {S::AppsInstalled, S::AppsDefaults, S::AppsFileTypes}},
           {"bar", "crop-3-2", 2, {S::Bar}},
           {"dock", "layout-bottombar", 2, {S::Dock}},
           {"desktop", "layout-dashboard", 2, {S::Desktop}},

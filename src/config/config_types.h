@@ -844,7 +844,7 @@ struct OsdConfig {
   float scale = 1.0F;
   float backgroundOpacity = 0.97F;
   bool border = true; // outline around OSD popup cards
-  ColorSpec borderColor = colorSpecFromRole(ColorRole::OutlineVariant);
+  ColorSpec borderColor = colorSpecFromRole(ColorRole::Primary); // OKARU: acento del tema, como Omarchy
   float borderWidth = Style::borderWidth;
   bool followFocusedOutput = false;
   int offsetX = 20;
@@ -867,7 +867,7 @@ struct NotificationConfig {
   std::int32_t width = kDefaultWidth;
   float backgroundOpacity = 0.97F; // toast card background alpha (0.0–1.0)
   bool border = true;              // outline around toast cards
-  ColorSpec borderColor = colorSpecFromRole(ColorRole::OutlineVariant);
+  ColorSpec borderColor = colorSpecFromRole(ColorRole::Primary); // OKARU: acento del tema, como Omarchy
   float borderWidth = Style::borderWidth;
   bool followFocusedOutput = false;
   int offsetX = 20; // absolute horizontal margin from the screen edge
@@ -957,21 +957,21 @@ constexpr ShadowDirectionOffset shadowDirectionOffset(ShadowDirection dir) noexc
   case ShadowDirection::Center:
     return {0, 0};
   case ShadowDirection::Down:
-    return {0, 2};
+    return {0, 4};
   case ShadowDirection::Up:
-    return {0, -2};
+    return {0, -4};
   case ShadowDirection::Left:
-    return {-2, 0};
+    return {-4, 0};
   case ShadowDirection::Right:
-    return {2, 0};
+    return {4, 0};
   case ShadowDirection::DownLeft:
-    return {-2, 2};
+    return {-4, 4};
   case ShadowDirection::DownRight:
-    return {2, 2};
+    return {4, 4};
   case ShadowDirection::UpLeft:
-    return {-2, -2};
+    return {-4, -4};
   case ShadowDirection::UpRight:
-    return {2, -2};
+    return {4, -4};
   }
   return {0, 2};
 }
@@ -1095,7 +1095,7 @@ struct ShellConfig {
 
   struct ShadowConfig {
     ShadowDirection direction = ShadowDirection::Down;
-    float alpha = 0.55F;
+    float alpha = 0.28F; // OKARU: sombra suave, para que no parezca un segundo borde junto al de 2 px
 
     bool operator==(const ShadowConfig&) const = default;
   };
@@ -1103,7 +1103,7 @@ struct ShellConfig {
   struct PanelConfig {
     PanelTransparencyMode transparencyMode = PanelTransparencyMode::Solid;
     bool borders = true; // outline on floating panel surfaces
-    ColorSpec borderColor = colorSpecFromRole(ColorRole::OutlineVariant);
+    ColorSpec borderColor = colorSpecFromRole(ColorRole::Primary); // OKARU: acento del tema, como Omarchy
     float borderWidth = Style::borderWidth;
     bool shadow = true;                    // cast the global [shell.shadow] from panel surfaces
     bool listItemBackground = false;       // filled rounded background behind launcher/clipboard list items
@@ -1262,7 +1262,6 @@ struct ShellConfig {
   AnimationConfig animation;
   std::string avatarPath;
   bool settingsShowAdvanced = true;
-  bool settingsExpandAllGroups = false;
   bool settingsWindowTranslucent = false;
   bool showLocation = true;
   bool appIconColorize = false;

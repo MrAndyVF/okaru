@@ -158,11 +158,11 @@ namespace {
     return static_cast<std::uint32_t>(std::max(1, static_cast<int>(std::ceil(h))));
   }
 
-  [[nodiscard]] float glyphSize(float s) { return (Style::fontSizeTitle + Style::borderWidth * 4) * s; }
+  [[nodiscard]] float glyphSize(float s) { return (Style::fontSizeTitle + 4.0F) * s; }
 
   [[nodiscard]] float valueFontSize(float s) { return Style::fontSizeBody * s; }
 
-  [[nodiscard]] float progressHeight(float s) { return (Style::spaceXs + Style::borderWidth * 2) * s; }
+  [[nodiscard]] float progressHeight(float s) { return (Style::spaceXs + 2.0F) * s; }
 
   [[nodiscard]] float verticalProgressWidth(float s) { return progressHeight(s) * 1.75F; }
 

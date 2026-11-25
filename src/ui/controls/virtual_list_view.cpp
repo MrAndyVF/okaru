@@ -228,6 +228,8 @@ void VirtualListView::doLayout(Renderer& renderer) {
     slot->setOnPress([this, slotPtr](const InputArea::PointerData& data) {
       if (!data.pressed && data.button == BTN_LEFT) {
         activateSlot(*slotPtr);
+      } else if (data.pressed && data.button == BTN_RIGHT && m_adapter != nullptr && slotPtr->boundIndex().has_value()) {
+        m_adapter->onSecondaryActivate(*slotPtr->boundIndex(), data.sceneX, data.sceneY, data.serial);
       }
     });
     m_pool.push_back(static_cast<Slot*>(m_canvas->addChild(std::move(slot))));
