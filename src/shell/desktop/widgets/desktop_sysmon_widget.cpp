@@ -410,7 +410,7 @@ void DesktopSysmonWidget::layoutGaugeMode(Renderer& renderer) {
     m_gauge->setOrientation(ProgressBarOrientation::Horizontal);
     const float trackW = std::max(ink.width(), gaugeStem);
     const float trackH = gaugeThickness;
-    m_gauge->setRadius(trackH / 2.0F);
+    m_gauge->setRadius(0.0F);
     float contentW = trackW;
     if (m_label != nullptr) {
       contentW = std::max(contentW, labelW);
@@ -429,7 +429,7 @@ void DesktopSysmonWidget::layoutGaugeMode(Renderer& renderer) {
     m_gauge->setOrientation(ProgressBarOrientation::Vertical);
     const float gaugeW = gaugeThickness;
     const float gaugeH = gaugeStem;
-    m_gauge->setRadius(gaugeW / 2.0F);
+    m_gauge->setRadius(0.0F);
     float contentH = std::max(glyphH, gaugeH);
     if (m_label != nullptr) {
       contentH = std::max(contentH, labelH);

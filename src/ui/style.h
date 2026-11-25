@@ -17,6 +17,8 @@ namespace Style {
   inline constexpr float radiusXl = 0.0F;
 
   inline constexpr float borderWidth = 1.0F;
+  // OKARU: tarjetas con borde más marcado (estilo Omarchy), igual en la shell y en las apps.
+  inline constexpr float cardBorderWidth = 2.0F;
   inline constexpr float emphasizedBorderWidth = 3.0F;
   inline constexpr float focusRingWidth = 2.0F;
   inline constexpr float progressMarkerWidth = 2.0F;

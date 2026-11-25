@@ -283,7 +283,7 @@ void Select::doLayout(Renderer& renderer) {
       m_triggerIndicator->setFill(m_indicatorColors[m_selectedIndex]);
       m_triggerIndicator->setBorder(colorSpecFromRole(ColorRole::OutlineVariant), indicatorBorder);
       m_triggerIndicator->setFrameSize(indicatorSize, indicatorSize);
-      m_triggerIndicator->setRadius(indicatorSize * 0.5F);
+      m_triggerIndicator->setRadius(0.0F);
       const float indicatorX = Style::rtl() ? dropdownWidth - m_horizontalPadding - indicatorSize : m_horizontalPadding;
       m_triggerIndicator->setPosition(indicatorX, std::round((m_controlHeight - indicatorSize) * 0.5F));
     }

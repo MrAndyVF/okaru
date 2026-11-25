@@ -324,7 +324,7 @@ void ScrollView::setSoftness(float softness) {
 void ScrollView::setCardStyle(float scale, float fillOpacity, bool showBorder) {
   setFill(colorSpecFromRole(ColorRole::SurfaceContainer, fillOpacity));
   if (showBorder) {
-    setBorder(colorSpecFromRole(ColorRole::OutlineVariant), Style::borderWidth);
+    setBorder(colorSpecFromRole(ColorRole::OutlineVariant), Style::cardBorderWidth);
   } else {
     clearBorder();
   }
@@ -509,7 +509,7 @@ void ScrollView::doLayout(Renderer& renderer) {
       contentConstraints = {};
       contentConstraints.setExactWidth(contentWidth);
       contentConstraints.setExactHeight(viewportH);
-      m_content->measure(renderer, contentConstraints);
+      (void)m_content->measure(renderer, contentConstraints);
       m_content->arrange(renderer, LayoutRect{.x = 0.0F, .y = 0.0F, .width = contentWidth, .height = viewportH});
     }
 

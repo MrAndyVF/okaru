@@ -236,7 +236,7 @@ void Scrollbar::applyExpansion(float expansion) {
 }
 
 void Scrollbar::applyPalette() {
-  const float radius = thickness() * 0.5F;
+  const float radius = 0.0F;
   if (m_track != nullptr) {
     m_track->setStyle(makeSolid(resolveColorSpec(scrollbarTrackColor()), radius));
   }

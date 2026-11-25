@@ -365,7 +365,7 @@ void ContextMenuControl::rebuildRows(Renderer& renderer) {
         dot->setFill(*entry.indicatorColor);
         dot->setBorder(colorSpecFromRole(ColorRole::OutlineVariant), 1.5F);
         dot->setFrameSize(dotSize, dotSize);
-        dot->setRadius(dotSize * 0.5F);
+        dot->setRadius(0.0F);
         dot->setPosition(8.0F * scale + indent + toggleSlot, std::round((rowHeight - dotSize) * 0.5F));
         row->addChild(std::move(dot));
       }

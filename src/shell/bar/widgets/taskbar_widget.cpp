@@ -1216,7 +1216,7 @@ void TaskbarWidget::buildTaskButtons(Renderer& renderer) {
         .fill = colorSpecFromRole(ColorRole::Surface),
         .border = colorSpecFromRole(ColorRole::Secondary),
         .borderWidth = m_contentScale,
-        .radius = markerHeight * 0.5F,
+        .radius = 0.0F,
         .width = markerWidth,
         .height = markerHeight,
         .visible = windowCount > 0 && minimizedCount == windowCount,
@@ -1227,7 +1227,7 @@ void TaskbarWidget::buildTaskButtons(Renderer& renderer) {
     minimizeIndicator->setHitTestVisible(false);
     auto minus = ui::box({
         .fill = colorSpecFromRole(ColorRole::OnSurface),
-        .radius = minusHeight * 0.5F,
+        .radius = 0.0F,
         .width = minusWidth,
         .height = minusHeight,
         .participatesInLayout = false,
@@ -1287,7 +1287,7 @@ void TaskbarWidget::buildTaskButtons(Renderer& renderer) {
         const float lineThickness = d * 0.5F;
         auto indicator = ui::box({
             .fill = m_activeIndicatorColor,
-            .radius = lineThickness * 0.5F,
+            .radius = 0.0F,
             .width = tileWidthWithTitle - tilePadding * 2,
             .height = lineThickness,
         });
