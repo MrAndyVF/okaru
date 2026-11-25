@@ -1304,8 +1304,10 @@ widget_spacing = 8
   // Bar: write parity against the captured golden, plus read-inverse via the
   // schemas (reconstructing the bar exactly as config_service does).
   {
+    // Se comparan los valores, no el texto: la forma de escribir un float (0.85000002384185791 o
+    // 0.8500000238418579, el mismo double) cambia entre versiones de toml++.
     const std::string fresh = formatToml(*serialized["bar"].as_table());
-    if (fresh != kBarGolden) {
+    if (toml::parse(kBarGolden) != *serialized["bar"].as_table()) {
       fail(
           "bar: serialization drifted from golden\n--- golden ---\n"
           + std::string(kBarGolden)
