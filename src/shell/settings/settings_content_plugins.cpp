@@ -715,53 +715,11 @@ namespace settings {
 
     const std::string sourcesTitle = i18n::tr("settings.plugins.sources.title");
     const std::string pluginsTitle = i18n::tr("settings.plugins.plugins.title");
-    auto [pageIt, fresh] = ctx.expandedGroupsByPage.try_emplace("plugins");
-    if (fresh) {
-      pageIt->second.insert("plugins");
-      if (ctx.expandAllGroups) {
-        pageIt->second.insert("sources");
-      }
-    }
-    auto& expandedGroups = pageIt->second;
-
-    Button* sourcesPill = nullptr;
-    Button* pluginsPill = nullptr;
-    if (ctx.groupJumpRow != nullptr && !ctx.searchActive) {
-      ctx.groupJumpRow->addChild(
-          ui::button({
-              .out = &sourcesPill,
-              .text = sourcesTitle,
-              .fontSize = Style::fontSizeCaption * scale,
-              .variant = expandedGroups.contains("sources") ? ButtonVariant::Primary : ButtonVariant::Default,
-              .radius = Style::scaledRadiusMd(scale),
-          })
-      );
-      ctx.groupJumpRow->addChild(
-          ui::button({
-              .out = &pluginsPill,
-              .text = pluginsTitle,
-              .fontSize = Style::fontSizeCaption * scale,
-              .variant = expandedGroups.contains("plugins") ? ButtonVariant::Primary : ButtonVariant::Default,
-              .radius = Style::scaledRadiusMd(scale),
-          })
-      );
-    }
-
     if (ctx.config != nullptr && ctx.config->shell.offlineMode) {
       section->addChild(makeOfflineModeNotice(scale, i18n::tr("settings.window.offline-mode-notice.plugins")));
     }
 
-    Flex* sourcesBody = addSettingsGroupCard(
-        SettingsGroupCardProps{
-            .parent = *section,
-            .group = "sources",
-            .title = sourcesTitle,
-            .scale = scale,
-            .expandedGroups = expandedGroups,
-            .pill = sourcesPill,
-            .scrollToTop = ctx.scrollContentToTop,
-        }
-    );
+    Flex* sourcesBody = addSettingsCard(*section, sourcesTitle, scale);
 
     Flex* sourcesHeader = nullptr;
     auto sourcesHeaderNode = ui::row({
@@ -843,17 +801,7 @@ namespace settings {
     }
 
     // ── Plugins ──────────────────────────────────────────────────────────
-    Flex* pluginsBody = addSettingsGroupCard(
-        SettingsGroupCardProps{
-            .parent = *section,
-            .group = "plugins",
-            .title = pluginsTitle,
-            .scale = scale,
-            .expandedGroups = expandedGroups,
-            .pill = pluginsPill,
-            .scrollToTop = ctx.scrollContentToTop,
-        }
-    );
+    Flex* pluginsBody = addSettingsCard(*section, pluginsTitle, scale);
     std::vector<scripting::PluginStatus> plugins;
     plugins.reserve(ctx.plugins.size());
     for (const auto& plugin : ctx.plugins) {

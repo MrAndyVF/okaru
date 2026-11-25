@@ -3455,10 +3455,6 @@
           "description": "範囲選択画面で「コピー」または「保存」を選ぶとすぐに処理を実行。EnterキーまたはSpaceキーでは引き続き注釈エディターを開く",
           "label": "コピー・保存時はエディターを開かない"
         },
-        "settings-expand-all-groups": {
-          "description": "各ページで最初のグループだけでなく、すべての設定グループを展開して表示",
-          "label": "すべての設定グループを展開"
-        },
         "settings-window-translucent": {
           "description": "コンポジターの描画効果を利用できるよう、設定画面の背景を半透明にする",
           "label": "設定画面の背景を半透明にする"

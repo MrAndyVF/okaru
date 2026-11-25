@@ -4490,10 +4490,6 @@
           "description": "Copiar y guardar en la región superpuesta entrega inmediatamente; Enter y Espacio aún abren el editor",
           "label": "Omitir editor al copiar o guardar"
         },
-        "settings-expand-all-groups": {
-          "description": "Abrir todos los grupos de configuración expandidos en lugar de solo el primero de cada página.",
-          "label": "Expandir todos los grupos de configuración"
-        },
         "settings-window-translucent": {
           "description": "Hacer que el fondo de Configuración sea translúcido para los efectos del compositor",
           "label": "Configuración de fondo translúcido"

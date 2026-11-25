@@ -288,7 +288,6 @@ private:
   Button* m_actionsMenuButton = nullptr;
   Flex* m_contentContainer = nullptr;
   Flex* m_pageTitleRow = nullptr;
-  Flex* m_groupJumpRow = nullptr;
   Flex* m_moduleTabsRow = nullptr; // OKARU: selector de subsecciones del módulo
   ScrollView* m_contentScrollView = nullptr;
   ScrollView* m_sidebarScrollView = nullptr;
@@ -351,11 +350,6 @@ private:
   // plain flag so the group survives the rebuild an edit triggers, but starts folded on every
   // other widget.
   std::string m_actionsExpandedFor;
-  // Expanded setting groups per page, keyed by content section key (pageScopeKey).
-  // A page gets its default expansion (first group, or all with settings_expand_all_groups) when first
-  // rendered; changing settings_expand_all_groups drops this state so every page re-seeds.
-  std::unordered_map<std::string, std::unordered_set<std::string>> m_expandedSettingGroups;
-  bool m_expandedSettingGroupsSeededExpandAll = false;
   std::string m_pendingDeletePluginId;
   std::string m_selectedBarName;
   std::string m_selectedSection;

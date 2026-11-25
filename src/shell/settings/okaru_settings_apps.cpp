@@ -101,7 +101,10 @@ namespace settings {
       });
     }
 
-    std::unique_ptr<Node> appIcon(const DesktopEntry& app, float scale, Renderer* renderer, const ConfigService* config) {
+    // Los iconos se decodifican en segundo plano y quedan en la caché: reconstruir la página no los vuelve a leer.
+    std::unique_ptr<Node> appIcon(
+        const DesktopEntry& app, float scale, Renderer* renderer, AsyncTextureCache* cache, const ConfigService* config
+    ) {
       static IconResolver resolver;
       const float size = 28.0F * scale;
       const int target = static_cast<int>(size * 2.0F);
@@ -111,7 +114,8 @@ namespace settings {
         if (config != nullptr) {
           image->setAppIconColorization(effectiveShellAppIconColorizationTint(config->config().shell));
         }
-        if (image->setSourceFile(*renderer, path, target, true)) {
+        if (cache != nullptr ? image->setSourceFileAsync(*renderer, *cache, path, target, true)
+                             : image->setSourceFile(*renderer, path, target, true)) {
           return image;
         }
       }
@@ -383,7 +387,9 @@ namespace settings {
       body.addChild(std::move(details));
     }
 
-    void addInstalledPage(Flex& content, float scale, ConfigService* config, Renderer* renderer) {
+    void addInstalledPage(
+        Flex& content, float scale, ConfigService* config, Renderer* renderer, AsyncTextureCache* cache
+    ) {
       auto& s = state();
       Flex* body = addSettingsCard(content, tr("installed"), scale);
       body->addChild(intro(scale, "installed-intro"));
@@ -412,7 +418,7 @@ namespace settings {
         const bool expanded = s.expanded == app.id;
 
         auto line = row(scale);
-        auto icon = appIcon(app, scale, renderer, config);
+        auto icon = appIcon(app, scale, renderer, cache, config);
         icon->setOpacity(hidden ? 0.5F : 1.0F);
         line->addChild(std::move(icon));
         std::string detail = hidden ? tr("hidden") : app.comment;
@@ -478,7 +484,7 @@ namespace settings {
     } else if (ctx.page == "apps-file-types") {
       addFileTypesPage(content, scale);
     } else {
-      addInstalledPage(content, scale, ctx.config, ctx.renderer);
+      addInstalledPage(content, scale, ctx.config, ctx.renderer, ctx.textures);
     }
   }
 

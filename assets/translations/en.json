@@ -4576,10 +4576,6 @@
           "description": "Copy and Save in the region overlay deliver immediately; Enter and Space still open the editor",
           "label": "Skip Editor on Copy or Save"
         },
-        "settings-expand-all-groups": {
-          "description": "Open every settings group expanded instead of only the first one on each page",
-          "label": "Expand All Settings Groups"
-        },
         "settings-window-translucent": {
           "description": "Make the Settings background translucent for compositor effects",
           "label": "Settings Translucent Background"

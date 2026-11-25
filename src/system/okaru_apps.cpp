@@ -372,7 +372,8 @@ namespace okaru::apps {
   }
 
   bool hiddenByOkaru(const DesktopEntry& app) {
-    return app.noDisplay && readFile(app.path).contains(kHiddenMark);
+    // Solo OKARU escribe la marca, y siempre en la carpeta del usuario: no hace falta leer las del sistema.
+    return app.noDisplay && app.path.starts_with(dataHome() + "/applications/") && readFile(app.path).contains(kHiddenMark);
   }
 
   std::optional<std::string> setHidden(const DesktopEntry& app, bool hidden) {

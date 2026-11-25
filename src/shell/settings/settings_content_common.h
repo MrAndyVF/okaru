@@ -50,19 +50,7 @@ namespace settings {
   [[nodiscard]] bool settingsSectionNeedsOfflineModeNotice(SettingsSection section);
   [[nodiscard]] std::string offlineModeNoticeMessage(SettingsSection section);
 
-  struct SettingsGroupCardProps {
-    Flex& parent;
-    std::string group;
-    std::string title;
-    float scale = 1.0F;
-    std::unordered_set<std::string>& expandedGroups;
-    Button* pill = nullptr;
-    std::function<void(const Node&)> scrollToTop;
-  };
-
-  [[nodiscard]] Flex* addSettingsGroupCard(SettingsGroupCardProps props);
-  // Same card as addSettingsGroupCard without the collapsible header, for transient groupings
-  // (search results) that must never start hidden and hold no expanded state.
+  // Section card with a title; the returned column receives the rows.
   [[nodiscard]] Flex* addSettingsCard(Flex& parent, std::string_view title, float scale);
 
   [[nodiscard]] std::optional<std::size_t>

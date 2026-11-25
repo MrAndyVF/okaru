@@ -3328,10 +3328,6 @@
           "description": "Copia e salva nella zona di sovrapposizione, il salvataggio avviene immediatamente; Invio e Spazio aprono comunque l'editor.",
           "label": "Salta l'editor quando copi o salvi"
         },
-        "settings-expand-all-groups": {
-          "description": "Espandi tutti i gruppi di impostazioni anziché solo il primo in ogni pagina",
-          "label": "Espandi tutti i gruppi di impostazioni"
-        },
         "settings-window-translucent": {
           "description": "Rendi traslucido lo sfondo delle Impostazioni per gli effetti del compositor",
           "label": "Impostazioni Sfondo traslucido"

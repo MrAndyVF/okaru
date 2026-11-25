@@ -3388,10 +3388,6 @@
           "description": "Copiază și Salvează în suprapunerea regiunii livrează imediat; Enter și Space deschid în continuare editorul",
           "label": "Omite editorul la copiere sau salvare"
         },
-        "settings-expand-all-groups": {
-          "description": "Deschide toate grupurile de setări extinse, în loc de doar primul de pe fiecare pagină",
-          "label": "Extinde toate grupurile de setări"
-        },
         "settings-window-translucent": {
           "description": "Face fundalul setărilor translucid pentru efectele compositorului",
           "label": "Fundal translucid pentru setări"

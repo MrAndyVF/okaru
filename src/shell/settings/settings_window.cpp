@@ -611,7 +611,6 @@ void SettingsWindow::destroyWindow() {
   m_filterRow = nullptr;
   m_contentContainer = nullptr;
   m_pageTitleRow = nullptr;
-  m_groupJumpRow = nullptr;
   m_contentScrollView = nullptr;
   m_sidebarScrollView = nullptr;
   m_sidebarNav = nullptr;
@@ -667,7 +666,6 @@ void SettingsWindow::destroyWindow() {
   m_showOverriddenOnly = false;
   m_sidebarScrollState = {};
   m_contentScrollState = {};
-  m_expandedSettingGroups.clear();
 
   // Plugin-store thumbnails are the only async textures this window holds; drop the
   // zero-ref residents once the scene (and with it every Image) is gone.

@@ -6,6 +6,7 @@
 #include <functional>
 #include <string_view>
 
+class AsyncTextureCache;
 class ConfigService;
 class Flex;
 class Renderer;
@@ -17,6 +18,7 @@ namespace settings {
     std::string_view page; // "apps-defaults", "apps-file-types" o "apps-installed"
     ConfigService* config = nullptr;
     Renderer* renderer = nullptr; // para los iconos; sin él, un glifo
+    AsyncTextureCache* textures = nullptr;
     std::function<void()> requestRebuild;
   };
 
