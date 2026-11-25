@@ -53,6 +53,9 @@ struct DesktopEntry {
   std::string idLower;
   std::string execLower;
 
+  // MimeType= list, as declared (OKARU: Settings → Applications)
+  std::vector<std::string> mimeTypes;
+
   // Desktop file actions (e.g. "New Window", "New Private Window")
   std::vector<DesktopAction> actions;
 };

@@ -58,11 +58,8 @@ namespace settings {
     std::string& pendingGestureKey;
     std::string& pendingGestureVerb;
     std::string& actionsExpandedFor;
-    std::unordered_map<std::string, std::unordered_set<std::string>>& expandedGroupsByPage;
-    // Fixed page title row above the group pills, null when no host exists.
+    // Fixed page title row, null when no host exists.
     Flex* pageTitleRow = nullptr;
-    // Sticky pill row above the content scroll view, null when no host exists.
-    Flex* groupJumpRow = nullptr;
     // Bindable IPC commands for the gesture action picker: value = command, label = usage,
     // description = the command's --help text.
     std::vector<GestureActionOption> actionCatalog;
@@ -71,7 +68,6 @@ namespace settings {
     std::function<void()> requestContentRebuild;
     std::function<void()> resetContentScroll;
     std::function<void(Node*)> setScrollTarget;
-    std::function<void(const Node&)> scrollContentToTop;
     std::function<void(InputArea*)> focusArea;
     std::function<void(const std::vector<std::string>&)> openBarWidgetAddPopup;
     std::function<void(SearchPickerOpenRequest request)> openSearchPickerPopup;

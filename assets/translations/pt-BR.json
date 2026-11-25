@@ -3446,10 +3446,6 @@
           "description": "Copia e Salva na região do overlay é entregue imediatamente; Enter ou Espaço continuam abrindo o editor",
           "label": "Ignora o Editor ao Copiar ou Salvar"
         },
-        "settings-expand-all-groups": {
-          "description": "Abrir cada grupo de configuração expandido ao invés de somente o primeiro em cada página",
-          "label": "Expandir Todos os Grupos de Configuração"
-        },
         "settings-window-translucent": {
           "description": "Torne o fundo das Configurações transparente para efeitos dos compositores",
           "label": "Fundo Transparente das Configurações"

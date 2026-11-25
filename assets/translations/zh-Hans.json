@@ -3368,10 +3368,6 @@
           "description": "在区域选择界面中直接复制或保存；按下 Enter 或 Space 键仍会打开编辑器",
           "label": "复制或保存时跳过编辑器"
         },
-        "settings-expand-all-groups": {
-          "description": "展开所有设置组，而不是每页仅展开第一个",
-          "label": "展开所有设置组"
-        },
         "settings-window-translucent": {
           "description": "将设置窗口背景设为半透明，以增强合成器效果",
           "label": "设置窗口半透明背景"

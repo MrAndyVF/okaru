@@ -34,10 +34,6 @@ namespace settings {
     std::vector<PluginSourceConfig> sources;
     bool searchActive = false;
     Flex* pageTitleRow = nullptr;
-    Flex* groupJumpRow = nullptr;
-    std::function<void(const Node&)> scrollContentToTop;
-    std::unordered_map<std::string, std::unordered_set<std::string>>& expandedGroupsByPage;
-    bool expandAllGroups = false;
     bool pluginsLoading = false;
 
     std::function<void(std::string id, bool enable)> setEnabled;

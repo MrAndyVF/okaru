@@ -1248,54 +1248,6 @@ namespace settings {
       return matchesNormalizedSettingQuery(entry, normalizedSearchQuery);
     };
 
-    std::string pageKey;
-    std::vector<std::string> pageGroupKeys;
-    if (ctx.searchQuery.empty()) {
-      std::unordered_set<std::string> seenGroupKeys;
-      for (const std::size_t entryIndex : entryOrder) {
-        const auto& entry = registry[entryIndex];
-        if (!entryPassesFilters(entry) || entry.group.empty()) {
-          continue;
-        }
-        if (pageKey.empty()) {
-          pageKey = barSettingContentSectionKey(entry);
-        }
-        if (seenGroupKeys.insert(entry.group).second) {
-          pageGroupKeys.push_back(entry.group);
-        }
-      }
-    }
-    const bool collapsibleGroups = ctx.searchQuery.empty() && !pageGroupKeys.empty();
-    std::unordered_set<std::string>* expandedGroups = nullptr;
-    if (collapsibleGroups) {
-      auto [pageIt, fresh] = ctx.expandedGroupsByPage.try_emplace(pageKey);
-      if (fresh) {
-        if (ctx.config.shell.settingsExpandAllGroups) {
-          pageIt->second.insert(pageGroupKeys.begin(), pageGroupKeys.end());
-        } else {
-          pageIt->second.insert(pageGroupKeys.front());
-        }
-      }
-      expandedGroups = &pageIt->second;
-    }
-
-    std::unordered_map<std::string, Button*> pillByGroup;
-    if (collapsibleGroups && ctx.groupJumpRow != nullptr) {
-      for (const auto& group : pageGroupKeys) {
-        Button* pill = nullptr;
-        ctx.groupJumpRow->addChild(
-            ui::button({
-                .out = &pill,
-                .text = groupLabel(group),
-                .fontSize = Style::fontSizeCaption * scale,
-                .variant = expandedGroups->contains(group) ? ButtonVariant::Primary : ButtonVariant::Default,
-                .radius = Style::scaledRadiusMd(scale),
-            })
-        );
-        pillByGroup.emplace(group, pill);
-      }
-    }
-
     for (const std::size_t entryIndex : entryOrder) {
       const auto& entry = registry[entryIndex];
       if (!entryPassesFilters(entry)) {
@@ -1345,19 +1297,8 @@ namespace settings {
           activeGroupKey = entry.group;
           activeKeybindRow = nullptr;
           activeKeybindRowCount = 0;
-          if (collapsibleGroups && !entry.group.empty()) {
-            activeGroupBody = addSettingsGroupCard(
-                SettingsGroupCardProps{
-                    .parent = *activeSection,
-                    .group = entry.group,
-                    .title = groupLabel(entry.group),
-                    .scale = scale,
-                    .expandedGroups = *expandedGroups,
-                    .pill = pillByGroup[entry.group],
-                    .scrollToTop = ctx.scrollContentToTop,
-                }
-            );
-          } else if (!entry.group.empty()) {
+          // OKARU: cada grupo es una tarjeta siempre abierta; las subsecciones se eligen con las pestañas.
+          if (!entry.group.empty()) {
             activeGroupBody = addSettingsCard(*activeSection, groupLabel(entry.group), scale);
           } else {
             addGroupLabel(*activeSection, groupLabel(entry.group), isFirstGroup);
@@ -1435,7 +1376,7 @@ namespace settings {
         || ctx.selectedSection.starts_with("window-") || ctx.selectedSection.starts_with("input-")
         || ctx.selectedSection.starts_with("hypr-") || ctx.selectedSection == "system-startup"
         || ctx.selectedSection == "system-environment" || ctx.selectedSection == "home"
-        || ctx.selectedSection == "sound-devices";
+        || ctx.selectedSection == "sound-devices" || ctx.selectedSection.starts_with("apps-");
     if (visibleEntries == 0 && ctx.okaruExtraResults == 0 && (!ctx.searchQuery.empty() || !okaruOwnPage)) {
       auto emptyState = ui::column(
           {.align = FlexAlign::Center,

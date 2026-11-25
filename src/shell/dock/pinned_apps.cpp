@@ -1,5 +1,6 @@
 #include "shell/dock/pinned_apps.h"
 
+#include "config/config_service.h"
 #include "core/log.h"
 #include "system/internal_app_metadata.h"
 
@@ -55,6 +56,23 @@ namespace shell::dock::pinned_apps {
     }
 
     return resolved;
+  }
+
+  bool isPinned(const ConfigService& config, const DesktopEntry& entry) {
+    return containsEntry(config.config().dock.pinned, entry);
+  }
+
+  bool setPinned(ConfigService& config, const DesktopEntry& entry, bool pinned) {
+    std::vector<std::string> list = config.config().dock.pinned;
+    if (pinned == containsEntry(list, entry)) {
+      return true;
+    }
+    if (pinned) {
+      list.push_back(entry.id);
+    } else {
+      removeEntry(list, entry);
+    }
+    return config.setOverride({"dock", "pinned"}, std::move(list));
   }
 
 } // namespace shell::dock::pinned_apps

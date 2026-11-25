@@ -10,6 +10,90 @@ Cada versión tiene una sección en inglés y otra en español, separadas por ti
 (comportamiento, empaquetado o funcionamiento interno). Los grupos vacíos se omiten. El flujo de publicación
 copia la sección de la versión etiquetada en su release de GitHub, y Ajustes → Inicio enlaza a él.
 
+## [1.4.0] - 2026-11-25
+
+### English
+
+#### Features
+- **New Applications module in Settings** with three tabs:
+  - **Installed**: every app with its icon; open it, pin it to the dock, hide it from the launcher (and show it again)
+    and see its details: source (pacman, AUR, Flatpak or Snap), package, version, size and desktop file. From there
+    it can also be **uninstalled** (asks for a second click; pkexec for pacman and Snap). The list only builds the
+    rows on screen, so it opens instantly.
+  - **Default apps**: browser, email, file manager, text editor, images, video, music, PDF and archives, each with
+    the apps that can open it. Saved in `~/.config/mimeapps.list`.
+  - **File types**: pick an app and see the types it opens, with their extensions (`.png .jpg…`), which app opens
+    each one today and a switch to make it the default (or "Use for all").
+- Launcher: **right-click an app to pin it to the dock** (or unpin it).
+- Control center: in edit mode, **drag a card by its title** onto another to move it there (the arrows remain for
+  the keyboard).
+- Settings: the module list **fills the whole height** of the sidebar, and every group of a page is an always-open
+  card in one scrolling column; subsections are chosen only with the tabs at the top, as in Applications.
+
+#### Changes
+- **Square everywhere**: switches, slider thumbs and tracks, radio buttons, scrollbars, indicators, progress bars,
+  gauges, dots and avatars lose their pill or circle shape, in the shell and in every app.
+- **2 px borders across the system** (cards, buttons, switches, inputs, menus and popups), in the Omarchy style.
+- Panels, notifications and the OSD default to a **border in the theme accent** (`primary`); buttons keep theirs.
+- **Softer shadows** for panels and popups (wider blur, 4 px offset, 28 % default opacity), so they no longer look
+  like a second thick border.
+- Settings: the option to expand every group (`shell.settings_expand_all_groups`) is gone, since groups no longer
+  fold (migration 28 removes it).
+- Released with Files 1.3.0, Valandy 1.1.4, Archives 1.0.3, Text Editor 1.1.0, PDF 1.0.2 and Emoji 1.0.1.
+- Core: `okaru::apps` (mimeapps.list, globs2 extensions, hiding apps, owning package), `DesktopEntry::mimeTypes`,
+  `pinned_apps::setPinned`, `VirtualListAdapter::onSecondaryActivate`, `ScrollView::setFillViewport`;
+  `Style::borderWidth` is now 2. New test `okaru_apps`.
+- CI for the app repos: `packaging/ci/instalar-nucleo.sh` builds okaru-core from an unpublished okaru ref, used when
+  an app repo carries a `.okaru-core-ref` file.
+
+#### Fixes
+- Weather: the rain/snow effect of the current conditions no longer covers the card border.
+- Tests: the configuration round-trip test compares by value, not text, so a newer toml++ printing the same number
+  differently no longer fails it.
+
+### Español
+
+#### Novedades
+- **Nuevo módulo Aplicaciones en Ajustes** con tres pestañas:
+  - **Instaladas**: cada app con su icono; se puede abrir, fijar en el dock, ocultar del lanzador (y volver a
+    mostrar) y ver sus detalles: origen (pacman, AUR, Flatpak o Snap), paquete, versión, tamaño y archivo .desktop.
+    Desde ahí también se puede **desinstalar** (pide un segundo clic; pkexec para pacman y Snap). La lista solo arma
+    las filas que se ven, así que abre al instante.
+  - **Apps por defecto**: navegador, correo, gestor de archivos, editor de texto, imágenes, video, música, PDF y
+    comprimidos, cada uno con las apps que pueden abrirlo. Se guarda en `~/.config/mimeapps.list`.
+  - **Tipos de archivo**: eliges una app y ves los tipos que abre, con sus extensiones (`.png .jpg…`), qué app abre
+    hoy cada uno y un interruptor para que sea la predeterminada (o «Usar para todos»).
+- Lanzador: **clic derecho sobre una app para fijarla en el dock** (o quitarla).
+- Centro de control: en el modo edición, **arrastra una tarjeta por su título** sobre otra para moverla ahí (las
+  flechas siguen para el teclado).
+- Ajustes: la lista de módulos **ocupa todo el alto** de la barra lateral, y cada grupo de una página es una tarjeta
+  siempre abierta en una sola columna con scroll; las subsecciones se eligen solo con las pestañas de arriba, como
+  en Aplicaciones.
+
+#### Cambios
+- **Todo cuadrado**: interruptores, botón y pista de los sliders, botones de radio, barras de scroll, indicadores,
+  barras de progreso, medidores, puntos y avatares dejan la forma de píldora o círculo, en la shell y en todas las
+  apps.
+- **Bordes de 2 px en todo el sistema** (tarjetas, botones, interruptores, entradas, menús y ventanas emergentes),
+  al estilo Omarchy.
+- Paneles, notificaciones y OSD traen de fábrica un **borde con el acento del tema** (`primary`); los botones
+  conservan el suyo.
+- **Sombras más suaves** en paneles y ventanas emergentes (difuminado más amplio, desplazamiento de 4 px, opacidad
+  de fábrica del 28 %), para que ya no parezcan un segundo borde grueso.
+- Ajustes: desaparece la opción de expandir todos los grupos (`shell.settings_expand_all_groups`), porque los grupos
+  ya no se pliegan (la migración 28 la quita).
+- Sale junto con Archivos 1.3.0, Valandy 1.1.4, Comprimidos 1.0.3, Editor de texto 1.1.0, PDF 1.0.2 y Emoji 1.0.1.
+- Núcleo: `okaru::apps` (mimeapps.list, extensiones de globs2, ocultar apps, paquete dueño), `DesktopEntry::mimeTypes`,
+  `pinned_apps::setPinned`, `VirtualListAdapter::onSecondaryActivate`, `ScrollView::setFillViewport`;
+  `Style::borderWidth` pasa a 2. Prueba nueva `okaru_apps`.
+- CI de los repos de apps: `packaging/ci/instalar-nucleo.sh` compila okaru-core desde un ref de okaru sin publicar;
+  se usa cuando el repo de una app trae un archivo `.okaru-core-ref`.
+
+#### Correcciones
+- Clima: el efecto de lluvia o nieve de las condiciones actuales ya no tapa el borde de la tarjeta.
+- Pruebas: la prueba de ida y vuelta de la configuración compara valores y no texto, así que un toml++ más nuevo
+  que escribe el mismo número de otra forma ya no la hace fallar.
+
 ## [1.3.10] - 2026-11-22
 
 ### English

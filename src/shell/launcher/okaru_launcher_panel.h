@@ -21,6 +21,7 @@
 #include <vector>
 
 class AsyncTextureCache;
+class ContextMenuPopup;
 class ConfigService;
 class Flex;
 class Input;
@@ -124,6 +125,10 @@ private:
     std::string search; // descripción, sección y teclas en minúsculas
   };
   std::vector<KeybindEntry> m_keybinds;
+
+  // Clic derecho sobre una app: menú con fijar o quitar del dock.
+  void openAppMenu(std::size_t row, float sceneX, float sceneY, std::uint32_t serial);
+  std::unique_ptr<ContextMenuPopup> m_appMenu;
 
   std::unique_ptr<okaru::launcher::RowsAdapter> m_adapter;
   Flex* m_container = nullptr;

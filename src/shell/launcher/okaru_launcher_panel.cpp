@@ -9,9 +9,11 @@
 #include "render/core/renderer.h"
 #include "shell/launcher/okaru_launcher_commands.h"
 #include "shell/launcher/okaru_launcher_keybinds.h"
+#include "shell/dock/pinned_apps.h"
 #include "shell/panel/panel_manager.h"
 #include "system/desktop_entry.h"
 #include "ui/builders.h"
+#include "ui/controls/context_menu_popup.h"
 #include "ui/controls/flex.h"
 #include "ui/controls/glyph.h"
 #include "ui/controls/image.h"
@@ -230,9 +232,11 @@ namespace okaru::launcher {
   public:
     using ActivateFn = std::function<void(std::size_t)>;
     using KindFn = std::function<std::string(const LauncherResult&)>;
+    using SecondaryFn = std::function<void(std::size_t, float, float, std::uint32_t)>;
 
-    RowsAdapter(float scale, AsyncTextureCache* cache, ActivateFn onActivate, KindFn kindOf)
-        : m_scale(scale), m_cache(cache), m_onActivate(std::move(onActivate)), m_kindOf(std::move(kindOf)) {}
+    RowsAdapter(float scale, AsyncTextureCache* cache, ActivateFn onActivate, KindFn kindOf, SecondaryFn onSecondary)
+        : m_scale(scale), m_cache(cache), m_onActivate(std::move(onActivate)), m_kindOf(std::move(kindOf)),
+          m_onSecondary(std::move(onSecondary)) {}
 
     void set(const std::vector<OkaruLauncherPanel::Row>* rows, const std::vector<LauncherResult>* results) {
       m_rows = rows;
@@ -273,6 +277,9 @@ namespace okaru::launcher {
     }
 
     void onActivate(std::size_t index) override { m_onActivate(index); }
+    void onSecondaryActivate(std::size_t index, float sceneX, float sceneY, std::uint32_t serial) override {
+      m_onSecondary(index, sceneX, sceneY, serial);
+    }
 
   private:
     [[nodiscard]] bool isHeader(std::size_t index) const {
@@ -284,6 +291,7 @@ namespace okaru::launcher {
     AsyncTextureCache* m_cache = nullptr;
     ActivateFn m_onActivate;
     KindFn m_kindOf;
+    SecondaryFn m_onSecondary;
     const std::vector<OkaruLauncherPanel::Row>* m_rows = nullptr;
     const std::vector<LauncherResult>* m_results = nullptr;
     std::optional<std::size_t> m_selected;
@@ -525,7 +533,8 @@ void OkaruLauncherPanel::create() {
         }
         return result.providerId == kApplicationsProviderId ? tr("launcher.okaru.kind.application")
                                                             : tr("launcher.okaru.kind.command");
-      }
+      },
+      [this](std::size_t row, float x, float y, std::uint32_t serial) { openAppMenu(row, x, y, serial); }
   );
 
   auto container = ui::column({.out = &m_container, .align = FlexAlign::Stretch, .gap = 0.0F});
@@ -609,7 +618,69 @@ void OkaruLauncherPanel::onOpen(std::string_view context) {
   onQueryChanged(std::string(context));
 }
 
+void OkaruLauncherPanel::openAppMenu(std::size_t row, float sceneX, float sceneY, std::uint32_t serial) {
+  if (m_config == nullptr || m_mode != Mode::Search || row >= m_rows.size() || m_rows[row].kind != Row::Kind::Result) {
+    return;
+  }
+  const LauncherResult& result = m_results[m_rows[row].result];
+  if (result.providerId != kApplicationsProviderId || result.desktopEntryPath.empty()) {
+    return;
+  }
+  const auto& apps = desktopEntries();
+  const auto app = std::ranges::find(apps, result.desktopEntryPath, &DesktopEntry::path);
+  auto& panels = PanelManager::instance();
+  const auto parent = panels.popupParentContextForPanel("launcher");
+  if (app == apps.end() || !parent.has_value() || panels.renderContext() == nullptr || panels.wayland() == nullptr) {
+    return;
+  }
+  if (m_appMenu == nullptr) {
+    m_appMenu = std::make_unique<ContextMenuPopup>(*panels.wayland(), *panels.renderContext());
+  }
+  panels.configureContextMenuPopup(*m_appMenu);
+  const bool pinned = shell::dock::pinned_apps::isPinned(*m_config, *app);
+  m_appMenu->setOnActivate([this, entry = *app, pinned](const ContextMenuControlEntry& /*item*/) {
+    if (m_config != nullptr) {
+      shell::dock::pinned_apps::setPinned(*m_config, entry, !pinned);
+    }
+  });
+  wl_surface* const parentSurface = parent->surface;
+  panels.beginAttachedPopup(parentSurface);
+  m_appMenu->setOnDismissed([parentSurface] {
+    if (auto* manager = PanelManager::current(); manager != nullptr) {
+      manager->clearActivePopup();
+      manager->endAttachedPopup(parentSurface);
+    }
+  });
+  m_appMenu->open(ContextMenuPopupRequest{
+      .entries = {ContextMenuControlEntry{.id = 0, .label = tr(pinned ? "tray.menu.unpin" : "tray.menu.pin")}},
+      .maxMenuWidth = Style::menuAutoMaxWidth * contentScale(),
+      .contentScale = contentScale(),
+      .anchor = PopupAnchorRect{
+          .x = static_cast<std::int32_t>(std::lround(sceneX)),
+          .y = static_cast<std::int32_t>(std::lround(sceneY)),
+          .width = 1,
+          .height = 1,
+      },
+      .parent = PopupSurfaceParent{
+          .layerSurface = parent->layerSurface,
+          .xdgSurface = parent->xdgSurface,
+          .output = parent->output,
+          .wlSurface = nullptr, // el lanzador ya tiene teclado (OnDemand)
+      },
+      .pointerParentSurface = parent->surface,
+      .inputSerial = serial,
+  });
+  if (m_appMenu->isOpen()) {
+    panels.setActivePopup(m_appMenu.get());
+  } else {
+    panels.endAttachedPopup(parentSurface);
+  }
+}
+
 void OkaruLauncherPanel::onClose() {
+  if (m_appMenu != nullptr) {
+    m_appMenu->close();
+  }
   // dmenu: cerrar sin elegir es cancelar (el script recibe la salida 1) y el lanzador vuelve a la búsqueda normal.
   // reset() puede quitar el proveedor de m_providers (dmenu_ipc lo difiere), así que se recorre una copia.
   std::vector<LauncherProvider*> providers;

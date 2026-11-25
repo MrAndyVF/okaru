@@ -25,6 +25,7 @@
 #include "shell/settings/okaru_settings_diagnostics.h"
 #include "shell/settings/okaru_settings_displays.h"
 #include "shell/settings/okaru_settings_dock_screens.h"
+#include "shell/settings/okaru_settings_apps.h"
 #include "shell/settings/okaru_settings_home.h"
 #include "shell/settings/okaru_settings_hyprpm.h"
 #include "shell/settings/okaru_settings_rules.h"
@@ -915,20 +916,12 @@ settings::SettingsContentContext SettingsWindow::makeContentContext(const Config
       .pendingGestureKey = m_pendingGestureKey,
       .pendingGestureVerb = m_pendingGestureVerb,
       .actionsExpandedFor = m_actionsExpandedFor,
-      .expandedGroupsByPage = m_expandedSettingGroups,
       .pageTitleRow = m_pageTitleRow,
-      .groupJumpRow = m_groupJumpRow,
       .actionCatalog = gestureActionCatalog(),
       .requestRebuild = requestRebuild,
       .requestContentRebuild = requestContent,
       .resetContentScroll = [this] { m_contentScrollState.offset = 0.0F; },
       .setScrollTarget = [this](Node* target) { m_pendingContentScrollTarget = target; },
-      .scrollContentToTop =
-          [this](const Node& target) {
-            if (m_contentScrollView != nullptr) {
-              scrollNodeToScrollViewTop(*m_contentScrollView, target, Style::spaceMd * uiScale());
-            }
-          },
       .focusArea = [this](InputArea* area) { m_inputDispatcher.setFocus(area); },
       .openBarWidgetAddPopup = [this](const std::vector<std::string>& lanePath) { openBarWidgetAddPopup(lanePath); },
       .openSearchPickerPopup =
@@ -1017,11 +1010,6 @@ void SettingsWindow::rebuildSettingsContent() {
       m_moduleTabsRow->removeChild(m_moduleTabsRow->children().back().get());
     }
   }
-  if (m_groupJumpRow != nullptr) {
-    while (!m_groupJumpRow->children().empty()) {
-      m_groupJumpRow->removeChild(m_groupJumpRow->children().back().get());
-    }
-  }
   logSettingsProfile("rebuildContent clear", phaseProfileWatch);
   phaseProfileWatch.reset();
 
@@ -1029,10 +1017,6 @@ void SettingsWindow::rebuildSettingsContent() {
   const Config fallbackCfg{};
   const Config& cfg = m_config != nullptr ? m_config->config() : fallbackCfg;
   const BarConfig* selectedBar = settings::findBar(cfg, m_selectedBarName);
-  if (cfg.shell.settingsExpandAllGroups != m_expandedSettingGroupsSeededExpandAll) {
-    m_expandedSettingGroups.clear();
-    m_expandedSettingGroupsSeededExpandAll = cfg.shell.settingsExpandAllGroups;
-  }
 
   m_contentContainer->setDirection(FlexDirection::Vertical);
   m_contentContainer->setAlign(FlexAlign::Stretch);
@@ -1200,15 +1184,6 @@ void SettingsWindow::rebuildSettingsContent() {
             .sources = cfg.plugins.sources,
             .searchActive = !m_searchQuery.empty(),
             .pageTitleRow = m_pageTitleRow,
-            .groupJumpRow = m_groupJumpRow,
-            .scrollContentToTop =
-                [this](const Node& target) {
-                  if (m_contentScrollView != nullptr) {
-                    scrollNodeToScrollViewTop(*m_contentScrollView, target, Style::spaceMd * uiScale());
-                  }
-                },
-            .expandedGroupsByPage = m_expandedSettingGroups,
-            .expandAllGroups = cfg.shell.settingsExpandAllGroups,
             .pluginsLoading = m_pluginListDirty || m_pluginListRefreshInFlight,
             .setEnabled =
                 [this](const std::string& id, bool enable) {
@@ -1336,6 +1311,25 @@ void SettingsWindow::rebuildSettingsContent() {
     return;
   }
 
+  // OKARU: Aplicaciones (por defecto, tipos de archivo, instaladas).
+  if (m_selectedSection.starts_with("apps-")) {
+    settings::addSettingsApps(
+        *m_contentContainer,
+        settings::SettingsAppsContext{
+            .scale = scale,
+            .page = m_selectedSection,
+            .config = m_config,
+            .textures = m_asyncTextures,
+            .requestRebuild = [this] {
+              if (isOpen()) {
+                requestSceneRebuild();
+              }
+            },
+        }
+    );
+    return;
+  }
+
   // OKARU: Home, la portada de los ajustes.
   if (m_selectedSection == "home") {
     settings::addSettingsHome(
@@ -1443,11 +1437,6 @@ void SettingsWindow::rebuildSettingsContent() {
     );
   }
 
-  if (m_groupJumpRow != nullptr) {
-    const bool hasJumpRow = !m_groupJumpRow->children().empty();
-    m_groupJumpRow->setVisible(hasJumpRow);
-    m_groupJumpRow->setParticipatesInLayout(hasJumpRow);
-  }
   logSettingsProfile("rebuildContent plugins", phaseProfileWatch);
   logSettingsProfile("rebuildContent total", totalProfileWatch);
   if (okaru::profiling::enabled()) {
@@ -1731,18 +1720,6 @@ std::unique_ptr<Flex> SettingsWindow::buildBody(
           .out = &m_moduleTabsRow,
           .align = FlexAlign::Center,
           .gap = Style::spaceSm * scale,
-          .fillWidth = true,
-          .configure = [scale](Flex& flex) {
-            flex.setPadding(Style::spaceSm * scale, Style::spaceLg * scale, 0.0F, Style::spaceLg * scale);
-          },
-      })
-  );
-  contentColumn->addChild(
-      ui::row({
-          .out = &m_groupJumpRow,
-          .align = FlexAlign::Center,
-          .wrap = true,
-          .gap = Style::spaceXs * scale,
           .fillWidth = true,
           .configure = [scale](Flex& flex) {
             flex.setPadding(Style::spaceSm * scale, Style::spaceLg * scale, 0.0F, Style::spaceLg * scale);
@@ -2386,7 +2363,6 @@ void SettingsWindow::buildScene(std::uint32_t width, std::uint32_t height) {
   const float scale = uiScale();
   m_actionsMenuButton = nullptr;
   m_pageTitleRow = nullptr;
-  m_groupJumpRow = nullptr;
   m_moduleTabsRow = nullptr; // OKARU
   m_contentScrollView = nullptr;
   m_sidebarScrollView = nullptr;

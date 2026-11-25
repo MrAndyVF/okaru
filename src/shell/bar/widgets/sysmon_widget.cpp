@@ -708,7 +708,7 @@ void SysmonWidget::doLayout(Renderer& renderer, float containerWidth, float cont
       }
       for (ProgressBar* gauge : m_coreGauges) {
         gauge->setOrientation(isVerticalBar ? ProgressBarOrientation::Horizontal : ProgressBarOrientation::Vertical);
-        gauge->setRadius(coreThickness / 2.0F);
+        gauge->setRadius(0.0F);
         const float gaugeW = isVerticalBar ? visualizationW : coreThickness;
         const float gaugeH = isVerticalBar ? coreThickness : visualizationH;
         gauge->setSize(gaugeW, gaugeH);
@@ -722,12 +722,12 @@ void SysmonWidget::doLayout(Renderer& renderer, float containerWidth, float cont
       visualizationW = std::max(identitySize.width, gaugeStem);
       visualizationH = gaugeThickness;
       m_gauge->setOrientation(ProgressBarOrientation::Horizontal);
-      m_gauge->setRadius(visualizationH / 2.0F);
+      m_gauge->setRadius(0.0F);
     } else {
       visualizationW = gaugeThickness;
       visualizationH = gaugeStem;
       m_gauge->setOrientation(ProgressBarOrientation::Vertical);
-      m_gauge->setRadius(visualizationW / 2.0F);
+      m_gauge->setRadius(0.0F);
     }
     m_gauge->setSize(visualizationW, visualizationH);
     visualizationNode = m_gauge;

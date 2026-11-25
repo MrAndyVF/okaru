@@ -41,6 +41,8 @@ public:
   void scrollBy(float delta);
   void setScrollbarVisible(bool visible);
   void setReserveScrollbarGutter(bool reserve);
+  // Vertical: content shorter than the viewport is stretched to its height (children with flexGrow fill it).
+  void setFillViewport(bool fill);
   // Vertical clearance at both track ends (e.g. the host card's corner radius).
   void setScrollbarInsetV(float inset);
   // Layout scale of the surface hosting this view (1.0 = base logical px). Scales the
@@ -119,6 +121,7 @@ private:
   std::chrono::steady_clock::time_point m_lastDragSampleAt;
   std::uint32_t m_scrollAnimId = 0;
   float m_viewportHeight = 0.0F;
+  bool m_fillViewport = false;
   float m_viewportWidth = 0.0F;
   float m_backgroundBorderWidth = 0.0F;
   float m_backgroundRadius = Style::scaledRadiusMd();

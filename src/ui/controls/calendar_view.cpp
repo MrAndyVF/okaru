@@ -348,7 +348,7 @@ namespace calendar_view {
           dots->addChild(
               ui::box({
                   .fill = color,
-                  .radius = layout.dotDiameter * 0.5F,
+                  .radius = 0.0F,
                   .width = layout.dotDiameter,
                   .height = layout.dotDiameter,
               })
@@ -634,7 +634,7 @@ namespace calendar_view {
             {.out = &eventRow, .align = FlexAlign::Stretch, .gap = rowGap},
             ui::box({
                 .fill = eventColor(event, eventAlpha),
-                .radius = dotWidth * 0.5F,
+                .radius = 0.0F,
                 .width = dotWidth,
                 .flexGrow = 0.0F,
             }),

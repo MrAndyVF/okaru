@@ -118,7 +118,7 @@ WindowSwitcherTile::WindowSwitcherTile(float contentScale, AsyncTextureCache* as
       ui::box({
           .out = &m_minimizeIndicator,
           .fill = colorSpecFromRole(ColorRole::Secondary),
-          .radius = Style::borderWidth * 2.0F * m_contentScale,
+          .radius = 0.0F,
           .visible = false,
           .participatesInLayout = false,
       })
@@ -352,7 +352,7 @@ void WindowSwitcherTile::layoutContent(Renderer& renderer) {
   m_toneOverlay->setPosition(0.0F, 0.0F);
   m_toneOverlay->setFrameSize(innerW, previewH);
   const float indicatorWidth = Style::spaceMd * m_contentScale;
-  const float indicatorHeight = Style::borderWidth * 3.0F * m_contentScale;
+  const float indicatorHeight = 3.0F * m_contentScale;
   m_minimizeIndicator->setFrameSize(indicatorWidth, indicatorHeight);
   m_minimizeIndicator->setPosition(
       std::round((innerW - indicatorWidth) * 0.5F),

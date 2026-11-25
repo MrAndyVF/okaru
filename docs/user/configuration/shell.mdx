@@ -49,7 +49,6 @@ password_style        = "default"       # default | random
 readline_shortcuts    = false           # readline-style shortcuts in every text field
 avatar_path           = "~/Pictures/avatar.png"
 settings_show_advanced = true           # show advanced settings by default in Settings
-settings_expand_all_groups = false      # expand every Settings group by default
 settings_window_translucent = false     # translucent Settings window background
 show_location         = true            # show weather location text in shell UI
 launch_apps_as_systemd_services = false # launch apps as transient systemd services (needs OKARU to be a user unit)
@@ -76,12 +75,12 @@ speed   = 1.0   # 1.0 = normal, 0.5 = 2× slower, 2.0 = 2× faster
 
 [shell.shadow]
 direction = "down"  # center, up, down, left, right, up_left, up_right, down_left, down_right
-alpha     = 0.55    # multiplied by each component's background opacity
+alpha     = 0.28    # multiplied by each component's background opacity
 
 [shell.panel]
 transparency_mode     = "solid"  # solid | soft | glass; controls floating panel opacity and card translucency
 borders               = true   # outline on floating panel surfaces
-border_color          = "outline_variant"   # floating panel outline color: theme role token or #RRGGBB
+border_color          = "primary"           # floating panel outline color: theme role token or #RRGGBB
 border_width          = 1.0         # floating panel outline width in px, 0 hides the stroke
 shadow                = true   # cast the global [shell.shadow] from panel surfaces
 list_item_background  = false  # filled rounded background behind clipboard list items
@@ -198,7 +197,6 @@ Notes:
 
 - `settings_show_advanced`: when `true`, Settings opens with advanced entries visible.
 
-- `settings_expand_all_groups`: when `true`, every collapsible group on a Settings page starts expanded; when `false`, only the first group does. Changing it resets the expanded groups on every page.
 
 - `settings_window_translucent`: when `true`, the Settings window background is drawn translucent. Compositor blur or other effects can be applied via compositor window rules.
 
@@ -394,7 +392,7 @@ hide_delay_ms = 1400     # time before a popup starts hiding; range 250 to 10000
 scale = 1.0              # OSD size multiplier on top of shell.ui_scale
 background_opacity = 0.97 # background opacity of OSD popups
 border = true            # outline around OSD popup cards; set false for a borderless look
-border_color = "outline_variant" # outline color: theme color role (e.g. "primary") or hex (e.g. "#a8b185")
+border_color = "primary"         # outline color: theme color role (e.g. "primary") or hex (e.g. "#a8b185")
 border_width = 1         # outline stroke width in px; raise for a thicker outline
 follow_focused_output = false # show a new OSD on the focused output; keep it pinned until it disappears
 offset_x = 20            # absolute horizontal margin from the screen edge
