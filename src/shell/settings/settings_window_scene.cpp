@@ -1319,7 +1319,6 @@ void SettingsWindow::rebuildSettingsContent() {
             .scale = scale,
             .page = m_selectedSection,
             .config = m_config,
-            .renderer = m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr,
             .textures = m_asyncTextures,
             .requestRebuild = [this] {
               if (isOpen()) {

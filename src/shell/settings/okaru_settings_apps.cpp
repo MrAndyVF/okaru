@@ -11,7 +11,10 @@
 #include "ui/app_icon_colorization.h"
 #include "ui/builders.h"
 #include "ui/controls/button.h"
+#include "ui/controls/glyph.h"
 #include "ui/controls/image.h"
+#include "ui/controls/label.h"
+#include "ui/controls/virtual_list_view.h"
 #include "ui/palette.h"
 #include "ui/style.h"
 
@@ -37,6 +40,8 @@ namespace settings {
       std::string confirmUninstall;
       std::string uninstalling;
       std::map<std::string, std::optional<PackageInfo>> packages; // id -> paquete (consultado al abrir)
+      std::vector<std::string> rows;  // ids visibles en Instaladas (filtrados)
+      VirtualListView* list = nullptr; // la de la página actual; se rehace con cada página
     };
 
     AppsState& state() {
@@ -90,40 +95,6 @@ namespace settings {
       auto label = makeLabel(tr(key), Style::fontSizeCaption * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant));
       label->setMaxLines(3);
       return label;
-    }
-
-    std::unique_ptr<Button> iconButton(const char* glyph, const std::string& tooltip, std::function<void()> onClick) {
-      return ui::button({
-          .glyph = std::string(glyph),
-          .variant = ButtonVariant::Ghost,
-          .tooltip = tooltip,
-          .onClick = std::move(onClick),
-      });
-    }
-
-    // Los iconos se decodifican en segundo plano y quedan en la caché: reconstruir la página no los vuelve a leer.
-    std::unique_ptr<Node> appIcon(
-        const DesktopEntry& app, float scale, Renderer* renderer, AsyncTextureCache* cache, const ConfigService* config
-    ) {
-      static IconResolver resolver;
-      const float size = 28.0F * scale;
-      const int target = static_cast<int>(size * 2.0F);
-      const std::string& path = app.icon.empty() ? std::string() : resolver.resolve(app.icon, target);
-      if (renderer != nullptr && !path.empty()) {
-        auto image = ui::image({.fit = ImageFit::Contain, .width = size, .height = size});
-        if (config != nullptr) {
-          image->setAppIconColorization(effectiveShellAppIconColorizationTint(config->config().shell));
-        }
-        if (cache != nullptr ? image->setSourceFileAsync(*renderer, *cache, path, target, true)
-                             : image->setSourceFile(*renderer, path, target, true)) {
-          return image;
-        }
-      }
-      return ui::glyph({
-          .glyph = "app-window",
-          .glyphSize = size,
-          .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
-      });
     }
 
     // Apps que se muestran en las listas: visibles, o escondidas por OKARU (para poder mostrarlas otra vez).
@@ -387,10 +358,194 @@ namespace settings {
       body.addChild(std::move(details));
     }
 
-    void addInstalledPage(
-        Flex& content, float scale, ConfigService* config, Renderer* renderer, AsyncTextureCache* cache
-    ) {
+    constexpr float kRowHeight = 52.0F;
+    constexpr float kIconSize = 28.0F;
+    constexpr std::size_t kVisibleRows = 9;
+
+    void filterRows() {
       auto& s = state();
+      std::string filter = s.filter;
+      std::ranges::transform(filter, filter.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+      s.rows.clear();
+      for (const DesktopEntry* app : listedApps()) {
+        if (filter.empty() || app->nameLower.contains(filter) || app->idLower.contains(filter)) {
+          s.rows.push_back(app->id);
+        }
+      }
+    }
+
+    // Fila reutilizable de la lista virtual: solo existen las que se ven.
+    class AppRow final : public Flex {
+    public:
+      explicit AppRow(float scale) : m_scale(scale) {
+        setDirection(FlexDirection::Horizontal);
+        setAlign(FlexAlign::Center);
+        setGap(Style::spaceMd * scale);
+        setPadding(0.0F, Style::spaceSm * scale);
+        const float size = kIconSize * scale;
+        m_icon = static_cast<Image*>(addChild(ui::image({.fit = ImageFit::Contain, .width = size, .height = size})));
+        m_glyph = static_cast<Glyph*>(addChild(ui::glyph({
+            .glyph = "app-window",
+            .glyphSize = size,
+            .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+        })));
+        auto text = ui::column({.align = FlexAlign::Stretch, .gap = 2.0F * scale, .flexGrow = 1.0F});
+        m_name = static_cast<Label*>(text->addChild(makeLabel(
+            "", Style::fontSizeBody * scale, colorSpecFromRole(ColorRole::OnSurface), FontWeight::Bold
+        )));
+        m_name->setMaxLines(1);
+        m_detail = static_cast<Label*>(text->addChild(
+            makeLabel("", Style::fontSizeCaption * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant))
+        ));
+        m_detail->setMaxLines(1);
+        addChild(std::move(text));
+        m_open = addButton("player-play");
+        m_pin = addButton("pin");
+        m_hide = addButton("eye-off");
+        m_details = addButton("chevron-down");
+        m_open->setTooltip(tr("open"));
+        m_details->setTooltip(tr("details"));
+      }
+
+      void bind(
+          const DesktopEntry& app, Renderer& renderer, AsyncTextureCache* cache, ConfigService* config,
+          float width
+      ) {
+        static IconResolver resolver;
+        const auto& s = state();
+        const bool hidden = app.noDisplay;
+        const bool pinned = config != nullptr && shell::dock::pinned_apps::isPinned(*config, app);
+        const bool expanded = s.expanded == app.id;
+        const int target = static_cast<int>(kIconSize * m_scale * 2.0F);
+        const std::string& path = app.icon.empty() ? std::string() : resolver.resolve(app.icon, target);
+        if (path != m_iconPath) {
+          m_iconPath = path;
+          if (config != nullptr) {
+            m_icon->setAppIconColorization(effectiveShellAppIconColorizationTint(config->config().shell));
+          }
+          // La carga asíncrona devuelve false mientras decodifica: con ruta, el icono se muestra igual.
+          const bool ok = !path.empty();
+          if (ok && cache != nullptr) {
+            (void)m_icon->setSourceFileAsync(renderer, *cache, path, target, true);
+          } else if (ok) {
+            (void)m_icon->setSourceFile(renderer, path, target, true);
+          } else {
+            m_icon->clear(renderer);
+          }
+          m_icon->setVisible(ok);
+          m_icon->setParticipatesInLayout(ok);
+          m_glyph->setVisible(!ok);
+          m_glyph->setParticipatesInLayout(!ok);
+        }
+        m_icon->setOpacity(hidden ? 0.5F : 1.0F);
+        m_name->setText(app.name);
+        m_detail->setText(hidden ? tr("hidden") : app.comment);
+
+        const std::string id = app.id;
+        m_open->setVisible(!hidden);
+        m_open->setParticipatesInLayout(!hidden);
+        m_open->setOnClick([id, config] {
+          const DesktopEntry* entry = findApp(id);
+          if (entry == nullptr) {
+            return;
+          }
+          desktop_entry_launch::LaunchOptions options{.dbusActivatable = entry->dbusActivatable, .dbusAppId = id};
+          if (config != nullptr) {
+            options.runAsSystemdService = config->config().shell.launchAppsAsSystemdServices;
+            options.customCommand = config->config().shell.launchAppsCustomCommand;
+          }
+          (void)desktop_entry_launch::launchEntry(*entry, options);
+        });
+        m_pin->setVisible(config != nullptr && !hidden);
+        m_pin->setParticipatesInLayout(config != nullptr && !hidden);
+        m_pin->setGlyph(pinned ? "pinned-off" : "pin");
+        m_pin->setTooltip(tr(pinned ? "unpin" : "pin"));
+        m_pin->setOnClick([id, config, pinned] {
+          if (const DesktopEntry* entry = findApp(id); entry != nullptr && config != nullptr) {
+            shell::dock::pinned_apps::setPinned(*config, *entry, !pinned);
+            if (state().list != nullptr) {
+              state().list->notifyDataChanged();
+            }
+          }
+        });
+        m_hide->setGlyph(hidden ? "eye" : "eye-off");
+        m_hide->setTooltip(tr(hidden ? "show" : "hide"));
+        m_hide->setOnClick([id, hidden] {
+          if (const DesktopEntry* entry = findApp(id)) {
+            report(okaru::apps::setHidden(*entry, !hidden));
+          }
+        });
+        m_details->setGlyph(expanded ? "chevron-up" : "chevron-down");
+        m_details->setOnClick([id, expanded] {
+          state().expanded = expanded ? std::string() : id;
+          state().confirmUninstall.clear();
+          rebuild();
+        });
+        setSize(width, kRowHeight * m_scale);
+      }
+
+    private:
+      Button* addButton(const char* glyph) {
+        auto button = ui::button({.glyph = std::string(glyph), .variant = ButtonVariant::Ghost});
+        Button* raw = button.get();
+        addChild(std::move(button));
+        return raw;
+      }
+
+      float m_scale;
+      std::string m_iconPath = "\n"; // nunca coincide con una ruta: fuerza la primera carga
+      Image* m_icon = nullptr;
+      Glyph* m_glyph = nullptr;
+      Label* m_name = nullptr;
+      Label* m_detail = nullptr;
+      Button* m_open = nullptr;
+      Button* m_pin = nullptr;
+      Button* m_hide = nullptr;
+      Button* m_details = nullptr;
+    };
+
+    class AppsAdapter final : public VirtualListAdapter {
+    public:
+      void setContext(float scale, AsyncTextureCache* cache, ConfigService* config) {
+        m_scale = scale;
+        m_cache = cache;
+        m_config = config;
+        ++m_revision;
+      }
+      void touch() { ++m_revision; }
+
+      [[nodiscard]] std::size_t itemCount() const override { return state().rows.size(); }
+      [[nodiscard]] std::uint64_t itemRevision(std::size_t /*index*/) const override { return m_revision; }
+      [[nodiscard]] float measureItem(Renderer& /*renderer*/, std::size_t /*index*/, float /*width*/) override {
+        return kRowHeight * m_scale;
+      }
+      [[nodiscard]] std::unique_ptr<Node> createItem() override { return std::make_unique<AppRow>(m_scale); }
+      void bindItem(Renderer& renderer, Node& item, std::size_t index, float width, bool /*hovered*/) override {
+        const auto& rows = state().rows;
+        const DesktopEntry* app = index < rows.size() ? findApp(rows[index]) : nullptr;
+        if (app != nullptr) {
+          static_cast<AppRow&>(item).bind(*app, renderer, m_cache, m_config, width);
+        }
+      }
+
+    private:
+      float m_scale = 1.0F;
+      AsyncTextureCache* m_cache = nullptr;
+      ConfigService* m_config = nullptr;
+      std::uint64_t m_revision = 0;
+    };
+
+    AppsAdapter& adapter() {
+      static AppsAdapter a;
+      return a;
+    }
+
+    void addInstalledPage(Flex& content, float scale, ConfigService* config, AsyncTextureCache* cache) {
+      auto& s = state();
+      if (const DesktopEntry* app = s.expanded.empty() ? nullptr : findApp(s.expanded)) {
+        Flex* details = addSettingsCard(content, app->name, scale);
+        addDetails(*details, scale, *app);
+      }
       Flex* body = addSettingsCard(content, tr("installed"), scale);
       body->addChild(intro(scale, "installed-intro"));
       body->addChild(ui::input({
@@ -401,71 +556,36 @@ namespace settings {
           .flexGrow = 1.0F,
           .onChange =
               [](const std::string& value) {
+                // Filtra sin rehacer la ventana: solo cambia lo que muestra la lista.
                 state().filter = value;
-                rebuild();
+                filterRows();
+                adapter().touch();
+                if (state().list != nullptr) {
+                  state().list->notifyDataChanged();
+                }
               },
       }));
-
-      std::string filter = s.filter;
-      std::ranges::transform(filter, filter.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-      for (const DesktopEntry* entry : listedApps()) {
-        const DesktopEntry& app = *entry;
-        if (!filter.empty() && !app.nameLower.contains(filter) && !app.idLower.contains(filter)) {
-          continue;
-        }
-        const bool hidden = app.noDisplay;
-        const bool pinned = config != nullptr && shell::dock::pinned_apps::isPinned(*config, app);
-        const bool expanded = s.expanded == app.id;
-
-        auto line = row(scale);
-        auto icon = appIcon(app, scale, renderer, cache, config);
-        icon->setOpacity(hidden ? 0.5F : 1.0F);
-        line->addChild(std::move(icon));
-        std::string detail = hidden ? tr("hidden") : app.comment;
-        line->addChild(textColumn(scale, app.name, detail));
-        if (!hidden) {
-          line->addChild(iconButton("player-play", tr("open"), [id = app.id, config] {
-            const DesktopEntry* target = findApp(id);
-            if (target == nullptr) {
-              return;
-            }
-            desktop_entry_launch::LaunchOptions options{.dbusActivatable = target->dbusActivatable, .dbusAppId = id};
-            if (config != nullptr) {
-              options.runAsSystemdService = config->config().shell.launchAppsAsSystemdServices;
-              options.customCommand = config->config().shell.launchAppsCustomCommand;
-            }
-            (void)desktop_entry_launch::launchEntry(*target, options);
-          }));
-        }
-        if (config != nullptr && !hidden) {
-          line->addChild(iconButton(pinned ? "pinned-off" : "pin", tr(pinned ? "unpin" : "pin"), [id = app.id, config, pinned] {
-            if (const DesktopEntry* target = findApp(id)) {
-              shell::dock::pinned_apps::setPinned(*config, *target, !pinned);
-              rebuild();
-            }
-          }));
-        }
-        line->addChild(iconButton(hidden ? "eye" : "eye-off", tr(hidden ? "show" : "hide"), [id = app.id, hidden] {
-          if (const DesktopEntry* target = findApp(id)) {
-            report(okaru::apps::setHidden(*target, !hidden));
-          }
-        }));
-        line->addChild(iconButton(expanded ? "chevron-up" : "chevron-down", tr("details"), [id = app.id, expanded] {
-          state().expanded = expanded ? std::string() : id;
-          state().confirmUninstall.clear();
-          rebuild();
-        }));
-        body->addChild(std::move(line));
-        if (expanded) {
-          addDetails(*body, scale, app);
-        }
-      }
+      filterRows();
+      adapter().setContext(scale, cache, config);
+      static ScrollViewState scrollState;
+      // La lista virtual no se mide sola: va en una caja de alto fijo y la llena.
+      const float listHeight = kRowHeight * scale * static_cast<float>(kVisibleRows);
+      auto box = ui::column({.align = FlexAlign::Stretch, .minHeight = listHeight, .height = listHeight});
+      box->addChild(ui::virtualListView({
+          .out = &s.list,
+          .state = &scrollState,
+          .contentScale = scale,
+          .adapter = &adapter(),
+          .flexGrow = 1.0F,
+      }));
+      body->addChild(std::move(box));
     }
 
   } // namespace
 
   void addSettingsApps(Flex& content, const SettingsAppsContext& ctx) {
     auto& s = state();
+    s.list = nullptr;
     s.rebuild = ctx.requestRebuild;
     const float scale = ctx.scale;
 
@@ -484,7 +604,7 @@ namespace settings {
     } else if (ctx.page == "apps-file-types") {
       addFileTypesPage(content, scale);
     } else {
-      addInstalledPage(content, scale, ctx.config, ctx.renderer, ctx.textures);
+      addInstalledPage(content, scale, ctx.config, ctx.textures);
     }
   }
 

@@ -9,7 +9,6 @@
 class AsyncTextureCache;
 class ConfigService;
 class Flex;
-class Renderer;
 
 namespace settings {
 
@@ -17,8 +16,7 @@ namespace settings {
     float scale = 1.0F;
     std::string_view page; // "apps-defaults", "apps-file-types" o "apps-installed"
     ConfigService* config = nullptr;
-    Renderer* renderer = nullptr; // para los iconos; sin él, un glifo
-    AsyncTextureCache* textures = nullptr;
+    AsyncTextureCache* textures = nullptr; // iconos de Instaladas
     std::function<void()> requestRebuild;
   };
 
