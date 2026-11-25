@@ -52,6 +52,7 @@ namespace settings {
           .paddingH = kPrimaryNavPaddingH * scale,
           .gap = kPrimaryNavGap * scale,
           .radius = Style::scaledRadiusMd(scale),
+          .flexGrow = 1.0F, // con espacio de sobra, los módulos reparten la altura de la barra
           .onClick = std::move(onClick),
           .configure = [](Button& b) { b.setTabStop(false); },
       });
@@ -125,7 +126,10 @@ namespace settings {
         .fillHeight = true,
         .width = sidebarWidth,
         .height = 0.0F,
-        .configure = [](ScrollView& scrollView) { scrollView.clearBorder(); },
+        .configure = [](ScrollView& scrollView) {
+          scrollView.clearBorder();
+          scrollView.setFillViewport(true);
+        },
     });
 
     auto sidebarNav = std::make_unique<RovingListNavHost>(RovingListNavController::Options{
@@ -138,6 +142,7 @@ namespace settings {
     sidebarNav->setTabFocusKey("settings.sidebar");
     sidebarNav->setGap(kSidebarGap * scale);
     sidebarNav->setPadding(kSidebarPadding * scale);
+    sidebarNav->setFlexGrow(1.0F);
     RovingListNavHost* nav = sidebarNav.get();
 
     // OKARU: un botón por módulo (con su frase debajo, como en dux-shell) y separadores entre bloques.

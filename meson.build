@@ -959,6 +959,7 @@ _okaru_sources = files(
   'src/ui/controls/drop_zone.cpp',
   'src/ui/controls/checkbox.cpp',
   'src/ui/controls/color_picker.cpp',
+  'src/ui/controls/card_columns.cpp',
   'src/ui/controls/collapsible.cpp',
   'src/ui/controls/context_menu.cpp',
   'src/ui/controls/context_menu_popup.cpp',

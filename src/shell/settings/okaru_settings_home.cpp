@@ -10,6 +10,7 @@
 #include "system/hardware_info.h"
 #include "system/okaru_system_info.h"
 #include "ui/builders.h"
+#include "ui/controls/card_columns.h"
 #include "ui/palette.h"
 #include "ui/style.h"
 
@@ -18,6 +19,8 @@
 
 namespace settings {
   namespace {
+
+    constexpr float kHomeMinColumnWidth = 340.0F;
 
     std::string tr(const std::string& key) { return i18n::tr("settings.okaru.home." + key); }
 
@@ -84,7 +87,11 @@ namespace settings {
       }
     }
 
-    Flex* shell = addSettingsCard(content, tr("versions"), scale);
+    // Con ancho, las tarjetas van en dos columnas: versiones y discos a la izquierda, sistema y novedades a la derecha.
+    auto* cards = static_cast<Flex*>(
+        content.addChild(std::make_unique<CardColumns>(kHomeMinColumnWidth * scale, Style::spaceSm * scale))
+    );
+    Flex* shell = addSettingsCard(*cards, tr("versions"), scale);
     shell->addChild(infoRow(scale, tr("shell-version"), okaru::build_info::displayVersion()));
     // Hyprland da versión y commit por su socket; los demás (Niri) por `<compositor> --version`, que la tarjeta
     // de perfil ya resolvió al arrancar. Mientras tanto, al menos el nombre.
@@ -102,7 +109,7 @@ namespace settings {
     }
     shell->addChild(infoRow(scale, tr("compositor"), compositor));
 
-    Flex* system = addSettingsCard(content, tr("system"), scale);
+    Flex* system = addSettingsCard(*cards, tr("system"), scale);
     system->addChild(infoRow(scale, tr("os"), info.os));
     system->addChild(infoRow(scale, tr("kernel"), info.kernel));
     system->addChild(infoRow(scale, tr("host"), info.host));
@@ -112,7 +119,7 @@ namespace settings {
         info.memory.totalKb > info.memory.availableKb ? info.memory.totalKb - info.memory.availableKb : 0;
     addUsage(*system, scale, tr("memory"), memUsedKb * 1024, info.memory.totalKb * 1024);
 
-    Flex* disks = addSettingsCard(content, tr("disks"), scale);
+    Flex* disks = addSettingsCard(*cards, tr("disks"), scale);
     for (const auto& disk : info.disks) {
       addUsage(
           *disks, scale, std::format("{}  ·  {}", disk.mount, disk.fs), disk.totalBytes - disk.freeBytes,
@@ -121,7 +128,7 @@ namespace settings {
     }
 
     // Novedades: enlace al changelog (en/es) de la última release; el release "repo" no se marca como latest.
-    Flex* news = addSettingsCard(content, tr("changelog"), scale);
+    Flex* news = addSettingsCard(*cards, tr("changelog"), scale);
     news->addChild(
         makeLabel(tr("changelog-desc"), Style::fontSizeCaption * scale, colorSpecFromRole(ColorRole::OnSurfaceVariant))
     );

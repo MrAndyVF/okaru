@@ -21,6 +21,7 @@
 #include "ui/controls/toggle.h"
 #include "ui/dialogs/glyph_picker_dialog.h"
 #include "ui/palette.h"
+#include "ui/controls/card_columns.h"
 #include "ui/style.h"
 
 #include <algorithm>
@@ -40,6 +41,9 @@
 
 namespace settings {
   namespace {
+
+    // Ancho mínimo de cada columna de tarjetas: por debajo, las filas (texto + control) no caben bien en dos.
+    constexpr float kSettingsCardMinColumnWidth = 440.0F;
 
     bool isDockLauncherIconPath(const std::vector<std::string>& path) {
       return path.size() == 2 && path[0] == "dock" && path[1] == "launcher_icon";
@@ -1189,6 +1193,19 @@ namespace settings {
     std::string activeGroupKey;
     Flex* activeSection = nullptr;
     Flex* activeGroupBody = nullptr;
+    // OKARU: las tarjetas seguidas de una sección van en una o dos columnas según el ancho (en la búsqueda, una).
+    Flex* activeCardColumns = nullptr;
+    const auto cardParent = [&]() -> Flex& {
+      if (!ctx.searchQuery.empty()) {
+        return *activeSection;
+      }
+      if (activeCardColumns == nullptr) {
+        activeCardColumns = static_cast<Flex*>(activeSection->addChild(
+            std::make_unique<CardColumns>(kSettingsCardMinColumnWidth * scale, Style::spaceSm * scale)
+        ));
+      }
+      return *activeCardColumns;
+    };
     constexpr std::size_t kKeybindsPerRow = 2;
     Flex* activeKeybindRow = nullptr;
     std::size_t activeKeybindRowCount = 0;
@@ -1332,6 +1349,7 @@ namespace settings {
         }
         activeSection = makeSection(displayTitle, entry.section);
         activeGroupBody = activeSection;
+        activeCardColumns = nullptr;
         if (ctx.config.shell.offlineMode && settingsSectionNeedsOfflineModeNotice(entry.section)) {
           const bool showDisableHint = entry.section != SettingsSection::Security;
           activeSection->addChild(
@@ -1348,7 +1366,7 @@ namespace settings {
           if (collapsibleGroups && !entry.group.empty()) {
             activeGroupBody = addSettingsGroupCard(
                 SettingsGroupCardProps{
-                    .parent = *activeSection,
+                    .parent = cardParent(),
                     .group = entry.group,
                     .title = groupLabel(entry.group),
                     .scale = scale,
@@ -1358,8 +1376,9 @@ namespace settings {
                 }
             );
           } else if (!entry.group.empty()) {
-            activeGroupBody = addSettingsCard(*activeSection, groupLabel(entry.group), scale);
+            activeGroupBody = addSettingsCard(cardParent(), groupLabel(entry.group), scale);
           } else {
+            activeCardColumns = nullptr;
             addGroupLabel(*activeSection, groupLabel(entry.group), isFirstGroup);
             activeGroupBody = activeSection;
           }
