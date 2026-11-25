@@ -624,19 +624,24 @@ void WeatherTab::doLayout(Renderer& renderer, float contentWidth, float bodyHeig
     m_locationPromptBody->setMaxWidth(textWidth);
   }
 
-  if (m_effectNode != nullptr && m_currentCard != nullptr) {
-    m_effectNode->setPosition(0.0F, 0.0F);
-    m_effectNode->setFrameSize(m_currentCard->width(), m_currentCard->height());
-  }
+  // El efecto (lluvia, nieve…) va dentro del borde de la tarjeta para no taparlo.
+  const auto placeEffect = [this] {
+    if (m_effectNode != nullptr && m_currentCard != nullptr) {
+      const float inset = Style::borderWidth;
+      m_effectNode->setPosition(inset, inset);
+      m_effectNode->setFrameSize(
+          std::max(0.0F, m_currentCard->width() - inset * 2.0F), std::max(0.0F, m_currentCard->height() - inset * 2.0F)
+      );
+    }
+  };
+  placeEffect();
 
   // The weather tab derives several width constraints from the first measurement
   // pass. Run layout again so the final geometry reflects those constraints
   // instead of keeping the placeholder/pre-constraint positions.
   m_rootLayout->layout(renderer);
 
-  if (m_effectNode != nullptr && m_currentCard != nullptr) {
-    m_effectNode->setFrameSize(m_currentCard->width(), m_currentCard->height());
-  }
+  placeEffect();
 
   for (std::size_t i = 0; i < kForecastRowCount; ++i) {
     if (m_forecastRows[i] == nullptr || m_forecastHitAreas[i] == nullptr) {
