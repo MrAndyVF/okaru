@@ -25,6 +25,7 @@
 #include "shell/settings/okaru_settings_diagnostics.h"
 #include "shell/settings/okaru_settings_displays.h"
 #include "shell/settings/okaru_settings_dock_screens.h"
+#include "shell/settings/okaru_settings_apps.h"
 #include "shell/settings/okaru_settings_home.h"
 #include "shell/settings/okaru_settings_hyprpm.h"
 #include "shell/settings/okaru_settings_rules.h"
@@ -1326,6 +1327,25 @@ void SettingsWindow::rebuildSettingsContent() {
             .scale = scale,
             .audio = m_pipewire,
             .config = m_config,
+            .requestRebuild = [this] {
+              if (isOpen()) {
+                requestSceneRebuild();
+              }
+            },
+        }
+    );
+    return;
+  }
+
+  // OKARU: Aplicaciones (por defecto, tipos de archivo, instaladas).
+  if (m_selectedSection.starts_with("apps-")) {
+    settings::addSettingsApps(
+        *m_contentContainer,
+        settings::SettingsAppsContext{
+            .scale = scale,
+            .page = m_selectedSection,
+            .config = m_config,
+            .renderer = m_surface != nullptr ? &m_surface->renderTarget().renderer() : nullptr,
             .requestRebuild = [this] {
               if (isOpen()) {
                 requestSceneRebuild();

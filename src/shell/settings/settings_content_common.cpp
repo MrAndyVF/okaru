@@ -240,6 +240,9 @@ namespace settings {
     case SettingsSection::Home:
     case SettingsSection::SoundDevices:
     case SettingsSection::Sound:
+    case SettingsSection::AppsDefaults:
+    case SettingsSection::AppsFileTypes:
+    case SettingsSection::AppsInstalled:
       return false;
     }
     return false;
@@ -290,6 +293,9 @@ namespace settings {
     case SettingsSection::Home:
     case SettingsSection::SoundDevices:
     case SettingsSection::Sound:
+    case SettingsSection::AppsDefaults:
+    case SettingsSection::AppsFileTypes:
+    case SettingsSection::AppsInstalled:
       return {};
     }
     return {};

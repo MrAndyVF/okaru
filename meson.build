@@ -804,6 +804,7 @@ _okaru_sources = files(
   'src/shell/settings/okaru_settings_sound.cpp',
   'src/shell/settings/okaru_settings_windows.cpp',
   'src/shell/settings/okaru_settings_rules.cpp',
+  'src/shell/settings/okaru_settings_apps.cpp',
   'src/shell/settings/okaru_settings_binds.cpp',
   'src/shell/settings/font_family_catalog.cpp',
   'src/shell/settings/font_weight_catalog.cpp',
@@ -1042,6 +1043,7 @@ _okaru_sources = files(
   'src/shell/okaru_panels/okaru_ports_tab.cpp',
   'src/system/okaru_ports.cpp',
   'src/system/okaru_updates.cpp',
+  'src/system/okaru_apps.cpp',
   'src/system/okaru_autostart.cpp',
   'src/system/okaru_uwsm_env.cpp',
   'src/system/okaru_system_info.cpp',
@@ -1323,6 +1325,11 @@ if build_tests
   ))
   test('okaru_thumbnail_warm', executable('okaru_thumbnail_warm_test',
     sources: files('tests/okaru_thumbnail_warm_test.cpp'),
+    dependencies: okaru_core_dep,
+    override_options: ['b_ndebug=false'],
+  ))
+  test('okaru_apps', executable('okaru_apps_test',
+    sources: files('tests/okaru_apps_test.cpp'),
     dependencies: okaru_core_dep,
     override_options: ['b_ndebug=false'],
   ))

@@ -66,7 +66,7 @@ namespace settings {
       return defaultKeybindSet(action);
     }
 
-    constexpr std::array<SettingsSectionDescriptor, 37> kSettingsSections{{
+    constexpr std::array<SettingsSectionDescriptor, 40> kSettingsSections{{
         {SettingsSection::Appearance, "appearance", "adjustments-horizontal"},
         {SettingsSection::Wallpaper, "wallpaper", "paint"},
         {SettingsSection::Templates, "templates", "color-swatch"},
@@ -104,6 +104,9 @@ namespace settings {
         {SettingsSection::Home, "home", "home", true, true}, // OKARU
         {SettingsSection::SoundDevices, "sound-devices", "device-speaker", true, true}, // OKARU
         {SettingsSection::Sound, "sound", "music"}, // OKARU
+        {SettingsSection::AppsDefaults, "apps-defaults", "star", true, true}, // OKARU
+        {SettingsSection::AppsFileTypes, "apps-file-types", "file-settings", true, true}, // OKARU
+        {SettingsSection::AppsInstalled, "apps-installed", "package", true, true}, // OKARU
     }};
 
     const SettingsSectionDescriptor& descriptorFor(SettingsSection section) {

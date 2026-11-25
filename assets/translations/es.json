@@ -1787,7 +1787,9 @@
         "system-hint": "Inicio, energía, seguridad",
         "windows": "Ventanas",
         "windows-hint": "Distribución, reglas, animaciones",
-        "windows-hint-niri": "Vista general y fondo"
+        "windows-hint-niri": "Vista general y fondo",
+        "apps": "Aplicaciones",
+        "apps-hint": "Por defecto, tipos de archivo, instaladas"
       },
       "okaru-results": "Coincidencias en las páginas de OKARU",
       "sections": {
@@ -1832,7 +1834,10 @@
         "window-layout": "Distribución",
         "window-rules": "Reglas",
         "sound-devices": "Dispositivos",
-        "sound": "Sonidos de la shell"
+        "sound": "Sonidos de la shell",
+        "apps-installed": "Instaladas",
+        "apps-defaults": "Apps por defecto",
+        "apps-file-types": "Tipos de archivo"
       }
     },
     "notifications": {
@@ -2650,6 +2655,51 @@
           "description": "Elige el tema de iconos del sistema.",
           "button": "Abrir gestor de iconos"
         }
+      },
+      "apps": {
+        "defaults": "Apps por defecto",
+        "defaults-intro": "La app que abre cada tipo de enlace o archivo. Se guarda en ~/.config/mimeapps.list.",
+        "default-browser": "Navegador web",
+        "default-email": "Correo",
+        "default-files": "Gestor de archivos",
+        "default-text": "Editor de texto",
+        "default-images": "Imágenes",
+        "default-video": "Video",
+        "default-music": "Música",
+        "default-pdf": "Documentos PDF",
+        "default-archives": "Comprimidos",
+        "not-set": "Sin elegir",
+        "no-candidates": "Ninguna app instalada lo abre",
+        "current-other": "Ahora: {app}",
+        "file-types": "Tipos de archivo por app",
+        "file-types-intro": "Elige una app para decidir qué tipos de archivo abre por defecto.",
+        "app": "Aplicación",
+        "choose-app": "Elige una app",
+        "types-of": "Tipos de archivo de {app}",
+        "use-for-all": "Usar para todos",
+        "opens-with": "se abre con {app}",
+        "installed": "Apps instaladas",
+        "installed-intro": "Abre, fija en el dock, oculta del lanzador o desinstala. En los detalles aparece el paquete de cada app.",
+        "search": "Buscar apps",
+        "open": "Abrir",
+        "pin": "Fijar en el dock",
+        "unpin": "Quitar del dock",
+        "hide": "Ocultar del lanzador",
+        "show": "Mostrar en el lanzador",
+        "hidden": "Oculta en el lanzador",
+        "details": "Detalles",
+        "source": "Origen",
+        "package": "Paquete",
+        "version": "Versión",
+        "size": "Tamaño",
+        "file": "Archivo .desktop",
+        "file-types-count": "Tipos de archivo",
+        "no-package": "No viene de un gestor de paquetes",
+        "uninstall": "Desinstalar",
+        "uninstall-confirm": "Desinstalar {package}",
+        "uninstalling": "Desinstalando…",
+        "uninstalled": "Se desinstaló {app}",
+        "cancel": "Cancelar"
       }
     },
     "options": {

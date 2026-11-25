@@ -1874,7 +1874,9 @@
         "system-hint": "Startup, power, security",
         "windows": "Windows",
         "windows-hint": "Layout, rules, animations",
-        "windows-hint-niri": "Overview and backdrop"
+        "windows-hint-niri": "Overview and backdrop",
+        "apps": "Applications",
+        "apps-hint": "Defaults, file types, installed"
       },
       "okaru-results": "Matches in OKARU pages",
       "sections": {
@@ -1919,7 +1921,10 @@
         "window-layout": "Layout",
         "window-rules": "Rules",
         "sound-devices": "Devices",
-        "sound": "Shell sounds"
+        "sound": "Shell sounds",
+        "apps-installed": "Installed",
+        "apps-defaults": "Default apps",
+        "apps-file-types": "File types"
       }
     },
     "notifications": {
@@ -2580,6 +2585,51 @@
           "description": "Choose the system icon theme.",
           "button": "Open icon manager"
         }
+      },
+      "apps": {
+        "defaults": "Default apps",
+        "defaults-intro": "The app that opens each kind of link or file. Saved in ~/.config/mimeapps.list.",
+        "default-browser": "Web browser",
+        "default-email": "Email",
+        "default-files": "File manager",
+        "default-text": "Text editor",
+        "default-images": "Images",
+        "default-video": "Video",
+        "default-music": "Music",
+        "default-pdf": "PDF documents",
+        "default-archives": "Archives",
+        "not-set": "Not set",
+        "no-candidates": "No installed app handles this",
+        "current-other": "Now: {app}",
+        "file-types": "File types by app",
+        "file-types-intro": "Pick an app to choose which file types it opens by default.",
+        "app": "Application",
+        "choose-app": "Choose an app",
+        "types-of": "File types of {app}",
+        "use-for-all": "Use for all",
+        "opens-with": "opens with {app}",
+        "installed": "Installed apps",
+        "installed-intro": "Open, pin to the dock, hide from the launcher or uninstall. Details show the package each app comes from.",
+        "search": "Search apps",
+        "open": "Open",
+        "pin": "Pin to dock",
+        "unpin": "Unpin from dock",
+        "hide": "Hide from launcher",
+        "show": "Show in launcher",
+        "hidden": "Hidden from the launcher",
+        "details": "Details",
+        "source": "Source",
+        "package": "Package",
+        "version": "Version",
+        "size": "Size",
+        "file": "Desktop file",
+        "file-types-count": "File types",
+        "no-package": "Not from a package manager",
+        "uninstall": "Uninstall",
+        "uninstall-confirm": "Uninstall {package}",
+        "uninstalling": "Uninstalling…",
+        "uninstalled": "{app} was uninstalled",
+        "cancel": "Cancel"
       }
     },
     "options": {

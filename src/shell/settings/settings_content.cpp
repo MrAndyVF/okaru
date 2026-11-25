@@ -1435,7 +1435,7 @@ namespace settings {
         || ctx.selectedSection.starts_with("window-") || ctx.selectedSection.starts_with("input-")
         || ctx.selectedSection.starts_with("hypr-") || ctx.selectedSection == "system-startup"
         || ctx.selectedSection == "system-environment" || ctx.selectedSection == "home"
-        || ctx.selectedSection == "sound-devices";
+        || ctx.selectedSection == "sound-devices" || ctx.selectedSection.starts_with("apps-");
     if (visibleEntries == 0 && ctx.okaruExtraResults == 0 && (!ctx.searchQuery.empty() || !okaruOwnPage)) {
       auto emptyState = ui::column(
           {.align = FlexAlign::Center,
