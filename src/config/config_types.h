@@ -957,21 +957,21 @@ constexpr ShadowDirectionOffset shadowDirectionOffset(ShadowDirection dir) noexc
   case ShadowDirection::Center:
     return {0, 0};
   case ShadowDirection::Down:
-    return {0, 2};
+    return {0, 4};
   case ShadowDirection::Up:
-    return {0, -2};
+    return {0, -4};
   case ShadowDirection::Left:
-    return {-2, 0};
+    return {-4, 0};
   case ShadowDirection::Right:
-    return {2, 0};
+    return {4, 0};
   case ShadowDirection::DownLeft:
-    return {-2, 2};
+    return {-4, 4};
   case ShadowDirection::DownRight:
-    return {2, 2};
+    return {4, 4};
   case ShadowDirection::UpLeft:
-    return {-2, -2};
+    return {-4, -4};
   case ShadowDirection::UpRight:
-    return {2, -2};
+    return {4, -4};
   }
   return {0, 2};
 }
@@ -1095,7 +1095,7 @@ struct ShellConfig {
 
   struct ShadowConfig {
     ShadowDirection direction = ShadowDirection::Down;
-    float alpha = 0.55F;
+    float alpha = 0.28F; // OKARU: sombra suave, para que no parezca un segundo borde junto al de 2 px
 
     bool operator==(const ShadowConfig&) const = default;
   };

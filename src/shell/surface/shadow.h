@@ -7,7 +7,8 @@
 
 namespace shell::surface_shadow {
 
-  constexpr std::int32_t kBlurRadius = 12;
+  // OKARU: difuminado amplio: con esquinas rectas y borde de 2 px, uno corto se ve como un borde grueso.
+  constexpr std::int32_t kBlurRadius = 24;
 
   struct Bleed {
     std::int32_t left = 0;
