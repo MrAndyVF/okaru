@@ -1,5 +1,9 @@
 #include "shell/okaru_dashboard/okaru_dashboard_panel.h"
 
+#include "ui/controls/drag_source.h"
+#include "ui/controls/drop_zone.h"
+#include "ui/drag_drop_controller.h"
+
 #include "config/config_service.h"
 #include "core/input/keybind_matcher.h"
 #include "i18n/i18n.h"
@@ -23,6 +27,8 @@
 using namespace okaru::dashboard;
 
 namespace {
+
+    constexpr std::string_view kCardDragType = "okaru-dashboard-card";
 
   constexpr const char* kPanelId = "control-center";
   constexpr float kCell = 112.0F;      // ancho de una columna (sin escalar)
@@ -228,6 +234,17 @@ std::vector<ControlCenterCardConfig> OkaruDashboardPanel::currentCards() const {
                                            : defaultControlCenterCards();
 }
 
+void OkaruDashboardPanel::moveCard(std::size_t from, std::size_t to) {
+  auto cards = currentCards();
+  if (from >= cards.size() || to >= cards.size() || from == to) {
+    return;
+  }
+  auto card = std::move(cards[from]);
+  cards.erase(cards.begin() + static_cast<std::ptrdiff_t>(from));
+  cards.insert(cards.begin() + static_cast<std::ptrdiff_t>(to), std::move(card));
+  save(std::move(cards));
+}
+
 void OkaruDashboardPanel::save(std::vector<ControlCenterCardConfig> cards) {
   if (m_deps.services.config != nullptr) {
     (void)m_deps.services.config->setOverride({"control_center", "cards"}, std::move(cards));
@@ -279,6 +296,22 @@ void OkaruDashboardPanel::create() {
   m_body->setAlign(FlexAlign::Stretch);
   m_body->setGap(Style::spaceSm * scale);
   root->addChild(std::move(scroll));
+  root->addChild(ui::node({
+      .out = &m_dragOverlay,
+      .participatesInLayout = false,
+      .configure = [](Node& overlay) {
+        overlay.setHitTestVisible(false);
+        overlay.setZIndex(std::numeric_limits<std::int32_t>::max());
+      },
+  }));
+  if (m_drag == nullptr) {
+    m_drag = std::make_unique<DragDropController>();
+    m_drag->setDropCallback([this](const std::string& /*callback*/, const std::string& payload, const std::string& target) {
+      moveCard(std::stoul(payload), std::stoul(target));
+    });
+  }
+  m_drag->setScale(scale);
+  m_drag->setOverlayRoot(m_dragOverlay);
   setRoot(std::move(root));
   m_dirty = true;
 }
@@ -314,6 +347,11 @@ void OkaruDashboardPanel::onClose() {
     shortcut->onPanelClose();
   }
   m_cards.clear();
+  if (m_drag != nullptr) {
+    m_drag->cancel();
+    m_drag->setOverlayRoot(nullptr);
+  }
+  m_dragOverlay = nullptr;
   clearReleasedRoot();
   m_root = nullptr;
   m_header = nullptr;
@@ -355,6 +393,10 @@ void OkaruDashboardPanel::doLayout(Renderer& renderer, float width, float height
   }
   m_root->setSize(width, height);
   m_root->layout(renderer);
+  if (m_dragOverlay != nullptr) {
+    m_dragOverlay->setPosition(0.0F, 0.0F);
+    m_dragOverlay->setFrameSize(width, height);
+  }
   if (m_scroll != nullptr && m_header != nullptr) {
     const float pad = Style::spaceLg * contentScale();
     const float top = m_header->y() + m_header->height() + Style::spaceMd * contentScale();
@@ -567,8 +609,21 @@ std::unique_ptr<Flex> OkaruDashboardPanel::makeEditTile(std::size_t index, CardS
         f.setBorder(colorSpecFromRole(ColorRole::Primary), Style::borderWidth);
       },
   });
-  auto title = ui::row({.align = FlexAlign::Center, .gap = Style::spaceXs * scale});
+  // El título es la agarradera: arrastrarlo lleva la tarjeta entera (vista previa) a otra posición.
+  auto title = std::make_unique<DragSource>(m_drag.get());
+  title->setDirection(FlexDirection::Horizontal);
+  title->setAlign(FlexAlign::Center);
+  title->setGap(Style::spaceXs * scale);
+  title->setDragType(std::string(kCardDragType));
+  title->setPayload(std::to_string(index));
+  title->setPreviewAncestor(1);
+  title->setTooltip(tr("drag"));
   Shortcut* shortcut = isShortcutType(type) ? shortcutFor(type) : nullptr;
+  title->addChild(ui::glyph({
+      .glyph = "grip-vertical",
+      .glyphSize = Style::fontSizeBody * scale,
+      .color = colorSpecFromRole(ColorRole::OnSurfaceVariant),
+  }));
   title->addChild(ui::glyph({
       .glyph = shortcut != nullptr ? shortcut->displayIcon() : std::string(kind != nullptr ? kind->glyph : "help"),
       .glyphSize = Style::fontSizeBody * scale,
@@ -629,7 +684,17 @@ std::unique_ptr<Flex> OkaruDashboardPanel::makeEditTile(std::size_t index, CardS
     all->addChild(std::move(second));
     tile->addChild(std::move(all));
   }
-  return tile;
+  // Soltar otra tarjeta encima la pone en este lugar.
+  auto zone = std::make_unique<DropZone>(m_drag.get());
+  zone->setDirection(FlexDirection::Vertical);
+  zone->setAlign(FlexAlign::Stretch);
+  zone->setAccepts({std::string(kCardDragType)});
+  zone->setValue(std::to_string(index));
+  zone->setOnDrop("move");
+  zone->setZoneBorder(colorSpecFromRole(ColorRole::Primary), Style::emphasizedBorderWidth * scale);
+  tile->setFlexGrow(1.0F);
+  zone->addChild(std::move(tile));
+  return zone;
 }
 
 void OkaruDashboardPanel::buildAddList(float scale) {
